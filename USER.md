@@ -1,7 +1,7 @@
 # USER.md - About Your Human
 
-- **Name:** Belam
-- **What to call them:** Belam
+- **Name:** Shael
+- **What to call them:** Shael
 - **Pronouns:** _(TBD)_
 - **Timezone:** _(TBD)_
 - **Notes:** Interested in autonomous AI workflows, wants agents to self-organize and continue work without hand-holding
