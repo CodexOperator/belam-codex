@@ -41,3 +41,17 @@
 - When all experiments complete, heartbeat spawns sub-agent to update report
 - Each experiment takes ~2.5 min on CPU (ARM64, no GPU)
 - All work consolidated into git repo copy (2026-03-12), standalone copy removed
+
+### Applied Finance Research (2026-03-12)
+- **Location:** `SNN_research/machinelearning/snn_applied_finance/`
+- **Goal:** Apply SNN research to financial market prediction (next-candle direction)
+- **Structure:** reports/, notebooks/, scripts/, datasets/, research/
+- **Active agents spawned:**
+  - `snn-research-analyst` — Phase 1 & 2 in-depth reports with custom plots
+  - `dataset-gatherer` — Financial dataset collection (crypto, stocks, prediction markets)
+  - `finance-proposer` — Architecture proposal for SNN finance predictor
+  - `finance-critic` — Critique of proposal (holes, alternatives, improvements)
+  - `finance-builder` — Implementation: Colab notebooks + local test scripts
+- **Triad pattern:** proposer → critic → builder (collaborative design)
+- **Target data:** BTC/USDT hourly, SPY daily, Polymarket, indicators (RSI, MACD, volume, orderbook)
+- **Output format:** .ipynb for Colab (GPU/TPU), .py for local CPU testing

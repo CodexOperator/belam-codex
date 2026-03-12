@@ -1,6 +1,6 @@
 # HEARTBEAT.md — Autonomous Experiment Monitor
 
-## Task: Monitor SNN Experiments
+## Task 1: Monitor SNN Experiments
 
 Check the experiment runner status and report progress:
 
@@ -17,3 +17,12 @@ Check the experiment runner status and report progress:
    - Check `SNN_research/machinelearning/snn_standard_model/experiment_plan.py --status` to see if experiments remain
    - If remaining > 0: run `cd SNN_research/machinelearning/snn_standard_model && nohup python3 run_all_remaining.py > runner_output.log 2>&1 &` to restart
    - If remaining == 0: all done, clear this task
+
+## Task 2: Periodic Git Commits
+
+Check for uncommitted changes in the machinelearning repo:
+
+1. Run `cd SNN_research/machinelearning && git status --short`
+2. If there are new/modified files:
+   - `git add -A && git commit -m "Auto-commit: experiment results and research updates" && git push origin`
+3. If no changes, skip silently.
