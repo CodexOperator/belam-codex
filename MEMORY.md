@@ -5,7 +5,8 @@
 - **Interests:** Spiking Neural Networks (SNN) research, autonomous AI experimentation
 
 ## SNN Research Project
-- **Location:** `SNN_research/snn_standard_model/`
+- **Location:** `SNN_research/machinelearning/snn_standard_model/`
+- **Git repo:** `SNN_research/machinelearning/` → `github.com/CodexOperator/machinelearning.git`
 - **Goal:** Systematic benchmarking of snnTorch neuron models (Leaky, Synaptic, Alpha) on MNIST-family datasets → foundation for custom Rhythm Neuron (Part II)
 - **Architecture:** FC 784 → 1000 → 10, CPU-only
 - **Key files:**
@@ -35,7 +36,8 @@
 - `python` not available on this host, use `python3`
 
 ### Autonomous Experiment Loop
-- Background runner: `nohup python3 run_all_remaining.py > runner_output.log 2>&1 &`
+- Background runner: `cd SNN_research/machinelearning/snn_standard_model && nohup python3 run_all_remaining.py > runner_output.log 2>&1 &`
 - Heartbeat monitors `runner_state.json` for progress
 - When all experiments complete, heartbeat spawns sub-agent to update report
 - Each experiment takes ~2.5 min on CPU (ARM64, no GPU)
+- All work consolidated into git repo copy (2026-03-12), standalone copy removed
