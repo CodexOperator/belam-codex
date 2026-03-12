@@ -1,0 +1,52 @@
+{
+  "config": {
+    "experiment_id": "fashion_leaky_b0.99_steps25",
+    "neuron_model": "Leaky",
+    "dataset": "FashionMNIST",
+    "encoding": "rate",
+    "beta": 0.99,
+    "alpha": null,
+    "num_steps": 25,
+    "threshold": 1.0,
+    "reset_mechanism": "subtract",
+    "learn_beta": false,
+    "learn_alpha": false,
+    "inhibition": false,
+    "batch_size": 128,
+    "lr": 0.0005,
+    "optimizer_name": "Adam",
+    "num_epochs": 1,
+    "hidden_size": 1000,
+    "seed": 42,
+    "tau": 5.0,
+    "latency_linear": false
+  },
+  "final_train_acc": 0.795188969017094,
+  "final_test_acc": 0.8194110576923077,
+  "best_test_acc": 0.8194110576923077,
+  "best_test_epoch": 0,
+  "per_layer_spike_density": {
+    "hidden": 0.03750585670405983,
+    "output": 0.027512286324786323
+  },
+  "per_layer_mem_stats": {
+    "hidden": {
+      "mean": -4.716908307291667,
+      "var": 38.235274609010986
+    },
+    "output": {
+      "mean": -0.7300790994758279,
+      "var": 2.874513052877471
+    }
+  },
+  "loss_curve": [
+    1.2076667091275892
+  ],
+  "accuracy_curve": [
+    0.8194110576923077
+  ],
+  "wall_clock_time": 150.85612058639526,
+  "avg_epoch_time": 150.85612058639526,
+  "learned_params": {},
+  "timestamp": "20260312T063739Z"
+}

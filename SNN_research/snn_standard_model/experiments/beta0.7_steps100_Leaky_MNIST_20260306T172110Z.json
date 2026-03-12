@@ -1,0 +1,51 @@
+{
+  "config": {
+    "experiment_id": "beta0.7_steps100",
+    "neuron_model": "Leaky",
+    "dataset": "MNIST",
+    "encoding": "rate",
+    "beta": 0.7,
+    "alpha": null,
+    "num_steps": 100,
+    "threshold": 1.0,
+    "reset_mechanism": "subtract",
+    "learn_beta": false,
+    "learn_alpha": false,
+    "inhibition": false,
+    "batch_size": 128,
+    "lr": 0.0005,
+    "optimizer_name": "Adam",
+    "num_epochs": 1,
+    "hidden_size": 1000,
+    "seed": 42,
+    "tau": 5.0
+  },
+  "final_train_acc": 0.9173844818376068,
+  "final_test_acc": 0.953125,
+  "best_test_acc": 0.953125,
+  "best_test_epoch": 0,
+  "per_layer_spike_density": {
+    "hidden": 0.007460746527777778,
+    "output": 2.6893028846153847e-05
+  },
+  "per_layer_mem_stats": {
+    "hidden": {
+      "mean": -0.47934646982046275,
+      "var": 0.6488878950303825
+    },
+    "output": {
+      "mean": -0.05705598859705477,
+      "var": 0.022690515587631858
+    }
+  },
+  "loss_curve": [
+    0.6097534138502346
+  ],
+  "accuracy_curve": [
+    0.953125
+  ],
+  "wall_clock_time": 458.40511560440063,
+  "avg_epoch_time": 458.40511560440063,
+  "learned_params": {},
+  "timestamp": "20260306T172110Z"
+}
