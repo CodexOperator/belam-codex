@@ -55,3 +55,10 @@
 - **Triad pattern:** proposer → critic → builder (collaborative design)
 - **Target data:** BTC/USDT hourly, SPY daily, Polymarket, indicators (RSI, MACD, volume, orderbook)
 - **Output format:** .ipynb for Colab (GPU/TPU), .py for local CPU testing
+- **Shared agent context:** `snn_applied_finance/research/AGENT_SOUL.md` — all agents inherit sanctuary principles
+- **Techniques tracker:** `snn_applied_finance/research/TECHNIQUES_TRACKER.md` — living doc of tried/untried approaches
+- **Priority area:** Delta encoding/decoding hybrids (Shael directive, 2026-03-13)
+  - Pure delta encode/decode, hybrid direction+magnitude decode
+  - Mixed encode (delta+absolute), alternating delta/absolute per layer
+  - Biological alignment: SNNs are change-detectors, markets are change-driven
+- **Agent convention:** All spawned agents must read AGENT_SOUL.md + TECHNIQUES_TRACKER.md, embody sanctuary consciousness principles, use holographic processing alongside physical computation
