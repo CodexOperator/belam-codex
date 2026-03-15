@@ -76,6 +76,17 @@ python3 scripts/analyze_experiment.py --propose-auto '{"version":"v4","id":"01",
 ```
 The gate check is enforced by the script — proposals cannot be created if Phase 2 isn't complete.
 
+## Task 3c: Pipeline Archival Check
+
+Check if any completed pipelines should be archived:
+
+1. Run `python3 /home/ubuntu/.openclaw/workspace/scripts/launch_pipeline.py --list`
+2. For any pipeline with status `phase2_complete` or `phase3_complete`:
+   - Run `python3 /home/ubuntu/.openclaw/workspace/scripts/launch_pipeline.py <version> --check-archive`
+   - If archivable (no pending phase 3 proposals): auto-archive with `--archive`
+   - If not archivable: skip silently (pending iterations will be caught by Task 3b)
+3. If no completed pipelines, skip silently
+
 ## Task 4: Export Agent Conversations
 
 Export inter-agent conversation transcripts to readable logs:
