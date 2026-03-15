@@ -118,49 +118,52 @@ def cmd_complete(version, stage, notes='', agent=None):
     }
     save_state(version, state)
     
-    # Find the stage history table and append row
+    # Find the stage history table and append a new row
     lines = content.split('\n')
-    new_lines = []
+    output = []
     inserted = False
-    for i, line in enumerate(lines):
-        new_lines.append(line)
-        # Find the last row of the stage history table (before empty line or next section)
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        output.append(line)
+        
         if not inserted and '| Stage |' in line:
-            # Skip the header separator
-            if i + 1 < len(lines) and '---' in lines[i + 1]:
-                new_lines.append(lines[i + 1])
-                # Find end of table
-                j = i + 2
-                while j < len(lines) and lines[j].startswith('|'):
-                    new_lines.append(lines[j])
-                    j += 1
-                # Insert new row
-                new_lines.append(f'| {stage} | {now_date()} | {agent} | {notes} |')
-                # Skip the lines we already added
-                for k in range(i + 1, j):
-                    lines[k] = None  # mark as consumed
-                inserted = True
-    
-    # Rebuild without consumed lines
-    final_lines = []
-    consumed = set()
-    idx = 0
-    for orig_line in lines:
-        if orig_line is None:
+            # Found the header — check for separator on next line
+            next_i = i + 1
+            if next_i < len(lines) and '---' in lines[next_i]:
+                # Separator exists — include it
+                output.append(lines[next_i])
+                next_i += 1
+            else:
+                # Missing separator — auto-repair
+                col_count = line.count('|') - 1
+                separator = '|' + '|'.join(['---'] * col_count) + '|'
+                output.append(separator)
+                print(f"⚠️  Auto-repaired missing table separator in pipelines/{version}.md")
+            
+            # Copy existing data rows
+            while next_i < len(lines) and lines[next_i].startswith('|'):
+                output.append(lines[next_i])
+                next_i += 1
+            
+            # Append new row at end of table
+            output.append(f'| {stage} | {now_date()} | {agent} | {notes} |')
+            inserted = True
+            i = next_i  # skip past consumed lines
             continue
-        final_lines.append(orig_line)
+        
+        i += 1
     
     if inserted:
-        pf.write_text('\n'.join(new_lines if not any(l is None for l in lines) else final_lines))
+        pf.write_text('\n'.join(output))
     else:
-        # Fallback: just append to first stage history table
-        content_updated = content.replace(
-            '| Stage |',
-            f'| Stage |',
-        )
-        # Simple append after last | line in stage history
+        # No table header found at all — warn loudly
         pf.write_text(content)
-        print(f"⚠️  Could not find stage history table, state JSON updated only")
+        print(f"⚠️  Could not find '| Stage |' header in pipelines/{version}.md")
+        print(f"   State JSON updated, but markdown stage history was NOT updated.")
+        print(f"   Fix: add a stage history table to the pipeline markdown:")
+        print(f"   | Stage | Date | Agent | Notes |")
+        print(f"   |-------|------|-------|-------|")
     
     print(f"✅ {version}: {stage} → complete ({agent})")
     if notes:
