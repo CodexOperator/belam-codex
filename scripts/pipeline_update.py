@@ -3,14 +3,18 @@
 Pipeline Stage Updater
 
 Single command for agents to update pipeline state. Updates BOTH the pipeline
-markdown primitive and the state JSON atomically.
+markdown primitive and the state JSON atomically. Manages pending_action and
+prints fire-and-forget ping instructions for the next agent.
 
 Usage:
-    # Complete a stage:
-    python3 scripts/pipeline_update.py v4 complete architect_design "Design v2 with all blocks resolved"
+    # Complete a stage (auto-advances pending_action + prints ping instruction):
+    python3 scripts/pipeline_update.py v4 complete architect_design "Design v2 with all blocks resolved" architect
+    
+    # Block a stage (Critic found issues — sets pending_action to fix step):
+    python3 scripts/pipeline_update.py v4 block critic_code_review "BLOCK-1: wrong loss fn" critic --artifact v4_critic_blocks.md
     
     # Start a stage:
-    python3 scripts/pipeline_update.py v4 start builder_implementation
+    python3 scripts/pipeline_update.py v4 start builder_implementation builder
     
     # Set overall pipeline status:
     python3 scripts/pipeline_update.py v4 status phase1_build
@@ -32,6 +36,69 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+
+# Agent session keys for fire-and-forget pings
+AGENT_SESSIONS = {
+    'architect': 'agent:architect:telegram:group:-5243763228',
+    'critic':    'agent:critic:telegram:group:-5243763228',
+    'builder':   'agent:builder:telegram:group:-5243763228',
+}
+
+# Stage transition map: when stage X completes, what's next?
+# Format: completed_stage → (next_pending_action, next_agent, ping_message_template)
+STAGE_TRANSITIONS = {
+    # Phase 1
+    'architect_design':           ('critic_design_review',       'critic',    'Design ready for review at pipeline_builds/{v}_architect_design.md'),
+    'critic_design_review':       ('builder_implementation',     'builder',   'Design approved. Build spec at pipeline_builds/{v}_architect_design.md'),
+    'architect_design_revision':  ('critic_design_review',       'critic',    'Design revised, re-review at pipeline_builds/{v}_architect_design.md'),
+    'builder_implementation':     ('critic_code_review',         'critic',    'Implementation done. Review the notebook.'),
+    'critic_code_review':         ('phase1_complete',            'architect', 'Phase 1 code review passed. Ready for Phase 2 design.'),
+    # Phase 1 blocks
+    'builder_apply_blocks':       ('critic_code_review',         'critic',    'Blocks fixed. Re-review the notebook.'),
+
+    # Phase 2
+    'phase2_architect_design':    ('phase2_critic_design_review','critic',    'Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md'),
+    'phase2_critic_design_review':('phase2_builder_implementation','builder', 'Phase 2 design approved. Build spec at pipeline_builds/{v}_phase2_architect_design.md'),
+    'phase2_architect_revision':  ('phase2_critic_design_review','critic',    'Phase 2 design revised, re-review at pipeline_builds/{v}_phase2_architect_design.md'),
+    'phase2_builder_implementation':('phase2_critic_code_review','critic',    'Phase 2 implementation done. Review the notebook.'),
+    'builder_phase2_implemented': ('phase2_critic_code_review',  'critic',    'Phase 2 implementation done. Review the notebook.'),
+    'phase2_critic_code_review':  ('phase2_complete',            'architect', 'Phase 2 code review passed. Pipeline complete (or ready for Phase 3).'),
+    # Phase 2 blocks
+    'builder_apply_phase2_blocks':('phase2_critic_code_review',  'critic',    'Phase 2 blocks fixed. Re-review the notebook.'),
+    'critic_block_fixes':         ('phase2_critic_code_review',  'critic',    'Blocks fixed. Re-review the notebook.'),
+
+    # Phase 3
+    'phase3_architect_design':    ('phase3_critic_review',       'critic',    'Phase 3 iteration design ready for review.'),
+    'phase3_critic_review':       ('phase3_builder_implementation','builder', 'Phase 3 design approved. Build it.'),
+    'phase3_builder_implementation':('phase3_critic_code_review','critic',    'Phase 3 implementation done. Review the notebook.'),
+    'phase3_critic_code_review':  ('phase3_complete',            'architect', 'Phase 3 iteration complete.'),
+}
+
+# Block transitions: when a review stage is blocked, what's the fix action?
+BLOCK_TRANSITIONS = {
+    'critic_design_review':       ('architect_design_revision',  'architect', 'Design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'critic_code_review':         ('builder_apply_blocks',       'builder',   'Code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'phase2_critic_design_review':('phase2_architect_revision',  'architect', 'Phase 2 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'phase2_critic_code_review':  ('builder_apply_phase2_blocks','builder',   'Phase 2 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'phase3_critic_review':       ('phase3_architect_revision',  'architect', 'Phase 3 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'phase3_critic_code_review':  ('phase3_builder_fix',         'builder',   'Phase 3 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+}
+
+
+def print_ping_instruction(version, next_agent, ping_msg, artifact=None):
+    """Print the fire-and-forget ping instruction for the agent to copy-paste."""
+    session_key = AGENT_SESSIONS.get(next_agent)
+    if not session_key:
+        print(f"   ⚠️  Unknown agent '{next_agent}' — ping manually")
+        return
+
+    msg = ping_msg.format(v=version, artifact=artifact or '')
+    print(f"")
+    print(f"   🔔 PING {next_agent.upper()} (fire-and-forget, timeoutSeconds: 0):")
+    print(f"   Session: {session_key}")
+    print(f"   Message: {msg}")
+    print(f"")
+    print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
 
 def load_state(version):
@@ -165,13 +232,25 @@ def cmd_complete(version, stage, notes='', agent=None):
         print(f"   | Stage | Date | Agent | Notes |")
         print(f"   |-------|------|-------|-------|")
     
+    # Update pending_action based on stage transition map
+    transition = STAGE_TRANSITIONS.get(stage)
+    if transition:
+        next_action, next_agent, ping_template = transition
+        state['pending_action'] = next_action
+        state['last_updated'] = now_str()
+        save_state(version, state)
+    
     print(f"✅ {version}: {stage} → complete ({agent})")
     if notes:
         print(f"   Notes: {notes}")
-    print(f"")
-    print(f"   ⚠️  NOW POST TO GROUP CHAT (Telegram group -5243763228):")
-    print(f"   📊 Pipeline {version} — {stage} complete")
-    print(f"   {notes if notes else '(add summary)'}")
+
+    if transition:
+        print(f"   pending_action → {next_action}")
+        print_ping_instruction(version, next_agent, ping_template)
+    else:
+        print(f"")
+        print(f"   ⚠️  No auto-transition for '{stage}' — set pending_action manually if needed")
+        print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
 
 def cmd_start(version, stage, agent=None):
@@ -188,6 +267,82 @@ def cmd_start(version, stage, agent=None):
     }
     save_state(version, state)
     print(f"🔨 {version}: {stage} → in_progress ({agent})")
+
+
+def cmd_block(version, stage, notes='', agent=None, artifact=None):
+    """Mark a review stage as blocked — sets pending_action to the fix step."""
+    agent = agent or get_agent_id()
+    pf, content = load_pipeline_md(version)
+    state = load_state(version)
+
+    blocked_stage = f'{stage}_blocked'
+
+    # Update state JSON
+    if 'stages' not in state:
+        state['stages'] = {}
+    state['stages'][blocked_stage] = {
+        'status': 'blocked',
+        'blocked_at': now_str(),
+        'agent': agent,
+        'notes': notes,
+    }
+    if artifact:
+        state[f'{stage}_blocks_artifact'] = f'SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{artifact}'
+
+    # Look up the block transition
+    transition = BLOCK_TRANSITIONS.get(stage)
+    if transition:
+        next_action, next_agent, ping_template = transition
+        state['pending_action'] = next_action
+    state['last_updated'] = now_str()
+    save_state(version, state)
+
+    # Append blocked entry to stage history table
+    lines = content.split('\n')
+    output = []
+    inserted = False
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        output.append(line)
+
+        if not inserted and '| Stage |' in line:
+            next_i = i + 1
+            if next_i < len(lines) and '---' in lines[next_i]:
+                output.append(lines[next_i])
+                next_i += 1
+            else:
+                col_count = line.count('|') - 1
+                separator = '|' + '|'.join(['---'] * col_count) + '|'
+                output.append(separator)
+
+            while next_i < len(lines) and lines[next_i].startswith('|'):
+                output.append(lines[next_i])
+                next_i += 1
+
+            output.append(f'| {blocked_stage} | {now_date()} | {agent} | BLOCKED: {notes} |')
+            inserted = True
+            i = next_i
+            continue
+
+        i += 1
+
+    if inserted:
+        pf.write_text('\n'.join(output))
+
+    print(f"🚫 {version}: {stage} → BLOCKED ({agent})")
+    if notes:
+        print(f"   Notes: {notes}")
+    if artifact:
+        print(f"   Blocks artifact: pipeline_builds/{artifact}")
+
+    if transition:
+        print(f"   pending_action → {next_action}")
+        print_ping_instruction(version, next_agent, ping_template, artifact)
+    else:
+        print(f"")
+        print(f"   ⚠️  No auto-transition for blocking '{stage}' — set pending_action manually")
+        print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
 
 def cmd_status(version, new_status):
@@ -247,6 +402,19 @@ def main():
     
     if action == 'show':
         cmd_show(version)
+    elif action == 'block':
+        stage = sys.argv[3] if len(sys.argv) > 3 else None
+        notes = sys.argv[4] if len(sys.argv) > 4 else ''
+        agent = sys.argv[5] if len(sys.argv) > 5 else None
+        # Parse --artifact flag
+        artifact = None
+        for i, arg in enumerate(sys.argv):
+            if arg == '--artifact' and i + 1 < len(sys.argv):
+                artifact = sys.argv[i + 1]
+        if not stage:
+            print("Usage: pipeline_update.py <version> block <stage> [notes] [agent] [--artifact filename.md]")
+            sys.exit(1)
+        cmd_block(version, stage, notes, agent, artifact)
     elif action == 'complete':
         stage = sys.argv[3] if len(sys.argv) > 3 else None
         notes = sys.argv[4] if len(sys.argv) > 4 else ''
@@ -278,7 +446,7 @@ def main():
         cmd_iteration(version, iter_id, status, result)
     else:
         print(f"Unknown action: {action}")
-        print("Actions: show, complete, start, status, iteration")
+        print("Actions: show, complete, block, start, status, iteration")
         sys.exit(1)
 
 

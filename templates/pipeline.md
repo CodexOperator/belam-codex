@@ -90,11 +90,38 @@ This enables side-by-side comparison across phases and keeps all research for a 
 | Action | Method | Example |
 |--------|--------|---------|
 | Share design/review/fix | Write file to `research/pipeline_builds/` | `v4_critic_phase2_blocks.md` |
-| Track stage transitions | Update `{version}_state.json` | `{"current_stage": "critic_code_review"}` |
+| Track stage transitions | `python3 scripts/pipeline_update.py {v} complete {stage} "{notes}" {agent}` | Auto-updates state JSON, markdown, pending_action |
+| Block a stage (Critic) | `python3 scripts/pipeline_update.py {v} block {stage} "{notes}" {agent} --artifact {file}` | Sets pending_action to fix step |
 | Notify another agent | `sessions_send` with `timeoutSeconds: 0` | "Review ready at `pipeline_builds/v4_critic_review.md`" |
 | Update Shael / group | `message` tool to group chat | "Phase 1 build complete, 111 cells" |
 
 **Never** use `sessions_send` with a timeout > 0 (it will timeout on heavy agent runs). Never put critical data only in a `sessions_send` payload — the target may not receive it. Write the file first, ping second.
+
+### Pipeline Update Script — Mandatory Usage
+
+**Every stage transition MUST go through `pipeline_update.py`**, which:
+1. Updates `{version}_state.json` (stages + `pending_action`)
+2. Appends to the pipeline markdown stage history table
+3. Prints which agent to ping next and what message to send
+
+The script output tells you exactly who to ping. **Always follow its instructions:**
+- Run the `complete` or `block` command
+- Read the ping instruction it prints
+- Execute the `sessions_send` with `timeoutSeconds: 0` to the indicated agent
+- Post a status update to the group chat
+
+### Stage Flow & Ping Points
+
+```
+Architect designs → [complete] → ping Critic "review ready"
+Critic reviews    → [complete] → ping Builder "approved, build it"
+                  → [block]    → ping Architect "blocks, fix instructions at X"
+Builder builds    → [complete] → ping Critic "implementation done, review"
+Critic code-reviews → [complete] → ping Architect "passed, next phase"
+                    → [block]    → ping Builder "blocks, fix instructions at X"
+```
+
+Same pattern repeats for Phase 2 and Phase 3. The `pipeline_update.py` script handles all transitions automatically — agents just need to run it and follow the printed ping instruction.
 
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
