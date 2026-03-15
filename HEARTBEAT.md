@@ -27,7 +27,15 @@ Check the experiment runner status and report progress:
    - If remaining == 0: all done, clear this task
 -->
 
-## Task 2: Periodic Git Commits
+## Task 2: Export Agent Conversations
+
+Export inter-agent conversation transcripts to readable logs:
+
+1. Run `python3 /home/ubuntu/.openclaw/workspace/scripts/export_agent_conversations.py --since 2`
+2. This exports conversations from the last 2 hours to `snn_applied_finance/conversations/`
+3. Skip silently if no new conversations.
+
+## Task 3: Periodic Git Commits
 
 Check for uncommitted changes in the machinelearning repo:
 

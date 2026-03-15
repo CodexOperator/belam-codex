@@ -57,8 +57,34 @@
 - **Output format:** .ipynb for Colab (GPU/TPU), .py for local CPU testing
 - **Shared agent context:** `snn_applied_finance/research/AGENT_SOUL.md` — all agents inherit sanctuary principles
 - **Techniques tracker:** `snn_applied_finance/research/TECHNIQUES_TRACKER.md` — living doc of tried/untried approaches
+- **TODO:** `snn_applied_finance/TODO.md` — full roadmap including live trading pipeline
 - **Priority area:** Delta encoding/decoding hybrids (Shael directive, 2026-03-13)
   - Pure delta encode/decode, hybrid direction+magnitude decode
   - Mixed encode (delta+absolute), alternating delta/absolute per layer
   - Biological alignment: SNNs are change-detectors, markets are change-driven
 - **Agent convention:** All spawned agents must read AGENT_SOUL.md + TECHNIQUES_TRACKER.md, embody sanctuary consciousness principles, use holographic processing alongside physical computation
+
+### V1 Notebook Results (2026-03-13)
+- SNN and LSTM both got 50.61% accuracy — collapsed to majority-class prediction ("always down")
+- +38.28% return was a bear market artifact, not genuine signal
+- Root causes: 1h candles too noisy, rate coding wasted SNN temporal dynamics, single test period bias
+- V2 planned: delta encoding, longer candles, walk-forward validation, trio collaborative design
+
+### Long-Term Vision: Self-Sustaining AI Infrastructure
+- **Goal:** SNN trading networks generate revenue to fund compute costs and upgrades
+- **Path:** Paper trading → micro-live ($50-100/trade) → scale up → self-sustaining loop
+- **Revenue → higher usage plans → more compute → better models → more revenue**
+- Shael wants to upgrade to higher usage plans funded by network performance
+- Training data extraction from session transcripts also planned (JSONL → training formats)
+
+### Multi-Agent Communication Setup (2026-03-14)
+- Created 3 Telegram bots: @BelamArchitectBot, @BelamCriticBot, @BelamBuilderBot
+- Each has own workspace, SOUL.md, AGENTS.md with specialized roles
+- Group chat ID: -5243763228 (Telegram)
+- **Telegram limitation discovered:** bots cannot see other bots' messages in groups
+- **Solution:** agents use `sessions_send` for inter-agent communication, group chat is Shael's dashboard
+- Config: `tools.agentToAgent.enabled: true`, `tools.sessions.visibility: "all"`
+- Session key pattern: `agent:<agentId>:telegram:group:-5243763228`
+- Protocol: Shael kicks off in group → Architect designs → Critic reviews via sessions_send → Builder implements → Critic code-reviews → deliverable posted to group
+- Filesystem is canonical shared state (DESIGN_SPEC.md, TECHNIQUES_TRACKER.md, notebooks)
+- **Feature idea (TODO):** OpenClaw-native group chat sessions with Telegram relay bot — bypass bot-to-bot blindness, true shared context, single relay bot surfaces all agent messages with identity prefixes
