@@ -170,6 +170,9 @@ started: {now}
 ## Description
 {description}
 
+## Notebook Convention
+**All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
+
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
 

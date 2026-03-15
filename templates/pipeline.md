@@ -55,6 +55,34 @@ fields:
 ## Description
 _{What this notebook version explores}_
 
+## Notebook Convention
+
+**All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section, with subsections for that phase's experiments, results, and analysis. Shared infrastructure (data loading, encodings, model classes, baselines) appears once at the top.
+
+```
+# Section 0: Setup & Imports
+# Section 1: Data Pipeline (shared)
+# Section 2: Encodings (shared)
+# Section 3: Shared Model Infrastructure
+# Section 4: Baselines (shared)
+# ═══════════════════════════════════════
+# Section N: PHASE 1 — {phase 1 label}
+#   ## N.1 Experiment Matrix
+#   ## N.2 Experiments by group
+#   ## N.3 Results Table
+#   ## N.4 Analysis
+# ═══════════════════════════════════════
+# Section N+1: PHASE 2 — {phase 2 label}
+#   ## ...same subsection pattern...
+# ═══════════════════════════════════════
+# Section N+2: PHASE 3 ITERATION {id} — {hypothesis}
+#   ## ...
+# ═══════════════════════════════════════
+# Final Section: Cross-Phase Deep Analysis
+```
+
+This enables side-by-side comparison across phases and keeps all research for a version in one place.
+
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
 
