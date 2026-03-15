@@ -156,15 +156,32 @@ This generates a revision brief and updates pipeline state. Kick off agents agai
 
 ## Automation Script
 
-`scripts/setup_pipeline.py` automates Steps 2-7. Usage:
+`scripts/setup_pipeline.py` automates Steps 2-7 in a single command:
 
 ```bash
-# Full setup:
-python3 scripts/setup_pipeline.py --spec <spec_path>
+# Full setup (validates spec, generates brief, creates symlinks, checks permissions, 
+# creates pipeline primitive, verifies skills):
+python3 scripts/setup_pipeline.py --spec specs/<version>_spec.yaml
 
-# With automatic kickoff:
-python3 scripts/setup_pipeline.py --spec <spec_path> --kickoff
+# With automatic kickoff (sends to architect agent after setup):
+python3 scripts/setup_pipeline.py --spec specs/<version>_spec.yaml --kickoff
 
-# Verify existing setup:
+# Verify existing pipeline setup is complete:
 python3 scripts/setup_pipeline.py --verify <version>
 ```
+
+### What `setup_pipeline.py` does:
+1. ✅ Checks gateway health (`http://127.0.0.1:18789/health`)
+2. ✅ Validates spec YAML (required fields, experiment structure)
+3. ✅ Calls `build_notebook.py --spec` to generate design brief + pipeline state
+4. ✅ Creates/verifies symlinks for all agent workspaces (shared dirs + SNN_research)
+5. ✅ Verifies agent tool permissions in `openclaw.json` (write/edit not denied)
+6. ✅ Creates pipeline tracking primitive in `pipelines/`
+7. ✅ Verifies global skills in `~/.openclaw/skills/`
+
+### Related scripts:
+- `scripts/build_notebook.py` — Pipeline state management (Phase 1 briefs, Phase 2 revisions, status)
+- `scripts/analyze_experiment.py` — Post-experiment analysis (notebook diffs, lesson extraction)
+
+### Full setup from scratch:
+See the knowledge base README: `knowledge-repo/README.md` for bootstrapping a fresh OpenClaw instance with the complete primitives system, skills, and multi-agent workspace configuration.
