@@ -83,6 +83,19 @@ _{What this notebook version explores}_
 
 This enables side-by-side comparison across phases and keeps all research for a version in one place.
 
+## Agent Coordination Protocol
+
+**Filesystem-first:** All data exchange between agents happens via shared files, never through `sessions_send` message payloads.
+
+| Action | Method | Example |
+|--------|--------|---------|
+| Share design/review/fix | Write file to `research/pipeline_builds/` | `v4_critic_phase2_blocks.md` |
+| Track stage transitions | Update `{version}_state.json` | `{"current_stage": "critic_code_review"}` |
+| Notify another agent | `sessions_send` with `timeoutSeconds: 0` | "Review ready at `pipeline_builds/v4_critic_review.md`" |
+| Update Shael / group | `message` tool to group chat | "Phase 1 build complete, 111 cells" |
+
+**Never** use `sessions_send` with a timeout > 0 (it will timeout on heavy agent runs). Never put critical data only in a `sessions_send` payload — the target may not receive it. Write the file first, ping second.
+
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
 
