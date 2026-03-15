@@ -52,6 +52,34 @@ _Status: Not started — waiting for Phase 1 completion and Shael's review_
 
 Shael will review the Phase 1 autonomous notebook, provide experimental setups and tweaks. Agents rebuild incorporating feedback.
 
+## Phase 3: Iterative Research (Autonomous or Human-Triggered)
+
+_Status: LOCKED — requires Phase 2 completion before activation_
+
+**Gate condition:** `phase2_complete` must be set before any Phase 3 iteration can proceed.
+
+Phase 3 iterations are open-ended research rounds. Each iteration has:
+- A **hypothesis** — what we're testing
+- A **justification** — why this is worth GPU time
+- A **proposed_by** — `shael`, `belam`, `architect`, `critic`, or `builder`
+- A **confidence** — `high`, `medium`, `low` (autonomous proposals need `high`)
+
+### How Phase 3 Works
+
+1. **Human-triggered:** Shael says "try X" → iteration created immediately, agents build it
+2. **Agent-triggered:** During heartbeat, if an agent detects a strong research impulse from analysis:
+   - Agent writes a Phase 3 proposal to `research/pipeline_builds/{version}_phase3_{id}_proposal.md`
+   - Proposal must include: hypothesis, expected outcome, estimated GPU time, justification score (1-10, must be ≥7 for autonomous approval)
+   - If justification ≥ 7: auto-approved, agents proceed to build
+   - If justification 4-6: flagged for Shael's review in next heartbeat alert
+   - If justification < 4: rejected, logged but not built
+
+### Iteration Log
+
+| ID | Hypothesis | Proposed By | Status | Result |
+|----|-----------|-------------|--------|--------|
+| _(none yet — Phase 2 not complete)_ | | | | |
+
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/v4_spec.yaml`
 - **Design Brief:** `snn_applied_finance/research/pipeline_builds/v4_design_brief.md`

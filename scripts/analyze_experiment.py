@@ -49,9 +49,16 @@ NOTEBOOK_ALIASES = {
     'v1': 'snn_crypto_predictor.ipynb',
     'v2': 'snn_crypto_predictor_v2.ipynb',
     'v3': 'snn_crypto_predictor_v3.ipynb',
+    'v4': 'snn_crypto_predictor_v4.ipynb',
     'baseline': 'quant_baseline.ipynb',
     'stock': 'snn_stock_predictor.ipynb',
 }
+
+PIPELINE_DIR = Path(os.environ.get(
+    'PIPELINE_DIR',
+    os.path.expanduser('~/.openclaw/workspace/pipelines')
+))
+BUILDS_DIR = RESEARCH_DIR / 'pipeline_builds'
 
 
 def git_run(*args, cwd=None):
@@ -243,15 +250,149 @@ Focus especially on:
     return brief
 
 
+def check_phase2_complete(version_key):
+    """Check if a pipeline's Phase 2 is complete (gate for Phase 3)."""
+    pipeline_files = list(PIPELINE_DIR.glob(f'*{version_key}*.md'))
+    if not pipeline_files:
+        # No pipeline file — allow (manual notebooks without pipeline tracking)
+        return True
+    for pf in pipeline_files:
+        content = pf.read_text()
+        if 'status: phase2_complete' in content or 'status: phase3_' in content:
+            return True
+    return False
+
+
+def generate_phase3_proposal(version_key, iteration_id, hypothesis, justification_text, 
+                              justification_score, proposed_by='agent', estimated_gpu_min=30,
+                              expected_outcome='', colab_code=None):
+    """Generate a Phase 3 iteration proposal for agent-driven research."""
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    BUILDS_DIR.mkdir(parents=True, exist_ok=True)
+    
+    proposal = f"""---
+generated: {now}
+version_key: {version_key}
+iteration_id: {iteration_id}
+type: phase3_proposal
+status: {'approved' if justification_score >= 7 else 'pending_review' if justification_score >= 4 else 'rejected'}
+proposed_by: {proposed_by}
+justification_score: {justification_score}
+estimated_gpu_minutes: {estimated_gpu_min}
+---
+
+# Phase 3 Proposal: {version_key} — Iteration {iteration_id}
+
+## Hypothesis
+{hypothesis}
+
+## Expected Outcome
+{expected_outcome or 'TBD — agent will determine based on prior results'}
+
+## Justification (Score: {justification_score}/10)
+{justification_text}
+
+## Estimated GPU Time
+~{estimated_gpu_min} minutes
+
+## Proposed By
+{proposed_by} at {now}
+"""
+    
+    if colab_code:
+        proposal += f"""
+## Colab Code Addition
+
+```python
+{colab_code}
+```
+"""
+
+    proposal += """
+## Agent Instructions
+
+If this proposal is `approved`:
+1. Add this iteration to the pipeline's Phase 3 Iteration Log
+2. Build the experiment (update existing notebook or create a new cell block)
+3. If GPU code is included, add it to the Colab notebook with clear section markers
+4. Run through the standard architect → critic → builder flow if the change is substantial
+5. After results: update TECHNIQUES_TRACKER, create lesson primitives, update the Iteration Log with results
+
+If `pending_review`:
+- Flag this in the next heartbeat alert for Shael's approval
+- Do NOT proceed with building until status changes to `approved`
+
+If `rejected`:
+- Log the hypothesis in TECHNIQUES_TRACKER as "proposed but rejected (low justification)"
+- No further action needed
+"""
+    
+    output_path = BUILDS_DIR / f'{version_key}_phase3_{iteration_id}_proposal.md'
+    output_path.write_text(proposal)
+    return output_path
+
+
 def main():
     parser = argparse.ArgumentParser(description='Experiment Analysis Pipeline')
-    parser.add_argument('--notebook', '-n', help='Specific notebook key (v1, v2, v3, baseline, stock)')
+    parser.add_argument('--notebook', '-n', help='Specific notebook key (v1, v2, v3, v4, baseline, stock)')
     parser.add_argument('--detect', '-d', action='store_true', help='Auto-detect changed notebooks')
     parser.add_argument('--quiet', '-q', action='store_true', help='No output unless changes found')
     parser.add_argument('--list', '-l', action='store_true', help='List pending analysis briefs')
+    parser.add_argument('--propose', action='store_true', help='Generate a Phase 3 proposal (interactive)')
+    parser.add_argument('--propose-auto', metavar='JSON', help='Generate Phase 3 proposal from JSON: {"version":"v4","id":"01","hypothesis":"...","justification":"...","score":8,"proposed_by":"agent","gpu_min":30}')
+    parser.add_argument('--check-gate', metavar='VERSION', help='Check if Phase 2 is complete for a version (exit 0=open, 1=locked)')
     args = parser.parse_args()
     
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    
+    if args.check_gate:
+        is_open = check_phase2_complete(args.check_gate)
+        if is_open:
+            print(f"✅ Phase 3 gate OPEN for {args.check_gate} — Phase 2 complete")
+            sys.exit(0)
+        else:
+            print(f"🔒 Phase 3 gate LOCKED for {args.check_gate} — Phase 2 not yet complete")
+            sys.exit(1)
+    
+    if args.propose_auto:
+        data = json.loads(args.propose_auto)
+        version = data['version']
+        if not check_phase2_complete(version):
+            print(f"🔒 Phase 3 gate LOCKED for {version} — cannot propose until Phase 2 completes")
+            sys.exit(1)
+        path = generate_phase3_proposal(
+            version_key=version,
+            iteration_id=data['id'],
+            hypothesis=data['hypothesis'],
+            justification_text=data['justification'],
+            justification_score=data['score'],
+            proposed_by=data.get('proposed_by', 'agent'),
+            estimated_gpu_min=data.get('gpu_min', 30),
+            expected_outcome=data.get('expected_outcome', ''),
+            colab_code=data.get('colab_code'),
+        )
+        status = 'APPROVED' if data['score'] >= 7 else 'PENDING REVIEW' if data['score'] >= 4 else 'REJECTED'
+        print(f"📝 Phase 3 proposal generated: {path.name} [{status}]")
+        return
+    
+    if args.propose:
+        print("Phase 3 Proposal Generator")
+        print("=" * 40)
+        version = input("Notebook version (v1/v2/v3/v4): ").strip()
+        if not check_phase2_complete(version):
+            print(f"🔒 Phase 3 gate LOCKED for {version} — Phase 2 not complete yet")
+            sys.exit(1)
+        iteration_id = input("Iteration ID (e.g., 01, 02): ").strip()
+        hypothesis = input("Hypothesis: ").strip()
+        justification = input("Justification: ").strip()
+        score = int(input("Justification score (1-10): ").strip())
+        proposed_by = input("Proposed by (shael/belam/architect/critic/builder): ").strip() or 'agent'
+        gpu_min = int(input("Estimated GPU minutes [30]: ").strip() or '30')
+        path = generate_phase3_proposal(version, iteration_id, hypothesis, justification, 
+                                         score, proposed_by, gpu_min)
+        status = 'APPROVED' if score >= 7 else 'PENDING REVIEW' if score >= 4 else 'REJECTED'
+        print(f"\n📝 Proposal generated: {path.name} [{status}]")
+        return
     
     if args.list:
         pending = list(OUTPUT_DIR.glob('*.md'))

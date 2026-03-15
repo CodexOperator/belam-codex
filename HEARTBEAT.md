@@ -49,10 +49,32 @@ Detect new experiment results and extract lessons:
    4. Update research/TECHNIQUES_TRACKER.md with new results or status changes
    5. Update the brief's frontmatter to 'status: processed'
    6. If any finding changes architectural direction, update the relevant *_KNOWLEDGE.md file
-   7. Commit changes to the machinelearning repo"
+   7. If the analysis reveals a compelling follow-up experiment worth pursuing (strong signal, clear hypothesis, high expected information gain), generate a Phase 3 proposal:
+      python3 /home/ubuntu/.openclaw/workspace/scripts/analyze_experiment.py --propose-auto '{\"version\":\"<ver>\",\"id\":\"<next_id>\",\"hypothesis\":\"<what_to_test>\",\"justification\":\"<why_its_worth_gpu_time>\",\"score\":<1-10>,\"proposed_by\":\"<your_agent_role>\",\"gpu_min\":<estimated_minutes>,\"colab_code\":\"<optional_python_code>\"}'
+      Score ≥ 7 = auto-approved, 4-6 = flagged for Shael, < 4 = rejected. Be honest with scores.
+   8. Commit changes to the machinelearning repo"
 3. If no briefs generated, skip silently
 
 **Manual trigger:** Shael can also say "analyze [v2/v3/baseline]" to trigger analysis of a specific notebook immediately.
+
+## Task 3b: Phase 3 Autonomous Research Gate
+
+Check for pending Phase 3 proposals and auto-trigger approved iterations:
+
+1. Run `ls /home/ubuntu/.openclaw/workspace/SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/*phase3*proposal*.md 2>/dev/null`
+2. If proposals exist, check each for `status: approved` that hasn't been built yet:
+   - Read the proposal file
+   - Verify the pipeline's Phase 2 is complete: `python3 /home/ubuntu/.openclaw/workspace/scripts/analyze_experiment.py --check-gate <version>`
+   - If gate is LOCKED: skip, do NOT build (Phase 2 must complete first)
+   - If gate is OPEN and status is `approved`: spawn builder agent with the proposal
+   - If status is `pending_review`: alert Shael with the hypothesis and justification score
+3. If no proposals exist, skip silently
+
+**Autonomous proposal generation:** During Task 3 analysis, if the analysis agent identifies a compelling follow-up experiment (justification ≥ 7), it may generate a Phase 3 proposal via:
+```
+python3 scripts/analyze_experiment.py --propose-auto '{"version":"v4","id":"01","hypothesis":"...","justification":"...","score":8,"proposed_by":"agent"}'
+```
+The gate check is enforced by the script — proposals cannot be created if Phase 2 isn't complete.
 
 ## Task 4: Export Agent Conversations
 
