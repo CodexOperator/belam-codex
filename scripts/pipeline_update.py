@@ -165,6 +165,10 @@ def cmd_complete(version, stage, notes='', agent=None):
     print(f"✅ {version}: {stage} → complete ({agent})")
     if notes:
         print(f"   Notes: {notes}")
+    print(f"")
+    print(f"   ⚠️  NOW POST TO GROUP CHAT (Telegram group -5243763228):")
+    print(f"   📊 Pipeline {version} — {stage} complete")
+    print(f"   {notes if notes else '(add summary)'}")
 
 
 def cmd_start(version, stage, agent=None):
