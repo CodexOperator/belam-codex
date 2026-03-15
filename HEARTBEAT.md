@@ -27,7 +27,34 @@ Check the experiment runner status and report progress:
    - If remaining == 0: all done, clear this task
 -->
 
-## Task 2: Export Agent Conversations
+## Task 2: Review Open Tasks & Pipelines
+
+Scan `tasks/` and `pipelines/` for open primitives:
+1. Run `grep -l "status: open\|status: blocked" tasks/*.md 2>/dev/null`
+2. Run `grep -l "status: phase1_\|status: phase2_" pipelines/*.md 2>/dev/null`
+3. If any blocked tasks exist, alert the user with task name and blocker
+4. If any active pipelines exist, report their current stage
+5. Otherwise skip silently
+
+## Task 3: Experiment Analysis Pipeline
+
+Detect new experiment results and extract lessons:
+
+1. Run `python3 /home/ubuntu/.openclaw/workspace/scripts/analyze_experiment.py --detect --quiet`
+2. If briefs were generated, spawn a sub-agent with task:
+   "Read all pending analysis briefs in SNN_research/machinelearning/snn_applied_finance/research/pipeline_output/ (files with 'status: pending_review'). For each brief:
+   1. Read the code changes section carefully — these are Shael's manual tweaks and represent high-signal design decisions
+   2. Read the results and analysis sections
+   3. Create lesson primitives in workspace/lessons/ for significant findings
+   4. Update research/TECHNIQUES_TRACKER.md with new results or status changes
+   5. Update the brief's frontmatter to 'status: processed'
+   6. If any finding changes architectural direction, update the relevant *_KNOWLEDGE.md file
+   7. Commit changes to the machinelearning repo"
+3. If no briefs generated, skip silently
+
+**Manual trigger:** Shael can also say "analyze [v2/v3/baseline]" to trigger analysis of a specific notebook immediately.
+
+## Task 4: Export Agent Conversations
 
 Export inter-agent conversation transcripts to readable logs:
 
@@ -35,7 +62,7 @@ Export inter-agent conversation transcripts to readable logs:
 2. This exports conversations from the last 2 hours to `snn_applied_finance/conversations/`
 3. Skip silently if no new conversations.
 
-## Task 3: Periodic Git Commits
+## Task 5: Periodic Git Commits
 
 Check for uncommitted changes in the machinelearning repo:
 
