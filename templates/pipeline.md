@@ -82,12 +82,16 @@ These are hard-won findings. Agents MUST follow them.
 
 **Parallelization:** Use `concurrent.futures.ThreadPoolExecutor` + CUDA streams to run multiple experiments simultaneously.
 - Each experiment gets its own `torch.cuda.Stream()` via thread-local storage
-- Auto-detect worker count from GPU type (T4: 8, V100: 8, A100: 12, H100: 16)
+- Auto-detect worker count from GPU type: T4: 12, V100: 12, L4: 14, A100: 20, H100: 24 (for tiny <1MB models — scale down for larger architectures)
 - Override with `n_parallel=` argument to `run_all_experiments()`
 - `n_parallel=1` for sequential/debug mode
-- DataLoaders must use `num_workers=0` (default) to avoid file descriptor conflicts
+- DataLoaders: `pin_memory=True`, `num_workers=2`, `persistent_workers=True` on GPU; `num_workers=0` on CPU
 
-**Batch size:** Default 1024. These models are small — larger batches fill GPU memory and reduce kernel launch overhead.
+**Batch size:** Default 2048 for tiny SNN models. Larger batches fill GPU compute and reduce kernel launch overhead. Scale down if models grow beyond ~10MB.
+
+**Data prefetching:** Call `prefetch_to_gpu(data_dict)` before experiments to move the full dataset to GPU once. Eliminates redundant per-batch CPU→GPU copies across all folds and experiments.
+
+**GPU memory cleanup:** Define `gpu_cleanup(verbose=False)` — calls `gc.collect()` + `torch.cuda.empty_cache()`. Run after each fold (del model first), between groups, between phases, and before returning results. Prevents monotonic VRAM growth.
 
 **PyTorch API note:** GPU memory is `torch.cuda.get_device_properties(0).total_memory` (not `total_mem`).
 
