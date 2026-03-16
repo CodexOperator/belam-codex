@@ -48,6 +48,9 @@ fields:
   artifacts:
     type: object
     description: "Paths to pipeline artifacts (design, review, notebook)"
+  patch_notes:
+    type: object[]
+    description: "Chronological log of post-build patches applied to the notebook. Each entry: {date, author, summary, commits}. Patches are always applied to the main notebook directly."
 ---
 
 # Implementation Pipeline: {version}
@@ -58,6 +61,42 @@ _{What this notebook version explores}_
 ## Notebook Convention
 
 **All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section, with subsections for that phase's experiments, results, and analysis. Shared infrastructure (data loading, encodings, model classes, baselines) appears once at the top.
+
+### Progress Bars — NO INTERACTIVE/DYNAMIC PROGRESS BARS
+
+**Never use `tqdm`, `tqdm.auto`, `tqdm.notebook`, or any library that uses carriage returns (`\r`) or ANSI escape codes for progress display.** These produce garbled output in committed notebook cells and break GitHub's notebook renderer.
+
+Instead:
+- **Preferred:** Simple `print()` statements at milestones (e.g., `print(f"Model {i+1}/{total} complete — {name} — acc={acc:.2f}%")`)
+- **Acceptable:** Static ASCII progress (e.g., `print(f"[{'█' * done}{'░' * remaining}] {pct:.0f}%")`) — one line per update, no `\r`
+- **Never:** `tqdm(...)`, `from tqdm.auto import tqdm`, `tqdm.notebook`, or `end='\r'` print tricks
+
+### GPU & Training — Engineering Guidelines
+
+These are hard-won findings. Agents MUST follow them.
+
+**Precision:** Use fp32 throughout. Do NOT use `torch.cuda.amp.autocast` or `GradScaler`.
+- `BCELoss` and `BCEWithLogitsLoss` are unsafe under fp16 autocast (NaN/Inf from log of near-zero values)
+- These SNN models are tiny (<100MB VRAM) — fp16 saves nothing meaningful
+- Config: `'mixed_precision': False` always
+
+**Parallelization:** Use `concurrent.futures.ThreadPoolExecutor` + CUDA streams to run multiple experiments simultaneously.
+- Each experiment gets its own `torch.cuda.Stream()` via thread-local storage
+- Auto-detect worker count from GPU type (T4: 8, V100: 8, A100: 12, H100: 16)
+- Override with `n_parallel=` argument to `run_all_experiments()`
+- `n_parallel=1` for sequential/debug mode
+- DataLoaders must use `num_workers=0` (default) to avoid file descriptor conflicts
+
+**Batch size:** Default 1024. These models are small — larger batches fill GPU memory and reduce kernel launch overhead.
+
+**PyTorch API note:** GPU memory is `torch.cuda.get_device_properties(0).total_memory` (not `total_mem`).
+
+### Patch Notes
+
+Patches are applied directly to the main notebook — not as separate files. Log all post-build patches here with date, author, summary, and commit hash.
+
+| Date | Author | Summary | Commit |
+|------|--------|---------|--------|
 
 ```
 # Section 0: Setup & Imports
