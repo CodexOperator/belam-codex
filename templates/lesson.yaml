@@ -1,0 +1,20 @@
+# Lesson Primitive Template
+# Copy and fill in for each significant finding
+
+id: lesson-YYYYMMDD-NNN
+date: YYYY-MM-DD
+version: vN
+source: "notebook or experiment identifier"
+severity: critical | high | medium | low
+category: architecture | encoding | training | evaluation | methodology
+
+title: "One-line title"
+finding: |
+  What was observed. Be specific with numbers.
+mechanism: |
+  Why it happened — the causal chain.
+implication: |
+  What this means for future work.
+action: |
+  Concrete next step(s).
+tags: []

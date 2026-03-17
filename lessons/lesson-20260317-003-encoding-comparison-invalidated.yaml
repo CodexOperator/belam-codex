@@ -1,0 +1,43 @@
+id: lesson-20260317-003
+date: 2026-03-17
+version: v4
+source: "snn_crypto_predictor_v4_combined.ipynb — All groups"
+severity: high
+category: methodology
+
+title: "V4 encoding comparisons (rate vs delta vs equilibrium) are INVALID due to dead output"
+finding: |
+  The V4 experiment matrix was designed to compare rate, delta, and equilibrium
+  encoding across multiple scales. However, because the differential output
+  architecture produced dead networks in >85% of runs, no valid comparison
+  between encodings can be made.
+  
+  Observed accuracy across all groups:
+  - Rate encoding: accuracy ≈ majority_baseline (dead)
+  - Delta encoding: accuracy ≈ majority_baseline (dead)  
+  - Equilibrium encoding: accuracy ≈ majority_baseline (dead)
+  
+  The few runs showing any life (pred_entropy > 0) are:
+  - G1-03 f1 (delta/spike): acc=52.1%, pe=0.176 — ONLY direction-active run in G1
+  - G2-06 f1 (equil/continuous): acc=52.2%, pe=0.504
+  - G3-01 f1 (rate/spike): acc=51.6%, pe=0.200
+  - G4-03 f1 (delta/spike): acc=52.1%, pe=0.494
+  - G4-05 f3 (equil/spike): acc=51.5%, pe=0.782
+  
+  These are too sparse and inconsistent to draw any encoding conclusions.
+mechanism: |
+  All three encodings produce valid input tensors. The failure point is
+  DOWNSTREAM of encoding — in the output layer. The encoding comparison
+  was invalidated by a confound (broken output), not by encoding quality.
+implication: |
+  The questions V4 was designed to answer remain OPEN:
+  1. Does equilibrium encoding outperform rate/delta? UNKNOWN
+  2. Does nano-scale (5-15 neurons) produce signal above chance? UNKNOWN
+  3. Is differential opponent coding superior to classification head? UNKNOWN
+  
+  These questions can only be answered with a working output pathway.
+action: |
+  Re-run the V4 experiment matrix with membrane-potential readout (V5).
+  The encoding × scale factorial design is still the right experiment —
+  only the output mechanism needs to change.
+tags: [encoding-comparison, invalidated, confound, rate-coding, delta-coding, equilibrium]

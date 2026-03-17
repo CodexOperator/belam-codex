@@ -1,0 +1,54 @@
+id: lesson-20260317-001
+date: 2026-03-17
+version: v4
+source: "snn_crypto_predictor_v4_combined.ipynb — Groups 1-6, 96 training runs"
+severity: critical
+category: architecture
+
+title: "Differential opponent-coded output produces dead networks — output neurons never fire"
+finding: |
+  Across 96 training runs (32 experiments × 3 folds), the vast majority of V4
+  differential opponent-coded SNNs collapsed to dead-network states:
+  - mean_up_rate ≈ 0.000, mean_down_rate ≈ 0.000 in >90% of runs
+  - pred_entropy = 0.000 (single-class prediction) in >85% of runs
+  - turnover = 0.000 (never changing position) in >85% of runs
+  - learnable_scale stuck at init value 1.00 in >95% of runs
+  - accuracy = majority_baseline in >85% of runs (just predicting dominant class)
+  Only ~10 of 96 runs showed ANY firing activity (pred_entropy > 0), and those
+  were typically weak (entropy < 0.5 bits) and inconsistent across folds.
+mechanism: |
+  The spike-count differential pathway creates a gradient bottleneck:
+  1. fc_out projects to 2 LIF output neurons with threshold=1.0
+  2. If membrane potential never reaches threshold → zero spikes → differential=0
+  3. scaled_diff = learnable_scale × 0 = 0 → sigmoid(0) = 0.5 → majority class
+  4. With no differential signal, no gradient flows to learnable_scale either
+  5. Surrogate gradient (fast_sigmoid slope=25) provides weak gradient but
+     insufficient to bootstrap the network into a spiking regime from cold start.
+  The V3 architecture (logit-based output, not spike-count-based) avoided this
+  because raw membrane potential drove the output, not spike counts.
+  
+  Key contrast: V3 read MEMBRANE POTENTIAL at the output. V4 reads SPIKE COUNTS.
+  With threshold=1.0, the output neurons must actually spike to produce signal.
+  Most networks never achieve this.
+implication: |
+  Opponent-coded spiking output is NOT a drop-in replacement for logit/membrane
+  readout. The architecture needs either:
+  (a) Membrane potential readout (not spike count) for output neurons — preserve
+      the continuous gradient path that V3 used successfully
+  (b) Much lower output threshold (0.1-0.3) to ensure output neurons fire frequently
+  (c) Explicit output neuron bias/warm-start to guarantee initial firing
+  (d) Direct learnable scaling of membrane potential differential instead of
+      spike-rate differential
+  
+  This is an architecture-level failure, not an encoding or training failure.
+  No conclusions about encoding variants (rate vs delta vs equilibrium) can be
+  drawn from V4 because the output pathway blocked all learning signal.
+action: |
+  V5 MUST fix the output pathway before any other exploration:
+  Option A (recommended): Use membrane potential readout at output layer
+    differential = mem_up[-1] - mem_down[-1]  (not spike_count_up/T - spike_count_down/T)
+  Option B: Lower output threshold to 0.1 and verify output neurons fire
+  Option C: Hybrid — spike-count differential for hidden layers, membrane readout for output
+  
+  Rerun the V4 experiment matrix with fixed output to get valid encoding comparisons.
+tags: [dead-network, opponent-coding, spike-count, architecture-failure, gradient-bottleneck]

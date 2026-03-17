@@ -1,0 +1,49 @@
+id: lesson-20260317-004
+date: 2026-03-17
+version: v4
+source: "V3→V4 comparison, architectural analysis"
+severity: high
+category: architecture
+
+title: "Spike-count readout vs membrane-potential readout: membrane wins for small networks"
+finding: |
+  V3 used membrane potential readout (final membrane state → logits → prediction).
+  V3 achieved 54.02% pooled accuracy (best model) and positive net Sharpe (+0.45
+  for Scheme B). 
+  
+  V4 switched to spike-count readout (count spikes over T steps → rates → differential).
+  V4 achieved ≈ majority baseline accuracy across ALL 32 experiments.
+  
+  Same data, same features, same folds, same training config. Only difference:
+  output readout mechanism. This isolates the readout as the critical variable.
+mechanism: |
+  Membrane potential is a CONTINUOUS signal — gradients flow smoothly through it.
+  Spike counts are DISCRETE (integer valued, then divided by T) — even with
+  surrogate gradients, the gradient signal is weaker and can collapse to zero
+  when the network is in a non-spiking regime.
+  
+  For small networks (5-192 neurons), the output neurons may not have enough
+  input drive to reach threshold consistently. Membrane potential readout
+  doesn't require threshold crossing — it reads the SUB-threshold dynamics,
+  which contain information even when the neuron doesn't spike.
+  
+  Biological parallel: graded potentials (non-spiking neurons) carry signal
+  in the retina and other sensory systems. Not all neural computation requires
+  discrete spikes.
+implication: |
+  For SNN financial prediction at small scale:
+  - Use membrane potential readout for output neurons
+  - Reserve spike-count readout for hidden layers where spiking dynamics
+    are the point (temporal pattern processing)
+  - The opponent coding concept (UP/DOWN neurons) is still valid — just
+    read membrane potential difference, not firing rate difference
+action: |
+  V5 output architecture:
+    mem_differential = mem_up_final - mem_down_final  (continuous)
+    scaled_diff = learnable_scale * mem_differential
+    p_up = sigmoid(scaled_diff)  # direction
+    pred_return = tanh(scaled_diff)  # magnitude
+  
+  This preserves the biological faithfulness of opponent coding while
+  maintaining the gradient flow that made V3 work.
+tags: [readout, membrane-potential, spike-count, gradient-flow, architecture-design]

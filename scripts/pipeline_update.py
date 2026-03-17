@@ -72,6 +72,24 @@ STAGE_TRANSITIONS = {
     'phase3_critic_review':       ('phase3_builder_implementation','builder', 'Phase 3 design approved. Build it.'),
     'phase3_builder_implementation':('phase3_critic_code_review','critic',    'Phase 3 implementation done. Review the notebook.'),
     'phase3_critic_code_review':  ('phase3_complete',            'architect', 'Phase 3 iteration complete.'),
+
+    # ── Analysis Pipeline — Phase 1 (autonomous statistical analysis) ──────────
+    'analysis_architect_design':          ('analysis_critic_review',            'critic',    'Analysis design ready at pipeline_builds/{v}_architect_analysis_design.md'),
+    'analysis_critic_review':             ('analysis_builder_implementation',   'builder',   'Analysis design approved. Implement notebook per pipeline_builds/{v}_architect_analysis_design.md'),
+    'analysis_architect_design_revision': ('analysis_critic_review',            'critic',    'Analysis design revised, re-review at pipeline_builds/{v}_architect_analysis_design.md'),
+    'analysis_builder_implementation':    ('analysis_critic_code_review',       'critic',    'Analysis notebook complete. Review implementation at notebooks/crypto_{v}_analysis.ipynb'),
+    'analysis_critic_code_review':        ('analysis_phase1_complete',          'architect', 'Phase 1 analysis code review passed. Notify Shael — phase 1 complete, ready for directed questions.'),
+    # Analysis Phase 1 block fixes
+    'analysis_builder_apply_blocks':      ('analysis_critic_code_review',       'critic',    'Analysis blocks fixed. Re-review the notebook.'),
+
+    # ── Analysis Pipeline — Phase 2 (Shael-directed analysis) ─────────────────
+    'analysis_phase2_architect_design':          ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design ready at pipeline_builds/{v}_phase2_architect_analysis_design.md'),
+    'analysis_phase2_critic_review':             ('analysis_phase2_builder_implementation',   'builder',   'Phase 2 analysis design approved. Extend notebook per pipeline_builds/{v}_phase2_architect_analysis_design.md'),
+    'analysis_phase2_architect_revision':        ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design revised, re-review.'),
+    'analysis_phase2_builder_implementation':    ('analysis_phase2_critic_code_review',       'critic',    'Phase 2 analysis notebook extended. Review additions.'),
+    'analysis_phase2_critic_code_review':        ('analysis_phase2_complete',                 'architect', 'Phase 2 analysis code review passed. Pipeline complete.'),
+    # Analysis Phase 2 block fixes
+    'analysis_phase2_builder_apply_blocks':      ('analysis_phase2_critic_code_review',       'critic',    'Phase 2 analysis blocks fixed. Re-review the notebook.'),
 }
 
 # Block transitions: when a review stage is blocked, what's the fix action?
@@ -82,6 +100,12 @@ BLOCK_TRANSITIONS = {
     'phase2_critic_code_review':  ('builder_apply_phase2_blocks','builder',   'Phase 2 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'phase3_critic_review':       ('phase3_architect_revision',  'architect', 'Phase 3 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'phase3_critic_code_review':  ('phase3_builder_fix',         'builder',   'Phase 3 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+
+    # ── Analysis Pipeline block transitions ────────────────────────────────────
+    'analysis_critic_review':              ('analysis_architect_design_revision',       'architect', 'Analysis design has methodology blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'analysis_critic_code_review':         ('analysis_builder_apply_blocks',            'builder',   'Analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'analysis_phase2_critic_review':       ('analysis_phase2_architect_revision',       'architect', 'Phase 2 analysis design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'analysis_phase2_critic_code_review':  ('analysis_phase2_builder_apply_blocks',     'builder',   'Phase 2 analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
 }
 
 

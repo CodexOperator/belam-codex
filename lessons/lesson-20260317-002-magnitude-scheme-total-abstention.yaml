@@ -1,0 +1,44 @@
+id: lesson-20260317-002
+date: 2026-03-17
+version: v4
+source: "snn_crypto_predictor_v4_combined.ipynb — Groups 5-6 (small-96, medium-192)"
+severity: critical
+category: architecture
+
+title: "Magnitude prediction via differential output produces 100% abstention — complete failure"
+finding: |
+  All 8 magnitude-prediction experiments (Groups 5-6) across 3 folds (24 runs)
+  showed 100% abstention at the pre-registered threshold of 0.3:
+  - abstain_fraction = 1.000 for ALL runs at threshold=0.3
+  - Output neurons completely dead: up=0, down=0, differential=0 in ~22/24 runs
+  - predicted_return = tanh(0) ≈ 0 → always below abstention threshold
+  - accuracy BELOW majority baseline in most runs (inversion from dead output)
+  - Net Sharpe deeply negative in Folds 1-2 (~-1.5 to -2.0)
+  
+  This contrasts with V3 Scheme B which achieved positive net Sharpe (+0.45)
+  using the same HuberLoss(δ=0.01) but with SINGLE regression head output.
+mechanism: |
+  Double failure mode in magnitude scheme:
+  1. Dead output neurons → tanh(scale × 0) = 0 → |prediction| = 0 < 0.3 → abstain
+  2. Even the 2 runs with slight learnable_scale movement (G5-02 f2: scale=0.72,
+     G6-04 f3: scale=0.21) still had zero firing, so scaling zero = zero.
+  
+  V3 Scheme B worked because the regression head had a CONTINUOUS output path
+  (fc → raw value → HuberLoss). V4 broke this by inserting spike-count readout
+  between the final fc and the loss, creating the same gradient bottleneck as
+  direction experiments but with worse consequences (total abstention vs 
+  majority-class prediction).
+  
+  The learned scale decreasing (0.79, 0.21 in G6-04) suggests the optimizer
+  tried to minimize loss by shrinking scale → 0, confirming the degenerate optimum.
+implication: |
+  The V3 Scheme B "confident abstention" mechanism DOES NOT transfer to
+  spike-count-based differential output. The mechanism requires a continuous
+  output pathway. Any future magnitude prediction must ensure the output
+  has a smooth, non-zero gradient path from input to loss.
+action: |
+  When fixing V5 output pathway (lesson-001), specifically verify that
+  magnitude experiments produce |predicted_return| > 0 for at least 50%
+  of samples before proceeding with full experiment matrix. Add a
+  "minimum output range" sanity check to the training loop.
+tags: [magnitude-prediction, abstention, HuberLoss, regression, dead-output]

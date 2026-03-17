@@ -49,7 +49,7 @@ NOTEBOOK_ALIASES = {
     'v1': 'snn_crypto_predictor.ipynb',
     'v2': 'snn_crypto_predictor_v2.ipynb',
     'v3': 'snn_crypto_predictor_v3.ipynb',
-    'v4': 'snn_crypto_predictor_v4.ipynb',
+    'v4': 'snn_crypto_predictor_v4_combined.ipynb',
     'baseline': 'quant_baseline.ipynb',
     'stock': 'snn_stock_predictor.ipynb',
 }
