@@ -95,6 +95,13 @@
 - Results ran through deep analysis pipeline
 - All committed to GitHub
 
+### MANDATORY GATE: Analysis Before New Versions (Shael directive 2026-03-17)
+- **Never start a new notebook version until the analysis pipeline completes BOTH Phase 1 AND Phase 2 minimum**
+- Phase 1 = autonomous analysis, Phase 2 = Shael's directed questions
+- The interference pattern between Phase 1 findings and Shael's Phase 2 input yields surprising results
+- What looks like a failure in Phase 1 may reveal hidden signal with human perspective
+- Encoded in: `templates/analysis_pipeline.md`, `templates/pipeline.md`, `ANALYSIS_AGENT_ROLES.md`, `lessons/`
+
 ### Next Priority: Equilibrium SNN (Shael's Novel Architecture)
 - Continuous spike streaming — network maintains persistent state across candles
 - Opponent-coded UP/DOWN output neurons (firing rate gap = direction + conviction)

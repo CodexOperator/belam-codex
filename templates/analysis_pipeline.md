@@ -271,6 +271,14 @@ _Architect designs analysis methodology → Critic reviews statistical rigor →
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 
+## ⚠️ MANDATORY GATE: No New Notebook Versions Until Analysis Complete
+
+**Never start a fresh notebook version (v5, v6, etc.) until the analysis pipeline completes BOTH phases minimum.**
+
+Phase 1 autonomous analysis surfaces patterns. Phase 2 human-directed analysis applies Shael's perspective. The interference pattern between Phase 1 findings and Shael's Phase 2 input often yields surprising results — what looks like a failure in Phase 1 may reveal hidden signal once human intuition is applied. Premature conclusions from Phase 1 alone miss this.
+
+**Gate:** `analysis_phase2_complete` must be reached before any new implementation pipeline can be launched for the next version.
+
 ## Phase 2: Directed Analysis (Human-in-the-Loop)
 _Status: Queued — triggers after Phase 1 completion and Shael's input_
 
@@ -282,8 +290,11 @@ _Status: Queued — triggers after Phase 1 completion and Shael's input_
 5. Critic reviews methodology additions, Builder extends the notebook
 6. Process mirrors Phase 1 stages (prefixed `analysis_phase2_`)
 
+### `#phase2` Tag Convention
+Shael provides feedback tagged with `#phase2 {version}` in DM or group chat. Belam (coordinator) captures all tagged messages chronologically into `research/pipeline_builds/{version}_phase2_shael_direction.md`. When Shael says "kick off phase 2" or all feedback is collected, Belam triggers the Architect.
+
 ### Shael's Direction
-_(Populated after Phase 1 completion)_
+_(Populated from `research/pipeline_builds/{version}_phase2_shael_direction.md` after Phase 1 completion)_
 
 ### Stage History
 | Stage | Date | Agent | Notes |

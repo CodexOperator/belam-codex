@@ -166,6 +166,14 @@ Critic code-reviews → [complete] → ping Architect "passed, next phase"
 
 Same pattern repeats for Phase 2 and Phase 3. The `pipeline_update.py` script handles all transitions automatically — agents just need to run it and follow the printed ping instruction.
 
+## ⚠️ MANDATORY GATE: Analysis Pipeline Must Complete First
+
+**Before launching a new implementation pipeline version, the ANALYSIS pipeline for the previous version must have completed BOTH Phase 1 AND Phase 2.**
+
+The interference pattern between autonomous Phase 1 analysis and Shael's Phase 2 directed analysis often yields surprising insights — experiments that look like failures may contain hidden signal. Premature version jumps skip this critical synthesis step.
+
+**Gate:** Previous version's analysis pipeline must reach `analysis_phase2_complete` before this implementation pipeline can begin Phase 1.
+
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
 
