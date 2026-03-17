@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: blocked
+status: open
 priority: critical
 owner: builder
 tags: [snn, architecture, streaming]
