@@ -206,45 +206,48 @@ print(f"   Keys: {list(results.keys())}")
 
 ## Agent Coordination Protocol
 
-**Filesystem-first:** All data exchange between agents happens via shared files, never through `sessions_send` message payloads.
+**Filesystem-first:** All data exchange between agents happens via shared files, never through message payloads.
 
 | Action | Method | Example |
 |--------|--------|---------|
 | Share design/review/fix | Write file to `research/pipeline_builds/` | `{version}_architect_analysis_design.md` |
-| Track stage transitions | `python3 scripts/pipeline_update.py {version} complete {stage} "{notes}" {agent}` | Auto-updates state JSON, markdown, pending_action |
-| Block a stage (Critic) | `python3 scripts/pipeline_update.py {version} block {stage} "{notes}" {agent} --artifact {file}` | Sets pending_action to fix step |
-| Notify another agent | `sessions_send` with `timeoutSeconds: 0` | "Analysis design ready at pipeline_builds/{version}_architect_analysis_design.md" |
-| Update Shael / group | `message` tool to group chat | "Phase 1 analysis complete — 5 key findings" |
+| Complete/block a stage | `python3 scripts/pipeline_orchestrate.py {v} complete/block {stage} --agent {role} --notes "..."` | Handles EVERYTHING |
+| Update Shael / group | Automatic (orchestrator sends Telegram notification) | — |
 
-**Never** use `sessions_send` with a timeout > 0 (it will timeout on heavy agent runs). Write the file first, ping second.
+### Pipeline Orchestrator — Mandatory Usage
 
-### Pipeline Update Script — Mandatory Usage
+**Every stage transition MUST go through `pipeline_orchestrate.py`** (ONE command replaces the old 3-step dance):
 
-**Every stage transition MUST go through `pipeline_update.py`**, which:
-1. Updates `{version}_state.json` (stages + `pending_action`)
-2. Appends to the pipeline markdown stage history table
-3. Prints which agent to ping next and what message to send
+```bash
+# Complete a stage:
+python3 scripts/pipeline_orchestrate.py {version} complete {stage} --agent {role} --notes "summary"
 
-After running the script, **always follow its printed instructions:**
-- Execute the `sessions_send` with `timeoutSeconds: 0` to the indicated agent
-- Post a status update to the group chat (Telegram group `-5243763228`)
+# Block a stage:
+python3 scripts/pipeline_orchestrate.py {version} block {stage} --agent {role} --notes "BLOCK reason" --artifact review_file.md
+```
 
-### Stage Flow & Ping Points
+The orchestrator automatically:
+1. Updates pipeline state (JSON + markdown + frontmatter status bumps)
+2. Sends Telegram group notification
+3. Wakes the next agent with full context (files to read, what to do)
+4. Verifies the agent picked up the handoff (retries if needed)
+5. Logs a memory entry for the completing agent
+
+**DO NOT manually call `sessions_send`, `pipeline_update.py`, or post to the group chat for stage transitions.** The orchestrator handles all of it.
+
+### Stage Flow
 
 ```
 Phase 1:
-Architect designs analysis → [complete analysis_architect_design] → ping Critic "design ready"
-Critic reviews methodology → [complete analysis_critic_review] → ping Builder "approved, build it"
-                           → [block analysis_critic_review] → ping Architect "methodology gaps at X"
-Builder implements notebook → [complete analysis_builder_implementation] → ping Critic "implementation done"
-Critic code-reviews         → [complete analysis_critic_code_review] → ping Architect/Shael "phase 1 done"
-                            → [block analysis_critic_code_review] → ping Builder "blocks at X"
+Architect designs analysis → [orchestrate complete] → auto-wakes Critic
+Critic reviews methodology → [orchestrate complete] → auto-wakes Builder
+                           → [orchestrate block]    → auto-wakes Architect
+Builder implements notebook → [orchestrate complete] → auto-wakes Critic
+Critic code-reviews         → [orchestrate complete] → auto-wakes next / pipeline complete
+                            → [orchestrate block]    → auto-wakes Builder
 
 Phase 2 (after Shael provides direction):
-Architect extends design    → [complete analysis_phase2_architect_design] → ping Critic "phase 2 design ready"
-Critic reviews additions    → [complete analysis_phase2_critic_review] → ping Builder "approved"
-Builder extends notebook    → [complete analysis_phase2_builder_implementation] → ping Critic "done"
-Critic code-reviews         → [complete analysis_phase2_critic_code_review] → pipeline complete
+Same flow with analysis_phase2_ prefix stages.
 ```
 
 ## Phase 1: Autonomous Analysis
@@ -258,28 +261,28 @@ _Architect designs analysis methodology → Critic reviews statistical rigor →
    - Define visualizations needed to answer the research questions
    - Identify expected patterns to look for
    - Write design to `research/pipeline_builds/{version}_architect_analysis_design.md`
-4. Run `python3 scripts/pipeline_update.py {version} complete analysis_architect_design "..." architect`
+4. Run: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_architect_design --agent architect --notes "Design summary"`
 
 ### Critic Tasks (Phase 1 — Design Review)
 1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`
 2. Review architect's design at `research/pipeline_builds/{version}_architect_analysis_design.md`
 3. Check for: statistical validity, methodology gaps, missing visualizations, appropriate corrections
-4. If approved: `python3 scripts/pipeline_update.py {version} complete analysis_critic_review "Approved: ..." critic`
-5. If blocked: `python3 scripts/pipeline_update.py {version} block analysis_critic_review "BLOCK-1: ..." critic --artifact {version}_critic_analysis_blocks.md`
+4. If approved: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_critic_review --agent critic --notes "Approved: ..."`
+5. If blocked: write blocks to file, then: `python3 scripts/pipeline_orchestrate.py {version} block analysis_critic_review --agent critic --notes "BLOCK-1: ..." --artifact {version}_critic_analysis_blocks.md`
 
 ### Builder Tasks (Phase 1)
 1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.openclaw/workspace/skills/quant-infrastructure/SKILL.md`
 2. Read approved design at `research/pipeline_builds/{version}_architect_analysis_design.md`
 3. Implement the analysis notebook: `notebooks/crypto_{source_version}_analysis.ipynb`
 4. Notebook must include the mandatory Colab upload cell (Section 0.2 above)
-5. Run `python3 scripts/pipeline_update.py {version} complete analysis_builder_implementation "..." builder`
+5. Run: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_builder_implementation --agent builder --notes "Notebook complete: N cells"`
 
 ### Critic Tasks (Phase 1 — Code Review)
 1. Read skill at `~/.openclaw/workspace/skills/quant-infrastructure/SKILL.md`
 2. Review notebook implementation quality, visualization clarity, statistical correctness
 3. Check upload cell handles both zip and individual pkl correctly
-4. If approved: `python3 scripts/pipeline_update.py {version} complete analysis_critic_code_review "Approved: ..." critic`
-5. If blocked: write blocks to `research/pipeline_builds/{version}_critic_code_blocks.md` then block
+4. If approved: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_critic_code_review --agent critic --notes "Approved: ..."`
+5. If blocked: write blocks to `research/pipeline_builds/{version}_critic_code_blocks.md`, then: `python3 scripts/pipeline_orchestrate.py {version} block analysis_critic_code_review --agent critic --notes "BLOCK-1: ..." --artifact {version}_critic_code_blocks.md`
 
 ### Stage History
 | Stage | Date | Agent | Notes |

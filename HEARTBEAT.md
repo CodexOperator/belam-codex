@@ -29,7 +29,13 @@ The primary heartbeat responsibility: move work forward.
 
 4. **If nothing to do:** skip silently
 
-## Task 2: Experiment Analysis Pipeline
+## Task 2: Handoff Verification
+
+1. `python3 scripts/pipeline_orchestrate.py --check-pending`
+2. If any handoffs are stuck, the script auto-retries and alerts the group
+3. Skip silently if all clear
+
+## Task 3: Experiment Analysis Pipeline
 
 Detect new experiment results and extract lessons:
 
@@ -46,7 +52,7 @@ Detect new experiment results and extract lessons:
    7. Commit changes to the machinelearning repo"
 3. If no briefs, skip silently
 
-## Task 3: Phase 3 Iteration Chain Gate
+## Task 4: Phase 3 Iteration Chain Gate
 
 Manage the interleaved Phase 3 iteration chain between main and analysis pipelines.
 
@@ -63,7 +69,7 @@ Manage the interleaved Phase 3 iteration chain between main and analysis pipelin
    - `status: pending_review` → alert Shael with hypothesis + score
 4. If no proposals or chain is blocked, skip silently
 
-## Task 4: Pipeline Archival
+## Task 5: Pipeline Archival
 
 1. `python3 scripts/launch_pipeline.py --list`
 2. For any pipeline at `phase2_complete` or `phase3_complete`:
@@ -71,19 +77,19 @@ Manage the interleaved Phase 3 iteration chain between main and analysis pipelin
    - If archivable → auto-archive with `--archive`
 3. Skip silently if nothing to archive
 
-## Task 5: Git Commits
+## Task 6: Git Commits
 
 1. `cd machinelearning && git status --short`
 2. If uncommitted changes: `git add -A && git commit -m "Auto-commit: research updates" && git push origin`
 3. Skip silently if clean
 
-## Task 6: Memory Maintenance
+## Task 7: Memory Maintenance
 
 1. `python3 scripts/consolidate_memories.py --check 2>/dev/null`
 2. If entries need consolidation, run `python3 scripts/consolidate_memories.py`
 3. Skip silently if nothing to consolidate
 
-## Task 7: Agent Conversation Export
+## Task 8: Agent Conversation Export
 
 1. `python3 scripts/export_agent_conversations.py --since 2`
 2. Skip silently if no new conversations

@@ -1,0 +1,14 @@
+{
+  "version": "v4-deep-analysis",
+  "completed_stage": "analysis_builder_phase2_implementation",
+  "next_stage": "analysis_phase2_critic_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-17T19:10:52.678885+00:00",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "54f1c251-bf03-4edc-a090-ba56bd68f0ee",
+    "response_preview": "Request timed out before a response was generated. Please try again, or increase `agents.defaults.ti"
+  },
+  "verified": true
+}

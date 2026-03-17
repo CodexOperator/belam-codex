@@ -136,43 +136,54 @@ This enables side-by-side comparison across phases and keeps all research for a 
 
 ## Agent Coordination Protocol
 
-**Filesystem-first:** All data exchange between agents happens via shared files, never through `sessions_send` message payloads.
+**Filesystem-first:** All data exchange between agents happens via shared files, never through message payloads.
 
 | Action | Method | Example |
 |--------|--------|---------|
 | Share design/review/fix | Write file to `research/pipeline_builds/` | `v4_critic_phase2_blocks.md` |
-| Track stage transitions | `python3 scripts/pipeline_update.py {v} complete {stage} "{notes}" {agent}` | Auto-updates state JSON, markdown, pending_action |
-| Block a stage (Critic) | `python3 scripts/pipeline_update.py {v} block {stage} "{notes}" {agent} --artifact {file}` | Sets pending_action to fix step |
-| Notify another agent | `sessions_send` with `timeoutSeconds: 0` | "Review ready at `pipeline_builds/v4_critic_review.md`" |
-| Update Shael / group | `message` tool to group chat | "Phase 1 build complete, 111 cells" |
+| Complete/block a stage | `python3 scripts/pipeline_orchestrate.py {v} complete/block {stage} --agent {role} --notes "..."` | Handles EVERYTHING |
+| Update Shael / group | Automatic (orchestrator sends Telegram notification) | — |
 
-**Never** use `sessions_send` with a timeout > 0 (it will timeout on heavy agent runs). Never put critical data only in a `sessions_send` payload — the target may not receive it. Write the file first, ping second.
+### Pipeline Orchestrator — Mandatory Usage
 
-### Pipeline Update Script — Mandatory Usage
+**Every stage transition MUST go through `pipeline_orchestrate.py`** (ONE command replaces the old 3-step dance):
 
-**Every stage transition MUST go through `pipeline_update.py`**, which:
+```bash
+# Complete a stage:
+python3 scripts/pipeline_orchestrate.py {version} complete {stage} --agent {role} --notes "summary"
+
+# Block a stage:
+python3 scripts/pipeline_orchestrate.py {version} block {stage} --agent {role} --notes "BLOCK reason" --artifact review_file.md
+
+# Start a stage:
+python3 scripts/pipeline_orchestrate.py {version} start {stage} --agent {role}
+```
+
+The orchestrator automatically:
 1. Updates `{version}_state.json` (stages + `pending_action`)
 2. Appends to the pipeline markdown stage history table
-3. Prints which agent to ping next and what message to send
+3. Bumps frontmatter status on transitions
+4. Sends Telegram group notification
+5. Wakes the next agent with full context (files to read, what to do)
+6. Verifies the agent picked up the handoff (retries if needed)
+7. Logs a memory entry for the completing agent
 
-The script output tells you exactly who to ping. **Always follow its instructions:**
-- Run the `complete` or `block` command
-- Read the ping instruction it prints
-- Execute the `sessions_send` with `timeoutSeconds: 0` to the indicated agent
-- Post a status update to the group chat
+**DO NOT manually call `sessions_send`, `pipeline_update.py`, or post to the group chat for stage transitions.** The orchestrator handles all of it.
 
-### Stage Flow & Ping Points
+**Context model:** The orchestrator wakes agents with a fresh session and a rich context message listing all files to read. All meaningful state lives in the filesystem — agents don't need conversation history to pick up work.
+
+### Stage Flow
 
 ```
-Architect designs → [complete] → ping Critic "review ready"
-Critic reviews    → [complete] → ping Builder "approved, build it"
-                  → [block]    → ping Architect "blocks, fix instructions at X"
-Builder builds    → [complete] → ping Critic "implementation done, review"
-Critic code-reviews → [complete] → ping Architect "passed, next phase"
-                    → [block]    → ping Builder "blocks, fix instructions at X"
+Architect designs → [orchestrate complete] → auto-wakes Critic
+Critic reviews    → [orchestrate complete] → auto-wakes Builder
+                  → [orchestrate block]    → auto-wakes Architect
+Builder builds    → [orchestrate complete] → auto-wakes Critic
+Critic code-reviews → [orchestrate complete] → auto-wakes Architect
+                    → [orchestrate block]    → auto-wakes Builder
 ```
 
-Same pattern repeats for Phase 2 and Phase 3. The `pipeline_update.py` script handles all transitions automatically — agents just need to run it and follow the printed ping instruction.
+Same pattern for Phase 2 and Phase 3. The orchestrator knows all transitions.
 
 ## ⚠️ MANDATORY GATE: Analysis Pipeline Must Complete First
 

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_in_progress
+status: phase2_complete
 priority: high
 version: v4-deep-analysis
 spec_file: SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4-deep-analysis_design_brief.md
@@ -41,3 +41,9 @@ Shael provides direction to Architect → extended analysis sections added to sa
 | analysis_phase2_architect | 2026-03-17 | belam-main | Phase 2 direction received from Shael (9 directions). Architect designing analysis sections. |
 | analysis_phase2_critic_review_blocked | 2026-03-17 | critic | BLOCKED: BLOCKED. BLOCK-1: Section 9.2 softmax gradient formula wrong — uses simplex normalization gradient r_up*r_down/(r_up+r_down)^2 instead of actual softmax. Proper softmax exp(r_up)/(exp(r_up)+exp(r_down)) has gradient 0.25 at (0,0), NOT undefined. Section 9.4 table incorrectly marks softmax as unsafe. 5 flags: min_useful_rate 0.039 not 0.02; chi-sq null misspecified; excitatory-only inhibitory note missing; EMA reset_state not specified; MLP flattened temporal note. |
 | analysis_phase2_architect_revision | 2026-03-17 | architect | BLOCK-1 resolved: softmax gradient at (0,0) = 0.25 (well-defined, same as sigmoid) — corrected formula, table, and framing. The 0.5-attractor problem is shared across all rate-based decodings, not a gradient singularity. FLAG-1: min_useful_rate ≈ 0.064 (not 0.02 which was guard threshold) — both reference lines added, zombie zone documented. FLAG-2: chi-sq restricted to genuine learners only (n≈10-15 with peak_lift>0.005). FLAG-3: inhibitory V5.1 extension note added. FLAG-4: reset_state() specified with fold-boundary call semantics. FLAG-5: MLP flattening note added with temporal ordering caveat. |
+| analysis_phase2_critic_review | 2026-03-17 | critic | APPROVED. All corrections verified: softmax gradient 0.25 at (0,0) confirmed, min_useful_rate 0.064 from data-derived majority_mean, chi-sq restricted to genuine learners, inhibitory extension note added, EMA reset_state specified, MLP temporal note added. One non-blocking cleanup: Definition of Done label says 'singularity demonstrated' — should say 'gradient comparison'. Zombie zone insight added as quality note. |
+| analysis_phase2_builder_implementation | 2026-03-17 | builder | Phase 2 implementation started — extending notebook with Sections 7-13 |
+| analysis_builder_phase2_implementation | 2026-03-17 | builder | crypto_v4_deep_analysis.ipynb: Phase 2 complete. 146 cells (60 code, 86 markdown). Sections 7-13 appended. All Architect notes implemented: zombie_count, softmax gradient=0.25, chi2 restricted to genuine learners, sns.set_theme(). |
+| analysis_phase2_critic_code_review | 2026-03-17 | critic | APPROVED. All Phase 2 sections verified (7-13). Pre-registered t-test present (cell 86). Softmax gradient 0.25 confirmed in code. min_useful_rate 0.064 correct. Zombie zone documented. Chi-sq restricted to genuine learners. EMA reset_state specified. 2 flags: FLAG-1 MLP-small param count ~600 should be ~5100 (140-D input = 5057 params, not 600) — fix before Shael review. FLAG-2 MLP-matched input note optional. |
+| analysis_phase2_critic_code_review | 2026-03-17 | critic | APPROVED after 2 flags: FLAG-1 MLP-small params ~600→~5,100 (140-D input); FLAG-2 MLP-matched temporal access note added. |
+| analysis_phase2_complete | 2026-03-17 | critic | Phase 2 fully approved. Both code review flags fixed (commit 187765a): MLP-small param count corrected to ~5,100 with temporal note. v4-deep-analysis notebook complete (146 cells). Ready for Shael review. |
