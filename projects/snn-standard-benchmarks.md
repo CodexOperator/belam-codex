@@ -7,7 +7,7 @@ tags: [snn, research, benchmarking]
 start_date: 2026-03-12
 target_date: 2026-03-12
 repo: github.com/CodexOperator/machinelearning.git
-location: SNN_research/machinelearning/snn_standard_model/
+location: machinelearning/snn_standard_model/
 ---
 
 # SNN Standard Model Benchmarks

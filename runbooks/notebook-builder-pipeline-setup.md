@@ -25,7 +25,7 @@ Spin up a complete multi-agent notebook builder pipeline for a new experiment ve
 Write a YAML spec file defining the experiments:
 
 ```bash
-# Location: SNN_research/machinelearning/snn_applied_finance/specs/<version>_spec.yaml
+# Location: machinelearning/snn_applied_finance/specs/<version>_spec.yaml
 # Required fields: version, name, description, experiments[]
 # Each experiment: name, architecture, input_modes, encodings, output_scheme
 # See specs/v4_spec.yaml as reference
@@ -59,9 +59,9 @@ for agent in $AGENTS; do
       ln -s "$src" "$ws/$dir"
     fi
   done
-  # SNN_research symlink (should already exist)
-  if [ ! -e "$ws/SNN_research" ]; then
-    ln -s "$HOME/.openclaw/workspace/SNN_research" "$ws/SNN_research"
+  # machinelearning symlink (should already exist)
+  if [ ! -e "$ws/machinelearning" ]; then
+    ln -s "$HOME/.openclaw/workspace/machinelearning" "$ws/machinelearning"
   fi
 done
 ```
@@ -174,7 +174,7 @@ python3 scripts/setup_pipeline.py --verify <version>
 1. ✅ Checks gateway health (`http://127.0.0.1:18789/health`)
 2. ✅ Validates spec YAML (required fields, experiment structure)
 3. ✅ Calls `build_notebook.py --spec` to generate design brief + pipeline state
-4. ✅ Creates/verifies symlinks for all agent workspaces (shared dirs + SNN_research)
+4. ✅ Creates/verifies symlinks for all agent workspaces (shared dirs + machinelearning)
 5. ✅ Verifies agent tool permissions in `openclaw.json` (write/edit not denied)
 6. ✅ Creates pipeline tracking primitive in `pipelines/`
 7. ✅ Verifies global skills in `~/.openclaw/skills/`

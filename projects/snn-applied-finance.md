@@ -6,7 +6,7 @@ owner: belam
 tags: [snn, finance, crypto, trading]
 start_date: 2026-03-12
 repo: github.com/CodexOperator/machinelearning.git
-location: SNN_research/machinelearning/snn_applied_finance/
+location: machinelearning/snn_applied_finance/
 ---
 
 # SNN Applied Finance

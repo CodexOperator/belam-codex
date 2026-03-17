@@ -23,6 +23,12 @@ fields:
       - analysis_phase2_build
       - analysis_phase2_code_review
       - analysis_phase2_complete
+      - analysis_phase3_proposed
+      - analysis_phase3_design
+      - analysis_phase3_critique
+      - analysis_phase3_build
+      - analysis_phase3_code_review
+      - analysis_phase3_complete
       - archived
   priority:
     type: string
@@ -307,6 +313,43 @@ _(Populated from `research/pipeline_builds/{version}_phase2_shael_direction.md` 
 ### Stage History
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
+
+## Phase 3: Iterative Analysis (Autonomous or Human-Triggered)
+_Status: LOCKED — requires Phase 2 completion before activation_
+
+**Gate condition:** `analysis_phase2_complete` must be set before any Phase 3 iteration can proceed.
+
+### Phase 3 Iteration Chain Protocol
+
+Analysis Phase 3 iterations are **interleaved** with main pipeline Phase 3 iterations in a strict chain:
+
+```
+Main Pipeline Phase 3 iter 01 → Analysis Phase 3 iter 01a, 01b, 01c...
+  (all analysis iters complete, none pending) →
+Main Pipeline Phase 3 iter 02 → Analysis Phase 3 iter 02a, 02b...
+  (all clear) →
+Main Pipeline Phase 3 iter 03 → ...
+```
+
+**Rules:**
+1. Every analysis Phase 3 iteration MUST be preceded by a corresponding MAIN pipeline Phase 3 iteration (can't analyze what wasn't built/run)
+2. Multiple analysis iterations allowed per single main iteration (deep dives, follow-ups)
+3. The next MAIN pipeline iteration is ONLY allowed when ALL analysis iterations for the current one are complete AND none are pending
+4. All Phase 3 iterations append sections to the existing analysis notebook — never create new files
+
+### How Analysis Phase 3 Works
+
+1. **Auto-triggered:** Main pipeline Phase 3 iteration completes and produces new pkl results → analysis Phase 3 iteration kicks off automatically
+2. **Human-triggered:** Shael says "analyze X deeper" → iteration created
+3. **Agent-triggered:** During analysis, agent identifies a follow-up analysis question → proposal generated:
+   - Score ≥ 7: auto-approved (but MUST have a preceding main iteration)
+   - Score 4-6: flagged for Shael's review
+   - Score < 4: rejected, logged only
+
+### Iteration Log
+
+| ID | Source Main Iter | Hypothesis | Proposed By | Status | Result |
+|----|-----------------|-----------|-------------|--------|--------|
 
 ## Artifacts
 - **Design Brief:** `snn_applied_finance/research/pipeline_builds/{version}_design_brief.md`

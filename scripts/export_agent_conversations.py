@@ -20,7 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Export agent conversation transcripts")
     parser.add_argument(
         "--output-dir",
-        default=os.path.expanduser("~/.openclaw/workspace/SNN_research/machinelearning/snn_applied_finance/conversations"),
+        default=os.path.expanduser("~/.openclaw/workspace/machinelearning/snn_applied_finance/conversations"),
         help="Output directory for conversation logs"
     )
     parser.add_argument(

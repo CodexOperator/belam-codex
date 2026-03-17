@@ -22,7 +22,7 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
-BUILDS_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 
 
 # ---------------------------------------------------------------------------
@@ -309,7 +309,7 @@ def section_role_context(role: str) -> str:
 
     # Check for knowledge file
     knowledge_candidates = [
-        WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'research' / f'{role.upper()}_KNOWLEDGE.md',
+        WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / f'{role.upper()}_KNOWLEDGE.md',
         WORKSPACE / 'knowledge' / f'{role}-knowledge.md',
         WORKSPACE / f'{role.upper()}_KNOWLEDGE.md',
     ]

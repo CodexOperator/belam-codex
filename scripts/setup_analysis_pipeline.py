@@ -28,7 +28,7 @@ from pathlib import Path
 HOME = Path.home()
 OPENCLAW_DIR = HOME / '.openclaw'
 WORKSPACE = OPENCLAW_DIR / 'workspace'
-FINANCE_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance'
+FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 AGENTS = ['architect', 'critic', 'builder']
@@ -267,14 +267,14 @@ def ensure_symlinks():
             except Exception as e:
                 warn(f"Could not link {dirname} → workspace-{agent}: {e}")
 
-        snn_dst = ws / 'SNN_research'
-        snn_src = WORKSPACE / 'SNN_research'
+        snn_dst = ws / 'machinelearning'
+        snn_src = WORKSPACE / 'machinelearning'
         if snn_src.exists() and not snn_dst.exists() and not snn_dst.is_symlink():
             try:
                 snn_dst.symlink_to(snn_src)
-                ok(f"Linked SNN_research → workspace-{agent}")
+                ok(f"Linked machinelearning → workspace-{agent}")
             except Exception as e:
-                warn(f"Could not link SNN_research → workspace-{agent}: {e}")
+                warn(f"Could not link machinelearning → workspace-{agent}: {e}")
 
     ok("Symlinks verified")
 
@@ -352,7 +352,7 @@ priority: high
 version: {version}
 source_version: {source_version}
 source_pkl_dir: {pkl_dir}
-output_notebook: SNN_research/machinelearning/snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb
+output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb
 agents: [architect, critic, builder]
 tags: [snn, analysis, {source_version}]
 project: snn-applied-finance

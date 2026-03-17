@@ -38,7 +38,7 @@ from pathlib import Path
 
 FINANCE_DIR = Path(os.environ.get(
     'FINANCE_DIR',
-    os.path.expanduser('~/.openclaw/workspace/SNN_research/machinelearning/snn_applied_finance')
+    os.path.expanduser('~/.openclaw/workspace/machinelearning/snn_applied_finance')
 ))
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 RESEARCH_DIR = FINANCE_DIR / 'research'

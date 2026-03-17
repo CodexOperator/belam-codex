@@ -30,7 +30,7 @@ import yaml
 HOME = Path.home()
 OPENCLAW_DIR = HOME / '.openclaw'
 WORKSPACE = OPENCLAW_DIR / 'workspace'
-FINANCE_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance'
+FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 AGENTS = ['architect', 'critic', 'builder']
 
 SHARED_DIRS = [
@@ -124,12 +124,12 @@ def ensure_symlinks():
             dst.symlink_to(src)
             ok(f"Linked {dirname} → workspace-{agent}")
 
-        # SNN_research symlink
-        snn_dst = ws / 'SNN_research'
-        snn_src = WORKSPACE / 'SNN_research'
+        # machinelearning symlink
+        snn_dst = ws / 'machinelearning'
+        snn_src = WORKSPACE / 'machinelearning'
         if snn_src.exists() and not snn_dst.exists():
             snn_dst.symlink_to(snn_src)
-            ok(f"Linked SNN_research → workspace-{agent}")
+            ok(f"Linked machinelearning → workspace-{agent}")
 
     ok("All symlinks verified")
 
@@ -214,8 +214,8 @@ primitive: pipeline
 status: phase1_design
 priority: high
 version: {version}
-spec_file: SNN_research/machinelearning/snn_applied_finance/specs/{version}_spec.yaml
-output_notebook: SNN_research/machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb
+spec_file: machinelearning/snn_applied_finance/specs/{version}_spec.yaml
+output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb
 agents: [architect, critic, builder]
 tags: [snn, finance, auto-generated]
 project: snn-applied-finance

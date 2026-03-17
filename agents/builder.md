@@ -8,7 +8,7 @@ workspace: ~/.openclaw/workspace-builder
 telegram_bot: "@BelamBuilderBot"
 group_chat: "-5243763228"
 skills: [quant-infrastructure, quant-workflow, derivative-specialist, predictionmarket-specialist]
-knowledge_files: [SNN_research/machinelearning/snn_applied_finance/research/BUILDER_KNOWLEDGE.md]
+knowledge_files: [machinelearning/snn_applied_finance/research/BUILDER_KNOWLEDGE.md]
 communicates_with: [architect, critic, main]
 tags: [snn, finance, implementation, colab]
 ---

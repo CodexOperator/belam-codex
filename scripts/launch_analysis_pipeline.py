@@ -38,7 +38,7 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
-FINANCE_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance'
+FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 
@@ -297,7 +297,7 @@ priority: {priority}
 version: {version}
 source_version: {source_version}
 source_pkl_dir: {source_pkl}
-output_notebook: SNN_research/machinelearning/snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb
+output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb
 agents: [architect, critic, builder]
 tags: {tags_str}
 project: {project}
@@ -479,11 +479,11 @@ def main():
         f"You've been assigned as architect for a new ANALYSIS pipeline.\n\n"
         f"**Read these files first:**\n"
         f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
-        f"2. `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_design_brief.md` — design brief\n"
-        f"3. `SNN_research/machinelearning/snn_applied_finance/research/ANALYSIS_AGENT_ROLES.md` — your role\n"
+        f"2. `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_design_brief.md` — design brief\n"
+        f"3. `machinelearning/snn_applied_finance/research/ANALYSIS_AGENT_ROLES.md` — your role\n"
         f"4. Read skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`\n\n"
         f"**Your task:** Design the analysis notebook for {args.source_version} pkl results.\n"
-        f"Write design to `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_analysis_design.md`.\n"
+        f"Write design to `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_analysis_design.md`.\n"
         f"Then run: `python3 scripts/pipeline_update.py {args.version} complete analysis_architect_design 'Design complete' architect`\n"
         f"Post update to group chat. The script will tell you to ping the critic next."
     )

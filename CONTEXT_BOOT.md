@@ -76,7 +76,7 @@ python3 scripts/archive_session_transcript.py \
     --session-key "agent:architect:telegram:group:-5243763228" \
     --pipeline v4-analysis \
     --stage architect_design \
-    --output-dir "SNN_research/machinelearning/snn_applied_finance/conversations/"
+    --output-dir "machinelearning/snn_applied_finance/conversations/"
 
 # List available sessions for an agent:
 python3 scripts/archive_session_transcript.py \

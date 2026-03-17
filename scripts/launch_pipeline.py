@@ -35,7 +35,7 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
-FINANCE_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance'
+FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
 SPECS_DIR = FINANCE_DIR / 'specs'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
@@ -157,8 +157,8 @@ primitive: pipeline
 status: phase1_design
 priority: {priority}
 version: {version}
-spec_file: SNN_research/machinelearning/snn_applied_finance/specs/{version}_spec.yaml
-output_notebook: SNN_research/machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb
+spec_file: machinelearning/snn_applied_finance/specs/{version}_spec.yaml
+output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb
 agents: [architect, critic, builder]
 tags: {tags_str}
 project: {project}
@@ -284,11 +284,11 @@ def main():
         f"You've been assigned as architect for a new BUILDER pipeline.\n\n"
         f"**Read these files first:**\n"
         f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
-        f"2. `SNN_research/machinelearning/snn_applied_finance/specs/{args.version}_spec.yaml` — experiment spec\n"
-        f"3. `SNN_research/machinelearning/snn_applied_finance/research/AGENT_SOUL.md` — agent principles\n"
-        f"4. `SNN_research/machinelearning/snn_applied_finance/research/ARCHITECT_KNOWLEDGE.md` — your knowledge base\n\n"
+        f"2. `machinelearning/snn_applied_finance/specs/{args.version}_spec.yaml` — experiment spec\n"
+        f"3. `machinelearning/snn_applied_finance/research/AGENT_SOUL.md` — agent principles\n"
+        f"4. `machinelearning/snn_applied_finance/research/ARCHITECT_KNOWLEDGE.md` — your knowledge base\n\n"
         f"**Your task:** Design the full notebook architecture following the Implementation Pipeline flow.\n"
-        f"Write design to `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_design.md`.\n"
+        f"Write design to `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_design.md`.\n"
         f"Then run: `python3 scripts/pipeline_update.py {args.version} complete architect_design 'Design complete' architect`\n"
         f"Post update to group chat. The script will tell you to ping the critic next."
     )

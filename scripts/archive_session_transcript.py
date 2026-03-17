@@ -11,7 +11,7 @@ Usage:
         --session-key "agent:architect:telegram:group:-5243763228" \\
         --pipeline v4-analysis \\
         --stage architect_design \\
-        --output-dir "SNN_research/machinelearning/snn_applied_finance/conversations/"
+        --output-dir "machinelearning/snn_applied_finance/conversations/"
 
     python3 scripts/archive_session_transcript.py \\
         --session-key "agent:builder:telegram:group:-5243763228" \\
@@ -36,7 +36,7 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 AGENTS_DIR = Path(os.path.expanduser('~/.openclaw/agents'))
-DEFAULT_OUTPUT_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'conversations'
+DEFAULT_OUTPUT_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'conversations'
 
 
 # ---------------------------------------------------------------------------

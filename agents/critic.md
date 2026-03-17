@@ -8,7 +8,7 @@ workspace: ~/.openclaw/workspace-critic
 telegram_bot: "@BelamCriticBot"
 group_chat: "-5243763228"
 skills: [quant-workflow, quant-infrastructure, derivative-specialist, predictionmarket-specialist]
-knowledge_files: [SNN_research/machinelearning/snn_applied_finance/research/CRITIC_KNOWLEDGE.md]
+knowledge_files: [machinelearning/snn_applied_finance/research/CRITIC_KNOWLEDGE.md]
 communicates_with: [architect, builder, main]
 tags: [snn, finance, review, validation]
 ---

@@ -6,15 +6,21 @@ Single command for agents to update pipeline state. Updates BOTH the pipeline
 markdown primitive and the state JSON atomically. Manages pending_action and
 prints fire-and-forget ping instructions for the next agent.
 
+Automatically:
+  - Appends rows to the correct phase's Stage History table
+  - Creates new Stage History tables when a phase section exists but has no table
+  - Bumps frontmatter status on start/complete/block transitions
+  - Updates state JSON phase tracking
+
 Usage:
-    # Complete a stage (auto-advances pending_action + prints ping instruction):
-    python3 scripts/pipeline_update.py v4 complete architect_design "Design v2 with all blocks resolved" architect
+    # Complete a stage:
+    python3 scripts/pipeline_update.py v4 complete architect_design --agent architect --notes "Design v2 with all blocks resolved"
     
-    # Block a stage (Critic found issues — sets pending_action to fix step):
-    python3 scripts/pipeline_update.py v4 block critic_code_review "BLOCK-1: wrong loss fn" critic --artifact v4_critic_blocks.md
+    # Block a stage (Critic found issues):
+    python3 scripts/pipeline_update.py v4 block critic_code_review --agent critic --notes "BLOCK-1: wrong loss fn" --artifact v4_critic_blocks.md
     
     # Start a stage:
-    python3 scripts/pipeline_update.py v4 start builder_implementation builder
+    python3 scripts/pipeline_update.py v4 start builder_implementation --agent builder --notes "Starting implementation"
     
     # Set overall pipeline status:
     python3 scripts/pipeline_update.py v4 status phase1_build
@@ -24,6 +30,10 @@ Usage:
     
     # View current state:
     python3 scripts/pipeline_update.py v4 show
+
+Flag-style args (--agent, --notes, --artifact) work from any position.
+Positional args still supported for backward compatibility:
+    python3 scripts/pipeline_update.py v4 complete stage "notes" agent
 """
 
 import json
@@ -36,7 +46,7 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
-BUILDS_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 SCRIPTS = WORKSPACE / 'scripts'
 
 # Agent session keys for fire-and-forget pings
@@ -46,8 +56,10 @@ AGENT_SESSIONS = {
     'builder':   'agent:builder:telegram:group:-5243763228',
 }
 
+# ═══════════════════════════════════════════════════════════════════════
 # Stage transition map: when stage X completes, what's next?
 # Format: completed_stage → (next_pending_action, next_agent, ping_message_template)
+# ═══════════════════════════════════════════════════════════════════════
 STAGE_TRANSITIONS = {
     # Phase 1
     'architect_design':           ('critic_design_review',       'critic',    'Design ready for review at pipeline_builds/{v}_architect_design.md'),
@@ -66,7 +78,7 @@ STAGE_TRANSITIONS = {
     'builder_phase2_implemented': ('phase2_critic_code_review',  'critic',    'Phase 2 implementation done. Review the notebook.'),
     'phase2_critic_code_review':  ('phase2_complete',            'architect', 'Phase 2 code review passed. Pipeline complete (or ready for Phase 3).'),
     # Phase 2 blocks
-    'builder_apply_phase2_blocks':('phase2_critic_code_review',  'critic',    'Phase 2 blocks fixed. Re-review the notebook.'),
+    'builder_apply_phase2_blocks':('phase2_critic_code_review',  'critic',    'Phase 2 analysis blocks fixed. Re-review the notebook.'),
     'critic_block_fixes':         ('phase2_critic_code_review',  'critic',    'Blocks fixed. Re-review the notebook.'),
 
     # Phase 3
@@ -75,7 +87,7 @@ STAGE_TRANSITIONS = {
     'phase3_builder_implementation':('phase3_critic_code_review','critic',    'Phase 3 implementation done. Review the notebook.'),
     'phase3_critic_code_review':  ('phase3_complete',            'architect', 'Phase 3 iteration complete.'),
 
-    # ── Analysis Pipeline — Phase 1 (autonomous statistical analysis) ──────────
+    # ── Analysis Pipeline — Phase 1 (autonomous statistical analysis) ──────
     'analysis_architect_design':          ('analysis_critic_review',            'critic',    'Analysis design ready at pipeline_builds/{v}_architect_analysis_design.md'),
     'analysis_critic_review':             ('analysis_builder_implementation',   'builder',   'Analysis design approved. Implement notebook per pipeline_builds/{v}_architect_analysis_design.md'),
     'analysis_architect_design_revision': ('analysis_critic_review',            'critic',    'Analysis design revised, re-review at pipeline_builds/{v}_architect_analysis_design.md'),
@@ -84,7 +96,8 @@ STAGE_TRANSITIONS = {
     # Analysis Phase 1 block fixes
     'analysis_builder_apply_blocks':      ('analysis_critic_code_review',       'critic',    'Analysis blocks fixed. Re-review the notebook.'),
 
-    # ── Analysis Pipeline — Phase 2 (Shael-directed analysis) ─────────────────
+    # ── Analysis Pipeline — Phase 2 (Shael-directed analysis) ─────────────
+    'analysis_phase2_architect':                 ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design ready at pipeline_builds/{v}_phase2_architect_design.md'),
     'analysis_phase2_architect_design':          ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design ready at pipeline_builds/{v}_phase2_architect_analysis_design.md'),
     'analysis_phase2_critic_review':             ('analysis_phase2_builder_implementation',   'builder',   'Phase 2 analysis design approved. Extend notebook per pipeline_builds/{v}_phase2_architect_analysis_design.md'),
     'analysis_phase2_architect_revision':        ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design revised, re-review.'),
@@ -94,40 +107,66 @@ STAGE_TRANSITIONS = {
     'analysis_phase2_builder_apply_blocks':      ('analysis_phase2_critic_code_review',       'critic',    'Phase 2 analysis blocks fixed. Re-review the notebook.'),
 }
 
-# Block transitions: when a review stage is blocked, what's the fix action?
-# Auto-bump: when pending_action reaches one of these, bump the overall
-# pipeline frontmatter status to the mapped value.  Keyed on next_action
-# (the value STAGE_TRANSITIONS returns as the first element).
+# ═══════════════════════════════════════════════════════════════════════
+# Status bumps: when pending_action reaches one of these, bump overall
+# pipeline frontmatter status. Keyed on next_action.
+# ═══════════════════════════════════════════════════════════════════════
 STATUS_BUMPS = {
-    # ── Builder Pipeline — Phase 1 ───────────────────────────────────────
+    # ── Builder Pipeline — Phase 1 ───────────────────────────────────
     'critic_design_review':             'phase1_review',
     'builder_implementation':           'phase1_build',
     'critic_code_review':               'phase1_code_review',
     'phase1_complete':                  'phase1_complete',
 
-    # ── Builder Pipeline — Phase 2 ───────────────────────────────────────
+    # ── Builder Pipeline — Phase 2 ───────────────────────────────────
     'phase2_critic_design_review':      'phase2_review',
     'phase2_builder_implementation':    'phase2_build',
     'phase2_critic_code_review':        'phase2_code_review',
     'phase2_complete':                  'phase2_complete',
 
-    # ── Builder Pipeline — Phase 3 ───────────────────────────────────────
+    # ── Builder Pipeline — Phase 3 ───────────────────────────────────
     'phase3_critic_review':             'phase3_active',
     'phase3_builder_implementation':    'phase3_active',
     'phase3_critic_code_review':        'phase3_active',
     'phase3_complete':                  'phase3_complete',
 
-    # ── Analysis Pipeline — Phase 1 ──────────────────────────────────────
+    # ── Analysis Pipeline — Phase 1 ──────────────────────────────────
     'analysis_critic_review':                   'analysis_phase1_review',
     'analysis_builder_implementation':          'analysis_phase1_build',
     'analysis_critic_code_review':              'analysis_phase1_code_review',
     'analysis_phase1_complete':                 'phase1_complete',
 
-    # ── Analysis Pipeline — Phase 2 ──────────────────────────────────────
-    'analysis_phase2_critic_review':            'analysis_phase2_review',
-    'analysis_phase2_builder_implementation':   'analysis_phase2_build',
-    'analysis_phase2_critic_code_review':       'analysis_phase2_code_review',
+    # ── Analysis Pipeline — Phase 2 ──────────────────────────────────
+    'analysis_phase2_critic_review':            'phase2_in_progress',
+    'analysis_phase2_builder_implementation':   'phase2_in_progress',
+    'analysis_phase2_critic_code_review':       'phase2_in_progress',
     'analysis_phase2_complete':                 'phase2_complete',
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# Start status bumps: when a stage is started, bump frontmatter status.
+# This ensures the pipeline status reflects the current active phase
+# even before the first complete call.
+# ═══════════════════════════════════════════════════════════════════════
+START_STATUS_BUMPS = {
+    # Analysis Phase 2 starts
+    'analysis_phase2_architect':                'phase2_in_progress',
+    'analysis_phase2_architect_design':         'phase2_in_progress',
+    'analysis_phase2_critic_review':            'phase2_in_progress',
+    'analysis_phase2_builder_implementation':   'phase2_in_progress',
+    'analysis_phase2_critic_code_review':       'phase2_in_progress',
+
+    # Builder Phase 2 starts
+    'phase2_architect_design':                  'phase2_in_progress',
+    'phase2_critic_design_review':              'phase2_in_progress',
+    'phase2_builder_implementation':            'phase2_in_progress',
+    'phase2_critic_code_review':                'phase2_in_progress',
+
+    # Phase 3 starts
+    'phase3_architect_design':                  'phase3_active',
+    'phase3_critic_review':                     'phase3_active',
+    'phase3_builder_implementation':            'phase3_active',
+    'phase3_critic_code_review':                'phase3_active',
 }
 
 BLOCK_TRANSITIONS = {
@@ -138,11 +177,37 @@ BLOCK_TRANSITIONS = {
     'phase3_critic_review':       ('phase3_architect_revision',  'architect', 'Phase 3 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'phase3_critic_code_review':  ('phase3_builder_fix',         'builder',   'Phase 3 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
 
-    # ── Analysis Pipeline block transitions ────────────────────────────────────
+    # ── Analysis Pipeline block transitions ────────────────────────────
     'analysis_critic_review':              ('analysis_architect_design_revision',       'architect', 'Analysis design has methodology blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'analysis_critic_code_review':         ('analysis_builder_apply_blocks',            'builder',   'Analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'analysis_phase2_critic_review':       ('analysis_phase2_architect_revision',       'architect', 'Phase 2 analysis design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'analysis_phase2_critic_code_review':  ('analysis_phase2_builder_apply_blocks',     'builder',   'Phase 2 analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+}
+
+# ═══════════════════════════════════════════════════════════════════════
+# Phase detection: determine which phase a stage belongs to based on
+# its name prefix. Used for routing history table entries.
+# ═══════════════════════════════════════════════════════════════════════
+PHASE_PATTERNS = [
+    # Order matters — more specific patterns first
+    (re.compile(r'(analysis_)?phase3_|^phase3_'),    3),
+    (re.compile(r'(analysis_)?phase2_|^phase2_'),    2),
+    # Everything else is Phase 1
+]
+
+def detect_phase(stage_name: str) -> int:
+    """Determine which phase a stage belongs to (1, 2, or 3)."""
+    for pattern, phase in PHASE_PATTERNS:
+        if pattern.search(stage_name):
+            return phase
+    return 1
+
+
+# Phase section header patterns (match common variations)
+PHASE_SECTION_PATTERNS = {
+    1: re.compile(r'^## Phase 1[:\s—–-]', re.MULTILINE),
+    2: re.compile(r'^## Phase 2[:\s—–-]', re.MULTILINE),
+    3: re.compile(r'^## Phase 3[:\s—–-]', re.MULTILINE),
 }
 
 
@@ -163,7 +228,6 @@ def trigger_memory_update(agent: str, version: str, stage: str, notes: str):
             check=False,
         )
     except Exception as e:
-        # Memory logging is best-effort — never block pipeline operations
         print(f"   ⚠️  Memory update skipped: {e}")
 
 
@@ -220,12 +284,149 @@ def now_date():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d')
 
 
+def parse_flags(argv):
+    """Parse --flag value pairs from argv, returning a dict and remaining positional args."""
+    flags = {}
+    positional = []
+    i = 0
+    while i < len(argv):
+        if argv[i].startswith('--') and i + 1 < len(argv) and not argv[i + 1].startswith('--'):
+            flags[argv[i][2:]] = argv[i + 1]
+            i += 2
+        elif argv[i].startswith('--') and '=' in argv[i]:
+            key, val = argv[i][2:].split('=', 1)
+            flags[key] = val
+            i += 1
+        else:
+            positional.append(argv[i])
+            i += 1
+    return flags, positional
+
+
+def find_phase_table_range(lines, phase_num):
+    """
+    Find the line range of the Stage History table for a given phase.
+    Returns (header_line_idx, last_row_line_idx, table_exists).
+    If the phase section exists but has no table, returns (insert_after_idx, None, False).
+    If the phase section doesn't exist, returns (None, None, False).
+    """
+    phase_pattern = PHASE_SECTION_PATTERNS.get(phase_num)
+    if not phase_pattern:
+        return None, None, False
+
+    # Find the phase section header
+    phase_header_idx = None
+    for i, line in enumerate(lines):
+        if phase_pattern.match(line):
+            phase_header_idx = i
+            break
+
+    if phase_header_idx is None:
+        return None, None, False
+
+    # Find the next ## header (end of this phase section)
+    next_section_idx = len(lines)
+    for i in range(phase_header_idx + 1, len(lines)):
+        if lines[i].startswith('## ') and not lines[i].startswith('### '):
+            next_section_idx = i
+            break
+
+    # Look for a Stage History table within this phase section
+    table_header_idx = None
+    for i in range(phase_header_idx, next_section_idx):
+        if '| Stage |' in lines[i]:
+            table_header_idx = i
+            break
+
+    if table_header_idx is None:
+        # No table yet — return insertion point (after phase header + any description text)
+        insert_idx = phase_header_idx + 1
+        # Skip past any non-empty, non-header lines (description text)
+        while insert_idx < next_section_idx and lines[insert_idx].strip() and not lines[insert_idx].startswith('#'):
+            insert_idx += 1
+        return insert_idx, None, False
+
+    # Table exists — find the last row
+    last_row_idx = table_header_idx
+    for i in range(table_header_idx + 1, next_section_idx):
+        if lines[i].startswith('|'):
+            last_row_idx = i
+        else:
+            break
+
+    return table_header_idx, last_row_idx, True
+
+
+def append_to_phase_table(content, phase_num, stage, date, agent, notes):
+    """
+    Append a row to the correct phase's Stage History table.
+    Creates the table if the phase section exists but has no table yet.
+    Returns the updated content string.
+    """
+    lines = content.split('\n')
+    header_idx, last_row_idx, table_exists = find_phase_table_range(lines, phase_num)
+
+    new_row = f'| {stage} | {date} | {agent} | {notes} |'
+
+    if table_exists:
+        # Insert after the last row
+        lines.insert(last_row_idx + 1, new_row)
+    elif header_idx is not None:
+        # Phase section exists but no table — create one
+        table_lines = [
+            '',
+            '### Stage History',
+            '| Stage | Date | Agent | Notes |',
+            '|-------|------|-------|-------|',
+            new_row,
+        ]
+        for j, tl in enumerate(table_lines):
+            lines.insert(header_idx + j, tl)
+    else:
+        # Phase section doesn't exist at all — fall back to appending to any existing table
+        # (backward compat: find the LAST table in the file)
+        fallback_idx = None
+        for i, line in enumerate(lines):
+            if line.startswith('|') and '---' not in line and 'Stage' not in line:
+                fallback_idx = i
+        if fallback_idx is not None:
+            lines.insert(fallback_idx + 1, new_row)
+            print(f"   ⚠️  No Phase {phase_num} section found — appended to last table in file")
+        else:
+            # No table anywhere — append at end with a new section
+            lines.extend([
+                '',
+                f'## Phase {phase_num}',
+                '',
+                '### Stage History',
+                '| Stage | Date | Agent | Notes |',
+                '|-------|------|-------|-------|',
+                new_row,
+            ])
+            print(f"   📝 Created new Phase {phase_num} section with Stage History table")
+
+    return '\n'.join(lines)
+
+
+def update_phase_state_json(state, phase_num, stage, started=False):
+    """Update the phase-level tracking in state JSON."""
+    phase_key = f'phase{phase_num}'
+    if phase_key not in state:
+        state[phase_key] = {}
+    state[phase_key]['stage'] = stage
+    if started:
+        state[phase_key]['started'] = now_date()
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Commands
+# ═══════════════════════════════════════════════════════════════════════
+
 def cmd_show(version):
     """Show current pipeline state."""
     pf, content = load_pipeline_md(version)
     state = load_state(version)
     
-    # Extract status from frontmatter
     status_match = re.search(r'^status:\s*(.+)$', content, re.MULTILINE)
     status = status_match.group(1).strip() if status_match else 'unknown'
     
@@ -236,7 +437,6 @@ def cmd_show(version):
     if 'stages' in state:
         print(f"   Completed stages: {len([s for s in state['stages'].values() if s.get('status') == 'complete'])}")
     
-    # Show stage history from markdown
     in_history = False
     for line in content.split('\n'):
         if '| Stage |' in line:
@@ -255,6 +455,7 @@ def cmd_complete(version, stage, notes='', agent=None):
     agent = agent or get_agent_id()
     pf, content = load_pipeline_md(version)
     state = load_state(version)
+    phase = detect_phase(stage)
     
     # Update state JSON
     if 'stages' not in state:
@@ -265,54 +466,13 @@ def cmd_complete(version, stage, notes='', agent=None):
         'agent': agent,
         'notes': notes,
     }
+    update_phase_state_json(state, phase, stage)
+    state['last_updated'] = now_str()
     save_state(version, state)
     
-    # Find the stage history table and append a new row
-    lines = content.split('\n')
-    output = []
-    inserted = False
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        output.append(line)
-        
-        if not inserted and '| Stage |' in line:
-            # Found the header — check for separator on next line
-            next_i = i + 1
-            if next_i < len(lines) and '---' in lines[next_i]:
-                # Separator exists — include it
-                output.append(lines[next_i])
-                next_i += 1
-            else:
-                # Missing separator — auto-repair
-                col_count = line.count('|') - 1
-                separator = '|' + '|'.join(['---'] * col_count) + '|'
-                output.append(separator)
-                print(f"⚠️  Auto-repaired missing table separator in pipelines/{version}.md")
-            
-            # Copy existing data rows
-            while next_i < len(lines) and lines[next_i].startswith('|'):
-                output.append(lines[next_i])
-                next_i += 1
-            
-            # Append new row at end of table
-            output.append(f'| {stage} | {now_date()} | {agent} | {notes} |')
-            inserted = True
-            i = next_i  # skip past consumed lines
-            continue
-        
-        i += 1
-    
-    if inserted:
-        pf.write_text('\n'.join(output))
-    else:
-        # No table header found at all — warn loudly
-        pf.write_text(content)
-        print(f"⚠️  Could not find '| Stage |' header in pipelines/{version}.md")
-        print(f"   State JSON updated, but markdown stage history was NOT updated.")
-        print(f"   Fix: add a stage history table to the pipeline markdown:")
-        print(f"   | Stage | Date | Agent | Notes |")
-        print(f"   |-------|------|-------|-------|")
+    # Append to the correct phase's history table
+    content = append_to_phase_table(content, phase, stage, now_date(), agent, notes)
+    pf.write_text(content)
     
     # Update pending_action based on stage transition map
     transition = STAGE_TRANSITIONS.get(stage)
@@ -322,11 +482,12 @@ def cmd_complete(version, stage, notes='', agent=None):
         state['last_updated'] = now_str()
         save_state(version, state)
 
-        # Auto-bump the overall pipeline status if this transition warrants it
+        # Auto-bump the overall pipeline status
         new_status = STATUS_BUMPS.get(next_action)
         if new_status:
-            old_status_match = re.search(r'^status:\s*(.+)$', pf.read_text(), re.MULTILINE)
-            old_status = old_status_match.group(1).strip() if old_status_match else '?'
+            content = pf.read_text()
+            old_match = re.search(r'^status:\s*(.+)$', content, re.MULTILINE)
+            old_status = old_match.group(1).strip() if old_match else '?'
             if old_status != new_status:
                 cmd_status(version, new_status)
                 print(f"   📊 Auto-bumped status: {old_status} → {new_status}")
@@ -343,15 +504,17 @@ def cmd_complete(version, stage, notes='', agent=None):
         print(f"   ⚠️  No auto-transition for '{stage}' — set pending_action manually if needed")
         print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
-    # Memory trigger — best-effort, non-blocking
     trigger_memory_update(agent, version, stage, notes)
 
 
-def cmd_start(version, stage, agent=None):
-    """Mark a stage as started."""
+def cmd_start(version, stage, agent=None, notes=None):
+    """Mark a stage as started. Updates state JSON, frontmatter status, and history table."""
     agent = agent or get_agent_id()
+    pf, content = load_pipeline_md(version)
     state = load_state(version)
+    phase = detect_phase(stage)
     
+    # Update state JSON
     if 'stages' not in state:
         state['stages'] = {}
     state['stages'][stage] = {
@@ -359,8 +522,31 @@ def cmd_start(version, stage, agent=None):
         'started_at': now_str(),
         'agent': agent,
     }
+    if notes:
+        state['stages'][stage]['notes'] = notes
+
+    update_phase_state_json(state, phase, stage, started=True)
+    state['last_updated'] = now_str()
     save_state(version, state)
+    
+    # Append to the correct phase's history table
+    display_notes = notes or 'In progress'
+    content = append_to_phase_table(content, phase, stage, now_date(), agent, display_notes)
+    pf.write_text(content)
+
+    # Auto-bump frontmatter status for phase transitions
+    new_status = START_STATUS_BUMPS.get(stage)
+    if new_status:
+        current_content = pf.read_text()
+        old_match = re.search(r'^status:\s*(.+)$', current_content, re.MULTILINE)
+        old_status = old_match.group(1).strip() if old_match else '?'
+        if old_status != new_status:
+            cmd_status(version, new_status)
+            print(f"   📊 Auto-bumped status: {old_status} → {new_status}")
+    
     print(f"🔨 {version}: {stage} → in_progress ({agent})")
+    if notes:
+        print(f"   Notes: {notes}")
 
 
 def cmd_block(version, stage, notes='', agent=None, artifact=None):
@@ -368,6 +554,7 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
     agent = agent or get_agent_id()
     pf, content = load_pipeline_md(version)
     state = load_state(version)
+    phase = detect_phase(stage)
 
     blocked_stage = f'{stage}_blocked'
 
@@ -381,9 +568,8 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         'notes': notes,
     }
     if artifact:
-        state[f'{stage}_blocks_artifact'] = f'SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{artifact}'
+        state[f'{stage}_blocks_artifact'] = f'machinelearning/snn_applied_finance/research/pipeline_builds/{artifact}'
 
-    # Look up the block transition
     transition = BLOCK_TRANSITIONS.get(stage)
     if transition:
         next_action, next_agent, ping_template = transition
@@ -391,44 +577,15 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
     state['last_updated'] = now_str()
     save_state(version, state)
 
-    # Auto-bump status to reflect the block-fix action if mapped
+    # Auto-bump status
     if transition:
         new_status = STATUS_BUMPS.get(next_action)
         if new_status:
             cmd_status(version, new_status)
 
-    # Append blocked entry to stage history table
-    lines = content.split('\n')
-    output = []
-    inserted = False
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        output.append(line)
-
-        if not inserted and '| Stage |' in line:
-            next_i = i + 1
-            if next_i < len(lines) and '---' in lines[next_i]:
-                output.append(lines[next_i])
-                next_i += 1
-            else:
-                col_count = line.count('|') - 1
-                separator = '|' + '|'.join(['---'] * col_count) + '|'
-                output.append(separator)
-
-            while next_i < len(lines) and lines[next_i].startswith('|'):
-                output.append(lines[next_i])
-                next_i += 1
-
-            output.append(f'| {blocked_stage} | {now_date()} | {agent} | BLOCKED: {notes} |')
-            inserted = True
-            i = next_i
-            continue
-
-        i += 1
-
-    if inserted:
-        pf.write_text('\n'.join(output))
+    # Append to the correct phase's history table
+    content = append_to_phase_table(content, phase, blocked_stage, now_date(), agent, f'BLOCKED: {notes}')
+    pf.write_text(content)
 
     print(f"🚫 {version}: {stage} → BLOCKED ({agent})")
     if notes:
@@ -444,7 +601,6 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         print(f"   ⚠️  No auto-transition for blocking '{stage}' — set pending_action manually")
         print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
-    # Memory trigger — best-effort, non-blocking
     trigger_memory_update(agent, version, f"{stage}_blocked", f"BLOCKED: {notes}")
 
 
@@ -453,11 +609,9 @@ def cmd_status(version, new_status):
     pf, content = load_pipeline_md(version)
     state = load_state(version)
     
-    # Update frontmatter status
     content = re.sub(r'^status:\s*.+$', f'status: {new_status}', content, count=1, flags=re.MULTILINE)
     pf.write_text(content)
     
-    # Update state JSON
     state['status'] = new_status
     state['status_updated'] = now_str()
     save_state(version, state)
@@ -469,22 +623,18 @@ def cmd_iteration(version, iteration_id, status, result=''):
     """Update a Phase 3 iteration in the log."""
     pf, content = load_pipeline_md(version)
     
-    # Find iteration log table and update or append
     if f'| {iteration_id} |' in content:
-        # Update existing row — replace the status and result columns
         content = re.sub(
             rf'\| {re.escape(iteration_id)} \|.*\|',
             f'| {iteration_id} | — | — | {status} | {result} |',
             content
         )
     else:
-        # Append new row after the iteration log header
         agent = get_agent_id()
         content = content.replace(
             '| _(none yet',
             f'| {iteration_id} | — | {agent} | {status} | {result} |\n| _(none yet'
         )
-        # If no placeholder, append after header
         if f'| {iteration_id} |' not in content:
             content = content.replace(
                 '| ID | Hypothesis | Proposed By | Status | Result |\n|----|',
@@ -503,50 +653,56 @@ def main():
     version = sys.argv[1]
     action = sys.argv[2]
     
+    # Parse flags from all remaining args
+    flags, positional = parse_flags(sys.argv[3:])
+    
     if action == 'show':
         cmd_show(version)
-    elif action == 'block':
-        stage = sys.argv[3] if len(sys.argv) > 3 else None
-        notes = sys.argv[4] if len(sys.argv) > 4 else ''
-        agent = sys.argv[5] if len(sys.argv) > 5 else None
-        # Parse --artifact flag
-        artifact = None
-        for i, arg in enumerate(sys.argv):
-            if arg == '--artifact' and i + 1 < len(sys.argv):
-                artifact = sys.argv[i + 1]
-        if not stage:
-            print("Usage: pipeline_update.py <version> block <stage> [notes] [agent] [--artifact filename.md]")
-            sys.exit(1)
-        cmd_block(version, stage, notes, agent, artifact)
+
     elif action == 'complete':
-        stage = sys.argv[3] if len(sys.argv) > 3 else None
-        notes = sys.argv[4] if len(sys.argv) > 4 else ''
-        agent = sys.argv[5] if len(sys.argv) > 5 else None
+        stage = positional[0] if positional else flags.get('stage')
+        notes = flags.get('notes', positional[1] if len(positional) > 1 else '')
+        agent = flags.get('agent', positional[2] if len(positional) > 2 else None)
         if not stage:
-            print("Usage: pipeline_update.py <version> complete <stage> [notes] [agent]")
+            print("Usage: pipeline_update.py <version> complete <stage> [--agent name] [--notes text]")
             sys.exit(1)
         cmd_complete(version, stage, notes, agent)
+
     elif action == 'start':
-        stage = sys.argv[3] if len(sys.argv) > 3 else None
-        agent = sys.argv[4] if len(sys.argv) > 4 else None
+        stage = positional[0] if positional else flags.get('stage')
+        agent = flags.get('agent', positional[1] if len(positional) > 1 else None)
+        notes = flags.get('notes', positional[2] if len(positional) > 2 else None)
         if not stage:
-            print("Usage: pipeline_update.py <version> start <stage> [agent]")
+            print("Usage: pipeline_update.py <version> start <stage> [--agent name] [--notes text]")
             sys.exit(1)
-        cmd_start(version, stage, agent)
+        cmd_start(version, stage, agent, notes)
+
+    elif action == 'block':
+        stage = positional[0] if positional else flags.get('stage')
+        notes = flags.get('notes', positional[1] if len(positional) > 1 else '')
+        agent = flags.get('agent', positional[2] if len(positional) > 2 else None)
+        artifact = flags.get('artifact')
+        if not stage:
+            print("Usage: pipeline_update.py <version> block <stage> [--agent name] [--notes text] [--artifact file.md]")
+            sys.exit(1)
+        cmd_block(version, stage, notes, agent, artifact)
+
     elif action == 'status':
-        new_status = sys.argv[3] if len(sys.argv) > 3 else None
+        new_status = positional[0] if positional else flags.get('status')
         if not new_status:
             print("Usage: pipeline_update.py <version> status <new_status>")
             sys.exit(1)
         cmd_status(version, new_status)
+
     elif action == 'iteration':
-        iter_id = sys.argv[3] if len(sys.argv) > 3 else None
-        status = sys.argv[4] if len(sys.argv) > 4 else None
-        result = sys.argv[5] if len(sys.argv) > 5 else ''
+        iter_id = positional[0] if positional else flags.get('id')
+        status = positional[1] if len(positional) > 1 else flags.get('status')
+        result = positional[2] if len(positional) > 2 else flags.get('result', '')
         if not iter_id or not status:
             print("Usage: pipeline_update.py <version> iteration <id> <status> [result]")
             sys.exit(1)
         cmd_iteration(version, iter_id, status, result)
+
     else:
         print(f"Unknown action: {action}")
         print("Actions: show, complete, block, start, status, iteration")

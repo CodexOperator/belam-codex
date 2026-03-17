@@ -20,7 +20,7 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 REPO = WORKSPACE / 'knowledge-repo'
-ML_RESEARCH = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'research'
+ML_RESEARCH = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research'
 
 # ── What to sync ──────────────────────────────────────────────────────────────
 
@@ -82,6 +82,15 @@ RESEARCH_DOCS = {
     'BUILDER_KNOWLEDGE.md':       'research/BUILDER_KNOWLEDGE.md',
     'TECHNIQUES_TRACKER.md':      'research/TECHNIQUES_TRACKER.md',
 }
+
+# Memory directories — main workspace + all agent workspaces
+MEMORY_SOURCES = {
+    'main': WORKSPACE / 'memory',
+}
+# Add agent memory dirs
+for _agent in AGENT_CONFIGS:
+    _agent_ws = Path(os.path.expanduser(f'~/.openclaw/workspace-{_agent}'))
+    MEMORY_SOURCES[_agent] = _agent_ws / 'memory'
 
 # CLI tool
 BELAM_CLI = Path(os.path.expanduser('~/.local/bin/belam'))
@@ -224,6 +233,39 @@ def main():
             all_results.append(result)
             print(result)
     
+    # ── Memory ─────────────────────────────────────────────────────────────
+    print(f'\n🧠 Memory (main + agents)')
+    for mem_label, mem_src in MEMORY_SOURCES.items():
+        if not mem_src.exists():
+            continue
+        dst_mem_dir = REPO / 'memory' / mem_label if mem_label != 'main' else REPO / 'memory' / 'main'
+        # Sync daily logs (*.md at top level)
+        results = sync_dir(mem_src, dst_mem_dir, '*.md', dry_run)
+        all_results.extend(results)
+        for r in results:
+            print(r)
+        # Sync entries/ subdirectory
+        entries_src = mem_src / 'entries'
+        entries_dst = dst_mem_dir / 'entries'
+        if entries_src.exists():
+            results = sync_dir(entries_src, entries_dst, '*.md', dry_run)
+            all_results.extend(results)
+            for r in results:
+                print(r)
+        # Sync archive/entries/ subdirectory
+        archive_src = mem_src / 'archive' / 'entries'
+        archive_dst = dst_mem_dir / 'archive' / 'entries'
+        if archive_src.exists():
+            results = sync_dir(archive_src, archive_dst, '*.md', dry_run)
+            all_results.extend(results)
+            for r in results:
+                print(r)
+    # Also sync MEMORY.md (the curated long-term memory)
+    result = sync_file(WORKSPACE / 'MEMORY.md', REPO / 'MEMORY.md', dry_run)
+    if result:
+        all_results.append(result)
+        print(result)
+
     # ── belam CLI ─────────────────────────────────────────────────────────
     print(f'\n🔮 belam CLI')
     dst_belam = REPO / 'bin' / 'belam'

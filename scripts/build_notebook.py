@@ -51,7 +51,7 @@ WORKSPACE = Path(os.environ.get(
     'WORKSPACE',
     os.path.expanduser('~/.openclaw/workspace')
 ))
-FINANCE_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance'
+FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 SPECS_DIR = FINANCE_DIR / 'specs'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 PIPELINE_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'

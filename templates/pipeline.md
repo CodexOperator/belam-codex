@@ -200,6 +200,24 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 **Gate condition:** `phase2_complete` must be set before any Phase 3 iteration can proceed.
 
+### Phase 3 Iteration Chain Protocol
+
+Main pipeline and analysis pipeline Phase 3 iterations are **interleaved** in a strict chain:
+
+```
+Main Phase 3 iter 01 → Analysis Phase 3 iter 01a, 01b, 01c...
+  (all analysis iters complete, none pending) →
+Main Phase 3 iter 02 → Analysis Phase 3 iter 02a, 02b...
+  (all clear) →
+Main Phase 3 iter 03 → ...
+```
+
+**Rules:**
+1. Every analysis Phase 3 iteration MUST be preceded by a corresponding main pipeline Phase 3 iteration (can't analyze what wasn't built)
+2. Multiple analysis iterations allowed per single main iteration (deep dives, follow-ups)
+3. Next main iteration ONLY when ALL analysis iterations for current one are complete AND none pending
+4. All Phase 3 iterations append sections to the existing notebook — never create new files
+
 ### How Phase 3 Works
 
 1. **Human-triggered:** Shael says "try X" → iteration created and built

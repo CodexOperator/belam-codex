@@ -85,7 +85,7 @@ Score ≥ 7 = auto-approved, 4-6 = flagged for review, < 4 = rejected.
 
 - **Template:** `templates/pipeline.md`
 - **Instances:** `pipelines/<version>.md` (one per notebook version)
-- **Build artifacts:** `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/<version>_*`
+- **Build artifacts:** `machinelearning/snn_applied_finance/research/pipeline_builds/<version>_*`
 - **State JSON:** `pipeline_builds/<version>_state.json`
 
 ## For agents — MANDATORY
