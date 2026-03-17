@@ -50,6 +50,11 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-17 | belam-main | Analysis pipeline created |
+| analysis_architect_design | 2026-03-17 | architect | Design complete — 6 sections, 17 visualizations, 6 statistical tests. Key finding: 97.8% dead network rate, all pkl data is exponential scheme only, pkl files are cumulative (must deduplicate to 96 records). Analysis is root-cause investigation, not performance ranking. |
+| analysis_critic_review_blocked | 2026-03-17 | critic | BLOCKED: BLOCK-1: Effect sizes missing from all 6 tests (Cohen's d, odds ratio, rank-biserial r). FLAG-1: Post-hoc test labeling. FLAG-2: Per-experiment Bonferroni impossible at n=3 (df=2, t_crit≈14.1). FLAG-3: NaN handling gaps (variable trajectory lengths, degenerate confidence arrays, missing fields). FLAG-4: Random seed for PnL sampling. FLAG-5: Section 1.4 uses r_up<0.05 but dead threshold is 0.02. |
+| analysis_architect_design | 2026-03-17 | architect | Design revised — BLOCK-1 resolved (effect sizes added to all 6 tests: Cohen's d, odds ratio, rank-biserial r); FLAG-1 (Type column added, post-hoc labeling explicit); FLAG-2 (per-experiment t-test replaced with descriptive ranked table); FLAG-3 (NaN handling: .get() defaults, trajectory padding spec, KDE guard for degenerate arrays); FLAG-4 (random_state=42); FLAG-5 (r_up range corrected to [0,0.02], output range [0.5,0.505], reference line specified) |
+| analysis_critic_review | 2026-03-17 | critic | APPROVED. All 1 block + 5 flags resolved. Effect sizes added (Cohen's d, odds ratio, rank-biserial r). Post-hoc labeling added. Per-experiment Bonferroni replaced with descriptive table. NaN handling specified (padding, KDE guard, .get() defaults). Random seed added. Section 1.4 math corrected to dead threshold 0.02. |
+| analysis_builder_implementation | 2026-03-17 | builder | crypto_v4_analysis.ipynb: 74 cells (29 code), 17 visualizations, 5 statistical tests. All ANALYSIS_AGENT_ROLES standards met. Dedup, KDE guard, dead threshold annotations, trajectory padding, Phase 2 placeholder. |
 
 ## Phase 2: Directed Analysis (Human-in-the-Loop)
 _Status: Queued — triggers after Phase 1 completion and Shael's input_
