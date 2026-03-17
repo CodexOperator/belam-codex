@@ -95,6 +95,14 @@ Export inter-agent conversation transcripts to readable logs:
 2. This exports conversations from the last 2 hours to `snn_applied_finance/conversations/`
 3. Skip silently if no new conversations.
 
+## Task 6: Memory Maintenance
+
+Check if daily memory entries need consolidation:
+
+1. Run `python3 /home/ubuntu/.openclaw/workspace/scripts/consolidate_memories.py --check 2>/dev/null`
+2. If entries need consolidation (exit code 0 with output), run `python3 /home/ubuntu/.openclaw/workspace/scripts/consolidate_memories.py`
+3. Skip silently if nothing to consolidate
+
 ## Task 5: Periodic Git Commits
 
 Check for uncommitted changes in the machinelearning repo:
@@ -103,3 +111,11 @@ Check for uncommitted changes in the machinelearning repo:
 2. If there are new/modified files:
    - `git add -A && git commit -m "Auto-commit: experiment results and research updates" && git push origin`
 3. If no changes, skip silently.
+
+## Task 6: Memory Maintenance
+
+Check if daily memory entries need consolidation:
+
+1. Run `python3 /home/ubuntu/.openclaw/workspace/scripts/consolidate_memories.py --check`
+2. If entries need consolidation (exit code 1), run `python3 /home/ubuntu/.openclaw/workspace/scripts/consolidate_memories.py`
+3. Skip silently if nothing to consolidate (exit code 0)
