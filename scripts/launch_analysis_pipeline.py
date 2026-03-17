@@ -405,6 +405,8 @@ def main():
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
     parser.add_argument('--check-archive', action='store_true',
                         help='Check if a pipeline can be archived')
+    parser.add_argument('--kickoff', '-k', action='store_true',
+                        help='Send task to architect agent via sessions_send after creation')
     args = parser.parse_args()
 
     if args.list:
@@ -472,16 +474,44 @@ def main():
     print(f"   {pf.relative_to(WORKSPACE)}")
     print(f"   {state_file.relative_to(WORKSPACE)}")
     print(f"   {brief_file.relative_to(WORKSPACE)}")
-    print(f"\n🚀 Next step — spawn the architect:")
-    print(f"""
-   Spawn architect agent with task:
-   "Read pipelines/{args.version}.md and research/pipeline_builds/{args.version}_design_brief.md.
-   Read research/ANALYSIS_AGENT_ROLES.md.
-   Read skill at ~/.openclaw/workspace/skills/quant-workflow/SKILL.md.
-   Design the analysis notebook for {args.source_version} pkl results.
-   Write design to research/pipeline_builds/{args.version}_architect_analysis_design.md.
-   Run: python3 scripts/pipeline_update.py {args.version} complete analysis_architect_design 'Design complete' architect"
-""")
+    architect_task = (
+        f"🔬 New Analysis Pipeline: {args.version}\n\n"
+        f"You've been assigned as architect for a new ANALYSIS pipeline.\n\n"
+        f"**Read these files first:**\n"
+        f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
+        f"2. `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_design_brief.md` — design brief\n"
+        f"3. `SNN_research/machinelearning/snn_applied_finance/research/ANALYSIS_AGENT_ROLES.md` — your role\n"
+        f"4. Read skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`\n\n"
+        f"**Your task:** Design the analysis notebook for {args.source_version} pkl results.\n"
+        f"Write design to `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_analysis_design.md`.\n"
+        f"Then run: `python3 scripts/pipeline_update.py {args.version} complete analysis_architect_design 'Design complete' architect`\n"
+        f"Post update to group chat. The script will tell you to ping the critic next."
+    )
+
+    if args.kickoff:
+        print(f"\n🚀 Sending task to architect agent via sessions_send...")
+        # Use openclaw CLI to send the message
+        import subprocess as sp
+        result = sp.run(
+            ['openclaw', 'sessions', 'send',
+             '--session', 'agent:architect:telegram:group:-5243763228',
+             '--message', architect_task,
+             '--timeout', '0'],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print(f"   ✅ Task sent to architect agent")
+        else:
+            print(f"   ⚠️  Failed to send via CLI, falling back to manual instructions")
+            print(f"   Error: {result.stderr[:200] if result.stderr else 'unknown'}")
+            print(f"\n   Send manually via sessions_send to: agent:architect:telegram:group:-5243763228")
+            print(f"   Message: {architect_task[:200]}...")
+    else:
+        print(f"\n🚀 Next step — send to architect agent:")
+        print(f"   Session: agent:architect:telegram:group:-5243763228")
+        print(f"   Use sessions_send with timeoutSeconds: 0")
+        print(f"\n   Or re-run with --kickoff to send automatically:")
+        print(f"   python3 scripts/launch_analysis_pipeline.py {args.version} ... --kickoff")
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@ importance: 4
 tags: [snn, v4, gradients]
 source: "session"
 content: "Spike-count readout causes dead neurons — always use membrane potential readout"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

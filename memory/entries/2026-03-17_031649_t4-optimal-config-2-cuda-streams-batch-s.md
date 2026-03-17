@@ -6,7 +6,7 @@ importance: 4
 tags: [snn, v4, t4, gpu]
 source: "session"
 content: "T4 optimal config: 2 CUDA streams + batch_size 4096. Dry_run mode was why earlier runs seemed faster."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

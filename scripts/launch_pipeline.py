@@ -252,6 +252,8 @@ def main():
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
     parser.add_argument('--check-archive', action='store_true', help='Check if a pipeline can be archived')
     parser.add_argument('--start', action='store_true', help='Start Phase 1 immediately (prints agent task)')
+    parser.add_argument('--kickoff', '-k', action='store_true',
+                        help='Send task to architect agent via sessions_send after creation')
     args = parser.parse_args()
     
     if args.list:
@@ -277,11 +279,41 @@ def main():
     tags = [t.strip() for t in args.tags.split(',')] if args.tags else None
     pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project)
     
-    if args.start:
-        print(f"\n🚀 Phase 1 ready to launch. Spawn architect with:")
-        print(f'   Task: "Read pipelines/{args.version}.md and specs/{args.version}_spec.yaml.')
-        print(f'   Design the full notebook architecture following the Implementation Pipeline flow.')
-        print(f'   Write design to research/pipeline_builds/{args.version}_architect_design.md"')
+    architect_task = (
+        f"🔨 New Builder Pipeline: {args.version}\n\n"
+        f"You've been assigned as architect for a new BUILDER pipeline.\n\n"
+        f"**Read these files first:**\n"
+        f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
+        f"2. `SNN_research/machinelearning/snn_applied_finance/specs/{args.version}_spec.yaml` — experiment spec\n"
+        f"3. `SNN_research/machinelearning/snn_applied_finance/research/AGENT_SOUL.md` — agent principles\n"
+        f"4. `SNN_research/machinelearning/snn_applied_finance/research/ARCHITECT_KNOWLEDGE.md` — your knowledge base\n\n"
+        f"**Your task:** Design the full notebook architecture following the Implementation Pipeline flow.\n"
+        f"Write design to `SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_design.md`.\n"
+        f"Then run: `python3 scripts/pipeline_update.py {args.version} complete architect_design 'Design complete' architect`\n"
+        f"Post update to group chat. The script will tell you to ping the critic next."
+    )
+
+    if args.kickoff or args.start:
+        print(f"\n🚀 Sending task to architect agent via sessions_send...")
+        import subprocess as sp
+        result = sp.run(
+            ['openclaw', 'sessions', 'send',
+             '--session', 'agent:architect:telegram:group:-5243763228',
+             '--message', architect_task,
+             '--timeout', '0'],
+            capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print(f"   ✅ Task sent to architect agent")
+        else:
+            print(f"   ⚠️  Failed to send via CLI, falling back to manual instructions")
+            print(f"   Send manually via sessions_send to: agent:architect:telegram:group:-5243763228")
+    else:
+        print(f"\n🚀 Next step — send to architect agent:")
+        print(f"   Session: agent:architect:telegram:group:-5243763228")
+        print(f"   Use sessions_send with timeoutSeconds: 0")
+        print(f"\n   Or re-run with --kickoff to send automatically:")
+        print(f"   python3 scripts/launch_pipeline.py {args.version} ... --kickoff")
 
 
 if __name__ == '__main__':
