@@ -41,6 +41,9 @@ import os
 import re
 import subprocess
 import sys
+import urllib.request
+import urllib.error
+import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -48,12 +51,26 @@ WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/wor
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 SCRIPTS = WORKSPACE / 'scripts'
+OPENCLAW_CONFIG = Path(os.path.expanduser('~/.openclaw/openclaw.json'))
+
+# Telegram group chat for pipeline notifications
+PIPELINE_GROUP_CHAT_ID = '-5243763228'
 
 # Agent session keys for fire-and-forget pings
 AGENT_SESSIONS = {
     'architect': 'agent:architect:telegram:group:-5243763228',
     'critic':    'agent:critic:telegram:group:-5243763228',
     'builder':   'agent:builder:telegram:group:-5243763228',
+}
+
+# Agent display names and emojis for notifications
+AGENT_DISPLAY = {
+    'architect':  ('🏗️ Architect', 'architect'),
+    'critic':     ('🔍 Critic', 'critic'),
+    'builder':    ('🔨 Builder', 'builder'),
+    'belam-main': ('🔮 Belam', 'default'),
+    'main':       ('🔮 Belam', 'default'),
+    'unknown':    ('🔮 Belam', 'default'),
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -209,6 +226,100 @@ PHASE_SECTION_PATTERNS = {
     2: re.compile(r'^## Phase 2[:\s—–-]', re.MULTILINE),
     3: re.compile(r'^## Phase 3[:\s—–-]', re.MULTILINE),
 }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# Telegram group chat notifications
+# ═══════════════════════════════════════════════════════════════════════
+
+def _get_bot_token(agent: str) -> str | None:
+    """
+    Read bot token from OpenClaw config for sending group notifications.
+    Uses the acting agent's bot if they're a group member (architect/critic/builder),
+    otherwise falls back to architect bot (since the main/default bot may not be
+    in the group chat).
+    """
+    try:
+        if not OPENCLAW_CONFIG.exists():
+            return None
+        config = json.loads(OPENCLAW_CONFIG.read_text())
+        accounts = config.get('channels', {}).get('telegram', {}).get('accounts', {})
+
+        # Map agent name to Telegram account
+        _, account_key = AGENT_DISPLAY.get(agent, ('', 'default'))
+
+        # Prefer the acting agent's bot, but fall back to architect if the
+        # acting agent isn't a group member (e.g. belam-main/default bot)
+        GROUP_MEMBER_ACCOUNTS = {'architect', 'critic', 'builder'}
+        if account_key not in GROUP_MEMBER_ACCOUNTS:
+            account_key = 'architect'  # fallback — always a group member
+
+        account = accounts.get(account_key, {})
+        return account.get('botToken')
+    except Exception:
+        return None
+
+
+def notify_group(agent: str, version: str, event_type: str, stage: str, notes: str = ''):
+    """
+    Best-effort: send a pipeline status notification to the Telegram group chat.
+    Uses the acting agent's bot token so the message appears from the right bot.
+    Silently fails on any error — never blocks pipeline operations.
+    """
+    try:
+        token = _get_bot_token(agent)
+        if not token:
+            print(f"   ℹ️  No bot token found for '{agent}' — group notification skipped")
+            return
+
+        display_name, _ = AGENT_DISPLAY.get(agent, (agent, 'default'))
+
+        # Format the notification message
+        if event_type == 'start':
+            emoji = '▶️'
+            action_text = 'started'
+        elif event_type == 'complete':
+            emoji = '✅'
+            action_text = 'completed'
+        elif event_type == 'block':
+            emoji = '🚫'
+            action_text = 'BLOCKED'
+        else:
+            emoji = '📋'
+            action_text = event_type
+
+        # Build message with Telegram MarkdownV2 — keep it simple, use HTML instead
+        lines = [
+            f'{emoji} <b>{display_name}</b> {action_text}: <code>{stage}</code>',
+            f'📦 Pipeline: <code>{version}</code>',
+        ]
+        if notes:
+            # Truncate long notes for readability
+            truncated = notes[:300] + ('…' if len(notes) > 300 else '')
+            lines.append(f'📝 {truncated}')
+
+        message = '\n'.join(lines)
+
+        # Send via Telegram Bot API
+        url = f'https://api.telegram.org/bot{token}/sendMessage'
+        payload = json.dumps({
+            'chat_id': PIPELINE_GROUP_CHAT_ID,
+            'text': message,
+            'parse_mode': 'HTML',
+            'disable_notification': False,
+        }).encode('utf-8')
+
+        req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            result = json.loads(resp.read())
+            if result.get('ok'):
+                print(f"   📢 Group chat notified")
+            else:
+                print(f"   ⚠️  Telegram API error: {result.get('description', 'unknown')}")
+
+    except Exception as e:
+        # Best-effort — never block pipeline operations
+        print(f"   ⚠️  Group notification failed: {e}")
 
 
 def trigger_memory_update(agent: str, version: str, stage: str, notes: str):
@@ -504,6 +615,9 @@ def cmd_complete(version, stage, notes='', agent=None):
         print(f"   ⚠️  No auto-transition for '{stage}' — set pending_action manually if needed")
         print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
+    # Notify group chat
+    notify_group(agent, version, 'complete', stage, notes)
+
     trigger_memory_update(agent, version, stage, notes)
 
 
@@ -547,6 +661,9 @@ def cmd_start(version, stage, agent=None, notes=None):
     print(f"🔨 {version}: {stage} → in_progress ({agent})")
     if notes:
         print(f"   Notes: {notes}")
+
+    # Notify group chat
+    notify_group(agent, version, 'start', stage, notes or '')
 
 
 def cmd_block(version, stage, notes='', agent=None, artifact=None):
@@ -600,6 +717,9 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         print(f"")
         print(f"   ⚠️  No auto-transition for blocking '{stage}' — set pending_action manually")
         print(f"   Also post status update to group chat (Telegram group -5243763228)")
+
+    # Notify group chat
+    notify_group(agent, version, 'block', stage, notes)
 
     trigger_memory_update(agent, version, f"{stage}_blocked", f"BLOCKED: {notes}")
 
