@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: phase1_complete
 priority: high
 version: v4-deep-analysis
 spec_file: SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4-deep-analysis_design_brief.md

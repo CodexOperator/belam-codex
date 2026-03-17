@@ -1,6 +1,6 @@
 ---
 primitive: analysis_pipeline
-status: analysis_phase1_design
+status: phase1_complete
 priority: high
 version: v4-analysis
 source_version: v4

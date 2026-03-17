@@ -95,6 +95,41 @@ STAGE_TRANSITIONS = {
 }
 
 # Block transitions: when a review stage is blocked, what's the fix action?
+# Auto-bump: when pending_action reaches one of these, bump the overall
+# pipeline frontmatter status to the mapped value.  Keyed on next_action
+# (the value STAGE_TRANSITIONS returns as the first element).
+STATUS_BUMPS = {
+    # ── Builder Pipeline — Phase 1 ───────────────────────────────────────
+    'critic_design_review':             'phase1_review',
+    'builder_implementation':           'phase1_build',
+    'critic_code_review':               'phase1_code_review',
+    'phase1_complete':                  'phase1_complete',
+
+    # ── Builder Pipeline — Phase 2 ───────────────────────────────────────
+    'phase2_critic_design_review':      'phase2_review',
+    'phase2_builder_implementation':    'phase2_build',
+    'phase2_critic_code_review':        'phase2_code_review',
+    'phase2_complete':                  'phase2_complete',
+
+    # ── Builder Pipeline — Phase 3 ───────────────────────────────────────
+    'phase3_critic_review':             'phase3_active',
+    'phase3_builder_implementation':    'phase3_active',
+    'phase3_critic_code_review':        'phase3_active',
+    'phase3_complete':                  'phase3_complete',
+
+    # ── Analysis Pipeline — Phase 1 ──────────────────────────────────────
+    'analysis_critic_review':                   'analysis_phase1_review',
+    'analysis_builder_implementation':          'analysis_phase1_build',
+    'analysis_critic_code_review':              'analysis_phase1_code_review',
+    'analysis_phase1_complete':                 'phase1_complete',
+
+    # ── Analysis Pipeline — Phase 2 ──────────────────────────────────────
+    'analysis_phase2_critic_review':            'analysis_phase2_review',
+    'analysis_phase2_builder_implementation':   'analysis_phase2_build',
+    'analysis_phase2_critic_code_review':       'analysis_phase2_code_review',
+    'analysis_phase2_complete':                 'phase2_complete',
+}
+
 BLOCK_TRANSITIONS = {
     'critic_design_review':       ('architect_design_revision',  'architect', 'Design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'critic_code_review':         ('builder_apply_blocks',       'builder',   'Code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
@@ -286,6 +321,15 @@ def cmd_complete(version, stage, notes='', agent=None):
         state['pending_action'] = next_action
         state['last_updated'] = now_str()
         save_state(version, state)
+
+        # Auto-bump the overall pipeline status if this transition warrants it
+        new_status = STATUS_BUMPS.get(next_action)
+        if new_status:
+            old_status_match = re.search(r'^status:\s*(.+)$', pf.read_text(), re.MULTILINE)
+            old_status = old_status_match.group(1).strip() if old_status_match else '?'
+            if old_status != new_status:
+                cmd_status(version, new_status)
+                print(f"   📊 Auto-bumped status: {old_status} → {new_status}")
     
     print(f"✅ {version}: {stage} → complete ({agent})")
     if notes:
@@ -346,6 +390,12 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         state['pending_action'] = next_action
     state['last_updated'] = now_str()
     save_state(version, state)
+
+    # Auto-bump status to reflect the block-fix action if mapped
+    if transition:
+        new_status = STATUS_BUMPS.get(next_action)
+        if new_status:
+            cmd_status(version, new_status)
 
     # Append blocked entry to stage history table
     lines = content.split('\n')
