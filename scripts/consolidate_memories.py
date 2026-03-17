@@ -7,10 +7,12 @@ generates a clean summary section in the daily log, and marks entries as
 status: consolidated.
 
 Usage:
-  python3 scripts/consolidate_memories.py            # Consolidate today
+  python3 scripts/consolidate_memories.py            # Consolidate today (main workspace)
   python3 scripts/consolidate_memories.py --date 2026-03-17
   python3 scripts/consolidate_memories.py --dry-run  # Preview only
   python3 scripts/consolidate_memories.py --check    # Exit 0 if nothing to do, 1 if consolidation needed
+  python3 scripts/consolidate_memories.py --workspace ~/.openclaw/workspace-architect
+  python3 scripts/consolidate_memories.py --all-agents  # Consolidate all 4 workspaces
 """
 
 import argparse
@@ -20,9 +22,14 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-WORKSPACE = Path(__file__).parent.parent
-MEMORY_DIR = WORKSPACE / "memory"
-ENTRIES_DIR = MEMORY_DIR / "entries"
+_SCRIPT_WORKSPACE = Path(__file__).parent.parent
+
+AGENT_WORKSPACES = {
+    "main":      Path(os.path.expanduser("~/.openclaw/workspace")),
+    "architect": Path(os.path.expanduser("~/.openclaw/workspace-architect")),
+    "critic":    Path(os.path.expanduser("~/.openclaw/workspace-critic")),
+    "builder":   Path(os.path.expanduser("~/.openclaw/workspace-builder")),
+}
 
 CATEGORIES = ["insight", "decision", "preference", "context", "event", "technical", "relationship"]
 
@@ -73,11 +80,12 @@ def update_frontmatter_status(filepath: Path, new_status: str) -> None:
     filepath.write_text(updated)
 
 
-def get_entries_for_date(date_str: str) -> list[tuple[Path, dict]]:
+def get_entries_for_date(workspace: Path, date_str: str) -> list[tuple[Path, dict]]:
     """Return list of (path, frontmatter) for entries matching the date."""
-    if not ENTRIES_DIR.exists():
+    entries_dir = workspace / "memory" / "entries"
+    if not entries_dir.exists():
         return []
-    files = sorted(ENTRIES_DIR.glob(f"{date_str}_*.md"))
+    files = sorted(entries_dir.glob(f"{date_str}_*.md"))
     results = []
     for f in files:
         fm, _ = parse_frontmatter(f)
@@ -85,27 +93,31 @@ def get_entries_for_date(date_str: str) -> list[tuple[Path, dict]]:
     return results
 
 
-def check_needs_consolidation(date_str: str) -> bool:
+def check_needs_consolidation(workspace: Path, date_str: str) -> bool:
     """Return True if there are active (non-consolidated) entries for this date."""
-    entries = get_entries_for_date(date_str)
+    entries = get_entries_for_date(workspace, date_str)
     return any(fm.get("status", "active") == "active" for _, fm in entries)
 
 
-def consolidate(date_str: str, dry_run: bool = False) -> int:
+def consolidate(workspace: Path, date_str: str, dry_run: bool = False, label: str = "") -> int:
     """
-    Consolidate entries for the given date. Returns count of processed entries.
+    Consolidate entries for the given date in workspace. Returns count of processed entries.
     """
-    entries = get_entries_for_date(date_str)
+    memory_dir = workspace / "memory"
+    entries_dir = memory_dir / "entries"
+    prefix = f"[{label}] " if label else ""
+
+    entries = get_entries_for_date(workspace, date_str)
     if not entries:
-        print(f"No memory entries found for {date_str}.")
+        print(f"{prefix}No memory entries found for {date_str}.")
         return 0
 
     active = [(p, fm) for p, fm in entries if fm.get("status", "active") == "active"]
     if not active:
-        print(f"All entries for {date_str} are already consolidated.")
+        print(f"{prefix}All entries for {date_str} are already consolidated.")
         return 0
 
-    print(f"Found {len(active)} active entr{'y' if len(active) == 1 else 'ies'} for {date_str}.")
+    print(f"{prefix}Found {len(active)} active entr{'y' if len(active) == 1 else 'ies'} for {date_str}.")
 
     # Group by category
     grouped: dict[str, list[dict]] = {cat: [] for cat in CATEGORIES}
@@ -151,13 +163,13 @@ def consolidate(date_str: str, dry_run: bool = False) -> int:
     summary_text = "\n".join(lines)
 
     if dry_run:
-        print("\n=== DRY RUN: Would append to daily log ===")
+        print(f"\n{prefix}=== DRY RUN: Would append to daily log ===")
         print(summary_text)
-        print(f"=== Would mark {len(active)} entries as 'consolidated' ===")
+        print(f"{prefix}=== Would mark {len(active)} entries as 'consolidated' ===")
         return len(active)
 
     # Append to daily log
-    daily_log = MEMORY_DIR / f"{date_str}.md"
+    daily_log = memory_dir / f"{date_str}.md"
     if not daily_log.exists():
         daily_log.write_text(f"# Memory Log — {date_str}\n\n")
 
@@ -168,8 +180,9 @@ def consolidate(date_str: str, dry_run: bool = False) -> int:
     for path, fm in active:
         update_frontmatter_status(path, "consolidated")
 
-    print(f"✓ Consolidated {len(active)} entries into {daily_log.relative_to(WORKSPACE)}")
-    print(f"✓ Marked {len(active)} entries as 'consolidated'")
+    rel_log = daily_log.relative_to(workspace) if daily_log.is_relative_to(workspace) else daily_log
+    print(f"{prefix}✓ Consolidated {len(active)} entries into {rel_log}")
+    print(f"{prefix}✓ Marked {len(active)} entries as 'consolidated'")
     return len(active)
 
 
@@ -183,11 +196,23 @@ Examples:
   python3 scripts/consolidate_memories.py --date 2026-03-17
   python3 scripts/consolidate_memories.py --dry-run
   python3 scripts/consolidate_memories.py --check
+  python3 scripts/consolidate_memories.py --workspace ~/.openclaw/workspace-architect
+  python3 scripts/consolidate_memories.py --all-agents
+  python3 scripts/consolidate_memories.py --all-agents --dry-run
         """,
     )
     parser.add_argument(
         "--date",
         help="Date to consolidate (YYYY-MM-DD, default: today UTC)",
+    )
+    parser.add_argument(
+        "--workspace", "-w",
+        help="Workspace root to consolidate (default: main workspace)",
+    )
+    parser.add_argument(
+        "--all-agents",
+        action="store_true",
+        help="Consolidate all 4 agent workspaces (main + architect + critic + builder)",
     )
     parser.add_argument(
         "--dry-run",
@@ -204,8 +229,34 @@ Examples:
 
     date_str = args.date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
+    if args.all_agents:
+        if args.check:
+            needs = any(
+                check_needs_consolidation(ws, date_str)
+                for ws in AGENT_WORKSPACES.values()
+            )
+            if needs:
+                print(f"Consolidation needed for {date_str} (some agents have active entries).")
+                sys.exit(1)
+            else:
+                print(f"Nothing to consolidate for {date_str}.")
+                sys.exit(0)
+
+        total = 0
+        for agent_name, ws in AGENT_WORKSPACES.items():
+            print(f"\n── Agent: {agent_name} ({ws}) ──")
+            total += consolidate(ws, date_str, dry_run=args.dry_run, label=agent_name)
+        print(f"\n✓ Total across all agents: {total} entries consolidated")
+        return
+
+    # Single workspace mode
+    if args.workspace:
+        workspace = Path(args.workspace).expanduser().resolve()
+    else:
+        workspace = _SCRIPT_WORKSPACE.resolve()
+
     if args.check:
-        needs = check_needs_consolidation(date_str)
+        needs = check_needs_consolidation(workspace, date_str)
         if needs:
             print(f"Consolidation needed for {date_str}.")
             sys.exit(1)
@@ -213,7 +264,7 @@ Examples:
             print(f"Nothing to consolidate for {date_str}.")
             sys.exit(0)
 
-    consolidate(date_str, dry_run=args.dry_run)
+    consolidate(workspace, date_str, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

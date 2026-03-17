@@ -29,6 +29,7 @@ Usage:
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,6 +37,7 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'SNN_research' / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+SCRIPTS = WORKSPACE / 'scripts'
 
 # Agent session keys for fire-and-forget pings
 AGENT_SESSIONS = {
@@ -107,6 +109,27 @@ BLOCK_TRANSITIONS = {
     'analysis_phase2_critic_review':       ('analysis_phase2_architect_revision',       'architect', 'Phase 2 analysis design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'analysis_phase2_critic_code_review':  ('analysis_phase2_builder_apply_blocks',     'builder',   'Phase 2 analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
 }
+
+
+def trigger_memory_update(agent: str, version: str, stage: str, notes: str):
+    """Fire-and-forget: log a memory entry for the agent that just completed a stage."""
+    agent_id = agent if agent in ("architect", "critic", "builder", "main") else "main"
+    try:
+        subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPTS / "agent_memory_update.py"),
+                "--agent", agent_id,
+                "--pipeline", version,
+                "--stage", stage,
+                "--summary", notes or f"Completed stage {stage}",
+            ],
+            timeout=15,
+            check=False,
+        )
+    except Exception as e:
+        # Memory logging is best-effort — never block pipeline operations
+        print(f"   ⚠️  Memory update skipped: {e}")
 
 
 def print_ping_instruction(version, next_agent, ping_msg, artifact=None):
@@ -276,6 +299,9 @@ def cmd_complete(version, stage, notes='', agent=None):
         print(f"   ⚠️  No auto-transition for '{stage}' — set pending_action manually if needed")
         print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
+    # Memory trigger — best-effort, non-blocking
+    trigger_memory_update(agent, version, stage, notes)
+
 
 def cmd_start(version, stage, agent=None):
     """Mark a stage as started."""
@@ -367,6 +393,9 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         print(f"")
         print(f"   ⚠️  No auto-transition for blocking '{stage}' — set pending_action manually")
         print(f"   Also post status update to group chat (Telegram group -5243763228)")
+
+    # Memory trigger — best-effort, non-blocking
+    trigger_memory_update(agent, version, f"{stage}_blocked", f"BLOCKED: {notes}")
 
 
 def cmd_status(version, new_status):

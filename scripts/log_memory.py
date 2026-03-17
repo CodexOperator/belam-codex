@@ -9,6 +9,7 @@ Creates:
 Usage:
   python3 scripts/log_memory.py "Content of the memory"
   python3 scripts/log_memory.py --category technical --importance 4 --tags "snn,gradients" "Content"
+  python3 scripts/log_memory.py --workspace ~/.openclaw/workspace-architect "Content"
   python3 scripts/log_memory.py --list
   python3 scripts/log_memory.py --list --category technical
 """
@@ -20,7 +21,14 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-WORKSPACE = Path(__file__).parent.parent
+# Default workspace: directory containing this script's parent (i.e. the workspace root).
+# When --workspace is passed, that takes precedence.
+# Agents running via cwd-based invocation can also set AGENT_WORKSPACE env var.
+_DEFAULT_WORKSPACE = Path(
+    os.environ.get("AGENT_WORKSPACE", "")
+) if os.environ.get("AGENT_WORKSPACE") else Path(__file__).parent.parent
+
+WORKSPACE = _DEFAULT_WORKSPACE  # may be overridden in main() before helpers use it
 MEMORY_DIR = WORKSPACE / "memory"
 ENTRIES_DIR = MEMORY_DIR / "entries"
 
@@ -78,9 +86,9 @@ def slugify(text: str, max_len: int = 40) -> str:
     return slug[:max_len].rstrip("-")
 
 
-def ensure_dirs():
-    ENTRIES_DIR.mkdir(parents=True, exist_ok=True)
-    (MEMORY_DIR / "archive").mkdir(parents=True, exist_ok=True)
+def ensure_dirs(memory_dir: Path, entries_dir: Path):
+    entries_dir.mkdir(parents=True, exist_ok=True)
+    (memory_dir / "archive").mkdir(parents=True, exist_ok=True)
 
 
 def read_frontmatter(filepath: Path) -> dict:
@@ -98,9 +106,12 @@ def read_frontmatter(filepath: Path) -> dict:
     return fm
 
 
-def list_entries(category_filter: str | None = None, date_str: str | None = None):
+def list_entries(workspace: Path, category_filter: str | None = None, date_str: str | None = None):
     """List memory entries, optionally filtered by category and/or date."""
-    if not ENTRIES_DIR.exists():
+    memory_dir = workspace / "memory"
+    entries_dir = memory_dir / "entries"
+
+    if not entries_dir.exists():
         print("No memory entries found.")
         return
 
@@ -110,7 +121,7 @@ def list_entries(category_filter: str | None = None, date_str: str | None = None
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         pattern = f"{today}_*.md"
 
-    files = sorted(ENTRIES_DIR.glob(pattern))
+    files = sorted(entries_dir.glob(pattern))
     if not files:
         print(f"No entries found for {'today' if not date_str else date_str}.")
         return
@@ -132,7 +143,7 @@ def list_entries(category_filter: str | None = None, date_str: str | None = None
         if tags:
             print(f"  tags: {tags}")
         print(f"  {preview}")
-        print(f"  → {f.relative_to(WORKSPACE)}")
+        print(f"  → {f.relative_to(workspace)}")
         shown += 1
 
     if shown == 0:
@@ -142,9 +153,19 @@ def list_entries(category_filter: str | None = None, date_str: str | None = None
         print(f"\n{shown} entr{'y' if shown == 1 else 'ies'} found.")
 
 
-def log_entry(content: str, category: str | None, importance: int, tags: list[str], source: str):
+def log_entry(
+    workspace: Path,
+    content: str,
+    category: str | None,
+    importance: int,
+    tags: list[str],
+    source: str,
+):
     """Create a memory entry and append to the daily log."""
-    ensure_dirs()
+    memory_dir = workspace / "memory"
+    entries_dir = memory_dir / "entries"
+    ensure_dirs(memory_dir, entries_dir)
+
     now = datetime.now(timezone.utc)
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H%M%S")
@@ -162,7 +183,7 @@ def log_entry(content: str, category: str | None, importance: int, tags: list[st
 
     # --- Create structured entry file ---
     entry_filename = f"{date_str}_{time_str}_{slug}.md"
-    entry_path = ENTRIES_DIR / entry_filename
+    entry_path = entries_dir / entry_filename
 
     # Escape content for YAML (simple approach — wrap in double quotes, escape internal quotes)
     content_escaped = content.replace('"', '\\"')
@@ -191,7 +212,7 @@ status: active
     entry_path.write_text(entry_content)
 
     # --- Append to daily log ---
-    daily_log = MEMORY_DIR / f"{date_str}.md"
+    daily_log = memory_dir / f"{date_str}.md"
     importance_indicator = "⚡" * min(importance, 5)
 
     if not daily_log.exists():
@@ -206,8 +227,8 @@ status: active
         f.write(f"*Entry: `{entry_filename}`*\n\n")
         f.write("---\n")
 
-    rel_entry = entry_path.relative_to(WORKSPACE)
-    rel_daily = daily_log.relative_to(WORKSPACE)
+    rel_entry = entry_path.relative_to(workspace)
+    rel_daily = daily_log.relative_to(workspace)
     print(f"✓ [{category}] imp={importance} logged at {ts_full}")
     print(f"  Entry:  {rel_entry}")
     print(f"  Daily:  {rel_daily}")
@@ -221,12 +242,17 @@ def main():
 Examples:
   python3 scripts/log_memory.py "V4 experiment failed because spike-count readout killed gradients"
   python3 scripts/log_memory.py --category technical --importance 4 --tags "snn,v4" "Use membrane potential readout"
+  python3 scripts/log_memory.py --workspace ~/.openclaw/workspace-architect "Designed v4 deep-analysis methodology"
   python3 scripts/log_memory.py --list
   python3 scripts/log_memory.py --list --category technical
   python3 scripts/log_memory.py --list --date 2026-03-15
         """,
     )
     parser.add_argument("content", nargs="?", help="Memory content to log")
+    parser.add_argument(
+        "--workspace", "-w",
+        help="Workspace root to log into (default: auto-detected from script location or AGENT_WORKSPACE env var)",
+    )
     parser.add_argument(
         "--category", "-c",
         choices=CATEGORIES,
@@ -262,8 +288,15 @@ Examples:
 
     args = parser.parse_args()
 
+    # Resolve workspace
+    if args.workspace:
+        workspace = Path(args.workspace).expanduser().resolve()
+    else:
+        workspace = _DEFAULT_WORKSPACE.resolve()
+
     if args.list:
         list_entries(
+            workspace=workspace,
             category_filter=args.category,
             date_str=args.date,
         )
@@ -275,6 +308,7 @@ Examples:
 
     tags = [t.strip() for t in args.tags.split(",") if t.strip()] if args.tags else []
     log_entry(
+        workspace=workspace,
         content=args.content,
         category=args.category,
         importance=args.importance,

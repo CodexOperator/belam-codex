@@ -6,9 +6,10 @@ Processes the past week's lessons and memory entries into the knowledge/ graph.
 Runs weekly (Monday 3 AM UTC via cron) but is safe to run any time.
 
 Usage:
-  python3 scripts/weekly_knowledge_sync.py            # Sync past 7 days
+  python3 scripts/weekly_knowledge_sync.py            # Sync past 7 days (main workspace)
   python3 scripts/weekly_knowledge_sync.py --week 2026-03-10  # Specific week start
   python3 scripts/weekly_knowledge_sync.py --dry-run  # Preview only
+  python3 scripts/weekly_knowledge_sync.py --all-agents  # Sync across all 4 agent workspaces
 """
 
 import argparse
@@ -27,6 +28,14 @@ LESSONS_DIR = WORKSPACE / "lessons"
 KNOWLEDGE_DIR = WORKSPACE / "knowledge"
 ARCHIVE_MEMORY_DIR = MEMORY_DIR / "archive"
 ARCHIVE_ENTRIES_DIR = ARCHIVE_MEMORY_DIR / "entries"
+
+# All agent workspaces for --all-agents mode
+AGENT_WORKSPACES = {
+    "main":      Path(os.path.expanduser("~/.openclaw/workspace")),
+    "architect": Path(os.path.expanduser("~/.openclaw/workspace-architect")),
+    "critic":    Path(os.path.expanduser("~/.openclaw/workspace-critic")),
+    "builder":   Path(os.path.expanduser("~/.openclaw/workspace-builder")),
+}
 
 CATEGORIES = ["insight", "decision", "preference", "context", "event", "technical", "relationship"]
 
@@ -229,13 +238,14 @@ def load_week_lessons(week_start: datetime) -> list[tuple[Path, dict, str]]:
     return results
 
 
-def load_week_memory_entries(week_start: datetime) -> list[tuple[Path, dict]]:
-    """Load memory entries created in the past week."""
-    if not ENTRIES_DIR.exists():
+def load_week_memory_entries(week_start: datetime, workspace: Path | None = None) -> list[tuple[Path, dict]]:
+    """Load memory entries created in the past week from a specific workspace (default: main)."""
+    entries_dir = (workspace / "memory" / "entries") if workspace else ENTRIES_DIR
+    if not entries_dir.exists():
         return []
     week_end = week_start + timedelta(days=7)
     results = []
-    for f in sorted(ENTRIES_DIR.glob("*.md")):
+    for f in sorted(entries_dir.glob("*.md")):
         fm, _ = parse_frontmatter(f)
         ts_str = fm.get("timestamp", "")
         if not ts_str:
@@ -247,6 +257,84 @@ def load_week_memory_entries(week_start: datetime) -> list[tuple[Path, dict]]:
         if week_start <= ts < week_end:
             results.append((f, fm))
     return results
+
+
+def load_all_agent_memory_entries(week_start: datetime) -> list[tuple[Path, dict, str]]:
+    """Load memory entries from ALL agent workspaces; returns (path, fm, agent_name)."""
+    results = []
+    for agent_name, ws in AGENT_WORKSPACES.items():
+        for path, fm in load_week_memory_entries(week_start, workspace=ws):
+            results.append((path, fm, agent_name))
+    return results
+
+
+def generate_cross_agent_synthesis(
+    all_entries: list[tuple[Path, dict, str]],
+    week_start: datetime,
+    dry_run: bool = False,
+) -> str:
+    """
+    Generate a cross-agent synthesis section as markdown text.
+    Looks for patterns repeated across multiple agents.
+    """
+    from collections import Counter
+    week_end = week_start + timedelta(days=7)
+    week_str = week_start.strftime("%Y-%m-%d")
+
+    # Group by agent
+    by_agent: dict[str, list[dict]] = defaultdict(list)
+    for path, fm, agent_name in all_entries:
+        by_agent[agent_name].append(fm)
+
+    # Find common tags across agents
+    tag_agents: dict[str, set] = defaultdict(set)
+    for path, fm, agent_name in all_entries:
+        for tag in fm.get("tags", []):
+            tag_agents[tag].add(agent_name)
+
+    cross_agent_tags = {
+        tag: agents
+        for tag, agents in tag_agents.items()
+        if len(agents) >= 2
+    }
+
+    # Find high-importance entries (importance >= 4) across all agents
+    high_importance = [
+        (fm.get("content", "").replace('\\"', '"'), agent_name)
+        for path, fm, agent_name in all_entries
+        if int(fm.get("importance", "3")) >= 4
+    ]
+
+    lines = [
+        f"\n## Cross-Agent Weekly Synthesis — {week_str}\n",
+        f"*{len(all_entries)} total entries across {len(by_agent)} agents*\n",
+    ]
+
+    # Per-agent entry counts
+    lines.append("\n### Agent Activity\n")
+    for agent_name in sorted(by_agent.keys()):
+        entries = by_agent[agent_name]
+        lines.append(f"- **{agent_name.title()}**: {len(entries)} entries")
+    lines.append("")
+
+    # Cross-agent patterns
+    if cross_agent_tags:
+        lines.append("\n### Shared Themes (across multiple agents)\n")
+        for tag, agents in sorted(cross_agent_tags.items(), key=lambda x: -len(x[1])):
+            agent_list = ", ".join(sorted(agents))
+            lines.append(f"- `{tag}` — mentioned by: {agent_list}")
+        lines.append("")
+
+    # High-importance entries
+    if high_importance:
+        lines.append("\n### High-Importance Entries (imp ≥ 4)\n")
+        for content, agent_name in high_importance[:10]:
+            preview = content[:120] + ("…" if len(content) > 120 else "")
+            lines.append(f"- **[{agent_name}]** {preview}")
+        lines.append("")
+
+    lines.append("---\n")
+    return "\n".join(lines)
 
 
 def archive_old_files(cutoff: datetime, dry_run: bool = False) -> int:
@@ -366,7 +454,7 @@ def update_index(all_topics: dict[str, dict], dry_run: bool = False):
     (KNOWLEDGE_DIR / "_tags.md").write_text(tags_text)
 
 
-def sync(week_start: datetime, dry_run: bool = False) -> dict:
+def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) -> dict:
     """Run the full weekly sync. Returns summary stats."""
     today = datetime.now(timezone.utc)
     week_end = week_start + timedelta(days=7)
@@ -374,6 +462,8 @@ def sync(week_start: datetime, dry_run: bool = False) -> dict:
 
     print(f"\n🔄 Weekly Knowledge Sync")
     print(f"   Week: {week_start.strftime('%Y-%m-%d')} → {week_end.strftime('%Y-%m-%d')}")
+    if all_agents:
+        print("   Mode: All Agents")
     if dry_run:
         print("   Mode: DRY RUN\n")
     else:
@@ -383,7 +473,11 @@ def sync(week_start: datetime, dry_run: bool = False) -> dict:
 
     # --- A. Load source material ---
     lessons = load_week_lessons(week_start)
-    memory_entries = load_week_memory_entries(week_start)
+    if all_agents:
+        # Load entries from all agent workspaces (returns (path, fm, agent_name) tuples)
+        memory_entries = load_all_agent_memory_entries(week_start)
+    else:
+        memory_entries = load_week_memory_entries(week_start)
     print(f"📚 Source material: {len(lessons)} lessons, {len(memory_entries)} memory entries")
 
     # --- B. Build topic data ---
@@ -474,10 +568,19 @@ def sync(week_start: datetime, dry_run: bool = False) -> dict:
 
     # Process memory entries
     n_memories_integrated = 0
-    for path, fm in memory_entries:
+    for entry in memory_entries:
+        if len(entry) == 3:
+            path, fm, agent_name = entry
+        else:
+            path, fm = entry
+            agent_name = "main"
         ts = fm.get("timestamp", today.strftime("%Y-%m-%dT%H:%M:%SZ"))
         date_str = ts[:10]
-        source_ref = str(path.relative_to(WORKSPACE))
+        # Use relative path if possible, else abs
+        try:
+            source_ref = str(path.relative_to(WORKSPACE))
+        except ValueError:
+            source_ref = str(path)
         content = fm.get("content", "").replace('\\"', '"')
         tags_text = " ".join(fm.get("tags", []))
         all_text = content + " " + tags_text
@@ -529,12 +632,30 @@ def sync(week_start: datetime, dry_run: bool = False) -> dict:
     n_archived = archive_old_files(archival_cutoff, dry_run=dry_run)
     print(f"✓ Archived {n_archived} file{'s' if n_archived != 1 else ''}")
 
+    # --- E. Cross-agent synthesis (when --all-agents) ---
+    if all_agents:
+        print(f"\n🧬 Generating cross-agent synthesis section...")
+        # all_entries has (path, fm, agent_name) tuples
+        synthesis = generate_cross_agent_synthesis(memory_entries, week_start, dry_run=dry_run)
+        # Append synthesis to main weekly knowledge index
+        weekly_synthesis_file = KNOWLEDGE_DIR / "_weekly_synthesis.md"
+        if dry_run:
+            print(f"  [DRY RUN] Would write cross-agent synthesis to knowledge/_weekly_synthesis.md")
+            print(synthesis)
+        else:
+            # Append / overwrite with latest synthesis
+            existing = weekly_synthesis_file.read_text() if weekly_synthesis_file.exists() else ""
+            # Prepend new synthesis (most recent first)
+            weekly_synthesis_file.write_text(synthesis + "\n---\n" + existing)
+            print(f"  ✓ Cross-agent synthesis written to knowledge/_weekly_synthesis.md")
+
     stats = {
         "lessons": n_lessons_integrated,
         "memories": n_memories_integrated,
         "knowledge_files": n_files_written,
         "archived": n_archived,
         "dry_run": dry_run,
+        "all_agents": all_agents,
     }
 
     print(f"\n{'[DRY RUN] ' if dry_run else ''}✅ Weekly sync complete:")
@@ -553,6 +674,8 @@ Examples:
   python3 scripts/weekly_knowledge_sync.py
   python3 scripts/weekly_knowledge_sync.py --week 2026-03-10
   python3 scripts/weekly_knowledge_sync.py --dry-run
+  python3 scripts/weekly_knowledge_sync.py --all-agents
+  python3 scripts/weekly_knowledge_sync.py --all-agents --dry-run
         """,
     )
     parser.add_argument(
@@ -563,6 +686,11 @@ Examples:
         "--dry-run",
         action="store_true",
         help="Preview what would happen without writing files",
+    )
+    parser.add_argument(
+        "--all-agents",
+        action="store_true",
+        help="Read memory entries from ALL agent workspaces (main + architect + critic + builder)",
     )
 
     args = parser.parse_args()
@@ -578,7 +706,7 @@ Examples:
         week_start = datetime.now(timezone.utc) - timedelta(days=7)
         week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
 
-    sync(week_start, dry_run=args.dry_run)
+    sync(week_start, dry_run=args.dry_run, all_agents=args.all_agents)
 
 
 if __name__ == "__main__":
