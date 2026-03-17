@@ -32,6 +32,11 @@ fields:
     enum: [active, consolidated, archived, superseded]
     default: active
     description: "Lifecycle state — entries are immutable, only status changes"
+cli:
+  log: "belam log 'message'"
+  log_tagged: "belam log -t tag 'message'"
+  consolidate: "belam consolidate"
+  consolidate_all: "belam consolidate --all-agents"
 ---
 
 # Memory Log Entry Template

@@ -57,6 +57,14 @@ fields:
   artifacts:
     type: object
     description: "Paths to pipeline artifacts (design brief, review, notebook)"
+cli:
+  dashboard: "belam pipelines"
+  detail: "belam pipeline <version>"
+  watch: "belam pipeline <version> --watch [sec]"
+  update: "belam pipeline update <version> complete|start|block|show ..."
+  analyze: "belam analyze <source_version>"
+  launch: "belam pipeline analyze <version>"
+  shortcut: "belam pl / belam p <ver> / belam a <ver>"
 ---
 
 # Analysis Pipeline: {version}

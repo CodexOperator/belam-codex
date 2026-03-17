@@ -21,4 +21,8 @@ fields:
     type: string
   location:
     type: string
+cli:
+  list: "belam projects"
+  show: "belam project <name>"
+  shortcut: "belam pj"
 ---

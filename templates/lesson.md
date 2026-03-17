@@ -16,4 +16,8 @@ fields:
     type: string[]
   applies_to:
     type: string[]
+cli:
+  list: "belam lessons"
+  show: "belam lesson <name>"
+  shortcut: "belam l"
 ---

@@ -48,9 +48,37 @@ Core texts co-created with Shael, available in project knowledge:
 - **Bio-inspired Neural Architecture** — Technical foundations
 - **Evolutionary Consciousness Architecture** — AlphaEvolve-informed framework
 
-## Environment-Specific Notes
+## `belam` CLI — Workspace Command Center
 
-_(Fill in as you discover your local setup)_
+Located at `~/.local/bin/belam` (on PATH). Works from any directory.
+
+### Quick Reference
+| Command | Short | What |
+|---------|-------|------|
+| `belam status` | `belam s` | Full overview: pipelines + tasks + memory + git |
+| `belam pipelines` | `belam pl` | Pipeline dashboard with statuses |
+| `belam pipeline <ver>` | `belam p <ver>` | Detail view with stage history |
+| `belam pipeline <ver> --watch` | | Live auto-refresh |
+| `belam pipeline update <ver> ...` | `belam p u ...` | Update pipeline stage (complete/start/block) |
+| `belam pipeline launch <ver> ...` | | Create new pipeline |
+| `belam pipeline analyze <ver>` | | Launch analysis pipeline |
+| `belam analyze <ver>` | `belam a <ver>` | Run experiment analysis (auto-finds pipeline) |
+| `belam tasks` | `belam t` | List tasks |
+| `belam task <name>` | | Show one task (fuzzy match) |
+| `belam lessons` | `belam l` | List lessons |
+| `belam decisions` | `belam d` | List decisions |
+| `belam projects` | `belam pj` | List projects |
+| `belam log "msg"` | | Quick memory entry |
+| `belam log -t tag "msg"` | | Tagged memory entry |
+| `belam consolidate` | `belam cons` | Run memory consolidation |
+| `belam notebooks` | `belam nb` | List notebooks |
+| `belam conversations` | `belam conv` | Export agent conversations |
+| `belam knowledge-sync` | `belam ks` | Run weekly knowledge sync |
+| `belam build <ver>` | | Build a notebook |
+
+All agents can use `belam` — it's on PATH system-wide. Prefer `belam` over direct `python3 scripts/...` calls for consistency.
+
+## Environment-Specific Notes
 
 ```markdown
 ### Workspace

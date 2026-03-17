@@ -18,34 +18,62 @@ Implementation Pipelines track notebook versions through 3 phases:
 
 All phases live in a **single notebook** as top-level sections.
 
-## Commands
+## CLI Commands (`belam`)
 
-All scripts are in the workspace `scripts/` directory.
+The `belam` CLI (at `~/.local/bin/belam`, on PATH) wraps all pipeline and primitive scripts. **Prefer `belam` commands** — they work from any directory.
 
-### List active pipelines
+### Pipelines
 ```bash
-python3 scripts/launch_pipeline.py --list
+belam pipelines                    # Dashboard: all pipelines with status
+belam pipeline <ver>               # Detail view with full stage history
+belam pipeline <ver> --watch [sec] # Live auto-refresh (default 10s)
+belam pipeline update <ver> <cmd>  # Update stage (complete/start/block/status/show)
+belam pipeline launch <ver> --desc "..."  # Create new pipeline
+belam pipeline analyze <ver>       # Launch analysis pipeline
 ```
 
-### Create a new pipeline
+### Experiment Analysis
 ```bash
-python3 scripts/launch_pipeline.py <version> --desc "<description>" [--priority critical|high|medium|low] [--tags snn,finance,...]
+belam analyze <ver>                # Run analysis (auto-finds analysis pipeline)
+belam analyze --detect             # Auto-detect new experiment results
+belam analyze --check-gate <ver>   # Check Phase 3 gate
 ```
 
-### Check phase 3 gate
+### Primitives
 ```bash
-python3 scripts/analyze_experiment.py --check-gate <version>
+belam tasks                        # List tasks (with status + tags)
+belam task <name>                  # Show one task (fuzzy match)
+belam lessons                      # List lessons
+belam projects                     # List projects
+belam decisions                    # List decisions
 ```
 
-### Check if archivable
+### Memory & Status
 ```bash
-python3 scripts/launch_pipeline.py <version> --check-archive
+belam status                       # Full overview: pipelines + tasks + memory + git
+belam log "message"                # Quick memory entry
+belam log -t tag "message"         # Tagged memory entry
+belam consolidate                  # Run memory consolidation
 ```
 
-### Archive a completed pipeline
-```bash
-python3 scripts/launch_pipeline.py <version> --archive
-```
+### Shortcuts
+`belam pl` = pipelines, `belam p` = pipeline, `belam t` = tasks, `belam l` = lessons,
+`belam d` = decisions, `belam pj` = projects, `belam s` = status, `belam a` = analyze
+
+## Direct Script Commands (equivalent)
+
+Scripts are in the workspace `scripts/` directory. The `belam` CLI calls these under the hood.
+
+| belam command | Script equivalent |
+|---------------|-------------------|
+| `belam pipelines` | `python3 scripts/pipeline_dashboard.py` |
+| `belam pipeline <ver>` | `python3 scripts/pipeline_dashboard.py <ver>` |
+| `belam pipeline update <ver> ...` | `python3 scripts/pipeline_update.py <ver> ...` |
+| `belam pipeline launch <ver> ...` | `python3 scripts/launch_pipeline.py <ver> ...` |
+| `belam pipeline analyze <ver>` | `python3 scripts/launch_analysis_pipeline.py <ver>` |
+| `belam analyze <ver>` | `python3 scripts/analyze_experiment.py --notebook <ver>` |
+| `belam analyze --check-gate <ver>` | `python3 scripts/analyze_experiment.py --check-gate <ver>` |
+| `belam log "msg"` | `python3 scripts/log_memory.py "msg"` |
 
 ### Generate phase 3 proposal (autonomous)
 ```bash
@@ -62,29 +90,25 @@ Score ≥ 7 = auto-approved, 4-6 = flagged for review, < 4 = rejected.
 
 ## For agents — MANDATORY
 
-**Every agent MUST update the pipeline when starting or completing a stage.** This is not optional.
+**Every agent MUST update the pipeline when starting or completing a stage.** This is not optional. Status is auto-bumped on completion — you no longer need to set status manually.
 
 ### When you START work:
 ```bash
-python3 scripts/pipeline_update.py <version> start <stage> <your_agent_id>
+belam pipeline update <version> start <stage> <your_agent_id>
 ```
 
 ### When you FINISH work:
 ```bash
-python3 scripts/pipeline_update.py <version> complete <stage> "<what you did>" <your_agent_id>
-python3 scripts/pipeline_update.py <version> status <new_overall_status>
+belam pipeline update <version> complete <stage> "<what you did>" <your_agent_id>
 ```
+
+The status auto-bumps based on the stage transition map. No manual `status` call needed.
 
 ### Examples:
 ```bash
-python3 scripts/pipeline_update.py v4 start builder_implementation builder
-python3 scripts/pipeline_update.py v4 complete builder_implementation "Notebook built, 32 experiments, all cells tested" builder
-python3 scripts/pipeline_update.py v4 status phase1_code_review
-```
-
-### View current state:
-```bash
-python3 scripts/pipeline_update.py <version> show
+belam pipeline update v4 start builder_implementation builder
+belam pipeline update v4 complete builder_implementation "Notebook built, 32 experiments" builder
+belam pipeline update v4 show
 ```
 
 ### Read before starting:

@@ -24,4 +24,8 @@ fields:
     type: string[]
   project:
     type: string
+cli:
+  list: "belam tasks"
+  show: "belam task <name>"
+  shortcut: "belam t"
 ---

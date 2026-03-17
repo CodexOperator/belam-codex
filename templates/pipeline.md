@@ -51,6 +51,14 @@ fields:
   patch_notes:
     type: object[]
     description: "Chronological log of post-build patches applied to the notebook. Each entry: {date, author, summary, commits}. Patches are always applied to the main notebook directly."
+cli:
+  dashboard: "belam pipelines"
+  detail: "belam pipeline <version>"
+  watch: "belam pipeline <version> --watch [sec]"
+  update: "belam pipeline update <version> complete|start|block|show ..."
+  launch: "belam pipeline launch <version> --desc '...'"
+  analyze: "belam analyze <version>"
+  shortcut: "belam pl / belam p <ver>"
 ---
 
 # Implementation Pipeline: {version}

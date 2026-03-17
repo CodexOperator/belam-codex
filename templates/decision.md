@@ -21,4 +21,8 @@ fields:
     type: string
   tags:
     type: string[]
+cli:
+  list: "belam decisions"
+  show: "belam decision <name>"
+  shortcut: "belam d"
 ---
