@@ -282,11 +282,27 @@ def run_stage(version: str, stage: str, dry_run: bool = False,
         log("[DRY-RUN] Would then poll for completion and run memory consolidation.")
         return True
 
-    # Reset sessions for involved agents — fresh context for each stage
-    # This ensures lean token usage and prevents context bleed between stages
+    # Reset sessions for agents NEW to this stage — preserve context for agents
+    # carrying over from the previous stage. This way:
+    #   architect_design (A+C fresh) → critic_review (C fresh, A carries design context)
+    #   → builder_impl (B fresh, A carries review context) → critic_code_review (C fresh, B carries build context)
     if no_reset:
         log("Skipping session reset (--no-reset)")
+
+    # Load previous stage's agents from state to determine who carries over
+    carry_over_agents = set()
+    if not no_reset:
+        state = load_state(version)
+        prev_agents = state.get('_last_stage_agents', [])
+        current_agents = [primary_agent, review_agent]
+        carry_over_agents = set(prev_agents) & set(current_agents)
+        if carry_over_agents:
+            log(f"Context carry-over: {', '.join(carry_over_agents)} (from previous stage)")
+
     for agent_name in ([] if no_reset else [primary_agent, review_agent]):
+        if agent_name in carry_over_agents:
+            log(f"  ↪ {agent_name}: keeping context (bridging from previous stage)")
+            continue
         agent_session = AGENT_SESSIONS[agent_name]
         log(f"Resetting session for {agent_name}: {agent_session}")
         try:
@@ -339,6 +355,12 @@ def run_stage(version: str, stage: str, dry_run: bool = False,
     while time.monotonic() < deadline:
         if stage_is_complete(version, stage):
             log(f"✅ Stage '{stage}' completed successfully!")
+            # Save which agents were involved — next stage uses this for carry-over
+            state = load_state(version)
+            state['_last_stage_agents'] = [primary_agent, review_agent]
+            state_file = BUILDS_DIR / f'{version}_state.json'
+            state_file.write_text(json.dumps(state, indent=2))
+            log(f"Saved agent pair [{primary_agent}, {review_agent}] for carry-over tracking")
             break
         poll_count += 1
         remaining = int((deadline - time.monotonic()) / 60)
