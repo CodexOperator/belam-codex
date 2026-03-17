@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: blocked
 priority: medium
 owner: builder
 tags: [backtesting, infrastructure]

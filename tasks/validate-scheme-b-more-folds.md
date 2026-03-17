@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: blocked
 priority: high
 owner: builder
 tags: [validation, statistics, snn]

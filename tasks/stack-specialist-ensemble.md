@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: blocked
 priority: high
 owner: builder
 tags: [snn, ensemble, specialists]

@@ -39,6 +39,17 @@ SCRIPTS_DIR = MAIN_WORKSPACE / "scripts"
 ARCHIVE_KEEP_DAYS = 7
 
 
+def _run_script(script_name: str, extra_args: list[str], dry_run: bool) -> int:
+    """Run a script from the scripts/ directory. Returns returncode."""
+    import subprocess
+    script = str(SCRIPTS_DIR / script_name)
+    cmd = [sys.executable, script] + extra_args
+    if dry_run:
+        cmd.append("--dry-run")
+    result = subprocess.run(cmd, capture_output=False)
+    return result.returncode
+
+
 def run_consolidate(workspace: Path, date_str: str, dry_run: bool, label: str) -> int:
     """Run consolidate_memories for a workspace. Returns count consolidated."""
     import subprocess
@@ -231,6 +242,14 @@ Examples:
     print(f"\n📋 Step A: Consolidating entries for {date_str}")
     for agent_name, workspace in AGENT_WORKSPACES.items():
         run_consolidate(workspace, date_str, args.dry_run, agent_name)
+
+    # ── Step A2: Run daily linker (wiki + transcript + recent memory links) ───
+    print(f"\n🔗 Step A2: Running daily memory linker")
+    _run_script("memory_daily_linker.py", ["--date", date_str], args.dry_run)
+
+    # ── Step A3: Run file update checker ─────────────────────────────────────
+    print(f"\n🔍 Step A3: Running file update checker")
+    _run_script("memory_file_update_checker.py", ["--date", date_str], args.dry_run)
 
     # ── Step B+C: Read each sub-agent's log, generate summary for main ────────
     print(f"\n📝 Step B: Reading sub-agent logs and generating main summaries")
