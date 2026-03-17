@@ -238,7 +238,8 @@ The review agent ({review_agent}) will use skill `{review_skill}` to review your
 # ---------------------------------------------------------------------------
 
 def run_stage(version: str, stage: str, dry_run: bool = False,
-              timeout_minutes: int = DEFAULT_TIMEOUT_MINUTES) -> bool:
+              timeout_minutes: int = DEFAULT_TIMEOUT_MINUTES,
+              no_reset: bool = False) -> bool:
     """
     Run a single pipeline stage:
     1. Look up stage config
@@ -280,6 +281,29 @@ def run_stage(version: str, stage: str, dry_run: bool = False,
         print("=" * 60 + "\n")
         log("[DRY-RUN] Would then poll for completion and run memory consolidation.")
         return True
+
+    # Reset sessions for involved agents — fresh context for each stage
+    # This ensures lean token usage and prevents context bleed between stages
+    if no_reset:
+        log("Skipping session reset (--no-reset)")
+    for agent_name in ([] if no_reset else [primary_agent, review_agent]):
+        agent_session = AGENT_SESSIONS[agent_name]
+        log(f"Resetting session for {agent_name}: {agent_session}")
+        try:
+            reset_result = subprocess.run(
+                ['openclaw', 'gateway', 'call', 'sessions.reset',
+                 '--params', json.dumps({'key': agent_session}),
+                 '--json'],
+                capture_output=True, text=True
+            )
+            if reset_result.returncode == 0:
+                reset_data = json.loads(reset_result.stdout)
+                new_sid = reset_data.get('entry', {}).get('sessionId', 'unknown')
+                log(f"  ✅ {agent_name} reset → new session {new_sid[:8]}...")
+            else:
+                log(f"  ⚠️  Reset failed for {agent_name}: {reset_result.stderr.strip()[:100]}")
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            log(f"  ⚠️  Could not reset {agent_name}: {e}")
 
     # Send task to primary agent via sessions_send CLI
     log(f"Sending task to {primary_agent}...")
@@ -371,7 +395,8 @@ def run_stage(version: str, stage: str, dry_run: bool = False,
 # Auto Mode
 # ---------------------------------------------------------------------------
 
-def run_auto(version: str, dry_run: bool = False, timeout_minutes: int = DEFAULT_TIMEOUT_MINUTES):
+def run_auto(version: str, dry_run: bool = False, timeout_minutes: int = DEFAULT_TIMEOUT_MINUTES,
+             no_reset: bool = False):
     """Chain all stages in order for the detected pipeline type."""
     pipeline_type = detect_pipeline_type(version)
     stage_order = get_stage_order(pipeline_type)
@@ -408,7 +433,8 @@ def run_auto(version: str, dry_run: bool = False, timeout_minutes: int = DEFAULT
             )
             break
 
-        success = run_stage(version, stage, dry_run=dry_run, timeout_minutes=timeout_minutes)
+        success = run_stage(version, stage, dry_run=dry_run, timeout_minutes=timeout_minutes,
+                           no_reset=no_reset)
         if not success:
             log(f"ERROR: Stage '{stage}' failed or timed out. Stopping auto chain.")
             sys.exit(1)
@@ -435,6 +461,8 @@ def parse_args():
     parser.add_argument('--dry-run', action='store_true', help='Show what would happen without doing it')
     parser.add_argument('--timeout', type=int, default=DEFAULT_TIMEOUT_MINUTES,
                         help=f'Timeout per stage in minutes (default: {DEFAULT_TIMEOUT_MINUTES})')
+    parser.add_argument('--no-reset', action='store_true',
+                        help='Skip session reset (preserve existing context)')
     return parser.parse_args()
 
 
@@ -452,12 +480,14 @@ def main():
     log(f"Pipeline Stage Orchestrator — version={args.version}, dry_run={args.dry_run}")
 
     if args.auto:
-        run_auto(args.version, dry_run=args.dry_run, timeout_minutes=args.timeout)
+        run_auto(args.version, dry_run=args.dry_run, timeout_minutes=args.timeout,
+                 no_reset=args.no_reset)
     else:
         success = run_stage(
             args.version, args.stage,
             dry_run=args.dry_run,
             timeout_minutes=args.timeout,
+            no_reset=args.no_reset,
         )
         sys.exit(0 if success else 1)
 
