@@ -1,0 +1,15 @@
+{
+  "version": "build-equilibrium-snn",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-18T15:36:25.570442+00:00",
+  "pipeline_session_id": "45624448-1652-4eb7-84f5-364dcd0d6c2d",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "54f1c251-bf03-4edc-a090-ba56bd68f0ee",
+    "response_preview": "Starting fresh session for build-equilibrium-snn design review. Let me load my context."
+  },
+  "verified": true
+}

@@ -78,6 +78,9 @@ AGENT_DISPLAY = {
 # Format: completed_stage → (next_pending_action, next_agent, ping_message_template)
 # ═══════════════════════════════════════════════════════════════════════
 STAGE_TRANSITIONS = {
+    # Kickoff — initial pipeline creation triggers architect design
+    'pipeline_created':           ('architect_design',           'architect', 'New pipeline created. Design the notebook architecture per pipelines/{v}.md'),
+
     # Phase 1
     'architect_design':           ('critic_design_review',       'critic',    'Design ready for review at pipeline_builds/{v}_architect_design.md'),
     'critic_design_review':       ('builder_implementation',     'builder',   'Design approved. Build spec at pipeline_builds/{v}_architect_design.md'),
@@ -129,6 +132,9 @@ STAGE_TRANSITIONS = {
 # pipeline frontmatter status. Keyed on next_action.
 # ═══════════════════════════════════════════════════════════════════════
 STATUS_BUMPS = {
+    # ── Kickoff ──────────────────────────────────────────────────────
+    'architect_design':                 'phase1_design',
+
     # ── Builder Pipeline — Phase 1 ───────────────────────────────────
     'critic_design_review':             'phase1_review',
     'builder_implementation':           'phase1_build',

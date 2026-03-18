@@ -1,0 +1,15 @@
+{
+  "version": "build-equilibrium-snn",
+  "completed_stage": "pipeline_created",
+  "next_stage": "architect_design",
+  "next_agent": "architect",
+  "timestamp": "2026-03-18T00:13:19.562309+00:00",
+  "pipeline_session_id": "dfeb488d-5070-5830-a719-71ea5217c4df",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "31206266-bf44-4805-b657-16040f2a46da",
+    "response_preview": "Request timed out before a response was generated. Please try again, or increase `agents.defaults.ti"
+  },
+  "verified": true
+}

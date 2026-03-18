@@ -69,15 +69,23 @@ Rules:
 When a task is eligible for a pipeline:
 
 **For implementation tasks** (building notebooks, models, infrastructure):
+
+If a pipeline already exists but was never kicked off (check `belam pipelines` — shows `pipeline_created` with no agent activity):
 ```bash
-python3 scripts/launch_pipeline.py {version} \
+belam kickoff {version}
+```
+
+If no pipeline exists yet, create and kick off in one step:
+```bash
+belam pipeline launch {version} \
   --desc "{description from task}" \
   --priority {task priority} \
   --tags {task tags} \
   --project {task project} \
   --kickoff
 ```
-The `--kickoff` flag sends the design brief to the architect agent via `sessions_send`.
+
+Both paths use the orchestrator to wake the architect with a fresh session via `openclaw agent`.
 
 **For analysis of completed experiments:**
 ```bash

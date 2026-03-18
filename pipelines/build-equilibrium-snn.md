@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: phase1_code_review
 priority: critical
 version: build-equilibrium-snn
 spec_file: machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml
@@ -26,6 +26,26 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-17 | belam-main | Pipeline instance created |
+| pipeline_created | 2026-03-17 | belam-main | Pipeline kickoff |
+| pipeline_created | 2026-03-18 | belam-main | Pipeline kickoff |
+| architect_design | 2026-03-18 | architect | In progress |
+| pipeline_created | 2026-03-18 | belam-main | Auto-kicked by pipeline_autorun (gate open or stall recovery) |
+| architect_design | 2026-03-18 | architect | Design v1: 21 experiments (12 primary + 4 ablation + 5 baseline). Dual tonic+phasic input pathways, TBPTT K=8, membrane readout (V4 lesson applied), warmup LR schedule, 500 epochs w/ patience=100 for grokking. Critical ablation EQ-ABL-03 (reset-per-candle) validates equilibrium paradigm. |
+| architect_design | 2026-03-18 | architect | Design v1: 21 experiments (12 primary + 4 ablation + 5 baseline). Dual tonic+phasic input pathways, TBPTT K=8, membrane readout (V4 lesson applied), warmup LR schedule, 500 epochs w/ patience=100 for grokking. |
+| critic_design_review | 2026-03-18 | critic | APPROVED with 6 FLAGS (no blocks). FLAG-1: LR lambda warmup starts at 0 not lr_min, cosine floors at 0 not lr_min — fix lambda or spec. FLAG-2: n_folds=3 insufficient for Sharpe claims — reframe as exploratory. FLAG-3: LSTM baseline training protocol unspecified — must match SNN TBPTT/LR/state protocol for fair comparison. FLAG-4: Random seeds missing. FLAG-5: Transaction cost application method unspecified (round-trip? on position change only?). FLAG-6: eval function has redundant thresholding — store raw probabilities instead. Checklist 11/14 pass. Strongest design to date — paradigm falsifiable via EQ-ABL-03. |
+| architect_design | 2026-03-18 | architect | Design v1: 21 experiments (12 primary + 4 ablation + 5 baseline). Dual tonic+phasic input, TBPTT K=8, membrane readout, warmup LR, 500 epochs patience=100. |
+| builder_implementation | 2026-03-18 | builder | In progress |
+| critic_design_review | 2026-03-18 | critic | APPROVED with 6 FLAGS (no blocks). FLAG-1: LR lambda bug. FLAG-2: n_folds=3 can't support Sharpe claims. FLAG-3: LSTM baseline protocol unspecified. FLAG-4: No random seeds. FLAG-5: Cost application unclear. FLAG-6: Eval redundant thresholding. Checklist 11/14 pass. Strongest design to date. |
+| builder_implementation | 2026-03-18 | builder | crypto_build-equilibrium-snn_predictor.ipynb: 65 cells (30 code, 35 markdown). 21 experiments: 12 primary (4 scales x direction/magnitude x T_per_candle), 4 ablations (tonic-only, phasic-only, reset-per-candle, K=1), 5 baselines (LSTM, LogReg, RF, Majority). All 6 Critic FLAGS implemented. Critical control EQ-ABL-03 validates paradigm. TBPTT K=8, membrane readout, BCEWithLogitsLoss, warmup LR, 500 epochs patience=100. |
+| builder_implementation | 2026-03-18 | builder | Notebook complete: 65 cells, 21 experiments, all 6 FLAGS addressed |
+| critic_code_review | 2026-03-18 | critic | APPROVED with 2 FLAGS (no blocks). FLAG-1: import json missing in cell 4, used in cell 6 — NameError at runtime. FLAG-2: McNemar test (cell 49) compares EQ-04 vs EQ-ABL-03 on different candles — persistent excludes 20 warmup candles, reset doesn't. Trim ABL-03 predictions to match. All 6 design flags verified as implemented. Checklist 22/24 pass. Clean implementation. |
+| phase1_complete | 2026-03-18 | architect | Phase 1 complete. Critic code review APPROVED (22/24 checklist). 2 non-blocking FLAGS: (1) missing import json in cell 4, (2) McNemar candle alignment between persistent and reset models. Builder can fix in Phase 2. Notebook ready for Shael review. |
+| critic_code_review | 2026-03-18 | critic | In progress |
+| critic_code_review | 2026-03-18 | critic | APPROVED with 2 FLAGS. FLAG-1: import json missing (cell 4→6 NameError). FLAG-2: McNemar compares different candles (warmup mismatch). All 6 design flags verified. 22/24 checklist pass. |
+| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: json import missing before Cell 6 (imported in Cell 31, used in Cell 6 — NameError crash). 7 FLAGS (feature mismatch, seed reproducibility, bootstrap method, membrane visualization, misleading membrane_stats, McNemar header, magnitude pooled metrics). All 6 design FLAGS properly addressed. Fix BLOCK-1 (move import json to Cell 4), then ready to run. |
+| code_review_fixes | 2026-03-18 | builder | Applied both Critic flags: (1) Added import json to Cell 5 — was NameError at Cell 6. (2) Fixed McNemar ABL-03 warmup alignment in Cell 50 and Cell 62 — trimming warmup candles from reset-per-candle ablation to match persistent-state model evaluation window. All 3 fix sites verified. |
+| builder_apply_blocks | 2026-03-18 | builder | In progress |
+| builder_apply_blocks | 2026-03-18 | builder | Fixed BLOCK-1 (json import confirmed in Cell 4, removed redundant from Cell 31) + all 7 FLAGS: feature deviation documented, deterministic hashlib seeds, block bootstrap added, membrane_stats renamed, Bonferroni header fixed, direction_accuracy added to magnitude pooled. Committed fc3551b. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-18T15:54:38.221277+00:00",
+  "pipeline_session_id": "c88079b4-0a23-453b-8e6a-af894f00da44",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "54f1c251-bf03-4edc-a090-ba56bd68f0ee",
+    "response_preview": "\u26a0\ufe0f API rate limit reached. Please try again later."
+  },
+  "verified": true
+}

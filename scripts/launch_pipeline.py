@@ -279,39 +279,21 @@ def main():
     tags = [t.strip() for t in args.tags.split(',')] if args.tags else None
     pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project)
     
-    architect_task = (
-        f"🔨 New Builder Pipeline: {args.version}\n\n"
-        f"You've been assigned as architect for a new BUILDER pipeline.\n\n"
-        f"**Read these files first:**\n"
-        f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
-        f"2. `machinelearning/snn_applied_finance/specs/{args.version}_spec.yaml` — experiment spec\n"
-        f"3. `machinelearning/snn_applied_finance/research/AGENT_SOUL.md` — agent principles\n"
-        f"4. `machinelearning/snn_applied_finance/research/ARCHITECT_KNOWLEDGE.md` — your knowledge base\n\n"
-        f"**Your task:** Design the full notebook architecture following the Implementation Pipeline flow.\n"
-        f"Write design to `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_design.md`.\n"
-        f"Then run: `python3 scripts/pipeline_update.py {args.version} complete architect_design 'Design complete' architect`\n"
-        f"Post update to group chat. The script will tell you to ping the critic next."
-    )
-
     if args.kickoff or args.start:
-        print(f"\n🚀 Sending task to architect agent via sessions_send...")
+        print(f"\n🚀 Kicking off via orchestrator...")
         import subprocess as sp
         result = sp.run(
-            ['openclaw', 'sessions', 'send',
-             '--session', 'agent:architect:telegram:group:-5243763228',
-             '--message', architect_task,
-             '--timeout', '0'],
-            capture_output=True, text=True
+            [sys.executable, str(Path(__file__).parent / 'pipeline_orchestrate.py'),
+             args.version, 'complete', 'pipeline_created',
+             '--agent', 'belam-main',
+             '--notes', f'Pipeline created: {args.desc}'],
+            text=True,
         )
-        if result.returncode == 0:
-            print(f"   ✅ Task sent to architect agent")
-        else:
-            print(f"   ⚠️  Failed to send via CLI, falling back to manual instructions")
-            print(f"   Send manually via sessions_send to: agent:architect:telegram:group:-5243763228")
+        if result.returncode != 0:
+            print(f"   ⚠️  Orchestrator returned exit code {result.returncode}")
     else:
-        print(f"\n🚀 Next step — send to architect agent:")
-        print(f"   Session: agent:architect:telegram:group:-5243763228")
-        print(f"   Use sessions_send with timeoutSeconds: 0")
+        print(f"\n🚀 Pipeline created. Kick off with:")
+        print(f"   belam kickoff {args.version}")
         print(f"\n   Or re-run with --kickoff to send automatically:")
         print(f"   python3 scripts/launch_pipeline.py {args.version} ... --kickoff")
 

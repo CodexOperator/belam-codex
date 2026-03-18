@@ -6,28 +6,30 @@
 
 ---
 
-## Task 1: Pipeline & Task Orchestration
+## Task 1: Pipeline Automation (CODE-DRIVEN)
 
-The primary heartbeat responsibility: move work forward.
+The primary heartbeat responsibility: move work forward. This is now **fully automated via script** — no LLM decision-making needed.
 
-1. **Check active pipelines:** `belam pipelines`
-   - If any pipeline stage is stalled (>2h since last update with no agent activity), alert Shael
-   - If a pipeline just completed a phase, check what downstream work is now unblocked
+1. **Run the automation script:**
+   ```bash
+   python3 scripts/pipeline_autorun.py
+   ```
+   This automatically:
+   - Checks analysis gates → kicks off downstream pipelines when gates open
+   - Detects stalled pipelines (>2h no activity) → re-kicks them with checkpoint-and-resume
+   - No human or LLM judgment required — pure event-driven logic
 
-2. **Check open tasks:** `grep -l "status: open" tasks/*.md`
+2. **Check open tasks** (still needs judgment):
+   ```bash
+   grep -l "status: open" tasks/*.md
+   ```
    - For each open task, read its `depends_on` field
-   - If dependencies are met AND no pipeline already exists for this task → **eligible for pipeline spawn**
-   - Use the decision framework in `templates/heartbeat.md` (Task-to-Pipeline Mapping) to decide whether to spawn a full pipeline or a focused sub-agent
-   - **Gate check:** If the task is a new notebook version, verify the analysis gate is clear first
-   - **Non-gated tasks** (infrastructure, ensemble stacking, validation) can proceed independently
-   - **All research tasks produce Colab notebooks** — non-pipeline tasks go to `notebooks/standalone/`
-
-3. **Spawn pipelines for eligible tasks:**
-   - Implementation: `python3 scripts/launch_pipeline.py {ver} --desc "..." --priority {p} --tags {t} --project {proj} --kickoff`
-   - Analysis: `python3 scripts/launch_analysis_pipeline.py {ver}-analysis --source-version {ver} --desc "..." --kickoff`
+   - If dependencies are met AND no pipeline already exists → eligible for pipeline spawn
+   - **Gate check:** `python3 scripts/pipeline_autorun.py --check-gates --dry-run` shows what's blocked
+   - To create AND kick off: `belam pipeline launch {ver} --desc "..." --priority {p} --tags {t} --project {proj} --kickoff`
    - After spawning, update the task's `status: in_pipeline` and add `pipeline: {version}`
 
-4. **If nothing to do:** skip silently
+3. **If nothing to do:** skip silently
 
 ## Task 2: Handoff Verification
 

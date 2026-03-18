@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: high
 version: v4-deep-analysis
 spec_file: SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4-deep-analysis_design_brief.md
@@ -9,6 +9,7 @@ agents: [architect, critic, builder]
 tags: [snn, finance, analysis, v4, dead-neuron-postmortem]
 project: snn-applied-finance
 started: 2026-03-17
+archived: 2026-03-18
 ---
 
 # Analysis Pipeline: V4 Deep Analysis

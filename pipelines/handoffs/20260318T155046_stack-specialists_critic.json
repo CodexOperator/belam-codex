@@ -1,0 +1,15 @@
+{
+  "version": "stack-specialists",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-18T15:50:46.804174+00:00",
+  "pipeline_session_id": "1320759b-95e3-435c-b7d7-6ba107871b80",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "54f1c251-bf03-4edc-a090-ba56bd68f0ee",
+    "response_preview": "New pipeline \u2014 stack-specialists design review. I already have AGENT_SOUL and CRITIC_KNOWLEDGE loade"
+  },
+  "verified": true
+}

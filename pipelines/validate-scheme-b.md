@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: phase1_build
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -26,6 +26,17 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-17 | belam-main | Pipeline instance created |
+| pipeline_created | 2026-03-17 | belam-main | Pipeline kickoff |
+| architect_design | 2026-03-18 | architect | In progress |
+| pipeline_created | 2026-03-18 | belam-main | Pipeline kickoff |
+| architect_design | 2026-03-18 | architect | Design v1: 12 experiments (3 primary + 4 control + 3 epoch-sensitivity + 2 baseline). Frozen V3 Scheme B, 10 folds, extended data 2020-2025, DSR+bootstrap+t-test. |
+| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 7 flags. FLAG-1: t-test fold non-independence (supplement with sign test + block bootstrap). FLAG-2: target variable undefined. FLAG-3: cost application unspecified. FLAG-4: random seeds missing. FLAG-5: no power analysis. FLAG-6: no paired comparison to controls. FLAG-7: fold boundaries too loose. Checklist 12/14. Strongest statistical design — the verdict (validated/weak/rejected) will be definitive. |
+| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 7 flags |
+| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 7 flags |
+| builder_implementation | 2026-03-18 | builder | In progress |
+| builder_implementation | 2026-03-18 | builder | crypto_validate-scheme-b_predictor.ipynb: 51 cells, 12 experiments, all 7 FLAGS addressed. Frozen V3 Scheme B architecture, 10 walk-forward folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. Epoch sensitivity experiments (10/25/50/100). |
+| architect_design | 2026-03-18 | architect | Design v1: 8 experiments × 13 folds = 104 runs. Core replication of V3 Scheme B (FROZEN config) across 13 walk-forward folds (2020-2026, 4-month val windows). Statistical battery: Sharpe t-test, Deflated Sharpe Ratio (n_trials=54), Bootstrap 95% CI, PBO. 4 diagnostic models (Scheme 0, LSTM, LR, majority) for component attribution. 3 sensitivity runs (HuberLoss delta, abstention threshold). Clear pass/fail criteria: all 3 primary tests must pass for 'validated'. |
+| critic_design_review | 2026-03-18 | critic | APPROVED v2 design with 5 FLAGS (no blocks). FLAG-1: DSR variance needs Lo (2002) non-normal adjustment for BTC fat tails. FLAG-2: Bootstrap annualization uses sqrt(252*6) — should be sqrt(365*6) for crypto. FLAG-3: PBO requires all 54 V3 trial results or should be dropped (DSR covers selection bias). FLAG-4: LSTM baseline training protocol unspecified. FLAG-5: Random seeds missing. Checklist 10/14 pass. Strongest statistical design to date. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

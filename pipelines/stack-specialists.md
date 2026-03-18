@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: phase1_code_review
 priority: high
 version: stack-specialists
 spec_file: machinelearning/snn_applied_finance/specs/stack-specialists_spec.yaml
@@ -26,6 +26,14 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-17 | belam-main | Pipeline instance created |
+| pipeline_created | 2026-03-17 | belam-main | Pipeline kickoff |
+| pipeline_created | 2026-03-18 | belam-main | Pipeline kickoff |
+| architect_design | 2026-03-18 | architect | In progress |
+| architect_design | 2026-03-18 | architect | Design v1: 12 experiments (6 stacker + 3 diagnostic + 3 baseline). Frozen V3 specialists, LR stacker on 8 features, Fold 3 held out, anti-leakage design. |
+| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 6 flags. FLAG-1: single evaluation fold — frame as proof-of-concept not statistical evidence. FLAG-2: agreement_score incomplete (recommend dropping it). FLAG-3: abstention threshold doesn't transfer from regression to classification. FLAG-4: random seeds missing. FLAG-5: skewed specialist probabilities. FLAG-6: target variable undefined. Checklist 10/14. Clean anti-leakage design. Watch specialist correlation — if r>0.5, stacking premise collapses. |
+| architect_design | 2026-03-18 | architect | Design v1: 12 experiments (6 stacker + 3 diagnostic + 3 baseline). Ensemble of 3 V3 specialists (CrashDet, RallyDet, VolSpikeDet) combined via LogReg/RF/Voting. 8-feature stacker input (3 probs + 3 entropies + max_confidence + agreement_score). Fold 3 held out exclusively for stacker evaluation (no leakage). Key diagnostic ST-DIAG-03 (shuffled labels) validates stacking learns real signal. |
+| builder_implementation | 2026-03-18 | builder | In progress |
+| builder_implementation | 2026-03-18 | builder | crypto_stack-specialists_predictor.ipynb: 46 cells, 12 experiments (6 stacker + 3 diagnostic + 3 baseline). All 6 FLAGS addressed. Anti-leakage design with sacred Fold 3 hold-out. Specialists retrained from V3 spec. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
