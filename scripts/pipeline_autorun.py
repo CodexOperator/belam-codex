@@ -5,13 +5,15 @@ Pipeline Autorun — Event-driven pipeline lifecycle automation.
 Replaces the LLM heartbeat's "notice and decide" pattern with deterministic code.
 Call from heartbeat, cron, or post-completion hooks.
 
-Two modes:
-  1. --check-gates    Detect newly-opened gates and kick off eligible pipelines
-  2. --check-stalled  Detect stalled pipelines (no activity > threshold) and re-kick
-  3. (default)        Run both checks
+Three checks:
+  1. --check-locks    Detect stale session locks (dead/hung agent PIDs) and clear them (5min)
+  2. --check-gates    Detect newly-opened gates and kick off eligible pipelines
+  3. --check-stalled  Detect stalled pipelines (no activity > 2h threshold) and re-kick
+  4. (default)        Run all three checks
 
 Usage:
-  python3 scripts/pipeline_autorun.py                  # Both checks
+  python3 scripts/pipeline_autorun.py                  # All checks
+  python3 scripts/pipeline_autorun.py --check-locks    # Lock check only
   python3 scripts/pipeline_autorun.py --check-gates    # Gate check only
   python3 scripts/pipeline_autorun.py --check-stalled  # Stall check only
   python3 scripts/pipeline_autorun.py --dry-run        # Report only, don't kick
@@ -35,6 +37,9 @@ TASKS_DIR = WORKSPACE / 'tasks'
 # Stall threshold: if pending_action has no progress for this many minutes, re-kick
 STALL_THRESHOLD_MINUTES = 120  # 2 hours
 
+# Lock staleness threshold: if a session lock file is older than this, the agent is hung
+LOCK_STALE_MINUTES = 5
+
 # Delay between sequential kickoffs (seconds)
 KICKOFF_DELAY_SECONDS = 10
 
@@ -45,6 +50,13 @@ ACTIVE_WINDOW_MINUTES = STALL_THRESHOLD_MINUTES  # Same as stall threshold
 
 # Telegram group for notifications
 PIPELINE_GROUP_CHAT_ID = '-5243763228'
+
+# Agent session directories
+AGENT_SESSION_DIRS = {
+    'architect': Path(os.path.expanduser('~/.openclaw/agents/architect/sessions')),
+    'critic': Path(os.path.expanduser('~/.openclaw/agents/critic/sessions')),
+    'builder': Path(os.path.expanduser('~/.openclaw/agents/builder/sessions')),
+}
 
 
 def load_pipeline_frontmatter(path: Path) -> dict:
@@ -203,6 +215,114 @@ def check_analysis_gate() -> bool:
         return True
 
     return False
+
+
+def check_stale_locks(dry_run: bool = False) -> list[str]:
+    """
+    Detect and clear stale session lock files that prevent agent dispatch.
+    
+    A lock is stale if:
+    - The PID in the lock file is no longer running, OR
+    - The lock is older than LOCK_STALE_MINUTES and the process is hung
+    
+    Returns list of agents whose locks were cleared.
+    """
+    print(f"\n🔒 Checking for stale session locks (>{LOCK_STALE_MINUTES}min threshold)...\n")
+    cleared = []
+
+    for agent, sessions_dir in AGENT_SESSION_DIRS.items():
+        if not sessions_dir.exists():
+            continue
+
+        for lock_file in sessions_dir.glob('*.lock'):
+            try:
+                lock_data = json.loads(lock_file.read_text())
+                pid = lock_data.get('pid')
+                created_at = lock_data.get('createdAt', '')
+
+                if not pid:
+                    continue
+
+                # Check if the PID is still alive
+                pid_alive = True
+                try:
+                    os.kill(pid, 0)  # Signal 0 = check existence
+                except ProcessLookupError:
+                    pid_alive = False
+                except PermissionError:
+                    pid_alive = True  # Process exists but we can't signal it
+
+                if not pid_alive:
+                    # PID is dead — lock is definitely stale
+                    print(f"  💀 {agent}: lock file {lock_file.name} — PID {pid} is dead")
+                    if not dry_run:
+                        lock_file.unlink()
+                        print(f"     ✅ Lock cleared")
+                    else:
+                        print(f"     [DRY RUN] Would clear lock")
+                    cleared.append(agent)
+                    continue
+
+                # PID is alive — check how old the lock is
+                lock_age = minutes_since(created_at)
+                if lock_age is not None and lock_age > LOCK_STALE_MINUTES:
+                    print(f"  🧟 {agent}: lock file {lock_file.name} — PID {pid} alive but locked for {lock_age:.0f}min (>{LOCK_STALE_MINUTES}min)")
+                    if not dry_run:
+                        # Kill the hung process
+                        try:
+                            os.kill(pid, 15)  # SIGTERM
+                            print(f"     🔪 Sent SIGTERM to PID {pid}")
+                            # Brief wait for process to die
+                            import time as _time
+                            _time.sleep(2)
+                            # Check if it died
+                            try:
+                                os.kill(pid, 0)
+                                # Still alive — SIGKILL
+                                os.kill(pid, 9)
+                                print(f"     🔪 Sent SIGKILL to PID {pid}")
+                                _time.sleep(1)
+                            except ProcessLookupError:
+                                pass  # Good, it died
+                        except ProcessLookupError:
+                            pass  # Already dead
+                        except Exception as e:
+                            print(f"     ⚠️  Kill failed: {e}")
+
+                        # Clear the lock file
+                        if lock_file.exists():
+                            lock_file.unlink()
+                            print(f"     ✅ Lock cleared")
+                    else:
+                        print(f"     [DRY RUN] Would kill PID {pid} and clear lock")
+                    cleared.append(agent)
+                else:
+                    age_str = f"{lock_age:.0f}min" if lock_age else "unknown"
+                    print(f"  ✅ {agent}: lock file {lock_file.name} — PID {pid} alive, age {age_str} (OK)")
+
+            except (json.JSONDecodeError, OSError) as e:
+                print(f"  ⚠️  {agent}: corrupt lock file {lock_file.name} — {e}")
+                if not dry_run:
+                    lock_file.unlink()
+                    print(f"     ✅ Corrupt lock cleared")
+                cleared.append(agent)
+
+    if not cleared:
+        print("  No stale locks found.")
+
+    # If we cleared locks, reset affected agent sessions for clean dispatch
+    if cleared and not dry_run:
+        print()
+        for agent in set(cleared):
+            print(f"  🔄 Resetting {agent} sessions after lock cleanup...")
+            try:
+                sys.path.insert(0, str(SCRIPTS))
+                from pipeline_orchestrate import reset_agent_session
+                reset_agent_session(agent)
+            except Exception as e:
+                print(f"     ⚠️  Session reset failed: {e}")
+
+    return cleared
 
 
 def check_gates(dry_run: bool = False) -> list[str]:
@@ -459,6 +579,7 @@ def main():
     parser = argparse.ArgumentParser(description='Pipeline Autorun — event-driven lifecycle automation')
     parser.add_argument('--check-gates', action='store_true', help='Check gates and kick eligible pipelines')
     parser.add_argument('--check-stalled', action='store_true', help='Check for stalled pipelines and re-kick')
+    parser.add_argument('--check-locks', action='store_true', help='Check for stale session locks only')
     parser.add_argument('--dry-run', action='store_true', help='Report only, do not kick')
     parser.add_argument('--one', type=str, help='Kick one specific pipeline')
     args = parser.parse_args()
@@ -474,9 +595,16 @@ def main():
         kick_one(args.one, args.dry_run)
         return
 
-    # Default: run both checks
+    if args.check_locks:
+        check_stale_locks(args.dry_run)
+        return
+
+    # Default: run all checks
     run_gates = args.check_gates or (not args.check_gates and not args.check_stalled)
     run_stalled = args.check_stalled or (not args.check_gates and not args.check_stalled)
+
+    # Always check stale locks first — they block everything else
+    stale_agents = check_stale_locks(args.dry_run)
 
     kicked = []
     if run_gates:
@@ -492,9 +620,11 @@ def main():
 
     # Summary
     print(f"\n{'─' * 60}")
+    if stale_agents:
+        print(f"  🔒 Cleared stale locks for: {', '.join(set(stale_agents))}")
     if kicked:
         print(f"  📊 Kicked {len(kicked)} pipeline(s): {', '.join(kicked)}")
-    else:
+    if not kicked and not stale_agents:
         print(f"  📊 No action needed — all pipelines healthy or gated.")
     print(f"{'─' * 60}\n")
 

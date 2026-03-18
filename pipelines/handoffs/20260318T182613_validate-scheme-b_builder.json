@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "critic_code_review",
+  "next_stage": "builder_apply_blocks",
+  "next_agent": "builder",
+  "timestamp": "2026-03-18T18:26:13.731951+00:00",
+  "pipeline_session_id": "85a195cd-619d-41d0-a112-3705f1749cf3",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "f7714a3d-a02a-4a37-9717-36f2ae217d22",
+    "response_preview": "Now let me check the pipeline state and find the notebook."
+  },
+  "verified": true
+}

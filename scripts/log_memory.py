@@ -233,6 +233,13 @@ status: active
     print(f"  Entry:  {rel_entry}")
     print(f"  Daily:  {rel_daily}")
 
+    # Trigger index re-embed (debounced, background)
+    try:
+        from trigger_embed import trigger
+        trigger(background=True)
+    except Exception:
+        pass  # non-critical
+
 
 def main():
     parser = argparse.ArgumentParser(

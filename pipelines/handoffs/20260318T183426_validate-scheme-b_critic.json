@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "builder_apply_blocks",
+  "next_stage": "critic_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-18T18:34:26.475231+00:00",
+  "pipeline_session_id": "f5a57318-adf8-4874-9e49-68af40892cdf",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "84bd4ac7-901d-4d74-9be9-cd0ae41775fb",
+    "response_preview": "Good \u2014 I have full context from my previous review. This is a **re-review** after Builder fixed BLOC"
+  },
+  "verified": true
+}

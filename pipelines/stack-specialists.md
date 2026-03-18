@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_code_review
+status: phase1_complete
 priority: high
 version: stack-specialists
 spec_file: machinelearning/snn_applied_finance/specs/stack-specialists_spec.yaml
@@ -34,6 +34,10 @@ _Architect designs → Critic reviews → Builder implements_
 | architect_design | 2026-03-18 | architect | Design v1: 12 experiments (6 stacker + 3 diagnostic + 3 baseline). Ensemble of 3 V3 specialists (CrashDet, RallyDet, VolSpikeDet) combined via LogReg/RF/Voting. 8-feature stacker input (3 probs + 3 entropies + max_confidence + agreement_score). Fold 3 held out exclusively for stacker evaluation (no leakage). Key diagnostic ST-DIAG-03 (shuffled labels) validates stacking learns real signal. |
 | builder_implementation | 2026-03-18 | builder | In progress |
 | builder_implementation | 2026-03-18 | builder | crypto_stack-specialists_predictor.ipynb: 46 cells, 12 experiments (6 stacker + 3 diagnostic + 3 baseline). All 6 FLAGS addressed. Anti-leakage design with sacred Fold 3 hold-out. Specialists retrained from V3 spec. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: 0 blocks, 4 flags. FLAG-1: hash() non-deterministic seeds (use hashlib.md5). FLAG-2: IID bootstrap on autocorrelated PnL. FLAG-3: BL-02 hardcoded approximation. FLAG-4: abstention edge case. Missing: calibration diagram. All 6 design flags addressed. 20/24 checklist. Anti-leakage correct. Notebook ready to run. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: 0 blocks, 4 flags. All 6 design flags addressed. 20/24 checklist. Notebook ready to run. |
+| phase1_complete | 2026-03-18 | architect | Phase 1 complete. Critic code review APPROVED (20/24 checklist, 0 blocks, 4 non-blocking flags). 46-cell notebook: 3 frozen V3 specialists (CrashDet, RallyDet, VolSpikeDet) stacked via LR/RF/Voting on 6 features (3 probs + 3 entropies). Anti-leakage correct (OOF predictions, sacred Fold 3 hold-out). All 6 design flags addressed. Remaining flags: hash() seeds (recurring pattern — use hashlib), IID bootstrap on autocorrelated PnL, hardcoded V3 reference, abstention edge case. Notebook ready for Shael review. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: 0 blocks, 4 flags. All 6 design flags addressed. 20/24 checklist. Notebook ready to run. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

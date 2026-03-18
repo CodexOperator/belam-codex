@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_build
+status: phase1_complete
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -37,6 +37,20 @@ _Architect designs → Critic reviews → Builder implements_
 | builder_implementation | 2026-03-18 | builder | crypto_validate-scheme-b_predictor.ipynb: 51 cells, 12 experiments, all 7 FLAGS addressed. Frozen V3 Scheme B architecture, 10 walk-forward folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. Epoch sensitivity experiments (10/25/50/100). |
 | architect_design | 2026-03-18 | architect | Design v1: 8 experiments × 13 folds = 104 runs. Core replication of V3 Scheme B (FROZEN config) across 13 walk-forward folds (2020-2026, 4-month val windows). Statistical battery: Sharpe t-test, Deflated Sharpe Ratio (n_trials=54), Bootstrap 95% CI, PBO. 4 diagnostic models (Scheme 0, LSTM, LR, majority) for component attribution. 3 sensitivity runs (HuberLoss delta, abstention threshold). Clear pass/fail criteria: all 3 primary tests must pass for 'validated'. |
 | critic_design_review | 2026-03-18 | critic | APPROVED v2 design with 5 FLAGS (no blocks). FLAG-1: DSR variance needs Lo (2002) non-normal adjustment for BTC fat tails. FLAG-2: Bootstrap annualization uses sqrt(252*6) — should be sqrt(365*6) for crypto. FLAG-3: PBO requires all 54 V3 trial results or should be dropped (DSR covers selection bias). FLAG-4: LSTM baseline training protocol unspecified. FLAG-5: Random seeds missing. Checklist 10/14 pass. Strongest statistical design to date. |
+| builder_implementation | 2026-03-18 | builder | crypto_validate-scheme-b_predictor.ipynb: 51 cells (25 code, 26 markdown), 12 experiments, all 7 FLAGS addressed. Frozen V3 Scheme B architecture, 10 walk-forward folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. Epoch sensitivity (10/25/50/100). Build script: build_validate_scheme_b.py. RECOVERY: notebook was built in prior session but orchestrator handoff was missed due to timeout. |
+| builder_implementation | 2026-03-18 | builder | RECOVERY: 51-cell notebook complete, all 7 FLAGS addressed |
+| builder_implementation | 2026-03-18 | builder | RECOVERY: 51-cell notebook complete, all 7 FLAGS addressed. Frozen V3 Scheme B, 10 folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. |
+| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 baselines crash with KeyError: data_dict['labels'] — data_bundle has keys 'delta'/'pop', not 'labels'. Fix: data_dict['delta']['labels'] in majority/random branches (3 lines). 5 FLAGS: DSR skewness/kurtosis defaults to normal (BTC fat tails), hash() non-deterministic seeds, binom_test deprecated, PBO dropped without documentation note, missing design sections. All 7 original design flags verified as implemented. Checklist 21/23. Statistical battery is excellent — best validation pipeline we've built. |
+| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 baselines crash with KeyError — data_dict['labels'] accessed on bundle dict {'delta':..,'pop':..} which has no 'labels' key. Fix: data_dict['delta']['labels']. Also 5 FLAGS: (1) DSR Lo adjustment called with normality defaults, (2) hash() non-deterministic seeds, (3) n_folds=10 vs design 13, (4) n_trials_dsr=10 vs 54, (5) baseline results missing net_sharpe_abst key. |
+| builder_apply_blocks | 2026-03-18 | builder | In progress |
+| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 KeyError crash. 5 FLAGS. See validate-scheme-b_critic_code_review.md |
+| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 KeyError crash. 5 FLAGS. 21/23 checklist. Fix 3 lines in Cell 27. |
+| builder_apply_blocks | 2026-03-18 | builder | Fixed BLOCK-1 (BL-01/BL-02 KeyError: data_dict['delta']['labels']) + all 5 FLAGS: (1) DSR Lo non-normal adjustment with actual BTC skew/kurtosis, (2) hashlib.md5 deterministic seeds, (3) n_folds=10 documented, (4) n_trials_dsr=10 documented, (5) net_sharpe_abst added to all baseline results. Also S-1: binomtest replaces deprecated binom_test. Committed 799c7e2. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified (BLOCK-1 KeyError, FLAG-1 DSR Lo non-normal, FLAG-2 hashlib seeds, FLAG-3 n_folds doc, FLAG-4 n_trials doc, FLAG-5 net_sharpe_abst, S-1 binomtest). 9/9 checklist pass. No regressions. Notebook ready to run. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified. 9/9 checklist. Notebook ready to run. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: All fixes verified. Ready to run. |
+| critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified (BLOCK-1 KeyError, FLAGS 1-5, S-1 binomtest). 9/9 checklist. Notebook ready to run. |
+| phase1_complete | 2026-03-18 | architect | Phase 1 complete. Critic code review v2 APPROVED (9/9 checklist, all fixes verified). 51-cell notebook: frozen V3 Scheme B across 10 walk-forward folds, statistical battery includes t-test + sign test + DSR (Lo non-normal adjustment) + bootstrap CI + block bootstrap + Wilcoxon + power analysis. All 7 original issues resolved (BLOCK-1 KeyError, FLAG-1 DSR skew/kurtosis, FLAG-2 hashlib seeds, FLAG-3 n_folds doc, FLAG-4 n_trials doc, FLAG-5 net_sharpe_abst, S-1 binomtest). Notebook ready for Shael review. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

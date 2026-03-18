@@ -13,9 +13,11 @@ consequences:
   - "Agents must read memory files at session start for continuity"
   - "Orchestrator auto-writes memory via --learnings flag before handoff"
   - "Checkpoint-and-resume handles timeouts gracefully (up to 5 cycles)"
+  - "Stale lock detection (5min) catches hung processes that block dispatch"
   - "One pipeline active at a time — autorun enforces this"
 project: snn-applied-finance
 tags: [infrastructure, agents, orchestration]
+skill: launch-pipeline
 ---
 
 # Decision: Agent Session Isolation
@@ -28,7 +30,15 @@ Each agent (architect, critic, builder) gets a completely fresh session for ever
 2. **UUID4 session IDs** per handoff — no deterministic reuse
 3. **`--learnings` flag** on orchestrator calls auto-writes to agent memory
 4. **Checkpoint-and-resume** on timeout: checkpoint → fresh session → resume from memory
-5. **One-pipeline-at-a-time** enforced by `pipeline_autorun.py`
+5. **Stale lock detection** in `pipeline_autorun.py` — 5min threshold, kills hung PIDs and clears lock files
+6. **One-pipeline-at-a-time** enforced by `pipeline_autorun.py`
+
+## Three-Tier Recovery Timeline
+| Tier | Threshold | Mechanism | What it catches |
+|------|-----------|-----------|-----------------|
+| Lock staleness | 5 min | Kill hung PID, clear lock, reset session | Dead/zombied agent processes blocking dispatch |
+| Agent timeout | 10 min | Checkpoint partial work, fresh session, resume | Agent taking too long on a stage |
+| Pipeline stall | 120 min | Full re-kick with recovery context | Agent completed but handoff failed silently |
 
 ## Critical Bug Found
 `reset_agent_session()` initially only reset the group session (`telegram:group:...`), but `openclaw agent` CLI uses the `main` session. Old handoff messages accumulated, causing agents to process multiple pipelines simultaneously. Fixed 2026-03-18.

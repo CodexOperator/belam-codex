@@ -402,7 +402,34 @@ def create_weekly_file(week_str: str, monday: datetime, sunday: datetime,
     month_str = monday.strftime("%Y-%m")
     quarterly = f"2026-Q{((monday.month - 1) // 3) + 1}"
 
+    # Collect all tags from entries
+    all_tags = set()
+    for e in entries:
+        for t in e.get("tags", []):
+            all_tags.add(t)
+    # Also detect topic tags from content
+    all_content = " ".join(e["content"] for e in entries)
+    detected = []
+    for topic_slug, keywords in TOPIC_KEYWORDS.items():
+        for kw in keywords:
+            if kw in all_content.lower():
+                detected.append(topic_slug)
+                break
+    # Merge and limit
+    top_tags = sorted(all_tags)[:8] if all_tags else detected[:5]
+
     lines = [
+        f"---",
+        f"type: memory",
+        f"level: weekly",
+        f"period: \"{week_range}\"",
+        f"title: \"Weekly Summary — {week_str}\"",
+        f"generated: \"{now_ts}\"",
+        f"entry_count: {len(entries)}",
+        f"daily_files: {len(daily_links)}",
+        f"tags: [{', '.join(top_tags)}]",
+        f"---",
+        f"",
         f"# Weekly Memory Summary — {week_str}",
         f"",
         f"*Week: {week_range}*  ",
@@ -758,6 +785,14 @@ Examples:
     update_index(dry_run=args.dry_run)
 
     print(f"\n{'[DRY RUN] ' if args.dry_run else ''}✅ Weekly consolidation complete — {week_str}")
+
+    # Trigger index re-embed (hierarchy changed)
+    if not args.dry_run:
+        try:
+            from trigger_embed import trigger
+            trigger(background=True)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

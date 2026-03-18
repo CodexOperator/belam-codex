@@ -347,13 +347,51 @@ def apply_yearly_decay(entries: list[dict]) -> list[dict]:
 
 # ─── File creation ────────────────────────────────────────────────────────────
 
+def _detect_level_from_title(title: str) -> str:
+    """Detect memory level from title string."""
+    title_lower = title.lower()
+    if "yearly" in title_lower:
+        return "yearly"
+    elif "quarterly" in title_lower:
+        return "quarterly"
+    elif "monthly" in title_lower:
+        return "monthly"
+    return "weekly"
+
+
 def _build_summary_content(title: str, level_str: str, entries: list[dict],
                              source_files: list[Path], nav_links: list[str],
                              upward_links: list[str]) -> str:
     """Build the markdown content for any summary level."""
     now_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    level = _detect_level_from_title(title)
+
+    # Collect tags from entries
+    all_tags = set()
+    for e in entries:
+        for t in e.get("tags", []):
+            all_tags.add(t)
+    if not all_tags:
+        all_content = " ".join(e.get("content", "") for e in entries)
+        for topic_slug, keywords in TOPIC_KEYWORDS.items():
+            for kw in keywords:
+                if kw in all_content.lower():
+                    all_tags.add(topic_slug)
+                    break
+    top_tags = sorted(all_tags)[:8]
 
     lines = [
+        f"---",
+        f"type: memory",
+        f"level: {level}",
+        f"period: \"{level_str}\"",
+        f"title: \"{title}\"",
+        f"generated: \"{now_ts}\"",
+        f"entry_count: {len(entries)}",
+        f"source_files: {len(source_files)}",
+        f"tags: [{', '.join(top_tags)}]",
+        f"---",
+        f"",
         f"# {title}",
         f"",
         f"*Generated: {now_ts}*",
@@ -900,6 +938,14 @@ Examples:
     update_index(dry_run=args.dry_run)
 
     print(f"\n{'[DRY RUN] ' if args.dry_run else ''}✅ Monthly consolidation complete — {month_str}")
+
+    # Trigger index re-embed (hierarchy changed)
+    if not args.dry_run:
+        try:
+            from trigger_embed import trigger
+            trigger(background=True)
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+---
+primitive: memory_log
+timestamp: "2026-03-18T22:06:49Z"
+category: preference
+importance: 3
+tags: [infrastructure, memory, optimization]
+source: "session"
+content: "Optimized embed_primitives.py output formats: YAML→ASCII trees for primitive index (39% smaller) and memory hierarchy (49% smaller). AGENTS.md also tightened (7%). Total ~900 tokens saved per boot across all agents. Also fixed bug where tasks section used project path variable. Convention: prefer ASCII tree format over YAML for structural indexes — more token-efficient and equally scannable for LLMs."
+status: consolidated
+---
+
+# Memory Entry
+
+**2026-03-18T22:06:49Z** · `preference` · importance 3/5
+
+Optimized embed_primitives.py output formats: YAML→ASCII trees for primitive index (39% smaller) and memory hierarchy (49% smaller). AGENTS.md also tightened (7%). Total ~900 tokens saved per boot across all agents. Also fixed bug where tasks section used project path variable. Convention: prefer ASCII tree format over YAML for structural indexes — more token-efficient and equally scannable for LLMs.
+
+---
+*Source: session*
+*Tags: infrastructure, memory, optimization*

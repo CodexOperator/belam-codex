@@ -183,6 +183,14 @@ def consolidate(workspace: Path, date_str: str, dry_run: bool = False, label: st
     rel_log = daily_log.relative_to(workspace) if daily_log.is_relative_to(workspace) else daily_log
     print(f"{prefix}✓ Consolidated {len(active)} entries into {rel_log}")
     print(f"{prefix}✓ Marked {len(active)} entries as 'consolidated'")
+
+    # Trigger index re-embed (debounced, background)
+    try:
+        from trigger_embed import trigger
+        trigger(background=True)
+    except Exception:
+        pass  # non-critical
+
     return len(active)
 
 

@@ -25,5 +25,11 @@ When an agent times out mid-work (10 min limit), don't retry blindly — checkpo
 - Partial artifacts (design docs, notebooks) also survive on shared filesystem
 - Each resume builds on accumulated checkpoints — the agent gets smarter about what's left to do
 
+## Three-Tier Recovery Chain
+This pattern is tier 2 of 3. Full chain:
+1. **Stale lock detection (5 min)** — `pipeline_autorun.py --check-locks` kills hung PIDs, clears lock files
+2. **Checkpoint-and-resume (10 min)** — this pattern, saves partial work and re-wakes with context
+3. **Pipeline stall recovery (120 min)** — `pipeline_autorun.py --check-stalled` full re-kick
+
 ## Anti-Pattern
 Don't use deterministic session IDs (UUID5) hoping to "continue" a session — OpenClaw sessions accumulate context, leading to confusion. Always use fresh UUID4 + memory files for continuity.

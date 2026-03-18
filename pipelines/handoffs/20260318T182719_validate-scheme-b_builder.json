@@ -1,0 +1,16 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "critic_code_review",
+  "next_stage": "builder_apply_blocks",
+  "next_agent": "builder",
+  "timestamp": "2026-03-18T18:27:19.973159+00:00",
+  "pipeline_session_id": "0a0f1ed1-0922-4f96-b89f-5d1e4171a93f",
+  "wake_result": {
+    "success": false,
+    "status": "exit_error",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true,
+  "verified_at": "2026-03-18T18:31:23.621283+00:00"
+}

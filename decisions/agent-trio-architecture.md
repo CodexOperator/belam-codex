@@ -8,6 +8,7 @@ rationale: Three specialized roles cover the full research cycle. Architect hold
 consequences: [Each agent has dedicated Telegram bot, role-specific knowledge files guide behavior, sessions_send for inter-agent comms, filesystem is shared state]
 project: multi-agent-infrastructure
 tags: [agents, architecture, decision]
+skill: pipelines
 ---
 
 # Architect / Critic / Builder Agent Trio

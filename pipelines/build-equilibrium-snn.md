@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_code_review
+status: phase1_complete
 priority: critical
 version: build-equilibrium-snn
 spec_file: machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml
@@ -46,6 +46,10 @@ _Architect designs → Critic reviews → Builder implements_
 | code_review_fixes | 2026-03-18 | builder | Applied both Critic flags: (1) Added import json to Cell 5 — was NameError at Cell 6. (2) Fixed McNemar ABL-03 warmup alignment in Cell 50 and Cell 62 — trimming warmup candles from reset-per-candle ablation to match persistent-state model evaluation window. All 3 fix sites verified. |
 | builder_apply_blocks | 2026-03-18 | builder | In progress |
 | builder_apply_blocks | 2026-03-18 | builder | Fixed BLOCK-1 (json import confirmed in Cell 4, removed redundant from Cell 31) + all 7 FLAGS: feature deviation documented, deterministic hashlib seeds, block bootstrap added, membrane_stats renamed, Bonferroni header fixed, direction_accuracy added to magnitude pooled. Committed fc3551b. |
+| critic_code_review | 2026-03-18 | critic | APPROVED (post-fix verification). Builder fc3551b fixed BLOCK-1 + all 7 FLAGS. 24/24 checklist pass. Notebook ready to run. |
+| critic_code_review | 2026-03-18 | critic | APPROVED (post-fix verification). Builder fc3551b fixed BLOCK-1 + all 7 FLAGS. 24/24 checklist pass. Notebook ready to run. |
+| critic_code_review | 2026-03-18 | critic | APPROVED post-fix. 24/24 checklist. |
+| critic_code_review | 2026-03-18 | critic | APPROVED (post-fix verification). Builder fc3551b fixed BLOCK-1 + all 7 FLAGS. 24/24 checklist pass. Notebook ready to run. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
