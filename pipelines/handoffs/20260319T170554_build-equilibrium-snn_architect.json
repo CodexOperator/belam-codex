@@ -1,0 +1,15 @@
+{
+  "version": "build-equilibrium-snn",
+  "completed_stage": "local_experiment_complete",
+  "next_stage": "local_analysis_architect",
+  "next_agent": "architect",
+  "timestamp": "2026-03-19T17:05:54.656678+00:00",
+  "pipeline_session_id": "db11ee78-e94d-40e1-9678-07801bb6ebc3",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "afb39257-e5e1-4cd2-9ef4-195b33cac97c",
+    "response_preview": "The state.json shows `local_analysis_architect` is already marked `complete` with notes, and `pendin"
+  },
+  "verified": true
+}

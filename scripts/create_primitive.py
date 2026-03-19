@@ -741,8 +741,9 @@ def main():
         sys.path.insert(0, str(WORKSPACE / "scripts"))
         import trigger_embed
         trigger_embed.trigger(background=True)
-    except Exception:
-        pass  # Non-fatal — embed will run on next heartbeat
+        print("  📦 Index update triggered")
+    except Exception as e:
+        print(f"  ⚠️  Index update failed (non-fatal): {e}")
 
 
 if __name__ == "__main__":

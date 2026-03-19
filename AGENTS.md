@@ -69,7 +69,7 @@ Knowledge files. Read with `Read` when relevant. YAML frontmatter + markdown bod
 
 ### Pipelines
 _Active implementation pipelines. Read when: checking build progress or phase gates._
-- `pipelines/build-equilibrium-snn.md` — Implementation Pipeline: BUILD-EQUILIBRIUM-SNN [experiment_complete/critical] started:2026-03-17 [snn,architecture,streaming]
+- `pipelines/build-equilibrium-snn.md` — Implementation Pipeline: BUILD-EQUILIBRIUM-SNN [local_analysis_in_progress/critical] started:2026-03-17 [snn,architecture,streaming]
 - `pipelines/stack-specialists.md` — Implementation Pipeline: STACK-SPECIALISTS [experiment_running/high] started:2026-03-17 [snn,ensemble,specialists]
 - `pipelines/validate-scheme-b.md` — Implementation Pipeline: VALIDATE-SCHEME-B [experiment_running/high] started:2026-03-17 [validation,statistics,snn]
 
@@ -113,6 +113,8 @@ _Read when: encountering problems or before making changes._
 - `lessons/breakeven-accuracy-before-building.md` — Calculate Breakeven Accuracy Before Building [high] [trading,costs,validation]
 - `lessons/checkpoint-and-resume-pattern.md` — Checkpoint-and-Resume for Long Agent Tasks [high] [infrastructure,agents,orchestration]
 - `lessons/confident-abstention-is-signal.md` — Confident Abstention Is a Real Signal Type [medium] [snn,trading,abstention]
+- `lessons/continuous-input-beats-spike-mode.md` — Continuous Input Mode Consistently Outperforms Spike Mode [high] [snn,encoding,input-mode]
+- `lessons/control-input-dimensionality-in-encoding-comparisons.md` — Control Input Dimensionality When Comparing Encoding Schemes [high] [snn,encoding,experimental-design]
 - `lessons/event-detection-not-state-classification.md` — Simple SNNs Detect Events, Not States [high] [snn,specialists,architecture]
 - `lessons/gpu-parallel-thrashing-t4.md` — GPU Parallel Worker Thrashing on Tesla T4 [high] [gpu,parallelism,performance]
 - `lessons/pipeline-table-separator-required.md` — Pipeline Table Separator Required for Update Script [high] [pipeline,infrastructure,markdown]
@@ -125,7 +127,7 @@ _Read when: encountering problems or before making changes._
 
 ### Commands
 _`belam` CLI commands. Read when: needing usage details or flags._
-- `commands/analyze-local.md` — `belam analyze-local <ver>` (belam al <ver>) — Analyze local experiment results — generates comprehensive MD + plots
+- `commands/analyze-local.md` — `belam analyze-local <ver>` (belam al <ver>) — Orchestrated local analysis — data prep + architect→critic→builder loop with reasoning
 - `commands/analyze.md` — `belam analyze <ver>` (belam a <ver>) — Run experiment analysis (auto-finds pipeline)
 - `commands/audit.md` — `belam audit` (belam au) — Scan all primitives for consistency issues (orphaned commands, stale refs, missing decisions, duplicates)
 - `commands/autorun.md` — `belam autorun` (belam auto) — Auto-kick gated/stalled/revision pipelines (event-driven)
@@ -147,7 +149,7 @@ _`belam` CLI commands. Read when: needing usage details or flags._
 - `commands/pipelines.md` — `belam pipelines` (belam pl) — Pipeline dashboard with statuses
 - `commands/projects.md` — `belam projects` (belam pj) — List all projects
 - `commands/queue-revision.md` — `belam queue-revision <ver> [opts]` (belam qr) — Queue a revision request for autorun pickup
-- `commands/report.md` — `belam report <ver>` — Build LaTeX report from experiment analysis and export as PDF
+- `commands/report.md` — `belam report <ver>` — Build LaTeX→PDF report from approved analysis (orchestrated via pipeline_orchestrate.py)
 - `commands/revise.md` — `belam revise <ver> --context "..."` (belam rev) — Trigger Phase 1 revision cycle (coordinator-initiated)
 - `commands/run.md` — `belam run <ver>` (belam r) — Run experiments locally for a pipeline. Auto-updates stages. Builder agent fixes errors.
 - `commands/status.md` — `belam status` (belam s) — Full overview: pipelines + tasks + memory + git

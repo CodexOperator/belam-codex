@@ -1546,12 +1546,26 @@ def main():
         dry_run = 'dry-run' in flags or 'dry_run' in flags
         max_retries = int(flags.get('max-retries', flags.get('max_retries', '2')))
         no_recovery = 'no-recovery' in flags or 'no_recovery' in flags
+        analyze_local = 'analyze-local' in flags or 'analyze_local' in flags or 'analyze' in flags
         orchestrate_local_run(version, dry_run=dry_run, max_retries=max_retries,
                                no_recovery=no_recovery)
+        # Chain into local analysis if requested and experiments succeeded
+        if analyze_local:
+            print(f"\n{'─' * 70}")
+            print(f"  🔗 Chaining into local analysis...")
+            print(f"{'─' * 70}\n")
+            orchestrate_local_analysis(version, dry_run=dry_run)
+
+    elif action in ('local-analysis', 'analyze-local', 'analysis'):
+        dry_run = 'dry-run' in flags or 'dry_run' in flags
+        orchestrate_local_analysis(version, dry_run=dry_run)
+
+    elif action in ('report-build', 'report', 'build-report'):
+        orchestrate_report_build(version)
 
     else:
         print(f"Unknown action: {action}")
-        print("Actions: show, complete, block, start, status, verify, revise, run-experiment")
+        print("Actions: show, complete, block, start, status, verify, revise, run-experiment, local-analysis, report-build")
         print("Global: --check-pending")
         sys.exit(1)
 

@@ -251,16 +251,74 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (14)  (+1 archived/superseded)
+lessons/ (16)  (+1 archived/superseded)
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
   ├─ checkpoint-and-resume-pattern  Checkpoint-and-Resume for Long Agent Tasks  high  [infrastructure,agents,orchestration,pattern]
   ├─ confident-abstention-is-signal  Confident Abstention Is a Real Signal Type  medium  [snn,trading,abstention]
+  ├─ continuous-input-beats-spike-mode  Continuous Input Mode Consistently Outperforms Spike Mode  high  [snn,encoding,input-mode]
+  ├─ control-input-dimensionality-in-encoding-comparisons  Control Input Dimensionality When Comparing Encoding Schemes  high  [snn,encoding,experimental-design]
   ├─ event-detection-not-state-classification  Simple SNNs Detect Events, Not States  high  [snn,specialists,architecture]
   ├─ gpu-parallel-thrashing-t4  GPU Parallel Worker Thrashing on Tesla T4  high  [gpu,parallelism,performance,colab]
   ├─ pipeline-table-separator-required  Pipeline Table Separator Required for Update Script  high  [pipeline,infrastructure,markdown,debugging]
@@ -303,12 +361,12 @@ projects/ (5)
   └─ snn-standard-benchmarks  SNN Standard Model Benchmarks  complete  [snn,research,benchmarking]
 
 pipelines/ (3)  (+2 archived/superseded)
-  ├─ build-equilibrium-snn  Implementation Pipeline: BUILD-EQUILIBRIUM-SNN  experiment_complete/critical  started:2026-03-17  [snn,architecture,streaming]
+  ├─ build-equilibrium-snn  Implementation Pipeline: BUILD-EQUILIBRIUM-SNN  local_analysis_in_progress/critical  started:2026-03-17  [snn,architecture,streaming]
   ├─ stack-specialists  Implementation Pipeline: STACK-SPECIALISTS  experiment_running/high  started:2026-03-17  [snn,ensemble,specialists]
   └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  experiment_running/high  started:2026-03-17  [validation,statistics,snn]
 
 commands/ (28)
-  ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,experiment,local,plots]
+  ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,local,orchestration,experiment]
   ├─ analyze  belam analyze  belam analyze <ver>  analysis  [analysis,experiment,phase2]
   ├─ audit  belam audit  belam audit  primitives  [audit,primitives,consistency,maintenance]
   ├─ autorun  belam autorun  belam autorun  pipeline  [autorun,automation,gates,stall-detection]
@@ -332,7 +390,7 @@ commands/ (28)
   ├─ queue-revision  belam queue-revision  belam queue-revision <ver> [opts]  pipeline  [revision,queue,autorun,pipeline]
   ├─ report  belam report  belam report <ver>  analysis  [report,latex,pdf,analysis]
   ├─ revise  belam revise  belam revise <ver> --context "..."  pipeline  [revision,phase1,architect,critic]
-  ├─ run  belam run <ver>  belam run <ver>  experiment
+  ├─ run  belam run <ver>  belam run <ver>  experiment  [experiment,run,analysis,local]
   ├─ status  belam status  belam status  infrastructure  [overview,dashboard,status]
   ├─ task  belam task  belam task <name>  primitives  [task,detail,fuzzy-match]
   └─ tasks  belam tasks  belam tasks  primitives  [tasks,list,status]
@@ -348,7 +406,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-19 16:50 UTC_
+_Updated: 2026-03-19 17:21 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -356,9 +414,9 @@ _Updated: 2026-03-19 16:50 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-19 16:50 UTC)
+Memory (2026-03-19 17:21 UTC)
 ├── daily/      7 active  2026-03-12 → 2026-03-20
-├── entries/    62 indexed
+├── entries/    64 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

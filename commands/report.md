@@ -2,7 +2,7 @@
 primitive: command
 command: "belam report <ver>"
 aliases: []
-description: "Build LaTeX report from experiment analysis and export as PDF"
+description: Build LaTeX→PDF report from approved analysis (orchestrated via pipeline_orchestrate.py)
 category: analysis
 tags: [report, latex, pdf, analysis]
 ---
@@ -13,9 +13,7 @@ Converts experiment analysis markdown into a professional LaTeX report and compi
 
 ## Usage
 ```bash
-belam report <version>                # Auto: pandoc MD→PDF
-belam report <version> --agent        # Use builder agent to write custom LaTeX
-belam report <version> --compile-only # Just run pdflatex on existing .tex
+belam report <version>                # Orchestrated: builds LaTeX→PDF via report-build action
 ```
 
 ## Pipeline Integration

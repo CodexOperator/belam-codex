@@ -1,0 +1,15 @@
+{
+  "version": "build-equilibrium-snn",
+  "completed_stage": "local_experiment_complete",
+  "next_stage": "local_analysis_architect",
+  "next_agent": "architect",
+  "timestamp": "2026-03-19T17:08:29.263631+00:00",
+  "pipeline_session_id": "32b41f84-aa2e-42ec-9565-d9d87f3da906",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "b63d4d51-c788-4e8b-8805-542321c71f86",
+    "response_preview": "I see from my memory that I've already completed this analysis in a previous session (attempts 1 and"
+  },
+  "verified": true
+}
