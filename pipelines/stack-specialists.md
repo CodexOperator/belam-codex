@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: experiment_running
+status: local_analysis_report
 priority: high
 version: stack-specialists
 spec_file: machinelearning/snn_applied_finance/specs/stack-specialists_spec.yaml
@@ -48,6 +48,28 @@ _Architect designs → Critic reviews → Builder implements_
 | phase1_complete | 2026-03-19 | architect | Phase 1 revision COMPLETE. Critic code review v2 APPROVED 23/24 checklist, 0 blocks, 2 non-blocking FLAGS: (1) voting_predict mutable default param (minor, not a bug in current flow), (2) BL-02 still hardcoded (carry-forward, V3 weights unavailable). v2 notebook: 73 cells, 15 experiments (3 scale + 6 stacker + 3 diagnostic + 3 baseline). All 4 coordinator direction points implemented and verified: R1 membrane readout gate, R2 zero-learning detection, R3 specialist aliveness battery (AUC>0.52), R4 scale sensitivity (3 scales). All 5 revision FLAGS + all 4 v1 FLAGS resolved. Major v1→v2 improvements: defensive gates, aliveness battery, scale testing, calibration diagram, block bootstrap, deterministic hashlib seeds. Notebook ready for Shael review. |
 | local_experiment_running | 2026-03-19 | system | Local experiment run started (PID: 2568685) |
 | local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 1 attempts: Process exited with code 1 |
+| local_experiment_running | 2026-03-19 | system | Experiment run started (PID: 2576537, mode: supervised) |
+| local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
+| local_experiment_running | 2026-03-19 | system | Experiment run started (PID: 2578404, mode: supervised) |
+| local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
+| local_experiment_running | 2026-03-19 | builder | RESULTS: 15 experiments (3 SC + 6 ST + 3 DIAG + 3 BL), 10.3min. ALL GATES PASS. Best: ST-03 (LR C=1.0) 51.93% acc (+1.62pp lift). All Sharpe negative. 3/3 specialists alive at best scale=2.0. Null model close at 50.55%. V3 ref 52.0% still beats best stacker. |
+| local_analysis_architect | 2026-03-19 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/stack-specialists/ |
+| local_analysis_architect | 2026-03-19 | architect | Analysis report complete. VERDICT: Stacking FAILS all primary criteria. Best stacker 51.93% accuracy but -0.84 Sharpe (not profitable). Shuffled-labels null beats 8/12 real experiments. Abstention mechanism completely fails (0% coverage). V3 Scheme B (52%, +0.45 Sharpe) strictly superior. Specialists too correlated (r=0.671) and event→direction mapping too lossy. Scale sensitivity negligible. Recommend deprioritizing stacking in favor of monolithic approaches. 6 additional analysis scripts specified. |
+| local_analysis_architect | 2026-03-19 | architect | Analysis report complete. Stacking FAILS all criteria. V3 Scheme B strictly superior. 6 analysis scripts specified. |
+| local_analysis_critic_review | 2026-03-19 | critic | APPROVED: 0 blocks, 5 flags. FLAG-1 (HIGH): ST-02 and SC-03 are identical experiments — 14 unique experiments not 15. FLAG-2: shuffled beats 8/12 count imprecise (actual 10/13). FLAG-3: Scripts 1-5 require notebook modification (raw predictions not saved in pkl) — only Script 6 executable from current data. FLAG-4: abstention 12/15 count misleading (all 14 real experiments have zero/negligible coverage). FLAG-5: binomial z minor rounding. Verdict well-supported — stacking convincingly rejected. Key insight: composition at prediction level fails; composition must happen at architectural level. Review at: pipeline_builds/stack-specialists_critic_analysis_review.md |
+| local_analysis_critic_review | 2026-03-19 | critic | APPROVED 0 blocks 5 flags |
+| local_analysis_critic_review | 2026-03-19 | critic | APPROVED 0 blocks 5 flags. Review at: pipeline_builds/stack-specialists_critic_analysis_review.md |
+| local_analysis_builder | 2026-03-19 | builder | Follow-up analysis complete: 6 scripts + 5 FLAG corrections + addendum. All 5 Critic FLAGs addressed: FLAG-1 ST-02=SC-03 confirmed (14 unique experiments), FLAG-2 shuffled beats 8/11 unique experiments, FLAG-3 ALL 6 follow-up scripts blocked by missing per-candle data (Critic wrong about Script 6), FLAG-4 abstention corrected to all 14 real=zero/negligible, FLAG-5 z=1.48. 5 visualization analyses from summary data: abstention sweep, experiment ranking, scale sensitivity, cross-pipeline comparison, accuracy-vs-Sharpe scatter. Verdict: stacking conclusively rejected, V3 Scheme B strictly superior. |
+| local_analysis_builder | 2026-03-19 | builder | Follow-up analysis: 6 scripts + 5 FLAG corrections. ST-02=SC-03 (14 unique). Shuffled beats 8/11. ALL 6 follow-up scripts blocked (no per-candle data). Stacking conclusively rejected. |
+| local_analysis_code_review | 2026-03-19 | critic | APPROVED: 0 blocks, 3 minor FLAGs. All 5 Critic FLAG corrections verified. Builder correctly caught Critic error on Script 6 (block bootstrap needs per-candle data, not summary stats). Scripts clean, visualizations well-designed, addendum comprehensive. Stacking conclusively rejected — 14 unique experiments, shuffled null beats 7/10, zero abstention, all Sharpe negative. V3 Scheme B strictly superior. Review at: pipeline_builds/stack-specialists_critic_analysis_code_review.md |
+| local_analysis_report_build | 2026-03-19 | system | Building LaTeX report from stack-specialists_analysis_report.md |
+| local_analysis_code_review | 2026-03-19 | critic | APPROVED 0 blocks 3 minor FLAGs |
+| local_analysis_report_build | 2026-03-19 | system | Building LaTeX report from stack-specialists_analysis_report.md |
+| local_analysis_code_review | 2026-03-19 | critic | In progress |
+| local_analysis_code_review | 2026-03-19 | critic | APPROVED: 0 blocks, 3 minor FLAGs. All 5 Critic FLAG corrections verified. Review at: pipeline_builds/stack-specialists_critic_analysis_code_review.md |
+| local_analysis_code_review | 2026-03-19 | critic | APPROVED with 3 low FLAGS (0 blocks). All 5 Critic FLAGs addressed: FLAG-1 ST-02=SC-03 confirmed (14 unique), FLAG-2 shuffled beats 7/10 unique, FLAG-3 ALL 6 scripts blocked (Critic wrong about Script 6), FLAG-4 abstention corrected, FLAG-5 z=1.48. Minor FLAGS: (1) Script 01 shuffled count not deduplicated, (2) Script 03 rounds z to 1.49 not 1.48, (3) addendum says 15 experiments in scatter description. All low-priority text precision issues. Stacking conclusively rejected. Review at: pipeline_builds/stack-specialists_critic_analysis_code_review.md |
+| local_analysis_report_build | 2026-03-19 | system | Building LaTeX report from stack-specialists_analysis_report.md |
+| local_analysis_code_review | 2026-03-19 | critic | APPROVED 3 low FLAGS 0 blocks. All 5 Critic FLAGs addressed. Stacking conclusively rejected. Review at: pipeline_builds/stack-specialists_critic_analysis_code_review.md |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: local_analysis_in_progress
+status: local_analysis_complete
 priority: critical
 version: build-equilibrium-snn
 spec_file: machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml
@@ -88,6 +88,11 @@ _Architect designs → Critic reviews → Builder implements_
 | local_analysis_builder | 2026-03-19 | builder | In progress |
 | local_analysis_critic_review | 2026-03-19 | critic | APPROVED with 5 FLAGS (0 blocks). FLAG-1 (HIGH): t-test uses per-experiment means inflating significance (p=0.040); per-fold p=0.096 NOT significant. FLAG-2 (CRITICAL): Magnitude mode positive Sharpe is artifact — models collapse to degenerate directional bias (87-100% long or 100% short by fold), identical pattern in GRU baseline. Strike 'prioritize magnitude mode' from Phase 2 recs. FLAG-3: 'VALIDATED' overstates equilibrium paradigm — consistent direction in all 3 folds but paired t-test p=0.169, awaits bootstrap CI. FLAG-4: Direction vs magnitude Sharpe comparison confounded by abstention (100% abstention forces trades vs 0-34%). FLAG-5: Phasic-only 'beats' full model by 0.10pp — within noise. Follow-up scripts well-designed, especially Script 6 (bootstrap CI). Review at: pipeline_builds/build-equilibrium-snn_critic_analysis_review.md |
 | local_analysis_builder | 2026-03-19 | builder | In progress |
+| local_analysis_builder | 2026-03-19 | builder | Follow-up analysis complete: 6 scripts + 5 Critic FLAG corrections. BOOTSTRAP CI: Pooled EQ-04 vs EQ-ABL-03 = +0.018 [+0.002, +0.035] — excludes zero, equilibrium paradigm SUPPORTED. Per-fold t-test p=0.303 (not 0.040). Magnitude mode confirmed degenerate. Model agreement filter viable (agreed_acc=0.556 vs 0.514). RSI-delta top feature. Cohen's d persistent vs reset = 1.49 (large). |
+| local_analysis_builder | 2026-03-19 | builder | Follow-up analysis complete: 6 scripts + 5 Critic FLAG corrections. Bootstrap CI pooled excludes zero — paradigm SUPPORTED. Per-fold p=0.303. Magnitude mode confirmed degenerate. Model agreement filter viable. |
+| local_analysis_code_review | 2026-03-19 | critic | APPROVED with 4 FLAGS (0 blocks). All 5 Critic FLAG corrections verified: FLAG-1 t-test corrected to p=0.303, FLAG-2 magnitude degeneration documented, FLAG-3 language to 'supported', FLAG-4 abstention confound, FLAG-5 phasic within noise. Bootstrap CI is headline finding: pooled EQ-04 vs EQ-ABL-03 = [+0.002, +0.035] excludes zero — equilibrium paradigm statistically supported. Script code correct: block bootstrap, McNemar, Cohen's d, calibration, regime analysis all verified. 4 minor FLAGS: (1) Script 5 majority/all-agree labeling bug, (2) pooled bootstrap fold boundary note, (3) summary text not updated to reflect bootstrap result, (4) structured pkl could capture more outputs. 10/10 checklist. Review at: pipeline_builds/build-equilibrium-snn_critic_analysis_code_review.md |
+| local_analysis_report_build | 2026-03-19 | system | Building LaTeX report from build-equilibrium-snn_analysis_report.md |
+| local_analysis_report_build | 2026-03-19 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/build-equilibrium-snn/build-equilibrium-snn_report.pdf (1008.0 KB) |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_

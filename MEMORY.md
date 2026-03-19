@@ -307,11 +307,71 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (16)  (+1 archived/superseded)
+lessons/ (18)  (+1 archived/superseded)
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
@@ -321,15 +381,17 @@ lessons/ (16)  (+1 archived/superseded)
   ├─ control-input-dimensionality-in-encoding-comparisons  Control Input Dimensionality When Comparing Encoding Schemes  high  [snn,encoding,experimental-design]
   ├─ event-detection-not-state-classification  Simple SNNs Detect Events, Not States  high  [snn,specialists,architecture]
   ├─ gpu-parallel-thrashing-t4  GPU Parallel Worker Thrashing on Tesla T4  high  [gpu,parallelism,performance,colab]
+  ├─ per-fold-significance-tests-required  Per-Fold Significance Tests and Permutation Tests Are Req...  high  [methodology,statistics,validation]
   ├─ pipeline-table-separator-required  Pipeline Table Separator Required for Update Script  high  [pipeline,infrastructure,markdown,debugging]
   ├─ session-reset-targets-main-not-group  OpenClaw Agent CLI Uses `main` Session, Not Group Session  high  [infrastructure,agents,openclaw,debugging]
   ├─ sessions-send-timeout-filesystem-first  sessions_send Timeouts — Use Filesystem-First Coordination  [multi-agent,coordination,sessions-send,timeout]
   ├─ snn-treats-like-weird-cnn  Don't Treat SNNs Like Weird CNNs  high  [snn,architecture,critical]
+  ├─ subprocess-run-doesnt-raise-on-failure  subprocess.run Does Not Raise on Non-Zero Exit Code  [python,debugging,infrastructure]
   ├─ telegram-bots-cant-see-bots  Telegram Bots Cannot See Other Bots' Messages  high  [telegram,agents,infrastructure]
   ├─ torch-buffer-requires-tensor-assignment  torch.nn.Buffer Requires Tensor Assignment, Not Float  high  [snn,pytorch,debugging]
   └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (16)
+decisions/ (17)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
@@ -345,6 +407,7 @@ decisions/ (16)
   ├─ skill-extraction-from-reports  Extract Domain Reports Into Skills + Knowledge Files  [skills,knowledge,workflow]
   ├─ skill-primitive-pairing  Every Skill Gets a Primitive  [skills,primitives,conventions,knowledge-management]
   ├─ superseded-primitive-lifecycle  Superseded Primitive Lifecycle  [primitives,conventions,lifecycle,boot-optimization]
+  ├─ supervised-builder-experiments  Supervised Builder Agent for Experiment Execution  [infrastructure,experiments,builder,architecture]
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
 tasks/ (4)
@@ -361,9 +424,9 @@ projects/ (5)
   └─ snn-standard-benchmarks  SNN Standard Model Benchmarks  complete  [snn,research,benchmarking]
 
 pipelines/ (3)  (+2 archived/superseded)
-  ├─ build-equilibrium-snn  Implementation Pipeline: BUILD-EQUILIBRIUM-SNN  local_analysis_in_progress/critical  started:2026-03-17  [snn,architecture,streaming]
-  ├─ stack-specialists  Implementation Pipeline: STACK-SPECIALISTS  experiment_running/high  started:2026-03-17  [snn,ensemble,specialists]
-  └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  experiment_running/high  started:2026-03-17  [validation,statistics,snn]
+  ├─ build-equilibrium-snn  Implementation Pipeline: BUILD-EQUILIBRIUM-SNN  local_analysis_complete/critical  started:2026-03-17  [snn,architecture,streaming]
+  ├─ stack-specialists  Implementation Pipeline: STACK-SPECIALISTS  local_analysis_report/high  started:2026-03-17  [snn,ensemble,specialists]
+  └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  experiment_complete/high  started:2026-03-17  [validation,statistics,snn]
 
 commands/ (28)
   ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,local,orchestration,experiment]
@@ -406,7 +469,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-19 17:21 UTC_
+_Updated: 2026-03-19 19:34 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -414,9 +477,9 @@ _Updated: 2026-03-19 17:21 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-19 17:21 UTC)
+Memory (2026-03-19 19:34 UTC)
 ├── daily/      7 active  2026-03-12 → 2026-03-20
-├── entries/    64 indexed
+├── entries/    67 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

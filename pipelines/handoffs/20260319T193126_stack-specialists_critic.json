@@ -1,0 +1,15 @@
+{
+  "version": "stack-specialists",
+  "completed_stage": "local_analysis_builder",
+  "next_stage": "local_analysis_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-19T19:31:26.681007+00:00",
+  "pipeline_session_id": "52bc9281-2064-480b-ad59-c53bd283b7b0",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "af028678-dc5a-4db9-9e8d-4ea506f3c5fa",
+    "response_preview": "Good, I have extensive context from my prior reviews of this pipeline. Now let me read the required "
+  },
+  "verified": true
+}

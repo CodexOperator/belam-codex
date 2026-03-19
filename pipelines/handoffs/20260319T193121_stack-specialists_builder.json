@@ -1,0 +1,15 @@
+{
+  "version": "stack-specialists",
+  "completed_stage": "local_analysis_code_review",
+  "next_stage": "local_analysis_report_build",
+  "next_agent": "builder",
+  "timestamp": "2026-03-19T19:31:21.245104+00:00",
+  "pipeline_session_id": "20ef04ca-7b06-4281-83cb-e037133a67e5",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "40350fea-9039-4f8a-b439-a203b2e168cb",
+    "response_preview": ""
+  },
+  "verified": true
+}

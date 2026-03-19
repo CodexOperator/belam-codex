@@ -69,9 +69,9 @@ Knowledge files. Read with `Read` when relevant. YAML frontmatter + markdown bod
 
 ### Pipelines
 _Active implementation pipelines. Read when: checking build progress or phase gates._
-- `pipelines/build-equilibrium-snn.md` — Implementation Pipeline: BUILD-EQUILIBRIUM-SNN [local_analysis_in_progress/critical] started:2026-03-17 [snn,architecture,streaming]
-- `pipelines/stack-specialists.md` — Implementation Pipeline: STACK-SPECIALISTS [experiment_running/high] started:2026-03-17 [snn,ensemble,specialists]
-- `pipelines/validate-scheme-b.md` — Implementation Pipeline: VALIDATE-SCHEME-B [experiment_running/high] started:2026-03-17 [validation,statistics,snn]
+- `pipelines/build-equilibrium-snn.md` — Implementation Pipeline: BUILD-EQUILIBRIUM-SNN [local_analysis_complete/critical] started:2026-03-17 [snn,architecture,streaming]
+- `pipelines/stack-specialists.md` — Implementation Pipeline: STACK-SPECIALISTS [local_analysis_report/high] started:2026-03-17 [snn,ensemble,specialists]
+- `pipelines/validate-scheme-b.md` — Implementation Pipeline: VALIDATE-SCHEME-B [experiment_complete/high] started:2026-03-17 [validation,statistics,snn]
 
 ### Projects
 - `projects/agent-roster.md` — Active Agent Roster [active] [agents,infrastructure,roster]
@@ -104,6 +104,7 @@ _Read when: making architectural choices._
 - `decisions/skill-extraction-from-reports.md` — Extract Domain Reports Into Skills + Knowledge Files [skills,knowledge,workflow]
 - `decisions/skill-primitive-pairing.md` — Every Skill Gets a Primitive [skills,primitives,conventions]
 - `decisions/superseded-primitive-lifecycle.md` — Superseded Primitive Lifecycle [primitives,conventions,lifecycle]
+- `decisions/supervised-builder-experiments.md` — Supervised Builder Agent for Experiment Execution [infrastructure,experiments,builder]
 - `decisions/two-phase-backtest-workflow.md` — Two-Phase Backtest Workflow [backtesting,infrastructure,workflow]
 
 ### Lessons
@@ -117,10 +118,12 @@ _Read when: encountering problems or before making changes._
 - `lessons/control-input-dimensionality-in-encoding-comparisons.md` — Control Input Dimensionality When Comparing Encoding Schemes [high] [snn,encoding,experimental-design]
 - `lessons/event-detection-not-state-classification.md` — Simple SNNs Detect Events, Not States [high] [snn,specialists,architecture]
 - `lessons/gpu-parallel-thrashing-t4.md` — GPU Parallel Worker Thrashing on Tesla T4 [high] [gpu,parallelism,performance]
+- `lessons/per-fold-significance-tests-required.md` — Per-Fold Significance Tests and Permutation Tests Are Req... [high] [methodology,statistics,validation]
 - `lessons/pipeline-table-separator-required.md` — Pipeline Table Separator Required for Update Script [high] [pipeline,infrastructure,markdown]
 - `lessons/session-reset-targets-main-not-group.md` — OpenClaw Agent CLI Uses `main` Session, Not Group Session [high] [infrastructure,agents,openclaw]
 - `lessons/sessions-send-timeout-filesystem-first.md` — sessions_send Timeouts — Use Filesystem-First Coordination [?] [multi-agent,coordination,sessions-send]
 - `lessons/snn-treats-like-weird-cnn.md` — Don't Treat SNNs Like Weird CNNs [high] [snn,architecture,critical]
+- `lessons/subprocess-run-doesnt-raise-on-failure.md` — subprocess.run Does Not Raise on Non-Zero Exit Code [?] [python,debugging,infrastructure]
 - `lessons/telegram-bots-cant-see-bots.md` — Telegram Bots Cannot See Other Bots' Messages [high] [telegram,agents,infrastructure]
 - `lessons/torch-buffer-requires-tensor-assignment.md` — torch.nn.Buffer Requires Tensor Assignment, Not Float [high] [snn,pytorch,debugging]
 - `lessons/verify-notebook-paths-resolve-before-automation.md` — Verify Notebook Paths Resolve Before Automation [high] [infrastructure,naming,automation]

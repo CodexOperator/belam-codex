@@ -1,0 +1,15 @@
+{
+  "version": "build-equilibrium-snn",
+  "completed_stage": "local_analysis_builder",
+  "next_stage": "local_analysis_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-19T18:37:07.618050+00:00",
+  "pipeline_session_id": "ce9774e5-40cf-429b-b988-9ddada2d5da9",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "b1383242-5834-4301-9ede-2ce2f792448d",
+    "response_preview": "Now let me read the required context files and the pipeline state."
+  },
+  "verified": true
+}

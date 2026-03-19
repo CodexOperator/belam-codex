@@ -31,6 +31,8 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+ML_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
+RESULTS_BASE = ML_DIR / 'notebooks' / 'local_results'
 SCRIPTS = WORKSPACE / 'scripts'
 TASKS_DIR = WORKSPACE / 'tasks'
 
@@ -184,6 +186,10 @@ def get_active_agent_pipeline() -> str | None:
         'phase2_architect_revision',
         'analysis_architect_design', 'analysis_critic_review',
         'analysis_builder_implementation', 'analysis_critic_code_review',
+        'local_analysis_architect', 'local_analysis_critic_review',
+        'local_analysis_builder', 'local_analysis_code_review',
+        'local_analysis_report_build',
+        'local_experiment_running', 'report_building',
     }
 
     pipelines = get_active_pipelines()
@@ -436,6 +442,10 @@ def check_stalled(dry_run: bool = False, skip_versions: set = None) -> list[str]
         'phase2_architect_revision',
         'analysis_architect_design', 'analysis_critic_review',
         'analysis_builder_implementation', 'analysis_critic_code_review',
+        'local_analysis_architect', 'local_analysis_critic_review',
+        'local_analysis_builder', 'local_analysis_code_review',
+        'local_analysis_report_build',
+        'local_experiment_running', 'report_building',
     }
 
     # Actions that are human-gated (don't auto-recover)
@@ -878,9 +888,22 @@ def check_experiment_eligible(dry_run: bool = False) -> list[str]:
         if status == 'experiment_complete':
             continue
 
-        # Skip if experiment is already running
-        if status == 'experiment_running':
-            continue
+        # Skip if experiment is actively running (not failed)
+        if status == 'experiment_running' or pending == 'local_experiment_running':
+            # Check if it's a failed run (last stage note says FAILED)
+            state_file = BUILDS_DIR / f'{version}_state.json'
+            is_failed = False
+            if state_file.exists():
+                try:
+                    state = json.loads(state_file.read_text())
+                    last_notes = state.get('last_notes', '')
+                    if 'EXPERIMENT FAILED' in last_notes:
+                        is_failed = True
+                except Exception:
+                    pass
+            if not is_failed:
+                continue
+            print(f"  🔄 {version}: previous experiment FAILED — eligible for retry")
 
         eligible.append(p)
 

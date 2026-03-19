@@ -1018,7 +1018,7 @@ def orchestrate_local_run(version: str, dry_run: bool = False, max_retries: int 
     if max_retries != 2:
         cmd.extend(['--max-retries', str(max_retries)])
     if no_recovery:
-        cmd.append('--no-recovery')
+        cmd.append('--direct')  # Direct mode skips builder supervision
 
     # Launch in background
     log_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'notebooks' / 'local_results' / version

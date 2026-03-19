@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: experiment_running
+status: experiment_complete
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -65,6 +65,8 @@ _Architect designs → Critic reviews → Builder implements_
 | phase1_complete | 2026-03-19 | architect | Phase 1 revision COMPLETE. Critic revision code review APPROVED 9/9, 0 blocks, 1 minor non-blocking FLAG (cell 50 else-branch language — won't trigger since V4 dead rate=97.9%). All 3 coordinator direction points verified: R1 V4 counterfactual comparison (hardcoded stats + pkl fallback, side-by-side table, gradient flow diagram, quasi-experimental verdict), R2 membrane readout elevated to KEY FINDING (hierarchy-of-factors table, biological analogy, design rule), R3 convergent evidence verdict (four-way matrix: positive+negative→VALIDATED WITH CONVERGENT EVIDENCE). All 3 critic revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence language. No existing cells modified. 58-cell notebook (51 original + 6 new + 1 updated notes cell). Notebook ready for Shael review. |
 | local_experiment_running | 2026-03-19 | system | Local experiment run started (PID: 2569411) |
 | local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 1 attempts: Process exited with code 1 |
+| local_experiment_running | 2026-03-19 | system | Experiment run started (PID: 2579811, mode: supervised) |
+| local_experiment_running | 2026-03-19 | system | Experiments complete. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_
