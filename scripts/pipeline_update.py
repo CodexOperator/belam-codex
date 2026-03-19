@@ -90,6 +90,29 @@ STAGE_TRANSITIONS = {
     # Phase 1 blocks
     'builder_apply_blocks':       ('critic_code_review',         'critic',    'Blocks fixed. Re-review the notebook.'),
 
+    # Phase 1 revisions (coordinator-triggered, loops back to phase1_complete)
+    'phase1_revision_architect':        ('phase1_revision_critic_review',  'critic',    'Revision design ready at pipeline_builds/{v}_phase1_revision_architect.md'),
+    'phase1_revision_critic_review':    ('phase1_revision_builder',        'builder',   'Revision design approved. Build per pipeline_builds/{v}_phase1_revision_architect.md'),
+    'phase1_revision_builder':          ('phase1_revision_code_review',    'critic',    'Revision implementation done. Review the notebook.'),
+    'phase1_revision_code_review':      ('phase1_complete',                'architect', 'Phase 1 revision code review passed. Back to phase1_complete.'),
+    # Phase 1 revision blocks
+    'phase1_revision_architect_fix':    ('phase1_revision_critic_review',  'critic',    'Revision design revised, re-review at pipeline_builds/{v}_phase1_revision_architect.md'),
+    'phase1_revision_builder_fix':      ('phase1_revision_code_review',    'critic',    'Revision blocks fixed. Re-review the notebook.'),
+
+    # Local experiment execution (process stage, not agent)
+    'local_experiment_running':   ('local_experiment_complete',  'system',    'Local experiment run completed. Results at notebooks/local_results/{v}/'),
+    'local_experiment_complete':  ('local_analysis_architect',   'architect', 'Experiments complete. Analyze results at notebooks/local_results/{v}/. Read the analysis MD and write a comprehensive preliminary report with any additional analysis scripts needed.'),
+
+    # Local analysis (architect→critic→builder loop with reasoning)
+    'local_analysis_architect':           ('local_analysis_critic_review',       'critic',    'Preliminary analysis report ready at notebooks/local_results/{v}/{v}_analysis_report.md. Review the analysis and script recommendations.'),
+    'local_analysis_critic_review':       ('local_analysis_builder',             'builder',   'Analysis design approved. Implement additional scripts, run them, incorporate results into the report at notebooks/local_results/{v}/'),
+    'local_analysis_architect_revision':  ('local_analysis_critic_review',       'critic',    'Analysis revised. Re-review at notebooks/local_results/{v}/{v}_analysis_report.md'),
+    'local_analysis_builder':             ('local_analysis_code_review',         'critic',    'Analysis scripts implemented and run. Review the updated report and code at notebooks/local_results/{v}/'),
+    'local_analysis_builder_fix':         ('local_analysis_code_review',         'critic',    'Analysis blocks fixed. Re-review at notebooks/local_results/{v}/'),
+    'local_analysis_code_review':         ('local_analysis_report_build',        'system',    'Analysis code review passed. Building LaTeX report.'),
+    'local_analysis_report_build':        ('local_analysis_complete',            'system',    'LaTeX report built. PDF at notebooks/local_results/{v}/{v}_report.pdf'),
+    'local_analysis_complete':            ('phase2_architect_design',            'architect', 'Local analysis complete with PDF report. Design Phase 2 per pipeline_builds/{v}_experiment_results.md and analysis at notebooks/local_results/{v}/'),
+
     # Phase 2
     'phase2_architect_design':    ('phase2_critic_design_review','critic',    'Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md'),
     'phase2_critic_design_review':('phase2_builder_implementation','builder', 'Phase 2 design approved. Build spec at pipeline_builds/{v}_phase2_architect_design.md'),
@@ -141,6 +164,22 @@ STATUS_BUMPS = {
     'critic_code_review':               'phase1_code_review',
     'phase1_complete':                  'phase1_complete',
 
+    # Phase 1 revisions
+    'phase1_revision_critic_review':    'phase1_revision',
+    'phase1_revision_builder':          'phase1_revision',
+    'phase1_revision_code_review':      'phase1_revision',
+
+    # ── Local Experiment Execution ────────────────────────────────────
+    'local_experiment_running':         'experiment_running',
+    'local_experiment_complete':        'experiment_complete',
+
+    # ── Local Analysis (post-experiment) ──────────────────────────────
+    'local_analysis_critic_review':     'local_analysis_in_progress',
+    'local_analysis_builder':           'local_analysis_in_progress',
+    'local_analysis_code_review':       'local_analysis_in_progress',
+    'local_analysis_report_build':      'local_analysis_report',
+    'local_analysis_complete':          'local_analysis_complete',
+
     # ── Builder Pipeline — Phase 2 ───────────────────────────────────
     'phase2_critic_design_review':      'phase2_review',
     'phase2_builder_implementation':    'phase2_build',
@@ -172,12 +211,28 @@ STATUS_BUMPS = {
 # even before the first complete call.
 # ═══════════════════════════════════════════════════════════════════════
 START_STATUS_BUMPS = {
+    # Local analysis starts
+    'local_analysis_architect':                 'local_analysis_in_progress',
+    'local_analysis_critic_review':             'local_analysis_in_progress',
+    'local_analysis_builder':                   'local_analysis_in_progress',
+    'local_analysis_code_review':               'local_analysis_in_progress',
+    'local_analysis_report_build':              'local_analysis_report',
+
     # Analysis Phase 2 starts
     'analysis_phase2_architect':                'phase2_in_progress',
     'analysis_phase2_architect_design':         'phase2_in_progress',
     'analysis_phase2_critic_review':            'phase2_in_progress',
     'analysis_phase2_builder_implementation':   'phase2_in_progress',
     'analysis_phase2_critic_code_review':       'phase2_in_progress',
+
+    # Phase 1 revision starts
+    'phase1_revision_architect':                'phase1_revision',
+    'phase1_revision_critic_review':            'phase1_revision',
+    'phase1_revision_builder':                  'phase1_revision',
+    'phase1_revision_code_review':              'phase1_revision',
+
+    # Local experiment starts
+    'local_experiment_running':                 'experiment_running',
 
     # Builder Phase 2 starts
     'phase2_architect_design':                  'phase2_in_progress',
@@ -197,8 +252,16 @@ BLOCK_TRANSITIONS = {
     'critic_code_review':         ('builder_apply_blocks',       'builder',   'Code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'phase2_critic_design_review':('phase2_architect_revision',  'architect', 'Phase 2 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'phase2_critic_code_review':  ('builder_apply_phase2_blocks','builder',   'Phase 2 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    # Phase 1 revision blocks
+    'phase1_revision_critic_review':   ('phase1_revision_architect_fix',  'architect', 'Revision design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+    'phase1_revision_code_review':     ('phase1_revision_builder_fix',    'builder',   'Revision code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+
     'phase3_critic_review':       ('phase3_architect_revision',  'architect', 'Phase 3 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'phase3_critic_code_review':  ('phase3_builder_fix',         'builder',   'Phase 3 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
+
+    # ── Local Analysis block transitions ──────────────────────────────
+    'local_analysis_critic_review':        ('local_analysis_architect_revision',        'architect', 'Analysis review has blocks. Revise report at notebooks/local_results/{v}/{v}_analysis_report.md'),
+    'local_analysis_code_review':          ('local_analysis_builder_fix',               'builder',   'Analysis code review has blocks. Fix at notebooks/local_results/{v}/'),
 
     # ── Analysis Pipeline block transitions ────────────────────────────
     'analysis_critic_review':              ('analysis_architect_design_revision',       'architect', 'Analysis design has methodology blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),

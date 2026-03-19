@@ -15,7 +15,7 @@ consequences:
   - "Builder and critic share same infrastructure vocabulary"
 project: quant-knowledge-skills
 tags: [infrastructure, backtesting, gpu, data, knowledge]
-skill: quant-infrastructure
+knowledge: quant-infrastructure
 cli: "belam lessons (for infrastructure-related findings)"
 ---
 
@@ -23,7 +23,7 @@ cli: "belam lessons (for infrastructure-related findings)"
 
 ## Summary
 
-Extracted production quant infrastructure knowledge into `skills/quant-infrastructure/`. Covers the full stack: data storage (QuestDB, kdb+, Polars), backtesting frameworks (VectorBT PRO, NautilusTrader), portfolio optimization (cvxpy, Riskfolio-Lib), compute hardware (GPU/TPU configuration), and real-time data pipelines.
+Extracted production quant infrastructure knowledge into `knowledge/quant-infrastructure.md — `. Covers the full stack: data storage (QuestDB, kdb+, Polars), backtesting frameworks (VectorBT PRO, NautilusTrader), portfolio optimization (cvxpy, Riskfolio-Lib), compute hardware (GPU/TPU configuration), and real-time data pipelines.
 
 ## Key Recommendations
 
@@ -42,4 +42,4 @@ Builder agents use this skill when implementing Colab notebooks — it tells the
 - `decisions/two-phase-backtest-workflow.md` — the backtesting decision in detail
 - `lessons/gpu-parallel-thrashing-t4.md` — T4-specific parallel execution lesson
 - `lessons/tiny-snn-gpu-parallelism.md` — why small SNNs don't parallelize well on GPU
-- `skills/quant-infrastructure/SKILL.md` — full reference
+- `knowledge/quant-infrastructure.md` — full reference

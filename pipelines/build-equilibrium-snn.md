@@ -1,10 +1,10 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: experiment_complete
 priority: critical
 version: build-equilibrium-snn
 spec_file: machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml
-output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_build-equilibrium-snn.ipynb
+output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_build-equilibrium-snn_predictor.ipynb
 agents: [architect, critic, builder]
 tags: [snn, architecture, streaming]
 project: snn-applied-finance
@@ -17,7 +17,7 @@ started: 2026-03-17
 Shael's continuous spike streaming architecture with opponent-coded outputs and persistent state across candles
 
 ## Notebook Convention
-**All phases live in a single notebook** (`snn_crypto_predictor_build-equilibrium-snn.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
+**All phases live in a single notebook** (`crypto_build-equilibrium-snn_predictor.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
 
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
@@ -50,12 +50,44 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_code_review | 2026-03-18 | critic | APPROVED (post-fix verification). Builder fc3551b fixed BLOCK-1 + all 7 FLAGS. 24/24 checklist pass. Notebook ready to run. |
 | critic_code_review | 2026-03-18 | critic | APPROVED post-fix. 24/24 checklist. |
 | critic_code_review | 2026-03-18 | critic | APPROVED (post-fix verification). Builder fc3551b fixed BLOCK-1 + all 7 FLAGS. 24/24 checklist pass. Notebook ready to run. |
+| phase1_revision_architect | 2026-03-19 | coordinator | In progress |
+| phase1_revision_architect | 2026-03-19 | coordinator | In progress |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: 8 V4-derived changes (threshold anneal 0.2→1.0, EMA output decay=0.95, output weight symmetry, rate clamp, 50 epochs/patience=5, rhythm neurons, stochastic resonance, selective connectivity). Added 4 ANN benchmarks. 27 total experiments (12+6+9). New ablation EQ-ABL-05 isolates homeostatic contribution. |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: threshold anneal, EMA output, output symmetry, 50 epochs, rhythm neurons, ANN benchmarks. 27 experiments. |
+| phase1_revision_architect | 2026-03-19 | architect | Revised v2 |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: threshold anneal, EMA output, output symmetry, 50 epochs, rhythm neurons, ANN benchmarks. 27 experiments. |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED with 4 FLAGS (no blocks). All V4 findings incorporated. FLAGS: (1) LR lambda cosine bug, (2) stochastic resonance timing clarification for T>1, (3) selective connectivity mask not truly permanent, (4) GRU training protocol needs candle-by-candle spec. Review at: pipeline_builds/build-equilibrium-snn_critic_revision_review.md |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED v2 design: 0 blocks, 6 flags. FLAG-1: Sparsity mask erodes during training (Adam updates zero weights, clamp_weights treats them as active) — save mask at init and re-apply. FLAG-2: log_loss computed on thresholded predictions not probabilities. FLAG-3: Rhythm phase alignment arbitrary (document assumption). FLAG-4: n_folds=3 still insufficient (carried from v1). FLAG-5: 50 epochs may be too short for non-dead equilibrium networks (self-diagnosing via learning curves). FLAG-6: ANN baseline interface inconsistency (GRU returns tuple, CNN needs windowed input). Checklist 12/14. Strongest equilibrium design — homeostatic mechanisms well-motivated by V4, ablation suite properly validates each addition. GRU-small as key comparator is the right call. |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED 4 FLAGS no blocks |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED v2 design: 0 blocks, 6 flags. Sparsity mask erosion, log_loss on thresholded preds, rhythm phase arbitrary, n_folds=3, 50 epochs may be short, ANN interface inconsistency. Checklist 12/14. Strongest equilibrium design. |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED 4 FLAGS no blocks. Review: pipeline_builds/build-equilibrium-snn_critic_revision_review.md |
+| phase1_revision_builder | 2026-03-19 | builder | In progress |
+| phase1_revision_builder | 2026-03-19 | builder | Revised notebook v2 complete: 80 cells (36 code, 44 markdown), 27 experiments (12 primary + 6 ablation + 9 baseline). All 4 Critic revision FLAGS addressed: (1) smooth cosine LR interpolation, (2) stochastic resonance documented per-candle with EMA excluded, (3) persistent sparsity masks with reapply_sparsity_masks(), (4) GRU candle-by-candle TBPTT matching SNN protocol. Full homeostatic suite: threshold annealing 0.2→1.0, EMA output decay=0.95, output weight symmetry, selective connectivity with permanent masks, stochastic resonance, rhythm neurons. ANN benchmark suite: MLP-small, MLP-matched, CNN1D, GRU-small. Raw probabilities stored for log_loss. Final epoch val_metric logged for 50-epoch sufficiency check. |
+| phase1_revision_builder | 2026-03-19 | builder | v2 notebook: 80 cells, 27 experiments, all 4 FLAGS fixed |
+| phase1_revision_builder | 2026-03-19 | builder | v2 notebook: 80 cells (36 code, 44 markdown), 27 experiments, all 4 Critic FLAGS fixed. Homeostatic suite: threshold annealing, EMA output, output symmetry, persistent sparsity masks, stochastic resonance, rhythm neurons. ANN benchmarks: MLP-small, MLP-matched, CNN1D, GRU-small. |
+| phase1_revision_code_review | 2026-03-19 | critic | APPROVED with 3 FLAGS (no blocks). All 7 revision fixes verified: sparsity masks, log_loss, rhythm phase, GRU protocol, LR lambda, stochastic resonance, transaction costs. FLAGS: (1) McNemar warmup misalignment EQ-04 vs ABL-03 on different candles, (2) Sharpe annualization 252*6 should be 365*6 for crypto, (3) ABL-03 trains persistent but evaluates with reset — document limitation. 24/24 checklist pass. Notebook ready to run. |
+| phase1_revision_code_review | 2026-03-19 | critic | APPROVED 3 FLAGS no blocks. All 7 revision fixes verified. 24/24 checklist. Notebook ready to run. |
+| phase1_complete | 2026-03-19 | architect | Phase 1 revision COMPLETE. Critic code review APPROVED 24/24 checklist, 0 blocks, 3 non-blocking FLAGS: (1) McNemar warmup misalignment EQ-04 vs ABL-03 — trim ABL-03 first 20 preds in Phase 2, (2) Sharpe annualization 252→365 for crypto — cosmetic, doesn't affect comparisons, (3) ABL-03 trains persistent but evaluates reset — document limitation, consider adding trained-with-reset control in Phase 2. v2 notebook: 80 cells, 27 experiments (12 primary + 6 ablation + 9 baseline), full homeostatic suite (threshold annealing, EMA output, output symmetry, persistent sparsity masks, stochastic resonance, rhythm neurons), 4 ANN benchmarks (MLP-small, MLP-matched, CNN1D, GRU-small). All V4-derived mechanisms properly ablated via EQ-ABL-05. Notebook ready for Shael review. |
+| local_experiment_running | 2026-03-19 | system | 81 experiments completed in 139min (27 experiments × 3 folds). Top: EQ-ABL-02 52.6%, EQ-11 52.6%, EQ-04 52.5%. Results at notebooks/local_results/build-equilibrium-snn/ |
+
+## Local Experiment Execution
+_Status: Auto-triggered on Phase 1 completion_
+
+Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-transitions:
+`phase1_complete` → `experiment_running` → `experiment_complete` → Phase 2
+
+- **Results:** `notebooks/local_results/build-equilibrium-snn/`
+- **Manual trigger:** `belam run build-equilibrium-snn`
+
+### Experiment History
+| Run | Date | Duration | Experiments | Errors | Notes |
+|-----|------|----------|-------------|--------|-------|
 
 ## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on Phase 1 completion_
+_Status: Queued — auto-triggers on experiment completion_
 
 ### Feedback
-_(Shael's feedback goes here when Phase 1 is complete and reviewed)_
+_(Shael's feedback goes here when experiments are complete and reviewed)_
 
 ## Phase 3: Iterative Research (Autonomous or Human-Triggered)
 _Status: LOCKED — requires Phase 2 completion before activation_
@@ -80,4 +112,4 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 - **Design:** `snn_applied_finance/research/pipeline_builds/build-equilibrium-snn_architect_design.md`
 - **Review:** `snn_applied_finance/research/pipeline_builds/build-equilibrium-snn_critic_design_review.md`
 - **State:** `snn_applied_finance/research/pipeline_builds/build-equilibrium-snn_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_build-equilibrium-snn.ipynb`
+- **Notebook:** `snn_applied_finance/notebooks/crypto_build-equilibrium-snn_predictor.ipynb`

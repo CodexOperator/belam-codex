@@ -1,6 +1,9 @@
 ---
+primitive: knowledge
 name: predictionmarket-specialist
-description: Prediction market mechanics and market microstructure — LMSR cost functions, Polymarket architecture, market impact models, algorithmic market making (Avellaneda-Stoikov), VPIN adverse selection, optimal execution (Almgren-Chriss), and combinatorial prediction markets. Use when working with prediction markets (Polymarket, Kalshi, Metaculus), implementing automated market makers, analyzing market impact, building market-making strategies, or understanding order execution optimization. Also use for CLOB mechanics, conditional tokens, softmax-as-pricing, or information-theoretic market design.
+description: "Prediction market mechanics and market microstructure — LMSR cost functions, Polymarket architecture, market impact models, algorithmic market making (Avellaneda-Stoikov), VPIN adverse selection, optimal execution (Almgren-Chriss), and combinatorial prediction markets. Use when working with prediction markets (Polymarket, Kalshi, Metaculus), implementing automated market makers, analyzing market impact, building market-making strategies, or understanding order execution optimization. Also use for CLOB mechanics, conditional tokens, softmax-as-pricing, or information-theoretic market design."
+tags: [prediction-markets, microstructure, market-making, lmsr, execution]
+migrated_from: skills/predictionmarket-specialist
 ---
 
 # Prediction Market Specialist

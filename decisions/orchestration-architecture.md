@@ -17,7 +17,7 @@ consequences:
 project: snn-applied-finance
 tags: [infrastructure, orchestration, agents, architecture]
 skill: orchestration
-cli: "belam autorun, belam orchestrate, belam handoffs"
+cli: "belam autorun, belam orchestrate, belam revise, belam handoffs"
 ---
 
 # Decision: Centralized Orchestration Architecture

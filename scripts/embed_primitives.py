@@ -26,7 +26,15 @@ PRIMITIVE_DIRS = {
     "decisions": WORKSPACE / "decisions",
     "tasks": WORKSPACE / "tasks",
     "projects": WORKSPACE / "projects",
+    "pipelines": WORKSPACE / "pipelines",
+    "commands": WORKSPACE / "commands",
 }
+
+# Skills live in skills/*/SKILL.md (nested), handled separately
+SKILLS_DIR = WORKSPACE / "skills"
+
+# Knowledge primitives live in knowledge/*.md (flat), filtered by frontmatter
+KNOWLEDGE_DIR = WORKSPACE / "knowledge"
 
 MEMORY_DIR = WORKSPACE / "memory"
 MEMORY_HIERARCHY_DIRS = {
@@ -107,6 +115,44 @@ def load_all_primitives() -> dict:
                 "frontmatter": fm,
             })
         primitives[ptype] = items
+
+    # Skills: scan skills/*/SKILL.md (nested structure)
+    if SKILLS_DIR.exists():
+        items = []
+        for skill_dir in sorted(SKILLS_DIR.iterdir()):
+            skill_file = skill_dir / "SKILL.md"
+            if skill_dir.is_dir() and skill_file.exists():
+                fm = parse_frontmatter(skill_file)
+                title = fm.get("name", skill_dir.name)
+                items.append({
+                    "file": skill_dir.name,
+                    "path": f"skills/{skill_dir.name}/SKILL.md",
+                    "title": title,
+                    "frontmatter": fm,
+                })
+        primitives["skills"] = items
+
+    # Knowledge: scan knowledge/*.md (flat), only include files with primitive: knowledge
+    if KNOWLEDGE_DIR.exists():
+        items = []
+        for f in sorted(KNOWLEDGE_DIR.glob("*.md")):
+            # Skip index/tag/readme files
+            if f.stem.startswith("_") or f.stem.lower() in ("readme", "index"):
+                continue
+            fm = parse_frontmatter(f)
+            # Only include files explicitly tagged as knowledge primitives
+            if fm.get("primitive") != "knowledge":
+                continue
+            title = fm.get("name", f.stem)
+            items.append({
+                "file": f.stem,
+                "path": f"knowledge/{f.name}",
+                "title": title,
+                "frontmatter": fm,
+            })
+        if items:
+            primitives["knowledge"] = items
+
     return primitives
 
 
@@ -118,6 +164,22 @@ def build_agents_section(primitives: dict) -> str:
     lines.append("")
     lines.append("Knowledge files. Read with `Read` when relevant. YAML frontmatter + markdown body.")
     lines.append("")
+
+    # Pipelines — active implementation pipelines (skip archived)
+    if "pipelines" in primitives:
+        active_pipelines = [p for p in primitives["pipelines"] if p["frontmatter"].get("status", "") != "archived"]
+        if active_pipelines:
+            lines.append("### Pipelines")
+            lines.append("_Active implementation pipelines. Read when: checking build progress or phase gates._")
+            for p in active_pipelines:
+                fm = p["frontmatter"]
+                status = fm.get("status", "?")
+                priority = fm.get("priority", "?")
+                tags = fm.get("tags", [])
+                tag_str = ",".join(tags) if isinstance(tags, list) else str(tags)
+                started = fm.get("started", "?")
+                lines.append(f"- `{p['path']}` — {_short_title(p['title'])} [{status}/{priority}] started:{started} [{tag_str}]")
+            lines.append("")
 
     # Projects — compact table-like format
     if "projects" in primitives:
@@ -158,17 +220,61 @@ def build_agents_section(primitives: dict) -> str:
             lines.append(f"- `{d['path']}` — {title}{skill_str} [{tag_str}]")
         lines.append("")
 
-    # Lessons
+    # Lessons (skip superseded)
     if "lessons" in primitives:
-        lines.append("### Lessons")
-        lines.append("_Read when: encountering problems or before making changes._")
-        for l in primitives["lessons"]:
-            fm = l["frontmatter"]
-            confidence = fm.get("confidence", "?")
+        active_lessons = [l for l in primitives["lessons"] if l["frontmatter"].get("status") != "superseded"]
+        if active_lessons:
+            lines.append("### Lessons")
+            lines.append("_Read when: encountering problems or before making changes._")
+            for l in active_lessons:
+                fm = l["frontmatter"]
+                confidence = fm.get("confidence", "?")
+                tags = fm.get("tags", [])
+                tag_str = ",".join(tags[:3]) if isinstance(tags, list) else str(tags)
+                title = _short_title(l["title"])
+                lines.append(f"- `{l['path']}` — {title} [{confidence}] [{tag_str}]")
+            lines.append("")
+
+    # Commands
+    if "commands" in primitives:
+        lines.append("### Commands")
+        lines.append("_`belam` CLI commands. Read when: needing usage details or flags._")
+        for c in primitives["commands"]:
+            fm = c["frontmatter"]
+            cmd = fm.get("command", f"belam {c['file']}")
+            aliases = fm.get("aliases", [])
+            alias_str = f" ({aliases[0]})" if aliases else ""
+            desc = fm.get("description", "")
+            lines.append(f"- `{c['path']}` — `{cmd}`{alias_str} — {desc}")
+        lines.append("")
+
+    # Skills
+    if "skills" in primitives:
+        lines.append("### Skills")
+        lines.append("_Agent skills with SKILL.md. Read when: task matches skill description._")
+        for s in primitives["skills"]:
+            fm = s["frontmatter"]
+            desc = fm.get("description", "")
+            # Truncate multiline descriptions to first sentence
+            desc_short = desc.split('.')[0].strip() if desc else s["title"]
+            if len(desc_short) > 80:
+                desc_short = desc_short[:77] + "..."
+            lines.append(f"- `{s['path']}` — {s['title']}: {desc_short}")
+        lines.append("")
+
+    # Knowledge primitives
+    if "knowledge" in primitives:
+        lines.append("### Knowledge")
+        lines.append("_Domain knowledge references. Read when: needing deep technical reference._")
+        for k in primitives["knowledge"]:
+            fm = k["frontmatter"]
+            desc = fm.get("description", "")
+            desc_short = desc.split('.')[0].strip() if desc else k["title"]
+            if len(desc_short) > 80:
+                desc_short = desc_short[:77] + "..."
             tags = fm.get("tags", [])
             tag_str = ",".join(tags[:3]) if isinstance(tags, list) else str(tags)
-            title = _short_title(l["title"])
-            lines.append(f"- `{l['path']}` — {title} [{confidence}] [{tag_str}]")
+            lines.append(f"- `{k['path']}` — {k['title']}: {desc_short} [{tag_str}]")
         lines.append("")
 
     return "\n".join(lines)
@@ -193,10 +299,17 @@ def build_memory_section(primitives: dict) -> str:
     lines.append("")
     ts = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
+    # Statuses to exclude from the boot index (still searchable via memory_search)
+    _HIDDEN_STATUSES = {"superseded", "archived"}
+
     for ptype, items in primitives.items():
-        count = len(items)
-        lines.append(f"{ptype}/ ({count})")
-        for i, item in enumerate(items):
+        # Filter out hidden-status primitives (superseded, archived)
+        visible = [it for it in items if it["frontmatter"].get("status") not in _HIDDEN_STATUSES]
+        hidden_count = len(items) - len(visible)
+        count = len(visible)
+        suffix = f"  (+{hidden_count} archived/superseded)" if hidden_count else ""
+        lines.append(f"{ptype}/ ({count}){suffix}")
+        for i, item in enumerate(visible):
             fm = item["frontmatter"]
             is_last = (i == count - 1)
             prefix = "└─" if is_last else "├─"
@@ -210,6 +323,13 @@ def build_memory_section(primitives: dict) -> str:
                 deps = fm.get("depends_on", [])
                 if deps:
                     meta_parts.append(f"→{','.join(deps)}")
+            elif ptype == "pipelines":
+                status = fm.get("status", "?")
+                priority = fm.get("priority", "?")
+                meta_parts.append(f"{status}/{priority}")
+                started = fm.get("started", "")
+                if started:
+                    meta_parts.append(f"started:{started}")
             elif ptype == "projects":
                 meta_parts.append(fm.get("status", "?"))
             elif ptype == "decisions":
@@ -220,6 +340,27 @@ def build_memory_section(primitives: dict) -> str:
                 conf = fm.get("confidence", "")
                 if conf:
                     meta_parts.append(conf)
+            elif ptype == "commands":
+                cmd = fm.get("command", "")
+                if cmd:
+                    meta_parts.append(cmd)
+                cat = fm.get("category", "")
+                if cat:
+                    meta_parts.append(cat)
+            elif ptype == "skills":
+                desc = fm.get("description", "")
+                if desc:
+                    short = desc.split('.')[0].strip()
+                    if len(short) > 50:
+                        short = short[:47] + "..."
+                    meta_parts.append(short)
+            elif ptype == "knowledge":
+                desc = fm.get("description", "")
+                if desc:
+                    short = desc.split('.')[0].strip()
+                    if len(short) > 50:
+                        short = short[:47] + "..."
+                    meta_parts.append(short)
 
             tags = fm.get("tags", [])
             if tags and isinstance(tags, list):

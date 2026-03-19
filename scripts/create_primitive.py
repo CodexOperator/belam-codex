@@ -2,7 +2,7 @@
 """
 create_primitive.py — Unified primitive creator for the workspace.
 
-Creates new primitives (lessons, decisions, tasks, projects, skills)
+Creates new primitives (lessons, decisions, tasks, projects, commands, skills)
 with proper frontmatter templates and triggers embed_primitives.py.
 
 Usage:
@@ -11,6 +11,10 @@ Usage:
   python3 scripts/create_primitive.py task "Title here" --tags tag1,tag2 --priority critical --depends task1,task2 --project proj
   python3 scripts/create_primitive.py project "Title here" --tags tag1,tag2 --status active
   python3 scripts/create_primitive.py skill "skill-name" --tags tag1,tag2 --desc "Short description"
+
+Auto-linking flags:
+  --skill <name>    Explicitly link the new primitive to a specific skill (skip auto-detection)
+  --no-link         Skip auto-linking entirely
 """
 
 import argparse
@@ -22,12 +26,14 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get("WORKSPACE", Path.home() / ".openclaw" / "workspace"))
 SKILLS_DIR = WORKSPACE / "skills"
+KNOWLEDGE_DIR = WORKSPACE / "knowledge"
 
 PRIMITIVE_DIRS = {
     "lesson": WORKSPACE / "lessons",
     "decision": WORKSPACE / "decisions",
     "task": WORKSPACE / "tasks",
     "project": WORKSPACE / "projects",
+    "command": WORKSPACE / "commands",
 }
 
 
@@ -125,6 +131,42 @@ def build_project_frontmatter(title: str, args: argparse.Namespace) -> str:
         f"start_date: {today}",
         "owner: belam",
         f"tags: {tags}",
+        "---",
+    ]
+    return "\n".join(lines)
+
+
+def build_command_frontmatter(title: str, args: argparse.Namespace) -> str:
+    tags = _tags_yaml(args.tags or "")
+    cmd = args.command or f"belam {slugify(title)}"
+    aliases_list = [a.strip() for a in (args.aliases or "").split(",") if a.strip()]
+    aliases = "[" + ", ".join(f'"{a}"' for a in aliases_list) + "]" if aliases_list else "[]"
+    desc = args.desc or "(add description)"
+    category = args.category or "infrastructure"
+    lines = [
+        "---",
+        "primitive: command",
+        f'command: "{cmd}"',
+        f"aliases: {aliases}",
+        f'description: "{desc}"',
+        f"category: {category}",
+        f"tags: {tags}",
+        "---",
+    ]
+    return "\n".join(lines)
+
+
+def build_knowledge_frontmatter(name: str, args: argparse.Namespace) -> str:
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    tags = _tags_yaml(args.tags or "")
+    desc = args.desc or "(add description)"
+    lines = [
+        "---",
+        "primitive: knowledge",
+        f"name: {name}",
+        f'description: "{desc}"',
+        f"tags: {tags}",
+        f"created: {today}",
         "---",
     ]
     return "\n".join(lines)
@@ -239,6 +281,52 @@ _Current state. What's done, what's in progress, what's blocked._
 """.lstrip()
 
 
+def build_command_body(title: str, args: argparse.Namespace) -> str:
+    cmd = args.command or f"belam {slugify(title)}"
+    desc = args.desc or "(describe what this command does)"
+    return f"""# {cmd}
+
+{desc}
+
+## Usage
+
+```bash
+{cmd} [args]
+```
+
+## Related
+
+- (add related decisions, skills, or scripts)
+""".lstrip()
+
+
+def build_knowledge_body(name: str, args: argparse.Namespace) -> str:
+    display = name.replace("-", " ").title()
+    desc = args.desc or f"(describe what {name} covers)"
+    return f"""# {display}
+
+## Overview
+
+{desc}
+
+## Key Concepts
+
+_Core principles, formulas, or reference material._
+
+## Patterns & Code
+
+_Reusable patterns, snippets, or workflows._
+
+```python
+# Example
+```
+
+## References
+
+_Papers, libraries, and external resources._
+""".lstrip()
+
+
 def build_skill_md_body(skill_name: str, desc: str) -> str:
     display = skill_name.replace("-", " ").title()
     desc_line = desc or f"(describe what {skill_name} is for)"
@@ -331,6 +419,15 @@ def create_project(title: str, args: argparse.Namespace) -> list[tuple[Path, str
     return [(path, content)]
 
 
+def create_command(title: str, args: argparse.Namespace) -> list[tuple[Path, str]]:
+    slug = slugify(title)
+    path = PRIMITIVE_DIRS["command"] / f"{slug}.md"
+    frontmatter = build_command_frontmatter(title, args)
+    body = build_command_body(title, args)
+    content = frontmatter + "\n\n" + body
+    return [(path, content)]
+
+
 def create_skill(name: str, args: argparse.Namespace) -> list[tuple[Path, str]]:
     """Creates skill directory + SKILL.md + decision primitive."""
     skill_slug = slugify(name)
@@ -351,11 +448,172 @@ def create_skill(name: str, args: argparse.Namespace) -> list[tuple[Path, str]]:
     ]
 
 
+# ── Auto-linking helpers ───────────────────────────────────────────────────────
+
+def _get_skill_tags(skill_dir: Path) -> set[str]:
+    """Extract tags from a skill's SKILL.md frontmatter."""
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        return set()
+    text = skill_md.read_text(encoding="utf-8")
+    m = re.search(r'^tags:\s*\[([^\]]*)\]', text, re.MULTILINE)
+    if not m:
+        return set()
+    return {t.strip().strip('"\'') for t in m.group(1).split(",") if t.strip()}
+
+
+def _get_skill_category(skill_dir: Path) -> str:
+    """Try to get a category from the skill's SKILL.md."""
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        return ""
+    text = skill_md.read_text(encoding="utf-8")
+    m = re.search(r'^category:\s*(.+)', text, re.MULTILINE)
+    return m.group(1).strip() if m else ""
+
+
+def _find_section(text: str, section_names: list[str]) -> str | None:
+    """Return the first matching section heading found in text."""
+    for name in section_names:
+        if re.search(rf'^##\s+{re.escape(name)}\s*$', text, re.MULTILINE):
+            return name
+    return None
+
+
+def _append_to_section(text: str, section: str, line: str) -> str:
+    """
+    Append `line` under the first occurrence of `## section` heading.
+    Inserts before the next ## heading or at end of section block.
+    """
+    pattern = re.compile(rf'^(##\s+{re.escape(section)}\s*\n)', re.MULTILINE)
+    m = pattern.search(text)
+    if not m:
+        return text
+
+    insert_pos = m.end()
+    # Find end of this section (next ## heading)
+    rest = text[insert_pos:]
+    next_section = re.search(r'^##\s+', rest, re.MULTILINE)
+    if next_section:
+        # Insert before the next section
+        section_end = insert_pos + next_section.start()
+        # Strip trailing blank lines before insert
+        block = text[insert_pos:section_end].rstrip()
+        return text[:insert_pos] + block + "\n" + line + "\n\n" + text[section_end:]
+    else:
+        # Append at end of file
+        return text.rstrip() + "\n" + line + "\n"
+
+
+def find_matching_skills(primitive_type: str, tags: set[str], category: str = "", skill_name: str = "") -> list[tuple[Path, int]]:
+    """
+    Find skills whose tags overlap with the given tags, or whose name/category matches.
+    Returns list of (skill_dir, score) sorted by descending score.
+    """
+    if not SKILLS_DIR.exists():
+        return []
+
+    results = []
+    for skill_dir in SKILLS_DIR.iterdir():
+        if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
+            continue
+        if skill_name and skill_dir.name != skill_name:
+            continue  # If explicit skill specified, filter to that one
+
+        skill_tags = _get_skill_tags(skill_dir)
+        overlap = len(tags & skill_tags)
+        score = overlap
+
+        # Bonus for category matching skill name
+        if category and (category.lower() in skill_dir.name.lower() or skill_dir.name.lower() in category.lower()):
+            score += 2
+
+        if score > 0:
+            results.append((skill_dir, score))
+
+    return sorted(results, key=lambda x: -x[1])
+
+
+def auto_link_command(cmd_name: str, cmd_desc: str, tags: set[str], category: str,
+                      explicit_skill: str = "", no_link: bool = False) -> list[str]:
+    """
+    After creating a command primitive, link it to matching skills.
+    Returns list of human-readable messages about what was linked.
+    """
+    if no_link:
+        return []
+
+    linked = []
+    matches = find_matching_skills("command", tags, category, explicit_skill)
+
+    for skill_dir, score in matches:
+        skill_md_path = skill_dir / "SKILL.md"
+        text = skill_md_path.read_text(encoding="utf-8")
+
+        # Skip if already referenced
+        if f"commands/{cmd_name}.md" in text or f"`belam {cmd_name}`" in text:
+            continue
+
+        ref_line = f"- `commands/{cmd_name}.md` — {cmd_desc}"
+
+        # Try to find appropriate section
+        section = _find_section(text, ["CLI Commands", "Related Commands", "Related"])
+        if section:
+            new_text = _append_to_section(text, section, ref_line)
+        else:
+            # Append a new Related Commands section
+            new_text = text.rstrip() + f"\n\n## Related Commands\n\n{ref_line}\n"
+
+        skill_md_path.write_text(new_text, encoding="utf-8")
+        rel = skill_dir.relative_to(WORKSPACE)
+        linked.append(f"  🔗 Linked to {rel}/SKILL.md (score: {score})")
+
+    return linked
+
+
+def auto_link_lesson_or_decision(prim_type: str, prim_path: Path, tags: set[str],
+                                  explicit_skill: str = "", no_link: bool = False) -> list[str]:
+    """
+    After creating a lesson or decision primitive, cross-link to matching skills.
+    Returns list of human-readable messages about what was linked.
+    """
+    if no_link:
+        return []
+
+    linked = []
+    matches = find_matching_skills(prim_type, tags, "", explicit_skill)
+    rel_prim = prim_path.relative_to(WORKSPACE)
+
+    for skill_dir, score in matches:
+        skill_md_path = skill_dir / "SKILL.md"
+        text = skill_md_path.read_text(encoding="utf-8")
+
+        # Skip if already referenced
+        if str(rel_prim) in text or prim_path.stem in text:
+            continue
+
+        ref_line = f"- `{rel_prim}`"
+
+        # Try to find appropriate section
+        section = _find_section(text, ["Related Primitives", "Related", "References"])
+        if section:
+            new_text = _append_to_section(text, section, ref_line)
+        else:
+            new_text = text.rstrip() + f"\n\n## Related Primitives\n\n{ref_line}\n"
+
+        skill_md_path.write_text(new_text, encoding="utf-8")
+        rel = skill_dir.relative_to(WORKSPACE)
+        linked.append(f"  🔗 Linked to {rel}/SKILL.md (score: {score})")
+
+    return linked
+
+
 CREATORS = {
     "lesson": create_lesson,
     "decision": create_decision,
     "task": create_task,
     "project": create_project,
+    "command": create_command,
     "skill": create_skill,
 }
 
@@ -389,8 +647,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--priority", default="", help="Task priority (critical/high/medium/low).")
     parser.add_argument("--depends", default="", help="Comma-separated task dependencies.")
 
+    # Command options
+    parser.add_argument("--command", default="", help="Full command string (e.g. 'belam revise <ver>').")
+    parser.add_argument("--aliases", default="", help="Comma-separated aliases (e.g. 'belam rev').")
+    parser.add_argument("--category", default="", help="Command category (pipeline/memory/primitives/infrastructure/analysis).")
+
     # Skill options
-    parser.add_argument("--desc", default="", help="Short description (used for skill and decision).")
+    parser.add_argument("--desc", default="", help="Short description (used for skill, decision, and command).")
+
+    # Auto-linking options
+    parser.add_argument("--no-link", action="store_true", help="Skip auto-linking to skills.")
 
     return parser.parse_args()
 
@@ -434,6 +700,41 @@ def main():
     for path in created:
         rel = path.relative_to(WORKSPACE) if path.is_relative_to(WORKSPACE) else path
         print(f"  ✅ Created: {rel}")
+
+    # ── Auto-linking ───────────────────────────────────────────────────────────
+    no_link = getattr(args, "no_link", False)
+    explicit_skill = getattr(args, "skill", "") or ""
+    tags_set = {t.strip() for t in (args.tags or "").split(",") if t.strip()}
+    linked_messages: list[str] = []
+
+    if not no_link and primitive_type in ("command", "lesson", "decision"):
+        for path in created:
+            # Only process workspace-relative files (skip SKILL.md inside skills/)
+            if not path.is_relative_to(WORKSPACE):
+                continue
+
+            if primitive_type == "command":
+                fm_category = getattr(args, "category", "") or ""
+                fm_desc = getattr(args, "desc", "") or title
+                cmd_name = path.stem
+                msgs = auto_link_command(
+                    cmd_name, fm_desc, tags_set, fm_category,
+                    explicit_skill=explicit_skill, no_link=no_link,
+                )
+                linked_messages.extend(msgs)
+
+            elif primitive_type in ("lesson", "decision"):
+                msgs = auto_link_lesson_or_decision(
+                    primitive_type, path, tags_set,
+                    explicit_skill=explicit_skill, no_link=no_link,
+                )
+                linked_messages.extend(msgs)
+
+    if linked_messages:
+        print()
+        print("  Auto-links added:")
+        for msg in linked_messages:
+            print(msg)
 
     # Trigger embed index update
     try:

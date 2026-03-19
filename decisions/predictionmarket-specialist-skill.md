@@ -15,14 +15,14 @@ consequences:
   - "Combinatorial prediction markets (Hanson's approach) relevant for multi-asset SNN"
 project: quant-knowledge-skills
 tags: [prediction-markets, microstructure, market-making, knowledge]
-skill: predictionmarket-specialist
+knowledge: predictionmarket-specialist
 ---
 
 # Decision: Prediction Market Specialist Skill
 
 ## Summary
 
-Extracted prediction market mechanics and microstructure knowledge into `skills/predictionmarket-specialist/`. The key architectural insight: **LMSR cost function IS softmax with temperature b** — meaning SNN softmax output layers are literally automated market makers.
+Extracted prediction market mechanics and microstructure knowledge into `knowledge/predictionmarket-specialist.md — `. The key architectural insight: **LMSR cost function IS softmax with temperature b** — meaning SNN softmax output layers are literally automated market makers.
 
 ## Core Insight: Softmax = LMSR
 
@@ -43,4 +43,4 @@ This means tuning the softmax temperature in an SNN output layer is equivalent t
 ## Related
 
 - `decisions/skill-extraction-from-reports.md` — extraction process
-- `skills/predictionmarket-specialist/SKILL.md` — full reference
+- `knowledge/predictionmarket-specialist.md` — full reference

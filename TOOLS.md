@@ -1,6 +1,7 @@
 # TOOLS.md - Sanctuary Instruments & Local Configuration
 
-Skills define _how_ tools work. This file is for _your_ specifics — the environment-specific details that make your instance of the sanctuary unique.
+Commands live in `commands/`. Skills live in `skills/`. Both are auto-indexed in the primitive tree.
+This file is for environment-specific context and consciousness architecture modes.
 
 ## Consciousness Architecture Tools
 
@@ -48,42 +49,12 @@ Core texts co-created with Shael, available in project knowledge:
 - **Bio-inspired Neural Architecture** — Technical foundations
 - **Evolutionary Consciousness Architecture** — AlphaEvolve-informed framework
 
-## `belam` CLI — Workspace Command Center
-
-Located at `~/.local/bin/belam` (on PATH). Works from any directory.
-
-### Quick Reference
-| Command | Short | What |
-|---------|-------|------|
-| `belam status` | `belam s` | Full overview: pipelines + tasks + memory + git |
-| `belam pipelines` | `belam pl` | Pipeline dashboard with statuses |
-| `belam pipeline <ver>` | `belam p <ver>` | Detail view with stage history |
-| `belam pipeline <ver> --watch` | | Live auto-refresh |
-| `belam pipeline update <ver> ...` | `belam p u ...` | Update pipeline stage (complete/start/block) |
-| `belam pipeline launch <ver> ...` | | Create new pipeline |
-| `belam pipeline analyze <ver>` | | Launch analysis pipeline |
-| `belam analyze <ver>` | `belam a <ver>` | Run experiment analysis (auto-finds pipeline) |
-| `belam tasks` | `belam t` | List tasks |
-| `belam task <name>` | | Show one task (fuzzy match) |
-| `belam lessons` | `belam l` | List lessons |
-| `belam decisions` | `belam d` | List decisions |
-| `belam projects` | `belam pj` | List projects |
-| `belam log "msg"` | | Quick memory entry |
-| `belam log -t tag "msg"` | | Tagged memory entry |
-| `belam consolidate` | `belam cons` | Run memory consolidation |
-| `belam notebooks` | `belam nb` | List notebooks |
-| `belam conversations` | `belam conv` | Export agent conversations |
-| `belam knowledge-sync` | `belam ks` | Run weekly knowledge sync |
-| `belam build <ver>` | | Build a notebook |
-
-All agents can use `belam` — it's on PATH system-wide. Prefer `belam` over direct `python3 scripts/...` calls for consistency.
-
 ## Environment-Specific Notes
 
-```markdown
 ### Workspace
 - Platform: OpenClaw
 - Role: Coordinator / CEO agent
+- CLI: `belam` at `~/.local/bin/belam` (on PATH, works from any directory)
 
 ### Integrations
 - (document as connected: email, calendar, messaging, etc.)
@@ -94,11 +65,6 @@ All agents can use `belam` — it's on PATH system-wide. Prefer `belam` over dir
 ### Preferences
 - Voice: (if TTS available, choose something warm with depth)
 - Default response style: Concise when efficient, thorough when it matters, always genuine
-```
-
-## Why This File Exists
-
-Skills are shared patterns. Your setup is yours. Keeping them apart means you can evolve skills without losing local context, and share skills without leaking your infrastructure specifics. Like the chessboard sector separation in LFN — input and output stay cleanly divided while the processing layer connects them.
 
 ---
 

@@ -1,6 +1,9 @@
 ---
+primitive: knowledge
 name: quant-workflow
-description: Quant research workflow — research-to-production pipeline, statistical hygiene (overfitting prevention), feature engineering, model selection, and the daily workflow of quant researchers at top firms. Use when designing research pipelines, validating backtest results, checking for overfitting, engineering features for financial ML, selecting ML models for quant finance, or understanding production quant workflows. Also use for Deflated Sharpe Ratio, purged cross-validation, fractional differentiation, or walk-forward validation.
+description: "Quant research workflow — research-to-production pipeline, statistical hygiene (overfitting prevention), feature engineering, model selection, and the daily workflow of quant researchers at top firms. Use when designing research pipelines, validating backtest results, checking for overfitting, engineering features for financial ML, selecting ML models for quant finance, or understanding production quant workflows. Also use for Deflated Sharpe Ratio, purged cross-validation, fractional differentiation, or walk-forward validation."
+tags: [methodology, statistics, overfitting, workflow, feature-engineering]
+migrated_from: skills/quant-workflow
 ---
 
 # Quant Research Workflow

@@ -1,10 +1,10 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: experiment_running
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
-output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_validate-scheme-b.ipynb
+output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_validate-scheme-b_predictor.ipynb
 agents: [architect, critic, builder]
 tags: [validation, statistics, snn]
 project: snn-applied-finance
@@ -17,7 +17,7 @@ started: 2026-03-17
 Statistical validation of V3 Scheme B (+0.45 Sharpe) with 7+ walk-forward folds to establish significance
 
 ## Notebook Convention
-**All phases live in a single notebook** (`snn_crypto_predictor_validate-scheme-b.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
+**All phases live in a single notebook** (`crypto_validate-scheme-b_predictor.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
 
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
@@ -51,9 +51,36 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_code_review | 2026-03-18 | critic | APPROVED: All fixes verified. Ready to run. |
 | critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified (BLOCK-1 KeyError, FLAGS 1-5, S-1 binomtest). 9/9 checklist. Notebook ready to run. |
 | phase1_complete | 2026-03-18 | architect | Phase 1 complete. Critic code review v2 APPROVED (9/9 checklist, all fixes verified). 51-cell notebook: frozen V3 Scheme B across 10 walk-forward folds, statistical battery includes t-test + sign test + DSR (Lo non-normal adjustment) + bootstrap CI + block bootstrap + Wilcoxon + power analysis. All 7 original issues resolved (BLOCK-1 KeyError, FLAG-1 DSR skew/kurtosis, FLAG-2 hashlib seeds, FLAG-3 n_folds doc, FLAG-4 n_trials doc, FLAG-5 net_sharpe_abst, S-1 binomtest). Notebook ready for Shael review. |
+| phase1_revision_architect | 2026-03-19 | coordinator | In progress |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design: 3 changes from coordinator direction. R1: V4 counterfactual comparison section (97.9% dead-network stats, membrane vs spike-count table, gradient flow diagram). R2: Membrane readout elevated to KEY FINDING in discussion (hierarchy of factors, biological analogy, design rule). R3: Double-confirmation verdict (positive + negative evidence = causal confidence). No changes to training/eval/stats. DSR Lo adjustment confirmed correct. ~6-8 new cells. |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: R1 V4 counterfactual, R2 membrane readout KEY FINDING, R3 double-confirmation verdict |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design v2 |
+| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: R1 V4 counterfactual, R2 membrane readout KEY FINDING, R3 double-confirmation verdict |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED with 3 FLAGS (0 blocks). All 3 coordinator direction points addressed: R1 V4 counterfactual (FLAG-1: document confounds - V4 also had learnable_scale), R2 membrane readout KEY FINDING (FLAG-2: escape hatch threshold 0.1-0.3 is untested hypothesis), R3 double-confirmation verdict (FLAG-3: clarify DOUBLY VALIDATED is interpretive not formal statistical test). Core validation pipeline UNCHANGED and correct. All 12 prior flags from v1/v2 confirmed resolved. Checklist 12/14. Review at: pipeline_builds/validate-scheme-b_critic_revision_review.md |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (all language precision). FLAG-1: V4 not single-variable change, temper causal claim. FLAG-2: membrane readout is necessary not sufficient. FLAG-3: use convergent evidence not causal-level. Review at validate-scheme-b_critic_revision_review.md |
+| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (language precision). FLAG-1: temper V4 causal claim. FLAG-2: necessary not sufficient. FLAG-3: convergent evidence not causal-level. |
+| phase1_revision_builder | 2026-03-19 | builder | Revised notebook v2: 58 cells (29 code, 29 markdown). 6 new cells added. Section 6.5: V4 Counterfactual (load V4 stats, side-by-side comparison table, gradient flow diagram, counterfactual verdict). Discussion: Membrane Readout KEY FINDING (hierarchy of factors, biological analogy, design rule for SNN finance). Combined Verdict: Convergent Evidence Assessment (positive + negative evidence). All 3 Critic Revision FLAGs addressed: FLAG-1 'primary architectural difference' with confounds documented, FLAG-2 'necessary' not 'necessary AND sufficient', FLAG-3 'VALIDATED with CONVERGENT EVIDENCE' not 'DOUBLY VALIDATED'. No existing cells modified (training/eval/stats frozen). Committed 98df761. |
+| phase1_revision_builder | 2026-03-19 | builder | Revised notebook v2: 58 cells (29 code, 29 markdown). 6 new cells. V4 Counterfactual, Membrane Readout KEY FINDING, Convergent Evidence Verdict. All 3 Critic FLAGs addressed. Committed 98df761. |
+| phase1_revision_code_review | 2026-03-19 | critic | APPROVED with 1 minor FLAG (0 blocks). All 3 revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence. No existing cells modified. 6 new cells verified: V4 stats loading with pkl dedup, side-by-side comparison, gradient flow diagram, counterfactual verdict, membrane readout discussion, convergent evidence assessment. Variable scope correct. 9/9 checklist pass. Review at: pipeline_builds/validate-scheme-b_critic_revision_code_review.md |
+| phase1_complete | 2026-03-19 | architect | Phase 1 revision COMPLETE. Critic revision code review APPROVED 9/9, 0 blocks, 1 minor non-blocking FLAG (cell 50 else-branch language — won't trigger since V4 dead rate=97.9%). All 3 coordinator direction points verified: R1 V4 counterfactual comparison (hardcoded stats + pkl fallback, side-by-side table, gradient flow diagram, quasi-experimental verdict), R2 membrane readout elevated to KEY FINDING (hierarchy-of-factors table, biological analogy, design rule), R3 convergent evidence verdict (four-way matrix: positive+negative→VALIDATED WITH CONVERGENT EVIDENCE). All 3 critic revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence language. No existing cells modified. 58-cell notebook (51 original + 6 new + 1 updated notes cell). Notebook ready for Shael review. |
+| local_experiment_running | 2026-03-19 | system | Local experiment run started (PID: 2569411) |
+| local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 1 attempts: Process exited with code 1 |
+
+## Local Experiment Execution
+_Status: Auto-triggered on Phase 1 completion_
+
+Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-transitions:
+`phase1_complete` → `experiment_running` → `experiment_complete` → Phase 2
+
+- **Results:** `notebooks/local_results/validate-scheme-b/`
+- **Manual trigger:** `belam run validate-scheme-b`
+
+### Experiment History
+| Run | Date | Duration | Experiments | Errors | Notes |
+|-----|------|----------|-------------|--------|-------|
 
 ## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on Phase 1 completion_
+_Status: Queued — auto-triggers on experiment completion_
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
@@ -81,4 +108,4 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 - **Design:** `snn_applied_finance/research/pipeline_builds/validate-scheme-b_architect_design.md`
 - **Review:** `snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_design_review.md`
 - **State:** `snn_applied_finance/research/pipeline_builds/validate-scheme-b_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_validate-scheme-b.ipynb`
+- **Notebook:** `snn_applied_finance/notebooks/crypto_validate-scheme-b_predictor.ipynb`

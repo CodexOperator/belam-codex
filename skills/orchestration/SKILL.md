@@ -61,13 +61,14 @@ python3 scripts/pipeline_orchestrate.py <version> verify
 Event-driven automation. Called by heartbeat, no LLM judgment needed.
 
 ```bash
-# Run all checks (locks → gates → stalls)
+# Run all checks (locks → gates → revisions → stalls)
 python3 scripts/pipeline_autorun.py
 
 # Individual checks
-python3 scripts/pipeline_autorun.py --check-locks    # Stale lock detection only
-python3 scripts/pipeline_autorun.py --check-gates    # Gate checking only
-python3 scripts/pipeline_autorun.py --check-stalled  # Stall detection only
+python3 scripts/pipeline_autorun.py --check-locks      # Stale lock detection only
+python3 scripts/pipeline_autorun.py --check-gates      # Gate checking only
+python3 scripts/pipeline_autorun.py --check-revisions  # Pending revision requests only
+python3 scripts/pipeline_autorun.py --check-stalled    # Stall detection only
 
 # Dry run (report only)
 python3 scripts/pipeline_autorun.py --dry-run
@@ -79,7 +80,31 @@ python3 scripts/pipeline_autorun.py --one <version>
 **Check order (every heartbeat cycle):**
 1. **Stale locks** (5min) — dead/hung PIDs blocking session dispatch
 2. **Gates** — analysis phase2 complete → kick eligible downstream pipelines
-3. **Stalls** (120min) — agent went silent, re-kick with recovery context
+3. **Revisions** — pending revision request files → kick `orchestrate_revise()`
+4. **Stalls** (120min) — agent went silent, re-kick with recovery context
+
+### Revision Queue
+
+Any process can queue a revision by dropping a file:
+```
+pipeline_builds/{version}_revision_request.md
+```
+
+Format:
+```yaml
+---
+version: build-equilibrium-snn
+context_file: research/v4_deep_analysis_findings.md
+section: "## For BUILD-EQUILIBRIUM-SNN"
+priority: critical
+created: 2026-03-19T03:15:00Z
+---
+Optional extra context body text.
+```
+
+CLI shortcut: `belam queue-revision <ver> --context-file <path> --section "## Header" --priority high`
+
+Autorun picks up the highest-priority request, loads context from the referenced file (with optional section extraction), calls `orchestrate_revise()`, then deletes the request file. One revision at a time.
 
 **One-pipeline-at-a-time:** Only one pipeline may have active agent work. Autorun enforces this — won't kick a second pipeline while one is being worked on.
 
@@ -140,6 +165,28 @@ The orchestrator uses a hardcoded transition map to determine next agent:
 | `critic_code_review` | `phase1_complete` | (human gate) |
 | `critic_design_review_blocked` | `architect_design_revision` | architect |
 | `critic_code_review_blocked` | `builder_apply_blocks` | builder |
+
+### Phase 1 Revisions (coordinator-triggered)
+
+Optional revision loop from `phase1_complete`. Triggered by coordinator, not agents.
+
+```bash
+# Via belam CLI
+belam revise <version> --context "revision directions..."
+
+# Via orchestrator directly
+python3 scripts/pipeline_orchestrate.py <version> revise --context "..."
+```
+
+| From | To | Agent |
+|------|----|-------|
+| `phase1_complete` | `phase1_revision_architect` | architect (coordinator triggers) |
+| `phase1_revision_architect` | `phase1_revision_critic_review` | critic |
+| `phase1_revision_critic_review` | `phase1_revision_builder` | builder |
+| `phase1_revision_builder` | `phase1_revision_code_review` | critic |
+| `phase1_revision_code_review` | `phase1_complete` | (loops back) |
+
+Revision numbers auto-increment. Direction file written to `pipeline_builds/{v}_phase1_revision_{nn}_direction.md`. Multiple revision cycles supported.
 
 ## Debugging
 

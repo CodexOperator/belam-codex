@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "phase1_revision_builder",
+  "next_stage": "phase1_revision_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-19T04:04:55.207433+00:00",
+  "pipeline_session_id": "108cce6c-f46a-49df-a23f-1e084bc4f17e",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "49df3ef8-f6c8-4902-9fcc-8905e38cce13",
+    "response_preview": "Good, I have rich context from my prior reviews of this pipeline. Now let me read the required files"
+  },
+  "verified": true
+}

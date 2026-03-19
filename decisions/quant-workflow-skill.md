@@ -16,14 +16,14 @@ consequences:
   - "All agents share same statistical vocabulary and thresholds"
 project: quant-knowledge-skills
 tags: [methodology, statistics, overfitting, workflow, knowledge]
-skill: quant-workflow
+knowledge: quant-workflow
 ---
 
 # Decision: Quant Workflow Skill
 
 ## Summary
 
-Extracted quant research methodology into `skills/quant-workflow/`. Covers the research-to-production pipeline (5-stage funnel with ~13% survival rate), statistical hygiene (overfitting prevention), feature engineering for financial ML, model selection, and the daily workflow of production quant researchers.
+Extracted quant research methodology into `knowledge/quant-workflow.md — `. Covers the research-to-production pipeline (5-stage funnel with ~13% survival rate), statistical hygiene (overfitting prevention), feature engineering for financial ML, model selection, and the daily workflow of production quant researchers.
 
 ## Non-Negotiable Statistical Hygiene
 
@@ -50,4 +50,4 @@ Industry pipeline: ~28 ideas tested → ~15 pass signal development → ~8 survi
 - `lessons/breakeven-accuracy-before-building.md` — calculate breakeven before spending GPU time
 - `lessons/analysis-phase2-gate-mandatory.md` — why we analyze before building the next version
 - `decisions/skill-extraction-from-reports.md` — extraction process
-- `skills/quant-workflow/SKILL.md` — full reference
+- `knowledge/quant-workflow.md` — full reference

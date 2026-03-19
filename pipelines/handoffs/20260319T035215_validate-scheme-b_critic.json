@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "phase1_revision_architect",
+  "next_stage": "phase1_revision_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-19T03:52:15.634864+00:00",
+  "pipeline_session_id": "8fcd9be2-e26e-4317-b7b6-189e0a75a7ec",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "40092156-0196-45a2-b1bd-f06b5b605317",
+    "response_preview": "Good, I have my memory context. Key prior context for validate-scheme-b:\n- v1 design review: APPROVE"
+  },
+  "verified": true
+}

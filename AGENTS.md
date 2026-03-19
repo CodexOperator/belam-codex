@@ -67,6 +67,12 @@ This is a starting point. Add conventions and patterns as you discover what reso
 
 Knowledge files. Read with `Read` when relevant. YAML frontmatter + markdown body.
 
+### Pipelines
+_Active implementation pipelines. Read when: checking build progress or phase gates._
+- `pipelines/build-equilibrium-snn.md` — Implementation Pipeline: BUILD-EQUILIBRIUM-SNN [experiment_complete/critical] started:2026-03-17 [snn,architecture,streaming]
+- `pipelines/stack-specialists.md` — Implementation Pipeline: STACK-SPECIALISTS [experiment_running/high] started:2026-03-17 [snn,ensemble,specialists]
+- `pipelines/validate-scheme-b.md` — Implementation Pipeline: VALIDATE-SCHEME-B [experiment_running/high] started:2026-03-17 [validation,statistics,snn]
+
 ### Projects
 - `projects/agent-roster.md` — Active Agent Roster [active] [agents,infrastructure,roster]
 - `projects/multi-agent-infrastructure.md` — Multi-Agent Infrastructure [active] [agents,infrastructure,telegram]
@@ -86,17 +92,18 @@ _Read when: making architectural choices._
 - `decisions/aad-over-finite-differences.md` — AAD Over Finite Differences for Greeks [derivatives,greeks,infrastructure]
 - `decisions/agent-session-isolation.md` — Agent Session Isolation (skill:launch-pipeline) [infrastructure,agents,orchestration]
 - `decisions/agent-trio-architecture.md` — Architect / Critic / Builder Agent Trio (skill:pipelines) [agents,architecture,decision]
-- `decisions/derivative-specialist-skill.md` — Derivative Specialist Skill (skill:derivative-specialist) [derivatives,pricing,volatility]
+- `decisions/derivative-specialist-skill.md` — Derivative Specialist Skill [derivatives,pricing,volatility]
 - `decisions/hierarchical-memory-system.md` — Hierarchical Memory Consolidation System [infrastructure,memory-system,cron]
 - `decisions/memory-as-index-not-store.md` — MEMORY.md as Boot Index, Not Knowledge Store [infrastructure,memory,primitives]
 - `decisions/memory-as-primitive-type.md` — Memory Hierarchy as Primitive Type [memory,primitives,hierarchy]
 - `decisions/orchestration-architecture.md` — Centralized Orchestration Architecture (skill:orchestration) [infrastructure,orchestration,agents]
 - `decisions/population-coding-over-delta.md` — Population Coding Over Delta Encoding (Default) [encoding,snn,decision]
-- `decisions/predictionmarket-specialist-skill.md` — Prediction Market Specialist Skill (skill:predictionmarket-specialist) [prediction-markets,microstructure,market-making]
-- `decisions/quant-infrastructure-skill.md` — Quant Infrastructure Skill (skill:quant-infrastructure) [infrastructure,backtesting,gpu]
-- `decisions/quant-workflow-skill.md` — Quant Workflow Skill (skill:quant-workflow) [methodology,statistics,overfitting]
+- `decisions/predictionmarket-specialist-skill.md` — Prediction Market Specialist Skill [prediction-markets,microstructure,market-making]
+- `decisions/quant-infrastructure-skill.md` — Quant Infrastructure Skill [infrastructure,backtesting,gpu]
+- `decisions/quant-workflow-skill.md` — Quant Workflow Skill [methodology,statistics,overfitting]
 - `decisions/skill-extraction-from-reports.md` — Extract Domain Reports Into Skills + Knowledge Files [skills,knowledge,workflow]
 - `decisions/skill-primitive-pairing.md` — Every Skill Gets a Primitive [skills,primitives,conventions]
+- `decisions/superseded-primitive-lifecycle.md` — Superseded Primitive Lifecycle [primitives,conventions,lifecycle]
 - `decisions/two-phase-backtest-workflow.md` — Two-Phase Backtest Workflow [backtesting,infrastructure,workflow]
 
 ### Lessons
@@ -113,6 +120,51 @@ _Read when: encountering problems or before making changes._
 - `lessons/sessions-send-timeout-filesystem-first.md` — sessions_send Timeouts — Use Filesystem-First Coordination [?] [multi-agent,coordination,sessions-send]
 - `lessons/snn-treats-like-weird-cnn.md` — Don't Treat SNNs Like Weird CNNs [high] [snn,architecture,critical]
 - `lessons/telegram-bots-cant-see-bots.md` — Telegram Bots Cannot See Other Bots' Messages [high] [telegram,agents,infrastructure]
-- `lessons/tiny-snn-gpu-parallelism.md` — Tiny SNN Models Need Aggressive GPU Parallelism, Not Memo... [high] [gpu,parallelism,performance]
+- `lessons/torch-buffer-requires-tensor-assignment.md` — torch.nn.Buffer Requires Tensor Assignment, Not Float [high] [snn,pytorch,debugging]
+- `lessons/verify-notebook-paths-resolve-before-automation.md` — Verify Notebook Paths Resolve Before Automation [high] [infrastructure,naming,automation]
+
+### Commands
+_`belam` CLI commands. Read when: needing usage details or flags._
+- `commands/analyze-local.md` — `belam analyze-local <ver>` (belam al <ver>) — Analyze local experiment results — generates comprehensive MD + plots
+- `commands/analyze.md` — `belam analyze <ver>` (belam a <ver>) — Run experiment analysis (auto-finds pipeline)
+- `commands/audit.md` — `belam audit` (belam au) — Scan all primitives for consistency issues (orphaned commands, stale refs, missing decisions, duplicates)
+- `commands/autorun.md` — `belam autorun` (belam auto) — Auto-kick gated/stalled/revision pipelines (event-driven)
+- `commands/build.md` — `belam build <ver>` — Build a notebook version
+- `commands/cleanup.md` — `belam cleanup` (belam clean) — Kill stale agent sessions (default: dry run)
+- `commands/consolidate.md` — `belam consolidate` (belam cons) — Run memory consolidation
+- `commands/conversations.md` — `belam conversations` (belam conv) — Export agent conversations
+- `commands/create.md` — `belam create <type>` — Create a new primitive (lesson/decision/task/project/skill) with frontmatter scaffolding
+- `commands/decisions.md` — `belam decisions` (belam d) — List all architectural decisions
+- `commands/edit.md` — `belam edit <primitive>` — Fuzzy-match and edit primitives, --set key=value for frontmatter updates
+- `commands/embed-primitives.md` — `belam embed-primitives` (belam ep) — Regenerate primitive indexes in AGENTS.md and MEMORY.md
+- `commands/kickoff.md` — `belam kickoff <ver>` (belam kick) — Kick off a created pipeline (wake architect)
+- `commands/knowledge-sync.md` — `belam knowledge-sync` (belam ks) — Run weekly knowledge sync
+- `commands/lessons.md` — `belam lessons` (belam l) — List all lessons learned
+- `commands/log.md` — `belam log "msg"` — Quick memory entry, optionally tagged
+- `commands/notebooks.md` — `belam notebooks` (belam nb) — List notebooks
+- `commands/orchestrate.md` — `belam orchestrate` (belam orch) — Direct orchestrator access (complete/block/start/status/verify/revise)
+- `commands/pipeline.md` — `belam pipeline <ver>` (belam p <ver>) — Detail view of a pipeline with stage history, plus update/launch/analyze subcommands
+- `commands/pipelines.md` — `belam pipelines` (belam pl) — Pipeline dashboard with statuses
+- `commands/projects.md` — `belam projects` (belam pj) — List all projects
+- `commands/queue-revision.md` — `belam queue-revision <ver> [opts]` (belam qr) — Queue a revision request for autorun pickup
+- `commands/report.md` — `belam report <ver>` — Build LaTeX report from experiment analysis and export as PDF
+- `commands/revise.md` — `belam revise <ver> --context "..."` (belam rev) — Trigger Phase 1 revision cycle (coordinator-initiated)
+- `commands/run.md` — `belam run <ver>` (belam r) — Run experiments locally for a pipeline. Auto-updates stages. Builder agent fixes errors.
+- `commands/status.md` — `belam status` (belam s) — Full overview: pipelines + tasks + memory + git
+- `commands/task.md` — `belam task <name>` — Show one task (fuzzy match)
+- `commands/tasks.md` — `belam tasks` (belam t) — List all tasks with status and priority
+
+### Skills
+_Agent skills with SKILL.md. Read when: task matches skill description._
+- `skills/launch-pipeline/SKILL.md` — launch-pipeline: Launch and kick off implementation pipelines from open tasks
+- `skills/orchestration/SKILL.md` — orchestration: Pipeline orchestration infrastructure — the scripts and systems that move wor...
+- `skills/pipelines/SKILL.md` — pipelines: List, create, check, and archive Implementation Pipelines — the 3-phase resea...
+
+### Knowledge
+_Domain knowledge references. Read when: needing deep technical reference._
+- `knowledge/derivative-specialist.md` — derivative-specialist: Derivatives pricing engineering — volatility surface construction (SVI/SSVI),... [derivatives,pricing,volatility]
+- `knowledge/predictionmarket-specialist.md` — predictionmarket-specialist: Prediction market mechanics and market microstructure — LMSR cost functions, ... [prediction-markets,microstructure,market-making]
+- `knowledge/quant-infrastructure.md` — quant-infrastructure: Production quant finance infrastructure — data storage, backtesting framework... [infrastructure,backtesting,gpu]
+- `knowledge/quant-workflow.md` — quant-workflow: Quant research workflow — research-to-production pipeline, statistical hygien... [methodology,statistics,overfitting]
 
 <!-- END:PRIMITIVES -->

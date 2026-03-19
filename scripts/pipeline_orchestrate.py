@@ -133,12 +133,22 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
 
     files_list = '\n'.join(f'  - {f}' for f in files_to_read)
 
+    # Add reasoning flag for local analysis stages
+    is_local_analysis = 'local_analysis' in next_stage
+    reasoning_block = ""
+    if is_local_analysis:
+        reasoning_block = """
+⚠️ **REASONING REQUIRED** — Use extended thinking for this task. Think deeply about
+the statistical patterns, architecture implications, and what additional analysis
+would reveal. Quality of insight matters more than speed.
+"""
+
     msg = f"""🔄 Pipeline Handoff — {version}
 
 **Stage completed:** {completed_stage}
 **Your task:** {next_stage}
 **Summary:** {notes}
-
+{reasoning_block}
 ⚠️ **IMPORTANT — Session Protocol:**
 This is a FRESH session. You have no prior context except your memory files.
 1. Read your memory files first: `memory/` directory in your workspace
@@ -679,6 +689,18 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     next_stage, next_agent, _ = transition
     print(f"\n   📋 Transition: {stage} → {next_stage} ({next_agent})")
 
+    # Special case: local_analysis_code_review → report build (process stage, not agent)
+    if stage == 'local_analysis_code_review':
+        print(f"\n   📄 Analysis approved — triggering LaTeX report build...")
+        return orchestrate_report_build(version)
+
+    # Special case: local_analysis_report_build → complete (auto-handled)
+    if stage == 'local_analysis_report_build':
+        print(f"\n   ✅ Report build complete — local analysis done")
+        # The stage transition to local_analysis_complete is already handled by pipeline_update
+        # Now proceed to wake the next agent (phase2 architect) via normal flow
+        pass
+
     # Step 3: Reset agent session for fresh context
     print(f"\n   🔄 Resetting {next_agent} session for fresh context...")
     reset_agent_session(next_agent)
@@ -836,6 +858,476 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
         )
 
     return wake_result['success']
+
+
+def orchestrate_revise(version: str, context: str, revision_num: int = None):
+    """Trigger a Phase 1 revision cycle (coordinator-initiated).
+
+    Moves a pipeline from phase1_complete back through architect→critic→builder
+    with coordinator-provided revision context. Loops back to phase1_complete.
+
+    Usage:
+        python3 pipeline_orchestrate.py <version> revise --context "findings..."
+        belam revise <version> --context "findings..."
+    """
+    print(f"\n{'═' * 70}")
+    print(f"  🔄 ORCHESTRATOR: {version} — triggering Phase 1 revision")
+    print(f"{'═' * 70}\n")
+
+    # Step 1: Verify pipeline is at phase1_complete
+    state_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_state.json'
+    if state_file.exists():
+        import json
+        with open(state_file) as f:
+            state = json.load(f)
+        pending = state.get('pending_action', '')
+        if pending not in ('phase1_complete', ''):
+            # Also allow revision from a previous revision_complete
+            status = state.get('status', '')
+            if status != 'phase1_complete' and not pending.startswith('phase1_revision'):
+                print(f"   ⚠️  Pipeline {version} is at '{pending}' (status: {status})")
+                print(f"   ⚠️  Revisions can only be triggered from phase1_complete")
+                print(f"   ⚠️  Use 'orchestrate complete' to advance the pipeline first")
+                return False
+
+    # Step 2: Determine revision number
+    if revision_num is None:
+        builds_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+        existing = list(builds_dir.glob(f'{version}_phase1_revision_*_architect.md'))
+        revision_num = len(existing) + 1
+    print(f"   📝 Revision #{revision_num}")
+
+    # Step 3: Write revision direction file for the architect
+    direction_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_phase1_revision_{revision_num:02d}_direction.md'
+    direction_content = f"""# Phase 1 Revision #{revision_num} — {version}
+
+## Coordinator Direction
+
+{context}
+
+## Instructions
+
+1. Read this direction file and the existing Phase 1 design/notebook
+2. Revise the architecture to address the points above
+3. Write your revised design to `pipeline_builds/{version}_phase1_revision_architect.md`
+4. Complete via: `python3 scripts/pipeline_orchestrate.py {version} complete phase1_revision_architect --agent architect --notes "..."`
+"""
+    direction_file.write_text(direction_content)
+    print(f"   📄 Direction file: {direction_file.name}")
+
+    # Step 4: Update pipeline state to revision
+    success, output = run_pipeline_update([version, 'start', 'phase1_revision_architect', '--agent', 'coordinator'])
+    print(output)
+    if not success:
+        print(f"\n❌ Failed to start revision stage")
+        return False
+
+    # Step 5: Reset architect session and dispatch
+    print(f"\n   🔄 Resetting architect session for fresh context...")
+    reset_agent_session('architect')
+
+    pipeline_session_id = generate_session_id(version, 'architect')
+    print(f"   🆔 Pipeline session: {pipeline_session_id[:8]}...")
+
+    # Step 6: Build handoff message for architect
+    handoff_msg = f"""🔄 PHASE 1 REVISION #{revision_num} — {version}
+
+The coordinator has requested a revision to the Phase 1 design/implementation.
+
+**Read first:**
+1. Direction file: `machinelearning/snn_applied_finance/research/pipeline_builds/{version}_phase1_revision_{revision_num:02d}_direction.md`
+2. Current Phase 1 design: `pipeline_builds/{version}_architect_design.md`
+3. Current notebook (if exists)
+
+**Your task:** Revise the architecture per the direction file. Write your updated design to:
+`pipeline_builds/{version}_phase1_revision_architect.md`
+
+**When done:**
+```bash
+python3 scripts/pipeline_orchestrate.py {version} complete phase1_revision_architect --agent architect --notes "revision summary"
+```
+"""
+
+    # Step 7: Wake the architect
+    print(f"\n   📨 Dispatching to architect...")
+    success = wake_agent('architect', handoff_msg, session_id=pipeline_session_id)
+
+    # Step 8: Write handoff file
+    wake_result = {'success': success, 'status': 'dispatched' if success else 'failed', 'session_id': pipeline_session_id}
+    write_handoff(version, 'phase1_complete', 'phase1_revision_architect', 'architect', wake_result, pipeline_session_id)
+
+    if not success:
+        print(f"\n   ⚠️  Architect wake failed — handoff file written, will retry on next cycle")
+    else:
+        print(f"\n   ✅ Revision #{revision_num} dispatched to architect")
+
+    # Step 9: Notify
+    send_orchestrator_notification(version, 'phase1_revision_started',
+        f'Revision #{revision_num} triggered by coordinator. Architect designing.')
+
+    return True
+
+
+def orchestrate_local_run(version: str, dry_run: bool = False, max_retries: int = 2,
+                           no_recovery: bool = False):
+    """Launch local experiment runner for a pipeline in the background.
+
+    This is a PROCESS stage, not an agent stage. The experiment runner
+    (run_experiment.py) self-reports completion via pipeline_update.py.
+    """
+    print(f"\n{'═' * 70}")
+    print(f"  🧪 ORCHESTRATOR: {version} — launching local experiments")
+    print(f"{'═' * 70}\n")
+
+    # Verify pipeline state
+    state_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_state.json'
+    if state_file.exists():
+        with open(state_file) as f:
+            state = json.load(f)
+        pending = state.get('pending_action', '')
+        if pending not in ('phase1_complete', 'local_experiment_running', 'local_experiment_complete', 'none', ''):
+            print(f"   ⚠️  Pipeline pending_action is '{pending}', expected 'phase1_complete'")
+            print(f"   Proceeding anyway (manual override)")
+
+    # Check for already-running experiment
+    pid_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_experiment.pid'
+    if pid_file.exists():
+        import json as _json
+        pid_info = _json.loads(pid_file.read_text())
+        pid = pid_info.get('pid')
+        # Check if PID is still alive
+        try:
+            os.kill(pid, 0)
+            print(f"   ⚠️  Experiment already running (PID: {pid}, started: {pid_info.get('started', '?')})")
+            print(f"   Use 'kill {pid}' to stop it, or wait for completion")
+            return False
+        except ProcessError:
+            print(f"   ℹ️  Stale PID file found (PID {pid} dead) — cleaning up")
+            pid_file.unlink()
+        except OSError:
+            print(f"   ℹ️  Stale PID file found (PID {pid} dead) — cleaning up")
+            pid_file.unlink()
+
+    # Build command
+    cmd = [
+        sys.executable, str(WORKSPACE / 'scripts' / 'run_experiment.py'),
+        version,
+    ]
+    if dry_run:
+        cmd.append('--dry-run')
+    if max_retries != 2:
+        cmd.extend(['--max-retries', str(max_retries)])
+    if no_recovery:
+        cmd.append('--no-recovery')
+
+    # Launch in background
+    log_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'notebooks' / 'local_results' / version
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / 'orchestrator_launch.log'
+
+    print(f"   📋 Command: {' '.join(cmd)}")
+    print(f"   📂 Log: {log_file.relative_to(WORKSPACE)}")
+
+    with open(log_file, 'w') as lf:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=lf, stderr=subprocess.STDOUT,
+            cwd=str(WORKSPACE),
+            start_new_session=True,  # Detach from parent process group
+        )
+
+    print(f"   🚀 Launched experiment runner (PID: {proc.pid})")
+    print(f"   📊 Pipeline will auto-transition when experiments complete")
+    print(f"   📝 Monitor: tail -f {log_file.relative_to(WORKSPACE)}")
+
+    # Notify
+    send_orchestrator_notification(version, '🧪 Experiments started',
+        f'Local experiment runner launched for <b>{version}</b> (PID: {proc.pid}). '
+        f'Auto-transitions to Phase 2 on completion.')
+
+    return True
+
+
+def orchestrate_local_analysis(version: str, dry_run: bool = False):
+    """Orchestrate the local analysis loop for a pipeline's experiment results.
+
+    Flow:
+      1. Run analyze_local_results.py (data prep — generates MD + plots)
+      2. Kick architect (with reasoning) to write preliminary analysis report
+      3. Existing orchestration loop handles: architect→critic→builder→critic
+         with reasoning enabled for all agents
+      4. After code_review passes, spawn subagent to build LaTeX→PDF report
+      5. Complete local_analysis_complete
+
+    Returns True if analysis loop was kicked successfully.
+    """
+    print(f"\n{'═' * 70}")
+    print(f"  📊 ORCHESTRATOR: {version} — launching local analysis")
+    print(f"{'═' * 70}\n")
+
+    results_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'notebooks' / 'local_results' / version
+
+    if not results_dir.exists():
+        # Check base dir (older runs without version subdir)
+        results_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'notebooks' / 'local_results'
+
+    # Step 1: Run analyze_local_results.py for data prep
+    print(f"   📊 Running data analysis preparation...")
+    analyze_cmd = [
+        sys.executable,
+        str(WORKSPACE / 'scripts' / 'analyze_local_results.py'),
+        version,
+        '--extra-plots',
+    ]
+    result = subprocess.run(analyze_cmd, capture_output=True, text=True, cwd=str(WORKSPACE), timeout=300)
+    print(result.stdout)
+    if result.returncode != 0:
+        print(f"   ⚠️  analyze_local_results.py returned non-zero: {result.stderr[:500]}")
+        print(f"   Proceeding anyway — architect can work with raw data")
+
+    # Step 2: Update pipeline stage → local_analysis_architect
+    print(f"\n   📊 Updating pipeline stage → local_analysis_architect")
+    success, output = run_pipeline_update([
+        version, 'start', 'local_analysis_architect',
+        '--agent', 'system',
+        '--notes', f'Local analysis started. Results at {results_dir.relative_to(WORKSPACE)}/'
+    ])
+    print(output)
+
+    if dry_run:
+        print(f"   [DRY RUN] Would wake architect with reasoning for analysis")
+        return True
+
+    # Step 3: Build the analysis handoff message (with reasoning instructions)
+    analysis_md = results_dir / f'{version}_analysis.md'
+    analysis_md_rel = analysis_md.relative_to(WORKSPACE) if analysis_md.exists() else 'N/A'
+
+    # List available plots for context
+    plots = sorted(results_dir.glob('*.png'))
+    plots_list = '\n'.join(f'  - {p.name}' for p in plots)
+
+    handoff_msg = f"""🔬 Local Analysis — {version}
+
+**Your task:** local_analysis_architect
+**Results directory:** {results_dir.relative_to(WORKSPACE)}/
+**Pre-generated analysis:** {analysis_md_rel}
+
+⚠️ **REASONING REQUIRED** — Use extended thinking for this task. Think deeply about:
+- What the results mean for the SNN architecture
+- Which patterns are statistically meaningful vs noise
+- What additional analysis scripts would reveal deeper insights
+- How to structure findings for maximum clarity
+
+## Context
+Experiments have completed for pipeline `{version}`. A preliminary analysis document
+with statistical tables and plots has been auto-generated. Your job is to:
+
+1. **Read the auto-generated analysis:** `{analysis_md_rel}`
+2. **Read the raw results** in `{results_dir.relative_to(WORKSPACE)}/`
+3. **Write a comprehensive preliminary analysis report** at:
+   `{results_dir.relative_to(WORKSPACE)}/{version}_analysis_report.md`
+
+   The report should include:
+   - Executive summary with key findings and their implications
+   - Detailed interpretation of each experiment category (primary, ablation, baselines)
+   - Statistical significance assessment
+   - Scale-performance analysis
+   - Sharpe vs accuracy discrepancy analysis
+   - Architecture-level insights (what the SNN is/isn't learning)
+   - Specific recommendations for additional analysis scripts
+
+4. **Specify any additional analysis scripts** needed. Write specs in your report under
+   "## Additional Analysis Scripts Needed". For each script, specify:
+   - What it computes
+   - Input data (which pkl files, what format)
+   - Expected output (plots, tables, metrics)
+   - Why it matters for the analysis
+
+5. **Save your report** and complete via orchestrator.
+
+## Available Data
+- Results pickle: `{results_dir.relative_to(WORKSPACE)}/*_results.pkl`
+- Histories pickle: `{results_dir.relative_to(WORKSPACE)}/*_histories.pkl`
+- Run log: `{results_dir.relative_to(WORKSPACE)}/run.log`
+- Auto-generated plots:
+{plots_list}
+- Auto-generated analysis: `{analysis_md_rel}`
+
+## Important
+- Use **extended thinking/reasoning** for deep analysis
+- All output files go in `{results_dir.relative_to(WORKSPACE)}/`
+- When done: `python3 scripts/pipeline_orchestrate.py {version} complete local_analysis_architect --agent architect --notes "your summary" --learnings "insights"`
+
+⚠️ **Session Protocol:** Fresh session. Read memory files first. Write learnings before completing."""
+
+    # Step 4: Wake architect with reasoning
+    print(f"\n   🔄 Resetting architect session for fresh context...")
+    reset_agent_session('architect')
+
+    pipeline_session_id = generate_session_id(version, 'architect')
+    print(f"   🆔 Pipeline session: {pipeline_session_id[:8]}...")
+
+    print(f"\n   🔔 Waking architect (with reasoning)...")
+    wake_result = wake_agent('architect', handoff_msg, timeout=AGENT_WAKE_TIMEOUT,
+                             session_id=pipeline_session_id)
+
+    if wake_result['success']:
+        print(f"   ✅ Architect responded")
+    elif wake_result['status'] == 'timeout':
+        print(f"   ⏱️  Architect timed out — checkpoint-and-resume...")
+        wake_result = checkpoint_and_resume(
+            'architect', version, 'local_analysis_architect', '', resume_count=0
+        )
+    else:
+        print(f"   ❌ Architect wake failed: {wake_result.get('error', 'unknown')}")
+
+    # Write handoff record
+    write_handoff(version, 'local_experiment_complete', 'local_analysis_architect',
+                  'architect', wake_result, pipeline_session_id)
+
+    # Notify
+    send_orchestrator_notification(version, '📊 Local analysis started',
+        f'Architect analyzing experiment results for <b>{version}</b>. '
+        f'Reasoning enabled for deep analysis.')
+
+    return wake_result.get('success', False)
+
+
+def orchestrate_report_build(version: str):
+    """Build the final LaTeX report and PDF from the approved analysis.
+
+    Called after local_analysis_code_review passes. Spawns a subagent
+    to convert the analysis report → LaTeX → PDF.
+
+    Returns True if report was built successfully.
+    """
+    print(f"\n{'═' * 70}")
+    print(f"  📄 ORCHESTRATOR: {version} — building LaTeX report")
+    print(f"{'═' * 70}\n")
+
+    results_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'notebooks' / 'local_results' / version
+    if not results_dir.exists():
+        results_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'notebooks' / 'local_results'
+
+    # Find the analysis report
+    report_md = results_dir / f'{version}_analysis_report.md'
+    if not report_md.exists():
+        report_md = results_dir / f'{version}_analysis.md'
+    if not report_md.exists():
+        print(f"   ❌ No analysis report found in {results_dir}")
+        return False
+
+    # List all images
+    images = sorted(results_dir.glob('*.png'))
+    image_list = '\n'.join(f'  - {img.name}' for img in images)
+
+    # Update stage
+    print(f"   📊 Starting local_analysis_report_build stage")
+    run_pipeline_update([
+        version, 'start', 'local_analysis_report_build',
+        '--agent', 'system',
+        '--notes', f'Building LaTeX report from {report_md.name}'
+    ])
+
+    # Try auto-build first via pandoc
+    print(f"\n   📋 Attempting pandoc auto-build...")
+    build_cmd = [
+        sys.executable,
+        str(WORKSPACE / 'scripts' / 'build_report.py'),
+        version,
+    ]
+    result = subprocess.run(build_cmd, capture_output=True, text=True,
+                           cwd=str(WORKSPACE), timeout=120)
+    print(result.stdout)
+
+    pdf_path = results_dir / f'{version}_report.pdf'
+    if pdf_path.exists():
+        size_kb = pdf_path.stat().st_size / 1024
+        print(f"   ✅ PDF generated: {pdf_path.relative_to(WORKSPACE)} ({size_kb:.1f} KB)")
+
+        # Complete the stage
+        run_pipeline_update([
+            version, 'complete', 'local_analysis_report_build',
+            '--agent', 'system',
+            '--notes', f'LaTeX report built. PDF: {pdf_path.relative_to(WORKSPACE)} ({size_kb:.1f} KB)'
+        ])
+
+        send_orchestrator_notification(version, '📄 Report built',
+            f'PDF report generated for <b>{version}</b>: '
+            f'<code>{pdf_path.relative_to(WORKSPACE)}</code> ({size_kb:.1f} KB)')
+
+        return True
+
+    # Pandoc failed — fall back to builder agent with reasoning
+    print(f"\n   ⚠️  Auto-build failed. Spawning builder agent for LaTeX report...")
+
+    report_task = f"""📄 Build LaTeX Report — {version}
+
+⚠️ **REASONING REQUIRED** — Use extended thinking for professional report formatting.
+
+The analysis for pipeline `{version}` has been approved. Your job is to turn the
+approved analysis report into a professional LaTeX document and compile it to PDF.
+
+## Source Material
+- **Analysis report:** `{report_md.relative_to(WORKSPACE)}`
+- **Results directory:** `{results_dir.relative_to(WORKSPACE)}/`
+- **Available images:**
+{image_list}
+
+## Instructions
+
+1. **Read the analysis report** thoroughly
+2. **Write a professional LaTeX document** at `{results_dir.relative_to(WORKSPACE)}/{version}_report.tex`:
+   - Title page with pipeline metadata (name, date, experiment count, duration)
+   - Table of contents
+   - Executive summary
+   - All sections from the analysis report, properly formatted
+   - All plots as figures with captions (use \\includegraphics with relative paths)
+   - Properly formatted tables using booktabs
+   - Conclusions section
+   - References to plot files use relative paths (just the filename, e.g. accuracy_summary.png)
+
+3. **Compile to PDF:**
+   ```bash
+   cd {results_dir}
+   pdflatex -interaction=nonstopmode {version}_report.tex
+   pdflatex -interaction=nonstopmode {version}_report.tex
+   ```
+
+4. **Verify** the PDF exists and has reasonable size (>50KB with images)
+
+5. **Complete via orchestrator:**
+   ```
+   python3 scripts/pipeline_orchestrate.py {version} complete local_analysis_report_build --agent builder --notes "LaTeX report compiled" --learnings "..."
+   ```
+
+## Style
+- 11pt article, a4paper, 2.5cm margins
+- booktabs tables, float [H] figures
+- hyperref with dark blue links
+- fancyhdr headers/footers
+- Section numbering
+- lmodern fonts"""
+
+    # Wake builder for LaTeX
+    reset_agent_session('builder')
+    session_id = generate_session_id(version, 'builder')
+    wake_result = wake_agent('builder', report_task, timeout=AGENT_WAKE_TIMEOUT,
+                             session_id=session_id)
+
+    if wake_result['success']:
+        print(f"   ✅ Builder responded — building LaTeX report")
+    elif wake_result['status'] == 'timeout':
+        wake_result = checkpoint_and_resume(
+            'builder', version, 'local_analysis_report_build', '', resume_count=0
+        )
+    else:
+        print(f"   ❌ Builder failed: {wake_result.get('error', 'unknown')}")
+
+    write_handoff(version, 'local_analysis_code_review', 'local_analysis_report_build',
+                  'builder', wake_result, session_id)
+
+    return wake_result.get('success', False)
 
 
 def orchestrate_start(version: str, stage: str, agent: str, notes: str = ''):
@@ -1038,12 +1530,28 @@ def main():
             sys.exit(1)
         orchestrate_status(version, new_status)
 
+    elif action == 'revise':
+        context = flags.get('context', positional[0] if positional else '')
+        revision_num = int(flags['revision']) if 'revision' in flags else None
+        if not context:
+            print("Usage: pipeline_orchestrate.py <version> revise --context \"revision directions...\"")
+            print("  Optional: --revision <num>  (auto-increments if omitted)")
+            sys.exit(1)
+        orchestrate_revise(version, context, revision_num)
+
     elif action == 'verify':
         orchestrate_verify(version)
 
+    elif action in ('run-experiment', 'run', 'experiment'):
+        dry_run = 'dry-run' in flags or 'dry_run' in flags
+        max_retries = int(flags.get('max-retries', flags.get('max_retries', '2')))
+        no_recovery = 'no-recovery' in flags or 'no_recovery' in flags
+        orchestrate_local_run(version, dry_run=dry_run, max_retries=max_retries,
+                               no_recovery=no_recovery)
+
     else:
         print(f"Unknown action: {action}")
-        print("Actions: show, complete, block, start, status, verify")
+        print("Actions: show, complete, block, start, status, verify, revise, run-experiment")
         print("Global: --check-pending")
         sys.exit(1)
 

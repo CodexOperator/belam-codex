@@ -568,6 +568,444 @@ def check_stalled(dry_run: bool = False, skip_versions: set = None) -> list[str]
     return rekicked
 
 
+def check_pending_revisions(dry_run: bool = False) -> list[str]:
+    """
+    Check for pending revision requests and kick off eligible revisions.
+    
+    Revision request files live at:
+        pipeline_builds/{version}_revision_request.md
+    
+    Format (YAML frontmatter):
+        ---
+        version: build-equilibrium-snn
+        context_file: research/v4_deep_analysis_findings.md
+        section: "## For BUILD-EQUILIBRIUM-SNN"
+        priority: critical
+        created: 2026-03-19T03:15:00Z
+        ---
+        Optional extra context here.
+    
+    The request is consumed (deleted) after the revision is kicked.
+    Only one revision at a time (respects active-pipeline lock).
+    
+    Returns list of versions where revisions were kicked.
+    """
+    print(f"\n🔄 Checking for pending revision requests...\n")
+    kicked = []
+
+    # Enforce one-at-a-time
+    active = get_active_agent_pipeline()
+    if active:
+        print(f"  🔒 Pipeline '{active}' has active agent work — skipping revisions")
+        return kicked
+
+    # Scan for revision request files
+    request_files = sorted(BUILDS_DIR.glob('*_revision_request.md'))
+    if not request_files:
+        print("  No pending revision requests.")
+        return kicked
+
+    # Parse and sort by priority
+    requests = []
+    priority_order = {'critical': 0, 'high': 1, 'normal': 2, 'low': 3}
+    for rf in request_files:
+        fm = load_pipeline_frontmatter(rf)
+        version = fm.get('version', rf.stem.replace('_revision_request', ''))
+        requests.append({
+            'file': rf,
+            'version': version,
+            'frontmatter': fm,
+            'priority': fm.get('priority', 'normal'),
+        })
+    requests.sort(key=lambda r: priority_order.get(r['priority'], 2))
+
+    print(f"  Found {len(requests)} revision request(s): {', '.join(r['version'] for r in requests)}")
+
+    for req in requests:
+        version = req['version']
+        fm = req['frontmatter']
+
+        # Verify pipeline is at phase1_complete
+        state = load_state_json(version)
+        pending = state.get('pending_action', '')
+        if pending != 'phase1_complete' and not pending.startswith('phase1_revision'):
+            print(f"  ⏭️  {version}: not at phase1_complete (pending={pending}) — skipping")
+            continue
+
+        # Build revision context
+        context_parts = []
+
+        # Load context from referenced file + section if specified
+        context_file = fm.get('context_file', '')
+        section_header = fm.get('section', '')
+        if context_file:
+            context_path = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / context_file
+            if not context_path.exists():
+                # Try relative to workspace
+                context_path = WORKSPACE / context_file
+            if context_path.exists():
+                full_text = context_path.read_text()
+                if section_header:
+                    # Extract the specific section
+                    section_text = _extract_section(full_text, section_header)
+                    if section_text:
+                        context_parts.append(section_text)
+                    else:
+                        # Section not found — use full file
+                        context_parts.append(full_text)
+                else:
+                    context_parts.append(full_text)
+            else:
+                print(f"  ⚠️  Context file not found: {context_file}")
+
+        # Also include body text from the request file itself
+        body = _extract_body(req['file'])
+        if body.strip():
+            context_parts.append(body)
+
+        if not context_parts:
+            print(f"  ⚠️  {version}: no context could be loaded — skipping")
+            continue
+
+        context = '\n\n'.join(context_parts)
+
+        print(f"  ✅ {version}: eligible for revision (priority: {req['priority']})")
+
+        if dry_run:
+            print(f"     [DRY RUN] Would trigger revision for {version}")
+            kicked.append(version)
+            break
+
+        # Trigger the revision via orchestrator
+        try:
+            sys.path.insert(0, str(SCRIPTS))
+            from pipeline_orchestrate import orchestrate_revise
+            result = orchestrate_revise(version, context)
+            if result is not False:
+                print(f"  ✅ Revision kicked for {version}")
+                # Consume the request file
+                req['file'].unlink()
+                print(f"  🗑️  Consumed request: {req['file'].name}")
+                kicked.append(version)
+            else:
+                print(f"  ❌ Revision failed for {version}")
+        except Exception as e:
+            print(f"  ❌ Revision error for {version}: {e}")
+
+        # ONE at a time
+        break
+
+    return kicked
+
+
+def _extract_section(text: str, header: str) -> str:
+    """Extract a markdown section by header prefix (e.g. '## For BUILD-EQUILIBRIUM-SNN')."""
+    header_clean = header.lstrip('#').strip()
+    lines = text.split('\n')
+    capture = False
+    captured = []
+    header_level = None
+
+    for line in lines:
+        if not capture:
+            # Match if the line contains the header text
+            stripped = line.lstrip('#').strip()
+            if header_clean.lower() in stripped.lower():
+                capture = True
+                header_level = len(line) - len(line.lstrip('#'))
+                captured.append(line)
+        else:
+            # Stop at next section of same or higher level
+            if line.startswith('#'):
+                level = len(line) - len(line.lstrip('#'))
+                if level <= header_level:
+                    break
+            captured.append(line)
+
+    return '\n'.join(captured) if captured else ''
+
+
+def _extract_body(path: Path) -> str:
+    """Extract body text (after YAML frontmatter) from a markdown file."""
+    text = path.read_text()
+    if text.startswith('---'):
+        try:
+            end = text.index('---', 3)
+            return text[end + 3:].strip()
+        except ValueError:
+            return text
+    return text
+
+
+def check_analysis_eligible(dry_run: bool = False) -> list[str]:
+    """
+    Check for pipelines at experiment_complete that are ready for local analysis.
+
+    A pipeline is eligible if:
+    - status is experiment_complete
+    - Not already in local_analysis stages
+    - No active agent work on other pipelines (one at a time)
+
+    Auto-launches the analysis orchestration loop.
+    Returns list of versions launched.
+    """
+    print(f"\n📊 Checking for analysis-eligible pipelines...\n")
+    launched = []
+
+    # Check for active agent work
+    active = get_active_agent_pipeline()
+    if active:
+        print(f"  🔒 Pipeline '{active}' has active agent work — skipping analysis")
+        return launched
+
+    pipelines = get_active_pipelines()
+    eligible = []
+
+    for p in pipelines:
+        version = p['version']
+        status = p['status']
+        pending = p['pending_action']
+
+        # Must be at experiment_complete
+        if status != 'experiment_complete' and pending != 'local_experiment_complete':
+            continue
+
+        # Skip if already in analysis
+        if 'local_analysis' in status or 'local_analysis' in pending:
+            continue
+
+        eligible.append(p)
+
+    if not eligible:
+        print("  No analysis-eligible pipelines.")
+        return launched
+
+    # Priority order
+    priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+    eligible.sort(key=lambda p: priority_order.get(p['frontmatter'].get('priority', 'medium'), 2))
+
+    for p in eligible:
+        version = p['version']
+        print(f"  ✅ {version}: eligible for local analysis (priority: {p['frontmatter'].get('priority', '?')})")
+
+        if dry_run:
+            print(f"     [DRY RUN] Would launch analysis for {version}")
+            launched.append(version)
+            break
+
+        try:
+            sys.path.insert(0, str(SCRIPTS))
+            from pipeline_orchestrate import orchestrate_local_analysis
+            result = orchestrate_local_analysis(version)
+            if result:
+                print(f"  🚀 Analysis loop launched for {version}")
+                launched.append(version)
+            else:
+                print(f"  ❌ Failed to launch analysis for {version}")
+        except Exception as e:
+            print(f"  ❌ Analysis launch error for {version}: {e}")
+            import traceback
+            traceback.print_exc()
+
+        # ONE at a time
+        break
+
+    return launched
+
+
+def check_experiment_eligible(dry_run: bool = False) -> list[str]:
+    """
+    Check for pipelines at phase1_complete that are ready for experiment runs.
+
+    A pipeline is eligible if:
+    - status is phase1_complete or pending_action is phase1_complete
+    - No pending revision requests exist for it
+    - No experiment is currently running (PID file check)
+    - No other experiment is currently running (one at a time)
+
+    Auto-launches run_experiment.py via orchestrator.
+    Returns list of versions launched.
+    """
+    print(f"\n🧪 Checking for experiment-eligible pipelines...\n")
+    launched = []
+
+    # Check if any experiment is already running
+    for pid_file in BUILDS_DIR.glob('*_experiment.pid'):
+        try:
+            import json as _json
+            pid_info = _json.loads(pid_file.read_text())
+            pid = pid_info.get('pid')
+            os.kill(pid, 0)  # Check if alive
+            version_running = pid_info.get('version', pid_file.stem.replace('_experiment', ''))
+            print(f"  🔒 Experiment already running: {version_running} (PID: {pid})")
+            return launched
+        except (OSError, ProcessLookupError):
+            # PID dead — clean up stale file
+            print(f"  🗑️  Cleaning stale experiment PID: {pid_file.name}")
+            pid_file.unlink()
+
+    # Check for active agent work (don't start experiments while agents are working)
+    active = get_active_agent_pipeline()
+    if active:
+        print(f"  🔒 Pipeline '{active}' has active agent work — skipping experiments")
+        return launched
+
+    # Find pipelines at phase1_complete with no pending revisions
+    revision_versions = set()
+    for rf in BUILDS_DIR.glob('*_revision_request.md'):
+        fm = load_pipeline_frontmatter(rf)
+        version = fm.get('version', rf.stem.replace('_revision_request', ''))
+        revision_versions.add(version)
+
+    pipelines = get_active_pipelines()
+    eligible = []
+
+    for p in pipelines:
+        version = p['version']
+        pending = p['pending_action']
+        status = p['status']
+
+        # Must be at phase1_complete
+        if pending != 'phase1_complete' and status != 'phase1_complete':
+            continue
+
+        # Skip if pending revision
+        if version in revision_versions:
+            print(f"  ⏭️  {version}: has pending revision request — skipping experiments")
+            continue
+
+        # Skip if already has experiment results and completed
+        if status == 'experiment_complete':
+            continue
+
+        # Skip if experiment is already running
+        if status == 'experiment_running':
+            continue
+
+        eligible.append(p)
+
+    if not eligible:
+        print("  No experiment-eligible pipelines.")
+        return launched
+
+    # Priority order
+    priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}
+    eligible.sort(key=lambda p: priority_order.get(p['frontmatter'].get('priority', 'medium'), 2))
+
+    for p in eligible:
+        version = p['version']
+        print(f"  ✅ {version}: eligible for experiment run (priority: {p['frontmatter'].get('priority', '?')})")
+
+        if dry_run:
+            print(f"     [DRY RUN] Would launch experiments for {version}")
+            launched.append(version)
+            break
+
+        # Launch via orchestrator
+        try:
+            sys.path.insert(0, str(SCRIPTS))
+            from pipeline_orchestrate import orchestrate_local_run
+            result = orchestrate_local_run(version)
+            if result:
+                print(f"  🚀 Experiment runner launched for {version}")
+                launched.append(version)
+            else:
+                print(f"  ❌ Failed to launch experiments for {version}")
+        except Exception as e:
+            print(f"  ❌ Launch error for {version}: {e}")
+            import traceback
+            traceback.print_exc()
+
+        # ONE at a time
+        break
+
+    return launched
+
+
+def check_running_experiments(dry_run: bool = False) -> list[str]:
+    """
+    Monitor running experiments and report status.
+
+    Checks PID files for running experiments, reports progress,
+    detects stuck/dead experiments.
+
+    Returns list of versions with completed experiments detected.
+    """
+    print(f"\n📊 Checking running experiments...\n")
+    completed = []
+
+    for pid_file in sorted(BUILDS_DIR.glob('*_experiment.pid')):
+        try:
+            import json as _json
+            pid_info = _json.loads(pid_file.read_text())
+        except Exception:
+            continue
+
+        pid = pid_info.get('pid')
+        version = pid_info.get('version', pid_file.stem.replace('_experiment', ''))
+        started = pid_info.get('started', '')
+
+        # Check if process is alive
+        try:
+            os.kill(pid, 0)
+            # Process alive — check how long it's been running
+            if started:
+                from datetime import datetime as dt
+                start_dt = dt.fromisoformat(started)
+                elapsed = (dt.now(timezone.utc) - start_dt).total_seconds() / 60
+                print(f"  🔬 {version}: running (PID: {pid}, {elapsed:.0f}min elapsed)")
+
+                # Check log for progress
+                log_file = RESULTS_BASE / version / 'run.log'
+                if log_file.exists():
+                    lines = log_file.read_text().strip().split('\n')
+                    # Find last progress line
+                    for line in reversed(lines[-10:]):
+                        if line.startswith('[') and '/' in line:
+                            print(f"     Last progress: {line.strip()}")
+                            break
+
+            else:
+                print(f"  🔬 {version}: running (PID: {pid})")
+
+        except (OSError, ProcessLookupError):
+            # Process dead
+            print(f"  💀 {version}: experiment process dead (PID: {pid})")
+
+            # Check if it completed successfully
+            results_dir = RESULTS_BASE / version
+            results_summary = BUILDS_DIR / f'{version}_experiment_results.md'
+
+            if results_summary.exists():
+                print(f"     ✅ Results summary exists — likely completed before PID cleanup")
+                completed.append(version)
+            else:
+                print(f"     ⚠️  No results summary — experiment may have crashed")
+                # Check if pipeline stage was updated
+                state = load_state_json(version)
+                if state.get('pending_action') == 'local_experiment_complete':
+                    print(f"     ✅ Pipeline shows experiment_complete — cleaning up")
+                    completed.append(version)
+                else:
+                    print(f"     ❌ Pipeline stuck at experiment_running with dead process")
+                    if not dry_run:
+                        # Reset pipeline to phase1_complete so it can be retried
+                        print(f"     🔄 Resetting to phase1_complete for retry")
+                        run_cmd = [sys.executable, str(SCRIPTS / 'pipeline_update.py'),
+                                  version, 'status', 'phase1_complete']
+                        subprocess.run(run_cmd, capture_output=True)
+
+            # Clean up PID file
+            if not dry_run:
+                pid_file.unlink()
+                print(f"     🗑️  Cleaned PID file")
+
+    if not list(BUILDS_DIR.glob('*_experiment.pid')):
+        print("  No experiments currently running.")
+
+    return completed
+
+
 def kick_one(version: str, dry_run: bool = False) -> bool:
     """Kick a specific pipeline regardless of gate/stall status."""
     print(f"\n🎯 Direct kick: {version}\n")
@@ -580,6 +1018,8 @@ def main():
     parser.add_argument('--check-gates', action='store_true', help='Check gates and kick eligible pipelines')
     parser.add_argument('--check-stalled', action='store_true', help='Check for stalled pipelines and re-kick')
     parser.add_argument('--check-locks', action='store_true', help='Check for stale session locks only')
+    parser.add_argument('--check-revisions', action='store_true', help='Check for pending revision requests')
+    parser.add_argument('--check-experiments', action='store_true', help='Check for experiment-eligible pipelines')
     parser.add_argument('--dry-run', action='store_true', help='Report only, do not kick')
     parser.add_argument('--one', type=str, help='Kick one specific pipeline')
     args = parser.parse_args()
@@ -599,16 +1039,32 @@ def main():
         check_stale_locks(args.dry_run)
         return
 
-    # Default: run all checks
-    run_gates = args.check_gates or (not args.check_gates and not args.check_stalled)
-    run_stalled = args.check_stalled or (not args.check_gates and not args.check_stalled)
+    # Determine which checks to run
+    explicit = args.check_gates or args.check_stalled or args.check_revisions or args.check_experiments
+    run_gates = args.check_gates or not explicit
+    run_stalled = args.check_stalled or not explicit
+    run_revisions = args.check_revisions or not explicit
+    run_experiments = args.check_experiments or not explicit
 
     # Always check stale locks first — they block everything else
     stale_agents = check_stale_locks(args.dry_run)
 
+    # Always check running experiments (monitoring, not launching)
+    experiment_completed = check_running_experiments(args.dry_run)
+
     kicked = []
     if run_gates:
         kicked += check_gates(args.dry_run)
+    if run_revisions and not kicked:
+        kicked += check_pending_revisions(args.dry_run)
+    # Auto-launch analysis for experiment_complete pipelines (before new experiments)
+    if not kicked:
+        analysis_launched = check_analysis_eligible(args.dry_run)
+        kicked += analysis_launched
+    if run_experiments and not kicked:
+        # Auto-launch experiments for phase1_complete pipelines
+        launched = check_experiment_eligible(args.dry_run)
+        kicked += launched
     if run_stalled:
         if kicked:
             # A pipeline was just kicked — don't start another one
@@ -622,9 +1078,11 @@ def main():
     print(f"\n{'─' * 60}")
     if stale_agents:
         print(f"  🔒 Cleared stale locks for: {', '.join(set(stale_agents))}")
+    if experiment_completed:
+        print(f"  🧪 Experiments completed: {', '.join(experiment_completed)}")
     if kicked:
         print(f"  📊 Kicked {len(kicked)} pipeline(s): {', '.join(kicked)}")
-    if not kicked and not stale_agents:
+    if not kicked and not stale_agents and not experiment_completed:
         print(f"  📊 No action needed — all pipelines healthy or gated.")
     print(f"{'─' * 60}\n")
 

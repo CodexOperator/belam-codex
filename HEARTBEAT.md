@@ -15,9 +15,13 @@ The primary heartbeat responsibility: move work forward. This is now **fully aut
    python3 scripts/pipeline_autorun.py
    ```
    This automatically:
+   - Clears stale session locks (dead/hung agent PIDs)
+   - Monitors running experiments (progress, dead process recovery)
    - Checks analysis gates → kicks off downstream pipelines when gates open
+   - Checks pending revision requests → kicks revisions from `pipeline_builds/*_revision_request.md`
+   - Auto-launches experiments for `phase1_complete` pipelines (priority-ordered)
    - Detects stalled pipelines (>2h no activity) → re-kicks them with checkpoint-and-resume
-   - No human or LLM judgment required — pure event-driven logic
+   - One pipeline at a time, priority-ordered — pure event-driven logic
 
 2. **Check open tasks** (still needs judgment):
    ```bash

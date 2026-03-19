@@ -8,6 +8,7 @@ source: v4-notebook-benchmarking
 confidence: high
 tags: [gpu, parallelism, performance, colab, t4]
 related: [beta-convergence, snn-treats-like-weird-cnn]
+supersedes: tiny-snn-gpu-parallelism
 ---
 
 # GPU Parallel Worker Thrashing on Tesla T4

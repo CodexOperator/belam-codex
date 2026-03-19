@@ -55,11 +55,207 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (13)
+lessons/ (14)  (+1 archived/superseded)
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
@@ -72,23 +268,25 @@ lessons/ (13)
   ├─ sessions-send-timeout-filesystem-first  sessions_send Timeouts — Use Filesystem-First Coordination  [multi-agent,coordination,sessions-send,timeout]
   ├─ snn-treats-like-weird-cnn  Don't Treat SNNs Like Weird CNNs  high  [snn,architecture,critical]
   ├─ telegram-bots-cant-see-bots  Telegram Bots Cannot See Other Bots' Messages  high  [telegram,agents,infrastructure]
-  └─ tiny-snn-gpu-parallelism  Tiny SNN Models Need Aggressive GPU Parallelism, Not Memo...  high  [gpu,parallelism,performance,infrastructure]
+  ├─ torch-buffer-requires-tensor-assignment  torch.nn.Buffer Requires Tensor Assignment, Not Float  high  [snn,pytorch,debugging]
+  └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (15)
+decisions/ (16)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
-  ├─ derivative-specialist-skill  Derivative Specialist Skill  skill:derivative-specialist  [derivatives,pricing,volatility,knowledge]
+  ├─ derivative-specialist-skill  Derivative Specialist Skill  [derivatives,pricing,volatility,knowledge]
   ├─ hierarchical-memory-system  Hierarchical Memory Consolidation System  [infrastructure,memory-system,cron,knowledge-graph]
   ├─ memory-as-index-not-store  MEMORY.md as Boot Index, Not Knowledge Store  [infrastructure,memory,primitives]
   ├─ memory-as-primitive-type  Memory Hierarchy as Primitive Type  [memory,primitives,hierarchy,infrastructure]
   ├─ orchestration-architecture  Centralized Orchestration Architecture  skill:orchestration  [infrastructure,orchestration,agents,architecture]
   ├─ population-coding-over-delta  Population Coding Over Delta Encoding (Default)  [encoding,snn,decision]
-  ├─ predictionmarket-specialist-skill  Prediction Market Specialist Skill  skill:predictionmarket-specialist  [prediction-markets,microstructure,market-making,knowledge]
-  ├─ quant-infrastructure-skill  Quant Infrastructure Skill  skill:quant-infrastructure  [infrastructure,backtesting,gpu,data]
-  ├─ quant-workflow-skill  Quant Workflow Skill  skill:quant-workflow  [methodology,statistics,overfitting,workflow]
+  ├─ predictionmarket-specialist-skill  Prediction Market Specialist Skill  [prediction-markets,microstructure,market-making,knowledge]
+  ├─ quant-infrastructure-skill  Quant Infrastructure Skill  [infrastructure,backtesting,gpu,data]
+  ├─ quant-workflow-skill  Quant Workflow Skill  [methodology,statistics,overfitting,workflow]
   ├─ skill-extraction-from-reports  Extract Domain Reports Into Skills + Knowledge Files  [skills,knowledge,workflow]
   ├─ skill-primitive-pairing  Every Skill Gets a Primitive  [skills,primitives,conventions,knowledge-management]
+  ├─ superseded-primitive-lifecycle  Superseded Primitive Lifecycle  [primitives,conventions,lifecycle,boot-optimization]
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
 tasks/ (4)
@@ -104,7 +302,53 @@ projects/ (5)
   ├─ snn-applied-finance  SNN Applied Finance  active  [snn,finance,crypto,trading]
   └─ snn-standard-benchmarks  SNN Standard Model Benchmarks  complete  [snn,research,benchmarking]
 
-_Updated: 2026-03-18 22:49 UTC_
+pipelines/ (3)  (+2 archived/superseded)
+  ├─ build-equilibrium-snn  Implementation Pipeline: BUILD-EQUILIBRIUM-SNN  experiment_complete/critical  started:2026-03-17  [snn,architecture,streaming]
+  ├─ stack-specialists  Implementation Pipeline: STACK-SPECIALISTS  experiment_running/high  started:2026-03-17  [snn,ensemble,specialists]
+  └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  experiment_running/high  started:2026-03-17  [validation,statistics,snn]
+
+commands/ (28)
+  ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,experiment,local,plots]
+  ├─ analyze  belam analyze  belam analyze <ver>  analysis  [analysis,experiment,phase2]
+  ├─ audit  belam audit  belam audit  primitives  [audit,primitives,consistency,maintenance]
+  ├─ autorun  belam autorun  belam autorun  pipeline  [autorun,automation,gates,stall-detection]
+  ├─ build  belam build  belam build <ver>  pipeline  [build,notebook,execution]
+  ├─ cleanup  belam cleanup  belam cleanup  infrastructure  [cleanup,sessions,maintenance]
+  ├─ consolidate  belam consolidate  belam consolidate  memory  [memory,consolidation,maintenance]
+  ├─ conversations  belam conversations  belam conversations  infrastructure  [conversations,export,agents]
+  ├─ create  belam create  belam create <type>  primitives  [create,primitives,scaffolding]
+  ├─ decisions  belam decisions  belam decisions  primitives  [decisions,architecture,list]
+  ├─ edit  belam edit  belam edit <primitive>  primitives  [edit,primitives,fuzzy-match,frontmatter]
+  ├─ embed-primitives  belam embed-primitives  belam embed-primitives  primitives  [embed,primitives,index,regenerate]
+  ├─ kickoff  belam kickoff  belam kickoff <ver>  pipeline  [kickoff,pipeline,architect,launch]
+  ├─ knowledge-sync  belam knowledge-sync  belam knowledge-sync  memory  [knowledge,sync,weekly,maintenance]
+  ├─ lessons  belam lessons  belam lessons  primitives  [lessons,knowledge,list]
+  ├─ log  belam log  belam log "msg"  memory  [memory,log,quick-entry]
+  ├─ notebooks  belam notebooks  belam notebooks  infrastructure  [notebooks,list]
+  ├─ orchestrate  belam orchestrate  belam orchestrate  pipeline  [orchestration,direct-access,stages]
+  ├─ pipeline  belam pipeline  belam pipeline <ver>  pipeline  [pipeline,detail,stages,watch]
+  ├─ pipelines  belam pipelines  belam pipelines  pipeline  [pipelines,dashboard,status]
+  ├─ projects  belam projects  belam projects  primitives  [projects,list,overview]
+  ├─ queue-revision  belam queue-revision  belam queue-revision <ver> [opts]  pipeline  [revision,queue,autorun,pipeline]
+  ├─ report  belam report  belam report <ver>  analysis  [report,latex,pdf,analysis]
+  ├─ revise  belam revise  belam revise <ver> --context "..."  pipeline  [revision,phase1,architect,critic]
+  ├─ run  belam run <ver>  belam run <ver>  experiment
+  ├─ status  belam status  belam status  infrastructure  [overview,dashboard,status]
+  ├─ task  belam task  belam task <name>  primitives  [task,detail,fuzzy-match]
+  └─ tasks  belam tasks  belam tasks  primitives  [tasks,list,status]
+
+skills/ (3)
+  ├─ launch-pipeline  launch-pipeline  Launch and kick off implementation pipelines fr...
+  ├─ orchestration  orchestration  Pipeline orchestration infrastructure — the scr...
+  └─ pipelines  pipelines  List, create, check, and archive Implementation...
+
+knowledge/ (4)
+  ├─ derivative-specialist  derivative-specialist  Derivatives pricing engineering — volatility su...  [derivatives,pricing,volatility,greeks]
+  ├─ predictionmarket-specialist  predictionmarket-specialist  Prediction market mechanics and market microstr...  [prediction-markets,microstructure,market-making,lmsr]
+  ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
+  └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
+
+_Updated: 2026-03-19 16:50 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -112,9 +356,9 @@ _Updated: 2026-03-18 22:49 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-18 22:49 UTC)
-├── daily/      6 active  2026-03-12 → 2026-03-19
-├── entries/    48 indexed
+Memory (2026-03-19 16:50 UTC)
+├── daily/      7 active  2026-03-12 → 2026-03-20
+├── entries/    62 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

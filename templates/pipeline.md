@@ -12,7 +12,7 @@ fields:
     type: string
     required: true
     default: phase1_design
-    enum: [phase1_design, phase1_critique, phase1_revision, phase1_build, phase1_code_review, phase1_complete, phase2_feedback, phase2_revision, phase2_rebuild, phase2_code_review, phase2_complete, phase3_proposed, phase3_approved, phase3_build, phase3_code_review, phase3_complete, archived]
+    enum: [phase1_design, phase1_critique, phase1_revision, phase1_build, phase1_code_review, phase1_complete, experiment_running, experiment_complete, phase2_feedback, phase2_revision, phase2_rebuild, phase2_code_review, phase2_complete, phase3_proposed, phase3_approved, phase3_build, phase3_code_review, phase3_complete, archived]
   priority:
     type: string
     enum: [critical, high, medium, low]
@@ -68,7 +68,7 @@ _{What this notebook version explores}_
 
 ## Notebook Convention
 
-**All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section, with subsections for that phase's experiments, results, and analysis. Shared infrastructure (data loading, encodings, model classes, baselines) appears once at the top.
+**All phases live in a single notebook** (`crypto_{version}_predictor.ipynb`). Each pipeline phase is a top-level section, with subsections for that phase's experiments, results, and analysis. Shared infrastructure (data loading, encodings, model classes, baselines) appears once at the top.
 
 ### Progress Bars — NO INTERACTIVE/DYNAMIC PROGRESS BARS
 
@@ -181,9 +181,12 @@ Critic reviews    → [orchestrate complete] → auto-wakes Builder
 Builder builds    → [orchestrate complete] → auto-wakes Critic
 Critic code-reviews → [orchestrate complete] → auto-wakes Architect
                     → [orchestrate block]    → auto-wakes Builder
+Phase 1 complete → [autorun] → local_experiment_running (process stage)
+Experiments done → [self-reports] → local_experiment_complete → Phase 2
 ```
 
 Same pattern for Phase 2 and Phase 3. The orchestrator knows all transitions.
+Experiment stage is a **process stage** — run_experiment.py self-reports, no agent handoff needed.
 
 ## ⚠️ MANDATORY GATE: Analysis Pipeline Must Complete First
 
@@ -200,11 +203,26 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 
+## Local Experiment Execution
+_Status: Auto-triggered on Phase 1 completion_
+
+Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-transitions:
+`phase1_complete` → `experiment_running` → `experiment_complete` → Phase 2
+
+- **Auto-triggered** by `pipeline_autorun.py` when Phase 1 completes
+- **Self-healing** — builder agent is invoked to fix runtime errors
+- **Manual trigger:** `belam run {version}`
+- **Results:** `notebooks/local_results/{version}/`
+
+### Experiment History
+| Run | Date | Duration | Experiments | Errors | Notes |
+|-----|------|----------|-------------|--------|-------|
+
 ## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on Phase 1 completion_
+_Status: Queued — auto-triggers on experiment completion_
 
 ### Feedback
-_(Shael's feedback goes here when provided)_
+_(Shael's feedback goes here when experiments are complete and reviewed)_
 
 ## Phase 3: Iterative Research (Autonomous or Human-Triggered)
 _Status: LOCKED — requires Phase 2 completion before activation_
@@ -247,4 +265,4 @@ Main Phase 3 iter 03 → ...
 - **Design:** `snn_applied_finance/research/pipeline_builds/{version}_architect_design.md`
 - **Review:** `snn_applied_finance/research/pipeline_builds/{version}_critic_design_review.md`
 - **State:** `snn_applied_finance/research/pipeline_builds/{version}_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb`
+- **Notebook:** `snn_applied_finance/notebooks/crypto_{version}_predictor.ipynb`

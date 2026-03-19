@@ -15,7 +15,7 @@ consequences:
   - "QuantLib is the reference implementation for validation"
 project: quant-knowledge-skills
 tags: [derivatives, pricing, volatility, knowledge]
-skill: derivative-specialist
+knowledge: derivative-specialist
 cli: "belam lessons (for derivative-related findings)"
 ---
 
@@ -23,7 +23,7 @@ cli: "belam lessons (for derivative-related findings)"
 
 ## Summary
 
-Extracted derivatives pricing domain knowledge into `skills/derivative-specialist/` as a shared OpenClaw skill. Covers the full pricing stack: volatility surface construction (SVI/SSVI with arbitrage-free constraints), Greeks computation (AAD preferred over finite differences), stochastic volatility models (Heston, SABR), Monte Carlo pricing with GPU acceleration and variance reduction, and GARCH calibration.
+Extracted derivatives pricing domain knowledge into `knowledge/derivative-specialist.md — ` as a shared OpenClaw skill. Covers the full pricing stack: volatility surface construction (SVI/SSVI with arbitrage-free constraints), Greeks computation (AAD preferred over finite differences), stochastic volatility models (Heston, SABR), Monte Carlo pricing with GPU acceleration and variance reduction, and GARCH calibration.
 
 ## Key Principles Encoded
 
@@ -39,4 +39,4 @@ SNN output layers that predict financial quantities need to respect derivatives 
 ## Related
 
 - `decisions/skill-extraction-from-reports.md` — the process that created this skill
-- `skills/derivative-specialist/SKILL.md` — full reference
+- `knowledge/derivative-specialist.md` — full reference
