@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: complete
 priority: high
 owner: builder
 tags: [snn, ensemble, specialists]

@@ -80,9 +80,9 @@ _Active implementation pipelines. Read when: checking build progress or phase ga
 
 ### Tasks
 _Read when: checking open/blocked/in-pipeline work._
-- `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [in_pipeline/critical]
-- `tasks/setup-vectorbt-nautilus-pipeline.md` — Set Up Two-Phase Backtest Pipeline [blocked/medium] →build-equilibrium-snn
-- `tasks/stack-specialist-ensemble.md` — Stack Specialist Micro-Networks [in_pipeline/high]
+- `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [complete/critical]
+- `tasks/setup-vectorbt-nautilus-pipeline.md` — Set Up Two-Phase Backtest Pipeline [open/medium] →build-equilibrium-snn
+- `tasks/stack-specialist-ensemble.md` — Stack Specialist Micro-Networks [complete/high]
 - `tasks/validate-scheme-b-more-folds.md` — Validate Scheme B Sharpe with 7+ Folds [in_pipeline/high]
 
 ### Decisions
@@ -90,11 +90,14 @@ _Read when: making architectural choices._
 - `decisions/aad-over-finite-differences.md` — AAD Over Finite Differences for Greeks [derivatives,greeks,infrastructure]
 - `decisions/agent-session-isolation.md` — Agent Session Isolation (skill:launch-pipeline) [infrastructure,agents,orchestration]
 - `decisions/agent-trio-architecture.md` — Architect / Critic / Builder Agent Trio (skill:pipelines) [agents,architecture,decision]
+- `decisions/clock-cycles-over-tokens.md` — Clock Cycles Over Tokens [infrastructure,cost,design-principle]
 - `decisions/derivative-specialist-skill.md` — Derivative Specialist Skill [derivatives,pricing,volatility]
 - `decisions/hierarchical-memory-system.md` — Hierarchical Memory Consolidation System [infrastructure,memory-system,cron]
+- `decisions/indexed-command-interface.md` — Indexed Command Interface as Default belam UX [infrastructure,cli,ux]
 - `decisions/memory-as-index-not-store.md` — MEMORY.md as Boot Index, Not Knowledge Store [infrastructure,memory,primitives]
 - `decisions/memory-as-primitive-type.md` — Memory Hierarchy as Primitive Type [memory,primitives,hierarchy]
 - `decisions/orchestration-architecture.md` — Centralized Orchestration Architecture (skill:orchestration) [infrastructure,orchestration,agents]
+- `decisions/phase2-human-gate.md` — Phase 2 Requires Explicit Human Approval [pipeline,gate,phase2]
 - `decisions/population-coding-over-delta.md` — Population Coding Over Delta Encoding (Default) [encoding,snn,decision]
 - `decisions/predictionmarket-specialist-skill.md` — Prediction Market Specialist Skill [prediction-markets,microstructure,market-making]
 - `decisions/quant-infrastructure-skill.md` — Quant Infrastructure Skill [infrastructure,backtesting,gpu]
@@ -127,6 +130,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/subprocess-run-doesnt-raise-on-failure.md` — subprocess.run Does Not Raise on Non-Zero Exit Code [?] [python,debugging,infrastructure]
 - `lessons/telegram-bots-cant-see-bots.md` — Telegram Bots Cannot See Other Bots' Messages [high] [telegram,agents,infrastructure]
 - `lessons/torch-buffer-requires-tensor-assignment.md` — torch.nn.Buffer Requires Tensor Assignment, Not Float [high] [snn,pytorch,debugging]
+- `lessons/use-scaffold-then-edit-not-overwrite.md` — use-scaffold-then-edit-not-overwrite [high] [infrastructure,primitives,conventions]
 - `lessons/verify-notebook-paths-resolve-before-automation.md` — Verify Notebook Paths Resolve Before Automation [high] [infrastructure,naming,automation]
 
 ### Commands

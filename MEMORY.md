@@ -505,11 +505,41 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (21)  (+1 archived/superseded)
+lessons/ (22)  (+1 archived/superseded)
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
@@ -530,17 +560,21 @@ lessons/ (21)  (+1 archived/superseded)
   ├─ subprocess-run-doesnt-raise-on-failure  subprocess.run Does Not Raise on Non-Zero Exit Code  [python,debugging,infrastructure]
   ├─ telegram-bots-cant-see-bots  Telegram Bots Cannot See Other Bots' Messages  high  [telegram,agents,infrastructure]
   ├─ torch-buffer-requires-tensor-assignment  torch.nn.Buffer Requires Tensor Assignment, Not Float  high  [snn,pytorch,debugging]
+  ├─ use-scaffold-then-edit-not-overwrite  use-scaffold-then-edit-not-overwrite  high  [infrastructure,primitives,conventions,clock-cycles]
   └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (17)
+decisions/ (20)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
+  ├─ clock-cycles-over-tokens  Clock Cycles Over Tokens  [infrastructure,cost,design-principle,tokens]
   ├─ derivative-specialist-skill  Derivative Specialist Skill  [derivatives,pricing,volatility,knowledge]
   ├─ hierarchical-memory-system  Hierarchical Memory Consolidation System  [infrastructure,memory-system,cron,knowledge-graph]
+  ├─ indexed-command-interface  Indexed Command Interface as Default belam UX  [infrastructure,cli,ux,belam]
   ├─ memory-as-index-not-store  MEMORY.md as Boot Index, Not Knowledge Store  [infrastructure,memory,primitives]
   ├─ memory-as-primitive-type  Memory Hierarchy as Primitive Type  [memory,primitives,hierarchy,infrastructure]
   ├─ orchestration-architecture  Centralized Orchestration Architecture  skill:orchestration  [infrastructure,orchestration,agents,architecture]
+  ├─ phase2-human-gate  Phase 2 Requires Explicit Human Approval  [pipeline,gate,phase2,infrastructure]
   ├─ population-coding-over-delta  Population Coding Over Delta Encoding (Default)  [encoding,snn,decision]
   ├─ predictionmarket-specialist-skill  Prediction Market Specialist Skill  [prediction-markets,microstructure,market-making,knowledge]
   ├─ quant-infrastructure-skill  Quant Infrastructure Skill  [infrastructure,backtesting,gpu,data]
@@ -552,9 +586,9 @@ decisions/ (17)
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
 tasks/ (4)
-  ├─ build-equilibrium-snn  Build Equilibrium SNN Architecture  in_pipeline/critical  [snn,architecture,streaming]
-  ├─ setup-vectorbt-nautilus-pipeline  Set Up Two-Phase Backtest Pipeline  blocked/medium  →build-equilibrium-snn  [backtesting,infrastructure]
-  ├─ stack-specialist-ensemble  Stack Specialist Micro-Networks  in_pipeline/high  [snn,ensemble,specialists]
+  ├─ build-equilibrium-snn  Build Equilibrium SNN Architecture  complete/critical  [snn,architecture,streaming]
+  ├─ setup-vectorbt-nautilus-pipeline  Set Up Two-Phase Backtest Pipeline  open/medium  →build-equilibrium-snn  [backtesting,infrastructure]
+  ├─ stack-specialist-ensemble  Stack Specialist Micro-Networks  complete/high  [snn,ensemble,specialists]
   └─ validate-scheme-b-more-folds  Validate Scheme B Sharpe with 7+ Folds  in_pipeline/high  [validation,statistics,snn]
 
 projects/ (5)
@@ -609,7 +643,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 01:11 UTC_
+_Updated: 2026-03-20 02:33 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -617,9 +651,9 @@ _Updated: 2026-03-20 01:11 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 01:11 UTC)
+Memory (2026-03-20 02:33 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
-├── entries/    75 indexed
+├── entries/    77 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

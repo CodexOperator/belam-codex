@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: complete
 priority: critical
 owner: builder
 tags: [snn, architecture, streaming]
