@@ -1160,6 +1160,15 @@ def execute_action(args):
         _belam_exec(belam_bin, cmd_args)
         return
 
+    # ── Session subcommands ───────────────────────────────────────────────────
+    if first in ('session', 'sess'):
+        subcommand = args[1] if len(args) > 1 else ''
+        sys.exit(handle_session(subcommand, list(args[2:])))
+
+    # ── Spawn ─────────────────────────────────────────────────────────────────
+    if first in ('spawn', 'sp'):
+        sys.exit(handle_spawn(list(args[1:])))
+
     # ── Coord-based actions ───────────────────────────────────────────────────
     # Resolve first arg as a coordinate
     resolved, _ = resolve_coords([args[0]])
@@ -1786,6 +1795,530 @@ def execute_undo(args):
     return 0
 
 
+# ─── Session & Spawn Handlers ───────────────────────────────────────────────────
+
+AGENTS_DIR = Path.home() / '.openclaw' / 'agents'
+OPENCLAW_CONFIG = Path.home() / '.openclaw' / 'openclaw.json'
+
+
+def _get_known_agents():
+    """Read agent list from openclaw.json. Falls back to scanning agents dir."""
+    try:
+        with open(OPENCLAW_CONFIG) as f:
+            config = json.load(f)
+        agents = config.get('agents', [])
+        if isinstance(agents, list):
+            ids = []
+            for a in agents:
+                if isinstance(a, dict):
+                    aid = a.get('id') or a.get('name') or str(a)
+                else:
+                    aid = str(a)
+                # Filter out meta-keys that aren't real agent IDs
+                if aid and aid not in ('defaults', 'list'):
+                    ids.append(aid)
+            return ids
+    except Exception:
+        pass
+    # Fallback: scan agents directory
+    if AGENTS_DIR.exists():
+        return [d.name for d in sorted(AGENTS_DIR.iterdir()) if d.is_dir()]
+    return []
+
+
+def _human_age_ms(ts_ms):
+    """Convert Unix millisecond timestamp to human-readable age string."""
+    try:
+        ts_ms = int(ts_ms)
+        now_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
+        secs = (now_ms - ts_ms) // 1000
+        if secs < 60:
+            return f"{secs}s ago"
+        elif secs < 3600:
+            return f"{secs // 60}m ago"
+        elif secs < 86400:
+            return f"{secs // 3600}h ago"
+        else:
+            return f"{secs // 86400}d ago"
+    except Exception:
+        return str(ts_ms)
+
+
+def _load_sessions_json(agent):
+    """Load sessions.json for an agent. Returns (dict, path) or (None, path)."""
+    path = AGENTS_DIR / agent / 'sessions' / 'sessions.json'
+    try:
+        with open(path) as f:
+            return json.load(f), path
+    except FileNotFoundError:
+        return None, path
+    except Exception as e:
+        print(f"Error reading {path}: {e}")
+        return None, path
+
+
+def _find_jsonl_path(entry, agent):
+    """Resolve the JSONL transcript path from a sessions.json entry dict.
+
+    Priority:
+      1. sessionFile field (direct absolute path, most reliable)
+      2. sessionId as filename (when not a mapper-xxx id)
+      3. Most recently modified *.jsonl in agent's sessions dir
+    """
+    sf = entry.get('sessionFile', '')
+    if sf:
+        p = Path(sf)
+        if p.exists():
+            return p
+
+    sid = entry.get('sessionId', '')
+    if sid and not sid.startswith('mapper-'):
+        candidate = AGENTS_DIR / agent / 'sessions' / f"{sid}.jsonl"
+        if candidate.exists():
+            return candidate
+
+    sess_dir = AGENTS_DIR / agent / 'sessions'
+    if sess_dir.exists():
+        jsonls = sorted(sess_dir.glob('*.jsonl'), key=lambda p: p.stat().st_mtime, reverse=True)
+        if jsonls:
+            return jsonls[0]
+
+    return None
+
+
+def _find_main_key(data, agent):
+    """Find the primary session key from a sessions.json dict.
+
+    Prefers keys ending in ':main' or containing the agent name.
+    Falls back to the first key.
+    """
+    for key in data:
+        if key.endswith(':main') or agent in key:
+            return key
+    return next(iter(data), None)
+
+
+def _session_list(args):
+    """List sessions for all agents or a specific one. Reads sessions.json directly (no openclaw CLI)."""
+    agent_filter = args[0] if args and not args[0].startswith('-') else None
+    known_agents = _get_known_agents()
+    if not known_agents:
+        print("No agents found. Check ~/.openclaw/openclaw.json")
+        return 0
+
+    agents_to_query = [agent_filter] if agent_filter else known_agents
+
+    for agent in agents_to_query:
+        sjson, sjson_path = _load_sessions_json(agent)
+        if not sjson:
+            print(f"── {agent}: (no sessions)")
+            continue
+
+        count = len(sjson)
+        print(f"── {agent} ({count} session{'s' if count != 1 else ''})")
+        for key, entry in sjson.items():
+            sid = entry.get('sessionId', '?')
+            updated_ms = entry.get('updatedAt')
+            age = _human_age_ms(updated_ms) if updated_ms else '?'
+            tokens = entry.get('totalTokens', 0)
+            model = entry.get('model', '?')
+            tok_fmt = f"{tokens:,}" if isinstance(tokens, int) else str(tokens)
+            print(f"   {key}  sid={sid}  {age}  {tok_fmt} tok  {model}")
+        print()
+
+    return 0
+
+
+def _session_info(args):
+    """Show detailed info for an agent's current session."""
+    if not args:
+        print("Usage: belam -x session info <agent>")
+        return 1
+
+    agent = args[0]
+    known = _get_known_agents()
+    if known and agent not in known:
+        print(f"Unknown agent: {agent}. Available: {', '.join(known)}")
+        return 1
+
+    data, path = _load_sessions_json(agent)
+    if data is None:
+        print(f"No session store found for {agent}")
+        print(f"  (checked: {path})")
+        return 0
+
+    if not data:
+        print(f"{agent}: no active sessions")
+        return 0
+
+    for key, entry in data.items():
+        sid = entry.get('sessionId', '?')
+        model = entry.get('model', '?')
+        provider = entry.get('modelProvider', '')
+        model_str = f"{model} ({provider})" if provider and provider not in model else model
+        tokens = entry.get('totalTokens', '?')
+        tok_fmt = f"{tokens:,}" if isinstance(tokens, int) else str(tokens)
+        updated_ms = entry.get('updatedAt')
+        age = _human_age_ms(updated_ms) if updated_ms else '?'
+        sf = entry.get('sessionFile', '')
+
+        file_size = ''
+        if sf:
+            try:
+                size = Path(sf).stat().st_size
+                if size >= 1_048_576:
+                    file_size = f"{size / 1_048_576:.1f} MB"
+                elif size >= 1024:
+                    file_size = f"{size / 1024:.0f} KB"
+                else:
+                    file_size = f"{size} B"
+            except FileNotFoundError:
+                file_size = '(file missing)'
+            except Exception:
+                pass
+
+        print(f"── {key}")
+        print(f"   session-id:  {sid}")
+        print(f"   model:       {model_str}")
+        print(f"   tokens:      {tok_fmt}")
+        print(f"   updated:     {age}")
+        if sf:
+            size_str = f"  [{file_size}]" if file_size else ''
+            print(f"   transcript:  {sf}{size_str}")
+        print()
+
+    return 0
+
+
+def _session_new(args):
+    """Rotate an agent's current session by archiving the JSONL and clearing sessions.json."""
+    if not args:
+        print("Usage: belam -x session new <agent>")
+        return 1
+
+    agent = args[0]
+    known = _get_known_agents()
+    if known and agent not in known:
+        print(f"Unknown agent: {agent}. Available: {', '.join(known)}")
+        return 1
+
+    data, sess_path = _load_sessions_json(agent)
+    if data is None:
+        print(f"No session store found for {agent}")
+        return 0
+
+    if not data:
+        print(f"No active session for {agent}")
+        return 0
+
+    main_key = _find_main_key(data, agent)
+    if main_key is None:
+        print(f"No active session for {agent}")
+        return 0
+
+    entry = data[main_key]
+    jsonl_path = _find_jsonl_path(entry, agent)
+    iso_ts = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H%M%SZ')
+
+    # Archive the JSONL
+    if jsonl_path and jsonl_path.exists():
+        archive_name = Path(str(jsonl_path) + f".reset.{iso_ts}")
+        try:
+            jsonl_path.rename(archive_name)
+            print(f"rotated:  {jsonl_path.name}")
+            print(f"      →   {archive_name.name}")
+        except Exception as e:
+            print(f"warning: could not archive transcript: {e}")
+    else:
+        sf_hint = entry.get('sessionFile', 'none')
+        print(f"note: no transcript file to rotate (sessionFile: {sf_hint})")
+
+    # Remove the entry from sessions.json and write back
+    del data[main_key]
+    try:
+        with open(sess_path, 'w') as f:
+            json.dump(data, f, indent=2)
+        print(f"cleared:  {main_key}")
+        print(f"session new: {agent} is ready for a fresh start")
+    except Exception as e:
+        print(f"Error writing sessions.json: {e}")
+        return 1
+
+    return 0
+
+
+def _session_send(args):
+    """Send a message to an agent via openclaw agent CLI."""
+    bg = '--bg' in args
+    filtered = [a for a in args if a != '--bg']
+
+    if len(filtered) < 2:
+        print("Usage: belam -x session send <agent> \"<message>\" [--bg]")
+        return 1
+
+    agent = filtered[0]
+    message = filtered[1]
+
+    # @file pattern: read file content as message body
+    if message.startswith('@'):
+        filepath = message[1:]
+        try:
+            with open(filepath) as f:
+                message = f.read()
+        except FileNotFoundError:
+            print(f"Error: file not found: {filepath}")
+            return 1
+        except Exception as e:
+            print(f"Error reading {filepath}: {e}")
+            return 1
+
+    cmd = ['openclaw', 'agent', '--agent', agent, '-m', message]
+
+    if bg:
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"dispatched: message sent to {agent} in background")
+        return 0
+
+    try:
+        result = subprocess.run(cmd, timeout=600)
+        return result.returncode
+    except subprocess.TimeoutExpired:
+        print(f"Error: agent {agent} timed out after 600s")
+        return 1
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+
+def _session_log(args):
+    """Show the last N messages from an agent's active transcript."""
+    if not args:
+        print("Usage: belam -x session log <agent> [--tail N] [--verbose]")
+        return 1
+
+    verbose = '--verbose' in args or '-v' in args
+    filtered = [a for a in args if a not in ('--verbose', '-v')]
+
+    tail = 10
+    agent = None
+    i = 0
+    while i < len(filtered):
+        a = filtered[i]
+        if a in ('--tail', '-n') and i + 1 < len(filtered):
+            try:
+                tail = int(filtered[i + 1])
+            except ValueError:
+                pass
+            i += 2
+        elif a.startswith('--tail='):
+            try:
+                tail = int(a.split('=', 1)[1])
+            except ValueError:
+                pass
+            i += 1
+        elif not a.startswith('-') and agent is None:
+            agent = a
+            i += 1
+        else:
+            i += 1
+
+    if not agent:
+        print("Usage: belam -x session log <agent> [--tail N] [--verbose]")
+        return 1
+
+    data, _ = _load_sessions_json(agent)
+    if data is None:
+        print(f"No session store found for {agent}")
+        return 0
+    if not data:
+        print(f"No active session for {agent}")
+        return 0
+
+    main_key = _find_main_key(data, agent)
+    entry = data.get(main_key, {})
+    jsonl_path = _find_jsonl_path(entry, agent)
+
+    if not jsonl_path or not jsonl_path.exists():
+        print(f"No transcript file found for {agent}")
+        return 0
+
+    messages = []
+    try:
+        with open(jsonl_path, encoding='utf-8', errors='replace') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                if rec.get('type') != 'message':
+                    continue
+                msg = rec.get('message', {})
+                role = msg.get('role', '')
+                if role not in ('user', 'assistant'):
+                    continue
+
+                content = msg.get('content', '')
+                text_parts = []
+                has_tool = False
+
+                if isinstance(content, str):
+                    text_parts.append(content)
+                elif isinstance(content, list):
+                    for block in content:
+                        if not isinstance(block, dict):
+                            text_parts.append(str(block))
+                            continue
+                        btype = block.get('type', '')
+                        if btype == 'text':
+                            t = block.get('text', '').strip()
+                            if t:
+                                text_parts.append(t)
+                        elif btype in ('tool_use', 'tool_result'):
+                            has_tool = True
+                            if verbose:
+                                name = block.get('name', block.get('tool_use_id', '?'))
+                                text_parts.append(f"[{btype}: {name}]")
+
+                text = '\n'.join(text_parts).strip()
+                if not text and not verbose:
+                    continue  # skip tool-only turns in non-verbose mode
+
+                ts = rec.get('timestamp', '')
+                messages.append((role, text, ts, has_tool))
+    except Exception as e:
+        print(f"Error reading transcript: {e}")
+        return 1
+
+    recent = messages[-tail:] if len(messages) > tail else messages
+
+    print(f"── {agent} transcript  ({len(messages)} messages · showing last {len(recent)})")
+    print(f"   {jsonl_path}")
+    print()
+
+    MAX_CHARS = 800
+    for role, text, ts, has_tool in recent:
+        label = "👤 user" if role == 'user' else "🤖 assistant"
+        tool_badge = " [+tool]" if has_tool and not verbose else ""
+        print(f"### {label}{tool_badge}")
+        if len(text) > MAX_CHARS and not verbose:
+            text = text[:MAX_CHARS] + f"\n   … [{len(text) - MAX_CHARS} chars truncated, use --verbose]"
+        print(text)
+        print()
+
+    return 0
+
+
+def handle_session(subcommand, args):
+    """Dispatch session subcommands: list, info, new, send, log."""
+    sub = (subcommand or '').lower()
+    if not sub or sub in ('help', '--help', '-h'):
+        print("Usage: belam -x session <subcommand> [args]")
+        print("  list [agent]              List sessions (all agents or one)")
+        print("  info <agent>              Detailed session info")
+        print("  new  <agent>              Rotate to a fresh session")
+        print("  send <agent> <msg>        Send message (@file path supported)")
+        print("  log  <agent> [--tail N]   Show recent transcript messages")
+        return 0
+
+    dispatch = {
+        'list': _session_list,
+        'info': _session_info,
+        'new':  _session_new,
+        'send': _session_send,
+        'log':  _session_log,
+    }
+    fn = dispatch.get(sub)
+    if fn is None:
+        print(f"session: unknown subcommand '{subcommand}'")
+        print("  Available: list, info, new, send, log")
+        return 1
+    return fn(args)
+
+
+# Model alias table shared between spawn and any future callers
+_SPAWN_MODEL_ALIASES = {
+    'sonnet':   'anthropic/claude-sonnet-4-6',
+    'sonnet4':  'anthropic/claude-sonnet-4-6',
+    'opus':     'anthropic/claude-opus-4-6',
+    'opus4':    'anthropic/claude-opus-4-6',
+    'haiku':    'anthropic/claude-haiku-3-5',
+    'haiku3':   'anthropic/claude-haiku-3-5',
+}
+
+
+def handle_spawn(args):
+    """Print a sessions_spawn JSON payload for the calling agent to execute.
+
+    Usage: belam -x spawn [--model <alias>] [--label <name>]
+                          [--timeout <sec>] [--agent <id>] "<task>"
+    """
+    model = 'anthropic/claude-sonnet-4-6'
+    label = None
+    timeout_sec = None
+    agent_id = None
+    positional = []
+
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ('--model', '-m') and i + 1 < len(args):
+            model = args[i + 1]; i += 2
+        elif a.startswith('--model='):
+            model = a.split('=', 1)[1]; i += 1
+        elif a in ('--label', '-l') and i + 1 < len(args):
+            label = args[i + 1]; i += 2
+        elif a.startswith('--label='):
+            label = a.split('=', 1)[1]; i += 1
+        elif a == '--timeout' and i + 1 < len(args):
+            try: timeout_sec = int(args[i + 1])
+            except ValueError: pass
+            i += 2
+        elif a.startswith('--timeout='):
+            try: timeout_sec = int(a.split('=', 1)[1])
+            except ValueError: pass
+            i += 1
+        elif a == '--agent' and i + 1 < len(args):
+            agent_id = args[i + 1]; i += 2
+        elif a.startswith('--agent='):
+            agent_id = a.split('=', 1)[1]; i += 1
+        elif not a.startswith('-'):
+            positional.append(a); i += 1
+        else:
+            i += 1
+
+    # Expand model aliases (case-insensitive)
+    model = _SPAWN_MODEL_ALIASES.get(model.lower(), model)
+
+    if not positional:
+        print("Usage: belam -x spawn [--model <alias>] [--label <name>] [--timeout <sec>] \"<task>\"")
+        print("  Model aliases: sonnet, opus, haiku (default: sonnet)")
+        print("  Prints a sessions_spawn JSON payload — the calling agent executes the tool call.")
+        return 1
+
+    task = ' '.join(positional)
+
+    payload = {
+        'tool':   'sessions_spawn',
+        'params': {
+            'task':  task,
+            'model': model,
+            'mode':  'run',
+        },
+    }
+    if label:
+        payload['params']['label'] = label
+    if timeout_sec is not None:
+        payload['params']['timeout'] = timeout_sec
+    if agent_id:
+        payload['params']['agentId'] = agent_id
+
+    print(json.dumps(payload, indent=2))
+    return 0
+
+
 # ─── Action Registry ────────────────────────────────────────────────────────────
 
 ACTION_REGISTRY = {
@@ -1829,6 +2362,12 @@ ACTION_REGISTRY = {
     'build':            {'script': 'build_notebook.py',         'description': 'Build a notebook'},
     'notebooks':        {'handler': 'notebooks',                'description': 'List notebooks'},
     'nb':               {'alias': 'notebooks'},
+
+    # Sessions & Spawn
+    'session':          {'handler': 'session',  'description': 'Session management: list, info, new, send, log'},
+    'sess':             {'alias': 'session'},
+    'spawn':            {'handler': 'spawn',    'description': 'Print sessions_spawn JSON payload for subagent launch'},
+    'sp':               {'alias': 'spawn'},
 
     # Other
     'status':           {'handler': 'status',                   'description': 'Workspace overview'},
@@ -1928,6 +2467,13 @@ def dispatch_action(action_word, remaining_args):
         elif handler == 'help':
             _print_action_help()
             return 0
+
+        elif handler == 'session':
+            subcommand = remaining_args[0] if remaining_args else ''
+            return handle_session(subcommand, list(remaining_args[1:]))
+
+        elif handler == 'spawn':
+            return handle_spawn(list(remaining_args))
 
         elif handler == 'extract':
             # belam extract [instance] [--file PATH] [--bg] [--last]
@@ -2061,6 +2607,7 @@ def _print_action_help():
         ('Experiments',['run', 'analyze', 'analyze-local', 'report']),
         ('Primitives', ['create', 'edit', 'audit', 'link']),
         ('Notebooks',  ['build', 'notebooks']),
+        ('Sessions',   ['session', 'spawn']),
         ('Other',      ['status', 'conversations', 'knowledge-sync', 'transcribe', 'help']),
     ]
     # Build alias map: canonical → [aliases]
