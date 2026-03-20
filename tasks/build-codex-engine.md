@@ -123,9 +123,30 @@ This is the interface language between the engine and agent attention — minima
 
 ### V2 Features (fast-follow)
 
+**Body editing through coordinates** (required direct file access in V1):
+- [ ] `belam -e t1 B 'full body replacement'` — replace entire body
+- [ ] `belam -e t1 B5 'new line content'` — replace specific body line
+- [ ] `belam -e t1 B5-B10 'multi-line\nreplacement'` — replace body line range
+- [ ] `belam -e t1 B+ 'appended content'` — append to body
+- [ ] Body section editing: `belam -e t1 B.Description 'new description section content'` — replace by heading
+
+**Body line filtering inline with field numbers:**
+- [ ] `belam t1 2 3 B1-B10` — show fields 2, 3 and body lines 1-10 in one call (currently broken)
+
+**Coordinate numbering cleanup:**
+- [ ] Skip archived/superseded primitives in coordinate numbering (so p1 is always the first active pipeline)
+- [ ] Filter non-primitive files from knowledge dir (README, _index, _tags)
+
+**Persona-filtered views:**
+- [ ] `belam --as architect` — supermap weighted toward decisions, knowledge, specs
+- [ ] `belam --as builder` — supermap weighted toward tasks, code, experiments
+- [ ] `belam --as critic` — supermap weighted toward lessons, test results, validation
+
+**Other:**
 - [ ] Dry-run on create (`--dry`)
 - [ ] Boot hook integration (auto-run `belam` at session start → R0)
 - [ ] Filter flags for memory (`--tag`, `--since`)
+- [ ] Native action dispatch for `pipeline <ver>` subcommands (update, launch, analyze)
 
 ## Subagent Work Breakdown
 
