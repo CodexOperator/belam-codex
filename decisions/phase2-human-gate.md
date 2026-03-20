@@ -8,6 +8,7 @@ rationale: Explicit approval is clearest; one command bundles approval + directi
 consequences: [pipelines pause at local_analysis_complete, autorun never touches Phase 2]
 tags: [pipeline, gate, phase2, infrastructure]
 upstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
+downstream: [memory/2026-03-17_134119_phase-2-cold-start-protocol-agent-contex]
 ---
 
 # Phase 2 Requires Explicit Human Approval
