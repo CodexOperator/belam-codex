@@ -2260,7 +2260,7 @@ def handle_spawn(args):
     for the calling agent to execute — use when running inside an agent session).
     """
     model = None
-    timeout_sec = 300
+    timeout_sec = 600
     background = False
     positional = []
 
