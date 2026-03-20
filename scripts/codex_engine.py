@@ -1849,6 +1849,12 @@ ACTION_REGISTRY = {
     'queue-revision':   {'script': 'create_revision_request.py', 'description': 'Queue revision request'},
     'qr':               {'alias': 'queue-revision'},
     'help':             {'handler': 'help',                     'description': 'Show help'},
+
+    # Memory extraction + edge checking
+    'extract':          {'handler': 'extract',                  'description': 'Manually trigger memory extraction (spawns sage)'},
+    'ex':               {'alias': 'extract'},
+    'edges':            {'handler': 'edges',                    'description': 'Check/fix missing inter-primitive edges'},
+    'eg':               {'alias': 'edges'},
 }
 
 # Resolved set of all known action words (including aliases)
@@ -1929,6 +1935,103 @@ def dispatch_action(action_word, remaining_args):
 
         elif handler == 'help':
             _print_action_help()
+            return 0
+
+        elif handler == 'extract':
+            # belam extract [instance]
+            # Delegates to belam_extract.sh which runs extract_session_memory.sh + spawns sage
+            instance = remaining_args[0] if remaining_args else 'main'
+            extract_script = str(WORKSPACE / 'scripts' / 'belam_extract.sh')
+            result = subprocess.run(['bash', extract_script, instance], cwd=str(WORKSPACE))
+            return result.returncode
+
+        elif handler == 'edges':
+            # belam edges [--check] [--fix]
+            # Checks for missing upstream/downstream edges across all primitives
+            fix_mode = '--fix' in remaining_args
+            check_mode = '--check' in remaining_args or not fix_mode
+
+            slug_index = build_slug_index()
+            graph, _ = _load_all_primitives_edges()
+
+            # Collect asymmetric edges: A→B exists but B has no ←A
+            missing = []  # list of (coord, field_key, ref_slug, target_coord)
+
+            for prefix in NAMESPACE:
+                primitives = get_primitives(prefix)
+                for i, (slug, filepath) in enumerate(primitives, 1):
+                    coord = f'{prefix}{i}'
+                    try:
+                        text = filepath.read_text(encoding='utf-8', errors='replace')
+                        fm_raw, _ = parse_frontmatter(text)
+                    except Exception:
+                        continue
+
+                    for field_key in ('upstream', 'downstream'):
+                        refs = fm_raw.get(field_key, []) or []
+                        if isinstance(refs, str):
+                            refs = [refs]
+                        reverse_field = 'downstream' if field_key == 'upstream' else 'upstream'
+
+                        for ref in refs:
+                            ref_str = str(ref).lower().strip()
+                            target_coord = resolve_edge_ref(ref_str, slug_index)
+                            if not target_coord:
+                                continue
+                            target_node = graph.get(target_coord, {})
+                            target_reverse = target_node.get(
+                                f'{reverse_field}_coords', []
+                            )
+                            # Check if this coord appears in target's reverse list
+                            if coord not in target_reverse:
+                                missing.append((coord, slug, field_key, ref, target_coord))
+
+            if not missing:
+                print("edges: all inter-primitive edges are symmetric. No gaps found.")
+                return 0
+
+            if check_mode:
+                print(f"edges: {len(missing)} asymmetric edge(s) found\n")
+                for (src_coord, src_slug, field_key, ref, tgt_coord) in missing:
+                    reverse = 'downstream' if field_key == 'upstream' else 'upstream'
+                    print(f"  {src_coord} ({src_slug}).{field_key} → {ref}")
+                    print(f"    ↳ {tgt_coord} missing .{reverse} ← {src_slug}")
+                print()
+                print("Run 'belam edges --fix' to auto-repair with a subagent.")
+
+            if fix_mode:
+                # Build a focused prompt for a Sonnet subagent
+                lines = ["You are fixing asymmetric YAML frontmatter edges in the belam workspace."]
+                lines.append(f"Workspace: {WORKSPACE}")
+                lines.append("")
+                lines.append("For each item below, add the missing reverse edge to the target primitive's")
+                lines.append("frontmatter (upstream or downstream list) and commit with:")
+                lines.append("  git commit -m 'edges: add reverse link for <slug>'")
+                lines.append("")
+                lines.append("Missing reverse edges:")
+                for (src_coord, src_slug, field_key, ref, tgt_coord) in missing:
+                    reverse = 'downstream' if field_key == 'upstream' else 'upstream'
+                    lines.append(f"  {tgt_coord}: add to .{reverse}: {src_slug}")
+                lines.append("")
+                lines.append("Use atomic micro-commits (one commit per primitive fix).")
+                lines.append("Do not change any other fields. Report what you fixed.")
+
+                prompt = '\n'.join(lines)
+                import tempfile
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+                    f.write(prompt)
+                    prompt_path = f.name
+
+                session_id = f"edges-fix-{int(__import__('time').time())}"
+                print(f"edges --fix: spawning sonnet subagent (session: {session_id})...")
+                result = subprocess.run(
+                    ['openclaw', 'agent', '--agent', 'sonnet',
+                     '--session-id', session_id,
+                     '--message', prompt],
+                    cwd=str(WORKSPACE),
+                )
+                return result.returncode
+
             return 0
 
         else:

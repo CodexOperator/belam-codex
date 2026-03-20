@@ -552,6 +552,16 @@ case "${1:-help}" in
         python3 "$SCRIPTS/transcribe_audio.py" "${@:2}"
         ;;
 
+    # ── Memory extraction ─────────────────────────────────────────────────────
+    extract|ex)
+        bash "$SCRIPTS/belam_extract.sh" "${2:-main}"
+        ;;
+
+    # ── Edge checker ──────────────────────────────────────────────────────────
+    edges|eg)
+        python3 "$SCRIPTS/codex_engine.py" edges "${@:2}"
+        ;;
+
     help|-h|--help)
         usage
         ;;

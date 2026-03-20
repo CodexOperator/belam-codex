@@ -142,6 +142,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/snn-treats-like-weird-cnn.md` — Don't Treat SNNs Like Weird CNNs [high] [snn,architecture,critical]
 - `lessons/stacking-specialists-is-dead-end.md` — Stacking Specialist Micro-Networks Is a Dead End [high] [snn,ensemble,stacking]
 - `lessons/subprocess-run-doesnt-raise-on-failure.md` — subprocess.run Does Not Raise on Non-Zero Exit Code [?] [python,debugging,infrastructure]
+- `lessons/supermap-boot-hook-via-embed-primitives.md` — supermap-boot-hook-via-embed-primitives [?] []
 - `lessons/telegram-bots-cant-see-bots.md` — Telegram Bots Cannot See Other Bots' Messages [high] [telegram,agents,infrastructure]
 - `lessons/torch-buffer-requires-tensor-assignment.md` — torch.nn.Buffer Requires Tensor Assignment, Not Float [high] [snn,pytorch,debugging]
 - `lessons/use-scaffold-then-edit-not-overwrite.md` — use-scaffold-then-edit-not-overwrite [high] [infrastructure,primitives,conventions]
@@ -159,8 +160,10 @@ _`belam` CLI commands. Read when: needing usage details or flags._
 - `commands/conversations.md` — `belam conversations` (belam conv) — Export agent conversations
 - `commands/create.md` — `belam create <type>` — Create a new primitive (lesson/decision/task/project/skill) with frontmatter scaffolding
 - `commands/decisions.md` — `belam decisions` (belam d) — List all architectural decisions
+- `commands/edges.md` — `belam edges` — 
 - `commands/edit.md` — `belam edit <primitive>` — Fuzzy-match and edit primitives, --set key=value for frontmatter updates
 - `commands/embed-primitives.md` — `belam embed-primitives` (belam ep) — Regenerate primitive indexes in AGENTS.md and MEMORY.md
+- `commands/extract.md` — `belam extract` — 
 - `commands/kickoff.md` — `belam kickoff <ver>` (belam kick) — Kick off a created pipeline (wake architect)
 - `commands/knowledge-sync.md` — `belam knowledge-sync` (belam ks) — Run weekly knowledge sync
 - `commands/lessons.md` — `belam lessons` (belam l) — List all lessons learned

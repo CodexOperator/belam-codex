@@ -25,6 +25,7 @@ INSTANCE="main"
 SESSION_FILE=""
 PERSONA=""
 DRY_RUN=false
+TEST_MODE=false
 
 usage() {
   cat <<EOF
@@ -35,6 +36,7 @@ Options:
   --session-file F   Specific JSONL to process (default: auto-detect latest)
   --persona NAME     Optional persona tag (architect/critic/builder/etc)
   --dry-run          Parse transcript only, don't build extraction prompt
+  --test             Test mode: write all output to memory/test-extract/ (no duplicates)
   -h, --help         Show this help
 EOF
   exit 0
@@ -46,6 +48,7 @@ while [[ $# -gt 0 ]]; do
     --session-file) SESSION_FILE="$2"; shift 2 ;;
     --persona)     PERSONA="$2"; shift 2 ;;
     --dry-run)     DRY_RUN=true; shift ;;
+    --test)        TEST_MODE=true; shift ;;
     -h|--help)     usage ;;
     *) echo "Unknown arg: $1"; exit 1 ;;
   esac
@@ -62,25 +65,6 @@ find_latest_session() {
   echo "$latest"
 }
 
-# --- Create tracking primitive ---
-create_tracker() {
-  local status="$1"
-  local now
-  now=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-  mkdir -p "$WORKSPACE/memory"
-  cat > "$WORKSPACE/memory/pending_extraction.json" <<JSON
-{
-  "instance": "$INSTANCE",
-  "session": "$SESSION_ID",
-  "promptFile": "$PROMPT_FILE",
-  "transcriptFile": "$TRANSCRIPT_FILE",
-  "exchangeCount": $EXCHANGE_COUNT,
-  "status": "$status",
-  "createdAt": "$now"
-}
-JSON
-}
-
 # ============================================================
 # MAIN
 # ============================================================
@@ -95,11 +79,19 @@ SESSION_ID=$(basename "$SESSION_FILE" | sed 's/\.jsonl.*//')
 echo "📋 Processing session: $SESSION_ID (instance: $INSTANCE)"
 
 # Step 2: Parse to readable transcript
-TRANSCRIPT_FILE="/tmp/session_transcript_${INSTANCE}_${SESSION_ID}.md"
+if [[ "$TEST_MODE" == "true" ]]; then
+  mkdir -p "$WORKSPACE/memory/test-extract"
+  TRANSCRIPT_FILE="$WORKSPACE/memory/test-extract/transcript.md"
+  TEST_FLAG="--test"
+else
+  TRANSCRIPT_FILE="/tmp/session_transcript_${INSTANCE}_${SESSION_ID}.md"
+  TEST_FLAG=""
+fi
 python3 "$SCRIPTS_DIR/parse_session_transcript.py" \
   "$SESSION_FILE" "$TRANSCRIPT_FILE" \
   --instance "$INSTANCE" \
-  --persona "${PERSONA:-}"
+  --persona "${PERSONA:-}" \
+  ${TEST_FLAG:+"$TEST_FLAG"}
 
 # Step 3: Count exchanges
 EXCHANGE_COUNT=$(grep -c '### 🧑 User' "$TRANSCRIPT_FILE" 2>/dev/null || echo "0")
@@ -118,9 +110,19 @@ PROMPT_FILE="/tmp/session_extract_prompt_${INSTANCE}_${SESSION_ID}.md"
 PERSONA_TAG=""
 [[ -n "${PERSONA:-}" ]] && PERSONA_TAG="   - \`persona:$PERSONA\` on every primitive"
 
+# Test mode overrides output directories to avoid duplicates
+TEST_MODE_BLOCK=""
+if [[ "$TEST_MODE" == "true" ]]; then
+  TEST_MODE_BLOCK="
+## ⚠️ TEST MODE
+Write all memories to \`memory/test-extract/\` instead of normal directories. Create the directory if needed.
+Do NOT write to \`memory/$TODAY.md\` or any normal primitive directories.
+"
+fi
+
 cat > "$PROMPT_FILE" <<PROMPT
 You are a memory extraction agent. Read the session transcript below and create structured primitives.
-
+${TEST_MODE_BLOCK}
 ## Context
 - **Instance:** $INSTANCE
 - **Persona:** ${PERSONA:-none}

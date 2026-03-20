@@ -48,11 +48,15 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 5. Check primitives (`lessons/`, `decisions/`, `tasks/`) before creating new ones
 
 
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (27)  (+1 archived/superseded)
+lessons/ (28)  (+1 archived/superseded)
   ├─ always-back-up-workspace-to-github  Always Back Up Workspace to GitHub  high  [infrastructure,git,backup,redundancy]
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
@@ -76,6 +80,7 @@ lessons/ (27)  (+1 archived/superseded)
   ├─ snn-treats-like-weird-cnn  Don't Treat SNNs Like Weird CNNs  high  [snn,architecture,critical]
   ├─ stacking-specialists-is-dead-end  Stacking Specialist Micro-Networks Is a Dead End  high  [snn,ensemble,stacking,architecture]
   ├─ subprocess-run-doesnt-raise-on-failure  subprocess.run Does Not Raise on Non-Zero Exit Code  [python,debugging,infrastructure]
+  ├─ supermap-boot-hook-via-embed-primitives  supermap-boot-hook-via-embed-primitives  
   ├─ telegram-bots-cant-see-bots  Telegram Bots Cannot See Other Bots' Messages  high  [telegram,agents,infrastructure]
   ├─ torch-buffer-requires-tensor-assignment  torch.nn.Buffer Requires Tensor Assignment, Not Float  high  [snn,pytorch,debugging]
   ├─ use-scaffold-then-edit-not-overwrite  use-scaffold-then-edit-not-overwrite  high  [infrastructure,primitives,conventions,clock-cycles]
@@ -128,7 +133,7 @@ projects/ (5)
 pipelines/ (1)  (+4 archived/superseded)
   └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  local_analysis_complete/high  started:2026-03-17  [validation,statistics,snn]
 
-commands/ (30)
+commands/ (32)
   ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,local,orchestration,experiment]
   ├─ analyze  belam analyze  belam analyze <ver>  analysis  [analysis,experiment,phase2]
   ├─ audit  belam audit  belam audit  primitives  [audit,primitives,consistency,maintenance]
@@ -139,8 +144,10 @@ commands/ (30)
   ├─ conversations  belam conversations  belam conversations  infrastructure  [conversations,export,agents]
   ├─ create  belam create  belam create <type>  primitives  [create,primitives,scaffolding]
   ├─ decisions  belam decisions  belam decisions  primitives  [decisions,architecture,list]
+  ├─ edges  belam edges  memory  [memory,edges,relationships]
   ├─ edit  belam edit  belam edit <primitive>  primitives  [edit,primitives,fuzzy-match,frontmatter]
   ├─ embed-primitives  belam embed-primitives  belam embed-primitives  primitives  [embed,primitives,index,regenerate]
+  ├─ extract  belam extract  memory  [memory,extraction,session]
   ├─ kickoff  belam kickoff  belam kickoff <ver>  pipeline  [kickoff,pipeline,architect,launch]
   ├─ knowledge-sync  belam knowledge-sync  belam knowledge-sync  memory  [knowledge,sync,weekly,maintenance]
   ├─ lessons  belam lessons  belam lessons  primitives  [lessons,knowledge,list]
@@ -171,7 +178,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 20:07 UTC_
+_Updated: 2026-03-20 21:10 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -179,7 +186,7 @@ _Updated: 2026-03-20 20:07 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 20:07 UTC)
+Memory (2026-03-20 21:10 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
 ├── entries/    87 indexed
 ├── weekly/

@@ -133,12 +133,22 @@ def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: st
 
 if __name__ == '__main__':
     import argparse
+    import os
     p = argparse.ArgumentParser()
     p.add_argument('jsonl_file')
     p.add_argument('output_file')
     p.add_argument('--instance', default='main')
     p.add_argument('--persona', default='')
+    p.add_argument('--test', action='store_true', help='Write transcript to memory/test-extract/ instead of /tmp')
     args = p.parse_args()
-    
-    count = parse(args.jsonl_file, args.output_file, args.instance, args.persona)
+
+    # In test mode, redirect output to memory/test-extract/transcript.md
+    output_file = args.output_file
+    if args.test:
+        workspace = os.environ.get('WORKSPACE', str(Path.home() / '.openclaw' / 'workspace'))
+        test_dir = Path(workspace) / 'memory' / 'test-extract'
+        test_dir.mkdir(parents=True, exist_ok=True)
+        output_file = str(test_dir / 'transcript.md')
+
+    count = parse(args.jsonl_file, output_file, args.instance, args.persona)
     sys.exit(0)

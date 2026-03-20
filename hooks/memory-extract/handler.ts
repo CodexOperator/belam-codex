@@ -1,4 +1,6 @@
 import { execSync } from 'child_process';
+import { readFileSync } from 'fs';
+import { spawn } from 'child_process';
 
 export default async (event: any) => {
   if (event?.type !== 'agent:bootstrap') return;
@@ -7,11 +9,11 @@ export default async (event: any) => {
   if (!ctx?.workspaceDir) return;
 
   const instance = ctx.agentId || 'main';
+  const timestamp = Date.now();
 
   try {
     // Run the bash parser — deterministic, fast, zero tokens
-    // This creates a parsed transcript + extraction prompt + marker file
-    // The agent picks up the marker on boot and spawns the subagent
+    // Returns file paths via stdout lines like PROMPT_FILE=...
     const result = execSync(
       `bash scripts/extract_session_memory.sh --instance ${instance}`,
       {
@@ -27,29 +29,30 @@ export default async (event: any) => {
 
     if (!result) return;
 
-    // Parse output
+    // Parse PROMPT_FILE from output
     const promptMatch = result.match(/PROMPT_FILE=(.+)/);
-    const transcriptMatch = result.match(/TRANSCRIPT_FILE=(.+)/);
-    const sessionMatch = result.match(/SESSION_ID=(.+)/);
-    const exchangeMatch = result.match(/EXCHANGE_COUNT=(\d+)/);
+    if (!promptMatch) return;
 
-    if (!promptMatch || !sessionMatch) return;
+    const promptFile = promptMatch[1].trim();
+    const promptContent = readFileSync(promptFile, 'utf-8');
 
-    // Write a pending extraction marker that the agent reads on boot
-    const markerContent = JSON.stringify({
-      instance,
-      sessionId: sessionMatch[1],
-      promptFile: promptMatch[1],
-      transcriptFile: transcriptMatch?.[1] || '',
-      exchangeCount: parseInt(exchangeMatch?.[1] || '0'),
-      createdAt: new Date().toISOString(),
-    });
-
-    const fs = await import('fs');
-    fs.writeFileSync(
-      `${ctx.workspaceDir}/memory/pending_extraction.json`,
-      markerContent
+    // Spawn sage agent as detached background process (fire-and-forget)
+    // Sage is NOT the main agent — no session lock contention
+    const sessionId = `mem-extract-${timestamp}`;
+    const child = spawn(
+      'openclaw',
+      ['agent', '--agent', 'sage', '--session-id', sessionId, '--message', promptContent],
+      {
+        detached: true,
+        stdio: 'ignore',
+        cwd: ctx.workspaceDir,
+        env: {
+          ...process.env,
+          WORKSPACE: ctx.workspaceDir,
+        },
+      }
     );
+    child.unref();
 
   } catch {
     // Non-fatal — session starts clean regardless

@@ -158,6 +158,20 @@ This is a FRESH session. You have no prior context except your memory files.
    - Write key decisions, patterns, and lessons to your `memory/$(date -u +%Y-%m-%d).md`
    - Include: what worked, what didn't, architectural insights, things to remember
    - This is your continuity — next session starts fresh, your memory files are all you keep
+   - **Create memory primitives in the MAIN workspace** for significant work:
+     ```bash
+     # Log a memory entry into the main workspace index (you have full context — use it)
+     python3 /home/ubuntu/.openclaw/workspace/scripts/log_memory.py \
+       --workspace /home/ubuntu/.openclaw/workspace \
+       --importance 3 \
+       --tags "instance:{next_agent},pipeline:{version},stage:{next_stage}" \
+       "Brief description of what was accomplished"
+
+     # If you discovered a reusable lesson (slug = short-hyphenated-name):
+     python3 /home/ubuntu/.openclaw/workspace/scripts/create_primitive.py lesson <slug> \
+       --tags "instance:{next_agent},<relevant_tags>" \
+       --set "status=active"
+     ```
 
 **Read these files before starting:**
 {files_list}
@@ -367,6 +381,7 @@ def consolidate_agent_memory(agent: str, version: str, stage: str, notes: str,
         f"\n### {now} — Pipeline {version}: {stage} complete",
         f"- **Stage:** {stage}",
         f"- **Notes:** {notes}",
+        f"- **Tags:** instance:{agent}, pipeline:{version}, stage:{stage}",
     ]
     if learnings:
         entry_lines.append(f"- **Learnings:**")
@@ -392,6 +407,7 @@ def consolidate_agent_memory(agent: str, version: str, stage: str, notes: str,
             subprocess.run(
                 [sys.executable, str(log_script),
                  '--workspace', str(workspace),
+                 '--tags', f'instance:{agent},pipeline:{version},stage:{stage}',
                  f'Pipeline {version}: completed {stage}. {notes}'],
                 capture_output=True, text=True, timeout=10,
             )
