@@ -6,7 +6,7 @@ importance: 3
 tags: []
 source: "session"
 content: "Fixed argparse bug in belam edit: shell splits unquoted list values like --set downstream=[a, b]. Added _rejoin_list_args() to reassemble. Lesson: lessons/shell-splits-unquoted-list-args.md --tags infrastructure,bugfix,cli"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

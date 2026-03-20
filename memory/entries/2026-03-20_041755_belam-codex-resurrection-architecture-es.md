@@ -6,7 +6,7 @@ importance: 3
 tags: []
 source: "session"
 content: "Belam Codex resurrection architecture established. Two-repo split: belam-codex (soul+infrastructure, private, CodexOperator/belam-codex) + machinelearning (research output). incarnate.sh for one-command setup. Lesson: always-back-up-workspace-to-github. Decision: belam-codex-resurrection. Heartbeat Task 6 now pushes both repos. openclaw-knowledge retired. --tags infrastructure,git,backup,milestone"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
