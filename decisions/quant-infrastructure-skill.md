@@ -17,6 +17,7 @@ project: quant-knowledge-skills
 tags: [infrastructure, backtesting, gpu, data, knowledge]
 knowledge: quant-infrastructure
 cli: "belam lessons (for infrastructure-related findings)"
+downstream: [memory/2026-03-17_033419_built-two-major-systems-tonight-1-analys, memory/2026-03-17_134119_major-session-built-three-infrastructure]
 ---
 
 # Decision: Quant Infrastructure Skill
