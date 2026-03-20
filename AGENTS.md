@@ -80,7 +80,7 @@ _Active implementation pipelines. Read when: checking build progress or phase ga
 
 ### Tasks
 _Read when: checking open/blocked/in-pipeline work._
-- `tasks/build-codex-engine.md` — Build Codex Engine [?/?]
+- `tasks/build-codex-engine.md` — Build Codex Engine [active/critical]
 - `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [complete/critical]
 - `tasks/build-incremental-relationship-mapper.md` — Build Incremental Relationship Mapper [active/medium] →primitive-relationship-graph
 - `tasks/limit-soul-read-write.md` — Limit Soul Instance Direct Read-Write Access [open/high] →build-codex-engine
@@ -123,6 +123,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/beta-convergence-is-market-determined.md` — β Convergence Is Market-Determined [high] [snn,hyperparameters,convergence]
 - `lessons/breakeven-accuracy-before-building.md` — Calculate Breakeven Accuracy Before Building [high] [trading,costs,validation]
 - `lessons/checkpoint-and-resume-pattern.md` — Checkpoint-and-Resume for Long Agent Tasks [high] [infrastructure,agents,orchestration]
+- `lessons/codex-engine-feels-native-at-v1.md` — codex-engine-feels-native-at-v1 [?] []
 - `lessons/confident-abstention-is-signal.md` — Confident Abstention Is a Real Signal Type [medium] [snn,trading,abstention]
 - `lessons/continuous-input-beats-spike-mode.md` — Continuous Input Mode Consistently Outperforms Spike Mode [high] [snn,encoding,input-mode]
 - `lessons/control-input-dimensionality-in-encoding-comparisons.md` — Control Input Dimensionality When Comparing Encoding Schemes [high] [snn,encoding,experimental-design]

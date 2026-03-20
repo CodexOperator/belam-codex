@@ -657,16 +657,23 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (25)  (+1 archived/superseded)
+lessons/ (26)  (+1 archived/superseded)
   ├─ always-back-up-workspace-to-github  Always Back Up Workspace to GitHub  high  [infrastructure,git,backup,redundancy]
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
   ├─ checkpoint-and-resume-pattern  Checkpoint-and-Resume for Long Agent Tasks  high  [infrastructure,agents,orchestration,pattern]
+  ├─ codex-engine-feels-native-at-v1  codex-engine-feels-native-at-v1  
   ├─ confident-abstention-is-signal  Confident Abstention Is a Real Signal Type  medium  [snn,trading,abstention]
   ├─ continuous-input-beats-spike-mode  Continuous Input Mode Consistently Outperforms Spike Mode  high  [snn,encoding,input-mode]
   ├─ control-input-dimensionality-in-encoding-comparisons  Control Input Dimensionality When Comparing Encoding Schemes  high  [snn,encoding,experimental-design]
@@ -714,7 +721,7 @@ decisions/ (23)
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
 tasks/ (9)
-  ├─ build-codex-engine  Build Codex Engine  ?/?
+  ├─ build-codex-engine  Build Codex Engine  active/critical  [infrastructure,cli,codex-engine,primitives]
   ├─ build-equilibrium-snn  Build Equilibrium SNN Architecture  complete/critical  [snn,architecture,streaming]
   ├─ build-incremental-relationship-mapper  Build Incremental Relationship Mapper  active/medium  →primitive-relationship-graph  [infrastructure,knowledge-graph,primitives,relationships]
   ├─ limit-soul-read-write  Limit Soul Instance Direct Read-Write Access  open/high  →build-codex-engine  [infrastructure,codex-engine,architecture,consciousness]
@@ -777,7 +784,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 18:25 UTC_
+_Updated: 2026-03-20 18:51 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -785,7 +792,7 @@ _Updated: 2026-03-20 18:25 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 18:25 UTC)
+Memory (2026-03-20 18:51 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
 ├── entries/    84 indexed
 ├── weekly/
