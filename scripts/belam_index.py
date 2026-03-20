@@ -664,6 +664,8 @@ CREATE_SCHEMAS = {
         ("confidence", False, "high/medium/low/?"),
         ("project",    False, None),
         ("source",     False, None),
+        ("upstream",   False, "type/slug,..."),
+        ("downstream", False, "type/slug,..."),
     ],
     "decision": [
         ("title",  True,  None),
@@ -671,6 +673,8 @@ CREATE_SCHEMAS = {
         ("status", False, "proposed/accepted/superseded"),
         ("skill",  False, None),
         ("project",False, None),
+        ("upstream",   False, "type/slug,..."),
+        ("downstream", False, "type/slug,..."),
     ],
     "task": [
         ("title",    True,  None),
@@ -678,16 +682,22 @@ CREATE_SCHEMAS = {
         ("priority", False, "critical/high/medium/low"),
         ("depends",  False, None),
         ("project",  False, None),
+        ("upstream",   False, "type/slug,..."),
+        ("downstream", False, "type/slug,..."),
     ],
     "project": [
         ("title",  True,  None),
         ("tags",   False, None),
         ("status", False, "active/complete/paused"),
+        ("upstream",   False, "type/slug,..."),
+        ("downstream", False, "type/slug,..."),
     ],
     "skill": [
         ("name", True,  None),
         ("tags", False, None),
         ("desc", False, None),
+        ("upstream",   False, "type/slug,..."),
+        ("downstream", False, "type/slug,..."),
     ],
     "command": [
         ("name",     True,  None),
@@ -695,6 +705,8 @@ CREATE_SCHEMAS = {
         ("aliases",  False, None),
         ("category", False, None),
         ("desc",     False, None),
+        ("upstream",   False, "type/slug,..."),
+        ("downstream", False, "type/slug,..."),
     ],
 }
 

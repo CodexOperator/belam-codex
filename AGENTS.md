@@ -81,6 +81,7 @@ _Active implementation pipelines. Read when: checking build progress or phase ga
 ### Tasks
 _Read when: checking open/blocked/in-pipeline work._
 - `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [complete/critical]
+- `tasks/report-to-youtube-pipeline.md` — Build Report-to-YouTube Video Pipeline [open/high]
 - `tasks/setup-vectorbt-nautilus-pipeline.md` — Set Up Two-Phase Backtest Pipeline [open/medium] →build-equilibrium-snn
 - `tasks/stack-specialist-ensemble.md` — Stack Specialist Micro-Networks [complete/high]
 - `tasks/validate-scheme-b-more-folds.md` — Validate Scheme B Sharpe with 7+ Folds [in_pipeline/high]
@@ -100,6 +101,7 @@ _Read when: making architectural choices._
 - `decisions/phase2-human-gate.md` — Phase 2 Requires Explicit Human Approval [pipeline,gate,phase2]
 - `decisions/population-coding-over-delta.md` — Population Coding Over Delta Encoding (Default) [encoding,snn,decision]
 - `decisions/predictionmarket-specialist-skill.md` — Prediction Market Specialist Skill [prediction-markets,microstructure,market-making]
+- `decisions/primitive-relationship-graph.md` — Primitive Relationship Graph [infrastructure,primitives,knowledge-graph]
 - `decisions/quant-infrastructure-skill.md` — Quant Infrastructure Skill [infrastructure,backtesting,gpu]
 - `decisions/quant-workflow-skill.md` — Quant Workflow Skill [methodology,statistics,overfitting]
 - `decisions/skill-extraction-from-reports.md` — Extract Domain Reports Into Skills + Knowledge Files [skills,knowledge,workflow]

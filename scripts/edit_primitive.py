@@ -169,6 +169,19 @@ def normalize_tags_value(raw: str) -> str:
     return "[" + ", ".join(tags) + "]"
 
 
+# Fields that should always be stored as YAML lists
+LIST_FIELDS = {"tags", "upstream", "downstream", "depends_on", "alternatives", "consequences"}
+
+
+def normalize_list_value(raw: str) -> str:
+    """Convert comma-separated value to YAML list format for list fields."""
+    raw = raw.strip()
+    if raw.startswith("["):
+        return raw  # already yaml list
+    items = [i.strip() for i in raw.split(",") if i.strip()]
+    return "[" + ", ".join(items) + "]"
+
+
 # ── CLI ────────────────────────────────────────────────────────────────────────
 
 def parse_args() -> argparse.Namespace:
@@ -221,9 +234,9 @@ def main():
         key, _, val = item.partition("=")
         key = key.strip()
         val = val.strip()
-        # Normalize tags field
-        if key == "tags":
-            val = normalize_tags_value(val)
+        # Normalize list fields (tags, upstream, downstream, etc.)
+        if key in LIST_FIELDS:
+            val = normalize_list_value(val)
         updates[key] = val
 
     if not updates:

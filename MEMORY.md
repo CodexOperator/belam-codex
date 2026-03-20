@@ -539,6 +539,30 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
@@ -567,7 +591,7 @@ lessons/ (22)  (+1 archived/superseded)
   ├─ use-scaffold-then-edit-not-overwrite  use-scaffold-then-edit-not-overwrite  high  [infrastructure,primitives,conventions,clock-cycles]
   └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (20)
+decisions/ (21)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
@@ -581,6 +605,7 @@ decisions/ (20)
   ├─ phase2-human-gate  Phase 2 Requires Explicit Human Approval  [pipeline,gate,phase2,infrastructure]
   ├─ population-coding-over-delta  Population Coding Over Delta Encoding (Default)  [encoding,snn,decision]
   ├─ predictionmarket-specialist-skill  Prediction Market Specialist Skill  [prediction-markets,microstructure,market-making,knowledge]
+  ├─ primitive-relationship-graph  Primitive Relationship Graph  [infrastructure,primitives,knowledge-graph,conventions]
   ├─ quant-infrastructure-skill  Quant Infrastructure Skill  [infrastructure,backtesting,gpu,data]
   ├─ quant-workflow-skill  Quant Workflow Skill  [methodology,statistics,overfitting,workflow]
   ├─ skill-extraction-from-reports  Extract Domain Reports Into Skills + Knowledge Files  [skills,knowledge,workflow]
@@ -589,8 +614,9 @@ decisions/ (20)
   ├─ supervised-builder-experiments  Supervised Builder Agent for Experiment Execution  [infrastructure,experiments,builder,architecture]
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
-tasks/ (4)
+tasks/ (5)
   ├─ build-equilibrium-snn  Build Equilibrium SNN Architecture  complete/critical  [snn,architecture,streaming]
+  ├─ report-to-youtube-pipeline  Build Report-to-YouTube Video Pipeline  open/high  [video,youtube,automation,infrastructure]
   ├─ setup-vectorbt-nautilus-pipeline  Set Up Two-Phase Backtest Pipeline  open/medium  →build-equilibrium-snn  [backtesting,infrastructure]
   ├─ stack-specialist-ensemble  Stack Specialist Micro-Networks  complete/high  [snn,ensemble,specialists]
   └─ validate-scheme-b-more-folds  Validate Scheme B Sharpe with 7+ Folds  in_pipeline/high  [validation,statistics,snn]
@@ -647,7 +673,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 02:41 UTC_
+_Updated: 2026-03-20 03:48 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -655,9 +681,9 @@ _Updated: 2026-03-20 02:41 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 02:41 UTC)
+Memory (2026-03-20 03:48 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
-├── entries/    77 indexed
+├── entries/    79 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

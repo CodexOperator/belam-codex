@@ -59,6 +59,22 @@ def _tags_yaml(tags_str: str) -> str:
     return "[" + ", ".join(tags) + "]"
 
 
+def _refs_yaml(refs_str: str) -> str:
+    """Convert comma-separated type/slug refs to YAML list."""
+    if not refs_str:
+        return "[]"
+    refs = [r.strip() for r in refs_str.split(",") if r.strip()]
+    return "[" + ", ".join(refs) + "]"
+
+
+def _relationship_lines(args: argparse.Namespace) -> list[str]:
+    """Return upstream/downstream frontmatter lines from args."""
+    return [
+        f"upstream: {_refs_yaml(getattr(args, 'upstream', '') or '')}",
+        f"downstream: {_refs_yaml(getattr(args, 'downstream', '') or '')}",
+    ]
+
+
 def build_lesson_frontmatter(title: str, args: argparse.Namespace) -> str:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     tags = _tags_yaml(args.tags or "")
@@ -71,6 +87,7 @@ def build_lesson_frontmatter(title: str, args: argparse.Namespace) -> str:
     ]
     if args.project:
         lines.append(f"project: {args.project}")
+    lines.extend(_relationship_lines(args))
     lines.append(f"tags: {tags}")
     lines.append("---")
     return "\n".join(lines)
@@ -93,6 +110,7 @@ def build_decision_frontmatter(title: str, args: argparse.Namespace) -> str:
         lines.append(f"project: {args.project}")
     if args.skill:
         lines.append(f"skill: {args.skill}")
+    lines.extend(_relationship_lines(args))
     lines.append(f"tags: {tags}")
     lines.append("---")
     return "\n".join(lines)
@@ -116,6 +134,7 @@ def build_task_frontmatter(title: str, args: argparse.Namespace) -> str:
         lines.append("depends_on: [" + ", ".join(deps) + "]")
     else:
         lines.append("depends_on: []")
+    lines.extend(_relationship_lines(args))
     lines.append(f"tags: {tags}")
     lines.append("---")
     return "\n".join(lines)
@@ -130,9 +149,10 @@ def build_project_frontmatter(title: str, args: argparse.Namespace) -> str:
         f"status: {args.status or 'active'}",
         f"start_date: {today}",
         "owner: belam",
-        f"tags: {tags}",
-        "---",
     ]
+    lines.extend(_relationship_lines(args))
+    lines.append(f"tags: {tags}")
+    lines.append("---")
     return "\n".join(lines)
 
 
@@ -150,9 +170,10 @@ def build_command_frontmatter(title: str, args: argparse.Namespace) -> str:
         f"aliases: {aliases}",
         f'description: "{desc}"',
         f"category: {category}",
-        f"tags: {tags}",
-        "---",
     ]
+    lines.extend(_relationship_lines(args))
+    lines.append(f"tags: {tags}")
+    lines.append("---")
     return "\n".join(lines)
 
 
@@ -165,10 +186,11 @@ def build_knowledge_frontmatter(name: str, args: argparse.Namespace) -> str:
         "primitive: knowledge",
         f"name: {name}",
         f'description: "{desc}"',
-        f"tags: {tags}",
-        f"created: {today}",
-        "---",
     ]
+    lines.extend(_relationship_lines(args))
+    lines.append(f"tags: {tags}")
+    lines.append(f"created: {today}")
+    lines.append("---")
     return "\n".join(lines)
 
 
@@ -190,9 +212,10 @@ def build_skill_decision_frontmatter(skill_name: str, args: argparse.Namespace) 
         f"rationale: (describe why this skill was extracted)",
         "consequences: []",
         f"skill: {skill_name}",
-        f"tags: {tags}",
-        "---",
     ]
+    lines.extend(_relationship_lines(args))
+    lines.append(f"tags: {tags}")
+    lines.append("---")
     return "\n".join(lines)
 
 
@@ -654,6 +677,10 @@ def parse_args() -> argparse.Namespace:
 
     # Skill options
     parser.add_argument("--desc", default="", help="Short description (used for skill, decision, and command).")
+
+    # Relationship options
+    parser.add_argument("--upstream", default="", help="Comma-separated upstream refs (type/slug format).")
+    parser.add_argument("--downstream", default="", help="Comma-separated downstream refs (type/slug format).")
 
     # Auto-linking options
     parser.add_argument("--no-link", action="store_true", help="Skip auto-linking to skills.")
