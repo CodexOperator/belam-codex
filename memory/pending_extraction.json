@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "session": "2a293aef-442b-4e3d-88f8-c96537ef7e36",
+  "instance": "main",
+  "date": "2026-03-20",
+  "completed_at": "2026-03-20T20:07:00Z",
+  "primitives_created": [
+    "memory/entries/2026-03-20_200721_session-2a293aef-wired-codex-engine-v1-s.md",
+    "lessons/openclaw-fixed-context-injection-list.md",
+    "lessons/supermap-boot-hook-via-embed-primitives.md"
+  ]
+}
