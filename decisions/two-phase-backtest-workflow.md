@@ -8,6 +8,7 @@ rationale: Industry standard 2025-2026. Vectorized (VectorBT PRO) for high-throu
 consequences: [Use VectorBT PRO for parameter sweeps and robustness analysis, Use NautilusTrader for final validation before paper trading, Microsoft Qlib for AI-driven factor discovery]
 project: snn-applied-finance
 tags: [backtesting, infrastructure, workflow]
+downstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
 ---
 
 # Two-Phase Backtest Workflow
