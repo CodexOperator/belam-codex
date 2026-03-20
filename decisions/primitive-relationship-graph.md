@@ -2,12 +2,12 @@
 primitive: decision
 status: accepted
 date: 2026-03-20
-context: Primitives exist in isolation — no way to trace how lessons led to decisions, decisions spawned tasks, or memories crystallized into lessons
-alternatives: [flat tags only, explicit link files, frontmatter relationship fields]
-rationale: Frontmatter fields are the simplest approach — no new infrastructure needed, just two directional fields that create typed edges between primitives. The audit system can validate links and the index can render them.
-consequences: [primitives become a navigable graph, audit can detect orphaned/broken links, belam can show upstream/downstream in detail views]
+context: "Primitives exist in isolation — no way to trace how lessons led to decisions, decisions spawned tasks, or memories crystallized into lessons"
+alternatives: ["flat tags only", "explicit link files", "frontmatter relationship fields"]
+rationale: "Frontmatter fields are the simplest approach — no new infrastructure needed, just two directional fields that create typed edges between primitives. The audit system can validate links and the index can render them."
+consequences: ["primitives become a navigable graph", "audit can detect orphaned/broken links", "belam can show upstream/downstream in detail views"]
 upstream: [decisions/indexed-command-interface]
-downstream: [memory/2026-03-20_033917_primitive-relationship-graph-deployed-al, task/build-codex-engine]
+downstream: [memory/2026-03-20_033917_primitive-relationship-graph-deployed-al, task/build-codex-engine, decision/codex-engine-v1-architecture]
 tags: [infrastructure, primitives, knowledge-graph, conventions]
 ---
 

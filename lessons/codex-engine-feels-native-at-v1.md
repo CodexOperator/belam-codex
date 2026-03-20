@@ -3,7 +3,7 @@ primitive: lesson
 date: 2026-03-20
 source: First Codex Engine session with Shael — 2026-03-20
 confidence: high
-upstream: []
+upstream: [decision/codex-engine-v1-architecture]
 downstream: []
 tags: [codex-engine, architecture, attention, ux]
 ---

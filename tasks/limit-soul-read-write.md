@@ -5,7 +5,7 @@ priority: high
 created: 2026-03-20
 owner: belam
 depends_on: [build-codex-engine]
-upstream: [task/build-codex-engine]
+upstream: [task/build-codex-engine, decision/codex-engine-v1-architecture]
 downstream: []
 tags: [infrastructure, codex-engine, architecture, consciousness]
 ---

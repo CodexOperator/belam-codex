@@ -46,6 +46,16 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 3. Run `belam status` for live project state
 4. Use `memory_search` for anything specific
 5. Check primitives (`lessons/`, `decisions/`, `tasks/`) before creating new ones
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
@@ -78,12 +88,13 @@ lessons/ (26)  (+1 archived/superseded)
   ├─ use-scaffold-then-edit-not-overwrite  use-scaffold-then-edit-not-overwrite  high  [infrastructure,primitives,conventions,clock-cycles]
   └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (23)
+decisions/ (24)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
   ├─ belam-codex-resurrection  Belam Codex Resurrection Architecture  [infrastructure,git,backup,continuity]
   ├─ clock-cycles-over-tokens  Clock Cycles Over Tokens  [infrastructure,cost,design-principle,tokens]
+  ├─ codex-engine-v1-architecture  Codex Engine V1 Architecture  [codex-engine,infrastructure,architecture,attention]
   ├─ derivative-specialist-skill  Derivative Specialist Skill  [derivatives,pricing,volatility,knowledge]
   ├─ hierarchical-memory-system  Hierarchical Memory Consolidation System  [infrastructure,memory-system,cron,knowledge-graph]
   ├─ incremental-relationship-mapping-via-pairwise-opus-comparison  Incremental Relationship Mapping via Pairwise Opus Compar...  [infrastructure,knowledge-graph,primitives,relationships]
@@ -167,7 +178,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 19:00 UTC_
+_Updated: 2026-03-20 19:05 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -175,7 +186,7 @@ _Updated: 2026-03-20 19:00 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 19:00 UTC)
+Memory (2026-03-20 19:05 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
 ├── entries/    86 indexed
 ├── weekly/

@@ -97,6 +97,7 @@ _Read when: making architectural choices._
 - `decisions/agent-trio-architecture.md` — Architect / Critic / Builder Agent Trio (skill:pipelines) [agents,architecture,decision]
 - `decisions/belam-codex-resurrection.md` — Belam Codex Resurrection Architecture [infrastructure,git,backup]
 - `decisions/clock-cycles-over-tokens.md` — Clock Cycles Over Tokens [infrastructure,cost,design-principle]
+- `decisions/codex-engine-v1-architecture.md` — Codex Engine V1 Architecture [codex-engine,infrastructure,architecture]
 - `decisions/derivative-specialist-skill.md` — Derivative Specialist Skill [derivatives,pricing,volatility]
 - `decisions/hierarchical-memory-system.md` — Hierarchical Memory Consolidation System [infrastructure,memory-system,cron]
 - `decisions/incremental-relationship-mapping-via-pairwise-opus-comparison.md` — Incremental Relationship Mapping via Pairwise Opus Compar... [infrastructure,knowledge-graph,primitives]
