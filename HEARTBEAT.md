@@ -99,8 +99,9 @@ Manage the interleaved Phase 3 iteration chain between main and analysis pipelin
 
 1. `python3 scripts/consolidate_memories.py --check 2>/dev/null`
 2. If entries need consolidation, run `python3 scripts/consolidate_memories.py`
-3. After consolidation (or if primitives changed): `python3 scripts/embed_primitives.py`
-4. Skip silently if nothing to consolidate
+3. Skip silently if nothing to consolidate
+
+_Note: embed_primitives.py is archived — supermap is injected at boot via hook._
 
 ## Task 8: Agent Conversation Export
 

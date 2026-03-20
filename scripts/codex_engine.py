@@ -1425,16 +1425,9 @@ def _apply_inverse_op(op):
 
 
 def _run_embed_primitives():
-    """Run embed_primitives.py to update AGENTS.md/MEMORY.md indexes."""
-    import subprocess as _sp
-    try:
-        r = _sp.run(
-            [sys.executable, str(WORKSPACE / 'scripts' / 'embed_primitives.py')],
-            capture_output=True, text=True, timeout=30,
-        )
-        return r.returncode == 0
-    except Exception:
-        return False
+    """DEPRECATED — supermap boot hook replaced static index embedding.
+    Kept as no-op stub so existing callers don't break."""
+    return True
 
 
 def _sync_reverse_links(source_item, field_key, old_refs, new_refs,
@@ -1828,8 +1821,7 @@ ACTION_REGISTRY = {
     'edit':             {'script': 'edit_primitive.py',         'description': 'Edit a primitive'},
     'audit':            {'script': 'audit_primitives.py',       'description': 'Audit primitive consistency'},
     'au':               {'alias': 'audit'},
-    'embed-primitives': {'script': 'embed_primitives.py',       'description': 'Regenerate indexes'},
-    'ep':               {'alias': 'embed-primitives'},
+    # embed-primitives: ARCHIVED — supermap hook replaced static indexes
     'link':             {'handler': 'link',                     'description': 'Wire relationships'},
     'ln':               {'alias': 'link'},
 
@@ -2068,7 +2060,7 @@ def _print_action_help():
         ('Memory',     ['log', 'consolidate']),
         ('Pipelines',  ['pipelines', 'kickoff', 'revise', 'autorun', 'cleanup', 'handoffs', 'queue-revision']),
         ('Experiments',['run', 'analyze', 'analyze-local', 'report']),
-        ('Primitives', ['create', 'edit', 'audit', 'embed-primitives', 'link']),
+        ('Primitives', ['create', 'edit', 'audit', 'link']),
         ('Notebooks',  ['build', 'notebooks']),
         ('Other',      ['status', 'conversations', 'knowledge-sync', 'transcribe', 'help']),
     ]
