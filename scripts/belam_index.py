@@ -1015,7 +1015,20 @@ def main():
         sys.exit(0)
     
     cmd = args[0]
-    
+
+    # ── Graph and Execute modes ───────────────────────────────────────────────
+    if cmd == '-g':
+        scripts_dir = os.path.join(WORKSPACE, 'scripts')
+        engine = os.path.join(scripts_dir, 'codex_engine.py')
+        result = subprocess.run([sys.executable, engine, '-g'] + args[1:], check=False)
+        sys.exit(result.returncode if result.returncode not in (0,) else 0)
+
+    if cmd == '-x':
+        scripts_dir = os.path.join(WORKSPACE, 'scripts')
+        engine = os.path.join(scripts_dir, 'codex_engine.py')
+        result = subprocess.run([sys.executable, engine, '-x'] + args[1:], check=False)
+        sys.exit(result.returncode if result.returncode not in (0,) else 0)
+
     # Check if it's a status coordinate (p1, t1, etc.)
     if re.match(r'^[pt]\d+$', cmd):
         ctx = load_context()

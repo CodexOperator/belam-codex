@@ -5,7 +5,7 @@ priority: critical
 created: 2026-03-20
 owner: belam
 depends_on: []
-upstream:
+upstream: [decision/primitive-relationship-graph, memory/2026-03-19_204801_design-principle-from-shael-clock-cycles]
   - decision/indexed-command-interface
   - decision/memory-as-index-not-store
   - decision/clock-cycles-over-tokens

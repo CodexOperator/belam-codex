@@ -627,6 +627,22 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
@@ -683,10 +699,11 @@ decisions/ (23)
   ├─ supervised-builder-experiments  Supervised Builder Agent for Experiment Execution  [infrastructure,experiments,builder,architecture]
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
-tasks/ (8)
-  ├─ build-codex-engine  Build Codex Engine  open/critical  [infrastructure,cli,codex-engine,primitives]
+tasks/ (9)
+  ├─ build-codex-engine  Build Codex Engine  ?/?
   ├─ build-equilibrium-snn  Build Equilibrium SNN Architecture  complete/critical  [snn,architecture,streaming]
   ├─ build-incremental-relationship-mapper  Build Incremental Relationship Mapper  active/medium  →primitive-relationship-graph  [infrastructure,knowledge-graph,primitives,relationships]
+  ├─ limit-soul-read-write  Limit Soul Instance Direct Read-Write Access  open/high  →build-codex-engine  [infrastructure,codex-engine,architecture,consciousness]
   ├─ report-to-youtube-pipeline  Build Report-to-YouTube Video Pipeline  open/high  [video,youtube,automation,infrastructure]
   ├─ sample-task  sample-task  open/medium
   ├─ setup-vectorbt-nautilus-pipeline  Set Up Two-Phase Backtest Pipeline  open/medium  →build-equilibrium-snn  [backtesting,infrastructure]
@@ -746,7 +763,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 17:55 UTC_
+_Updated: 2026-03-20 18:18 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -754,9 +771,9 @@ _Updated: 2026-03-20 17:55 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 17:55 UTC)
+Memory (2026-03-20 18:18 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
-├── entries/    83 indexed
+├── entries/    84 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

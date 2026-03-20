@@ -80,9 +80,10 @@ _Active implementation pipelines. Read when: checking build progress or phase ga
 
 ### Tasks
 _Read when: checking open/blocked/in-pipeline work._
-- `tasks/build-codex-engine.md` — Build Codex Engine [open/critical]
+- `tasks/build-codex-engine.md` — Build Codex Engine [?/?]
 - `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [complete/critical]
 - `tasks/build-incremental-relationship-mapper.md` — Build Incremental Relationship Mapper [active/medium] →primitive-relationship-graph
+- `tasks/limit-soul-read-write.md` — Limit Soul Instance Direct Read-Write Access [open/high] →build-codex-engine
 - `tasks/report-to-youtube-pipeline.md` — Build Report-to-YouTube Video Pipeline [open/high]
 - `tasks/sample-task.md` — sample-task [open/medium]
 - `tasks/setup-vectorbt-nautilus-pipeline.md` — Set Up Two-Phase Backtest Pipeline [open/medium] →build-equilibrium-snn
