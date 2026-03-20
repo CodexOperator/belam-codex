@@ -83,11 +83,17 @@ Manage the interleaved Phase 3 iteration chain between main and analysis pipelin
    - If archivable → auto-archive with `--archive`
 3. Skip silently if nothing to archive
 
-## Task 6: Git Commits
+## Task 6: Git Commits (Both Repos)
 
-1. `cd machinelearning && git status --short`
-2. If uncommitted changes: `git add -A && git commit -m "Auto-commit: research updates" && git push origin`
-3. Skip silently if clean
+**Lesson:** `lessons/always-back-up-workspace-to-github.md` — if it's not pushed, it doesn't exist.
+
+1. **Workspace (belam-codex):**
+   - `git status --short` (from workspace root)
+   - If uncommitted changes: `git add -A && git commit -m "Auto-commit: workspace updates [$(date -u +'%Y-%m-%d %H:%M UTC')]" && git push origin`
+2. **Research (machinelearning):**
+   - `cd machinelearning && git status --short`
+   - If uncommitted changes: `git add -A && git commit -m "Auto-commit: research updates [$(date -u +'%Y-%m-%d %H:%M UTC')]" && git push origin`
+3. Skip silently if both clean
 
 ## Task 7: Memory Maintenance
 

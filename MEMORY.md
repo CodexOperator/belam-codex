@@ -563,11 +563,18 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (22)  (+1 archived/superseded)
+lessons/ (23)  (+1 archived/superseded)
+  ├─ always-back-up-workspace-to-github  Always Back Up Workspace to GitHub  high  [infrastructure,git,backup,redundancy]
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
@@ -591,10 +598,11 @@ lessons/ (22)  (+1 archived/superseded)
   ├─ use-scaffold-then-edit-not-overwrite  use-scaffold-then-edit-not-overwrite  high  [infrastructure,primitives,conventions,clock-cycles]
   └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (21)
+decisions/ (22)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
+  ├─ belam-codex-resurrection  Belam Codex Resurrection Architecture  [infrastructure,git,backup,continuity]
   ├─ clock-cycles-over-tokens  Clock Cycles Over Tokens  [infrastructure,cost,design-principle,tokens]
   ├─ derivative-specialist-skill  Derivative Specialist Skill  [derivatives,pricing,volatility,knowledge]
   ├─ hierarchical-memory-system  Hierarchical Memory Consolidation System  [infrastructure,memory-system,cron,knowledge-graph]
@@ -673,7 +681,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 03:48 UTC_
+_Updated: 2026-03-20 04:17 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -681,9 +689,9 @@ _Updated: 2026-03-20 03:48 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 03:48 UTC)
+Memory (2026-03-20 04:17 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
-├── entries/    79 indexed
+├── entries/    80 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

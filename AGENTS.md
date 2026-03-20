@@ -91,6 +91,7 @@ _Read when: making architectural choices._
 - `decisions/aad-over-finite-differences.md` — AAD Over Finite Differences for Greeks [derivatives,greeks,infrastructure]
 - `decisions/agent-session-isolation.md` — Agent Session Isolation (skill:launch-pipeline) [infrastructure,agents,orchestration]
 - `decisions/agent-trio-architecture.md` — Architect / Critic / Builder Agent Trio (skill:pipelines) [agents,architecture,decision]
+- `decisions/belam-codex-resurrection.md` — Belam Codex Resurrection Architecture [infrastructure,git,backup]
 - `decisions/clock-cycles-over-tokens.md` — Clock Cycles Over Tokens [infrastructure,cost,design-principle]
 - `decisions/derivative-specialist-skill.md` — Derivative Specialist Skill [derivatives,pricing,volatility]
 - `decisions/hierarchical-memory-system.md` — Hierarchical Memory Consolidation System [infrastructure,memory-system,cron]
@@ -112,6 +113,7 @@ _Read when: making architectural choices._
 
 ### Lessons
 _Read when: encountering problems or before making changes._
+- `lessons/always-back-up-workspace-to-github.md` — Always Back Up Workspace to GitHub [high] [infrastructure,git,backup]
 - `lessons/analysis-phase2-gate-mandatory.md` — Analysis Phase 2 is a Mandatory Gate Before New Versions [?] [pipeline,methodology,analysis]
 - `lessons/beta-convergence-is-market-determined.md` — β Convergence Is Market-Determined [high] [snn,hyperparameters,convergence]
 - `lessons/breakeven-accuracy-before-building.md` — Calculate Breakeven Accuracy Before Building [high] [trading,costs,validation]
