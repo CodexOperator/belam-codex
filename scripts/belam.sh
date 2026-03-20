@@ -171,23 +171,31 @@ list_analysis_pipelines() {
 
 # ── Command dispatch ──────────────────────────────────────────────────────────
 
-# ── Indexed Interface (default) ───────────────────────────────────────────────
-# Route through the index engine first. It handles:
-#   - No args → root menu
-#   - Coordinate resolution (a2, b1, 3, etc.)
-#   - Indexed list rendering (tasks, lessons, decisions, projects)
-#   - Numeric show resolution (lesson 3 → lesson <name>)
-# Exit code 2 = not handled, fall through to normal dispatch.
-# --raw bypasses the index engine entirely.
+# ── Codex Engine (primary interface) ──────────────────────────────────────────
+# Route through the Codex Engine first. It handles:
+#   - No args → supermap (R0)
+#   - Coordinate patterns (t1, p5, d2, m3, t1-t3, etc.)
+#   - Flags: -e (edit), -n (create), -z (undo), -g (graph), -x (execute)
+# Exit code 2 = not handled, fall through to legacy dispatch.
+# --raw bypasses both engines entirely.
 
 if [[ "${*}" != *"--raw"* ]] && [[ "${*}" != *"--plain"* ]]; then
+    _ce_rc=0
+    python3 "$SCRIPTS/codex_engine.py" "$@" || _ce_rc=$?
+    if [ "$_ce_rc" -eq 0 ]; then
+        exit 0
+    fi
+    # Exit code 2 = not handled by Codex Engine, try index engine
+    if [ "$_ce_rc" -ne 2 ]; then
+        exit "$_ce_rc"
+    fi
+
+    # Fall through to legacy index engine
     _idx_rc=0
     python3 "$SCRIPTS/belam_index.py" "$@" || _idx_rc=$?
     if [ "$_idx_rc" -eq 0 ]; then
         exit 0
     fi
-    # Exit code 2 = fall through to normal dispatch
-    # Any other non-zero = error, already printed
     if [ "$_idx_rc" -ne 2 ]; then
         exit "$_idx_rc"
     fi
