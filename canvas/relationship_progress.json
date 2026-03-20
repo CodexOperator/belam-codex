@@ -37,10 +37,19 @@
     "decisions/incremental-relationship-mapping-via-pairwise-opus-comparison|memories/2026-03-18_235054_commands-and-skills-promoted-to-first-cl",
     "decisions/incremental-relationship-mapping-via-pairwise-opus-comparison|memories/2026-03-19_005231_primitives-are-the-universal-organizatio",
     "decisions/incremental-relationship-mapping-via-pairwise-opus-comparison|memories/2026-03-19_033706_completed-workspace-refactor-three-works",
+    "decisions/incremental-relationship-mapping-via-pairwise-opus-comparison|memories/2026-03-19_044734_established-superseded-primitive-lifecyc",
+    "decisions/incremental-relationship-mapping-via-pairwise-opus-comparison|memories/2026-03-19_204801_design-principle-from-shael-clock-cycles",
     "decisions/incremental-relationship-mapping-via-pairwise-opus-comparison|memories/2026-03-20_033917_primitive-relationship-graph-deployed-al",
+    "decisions/indexed-command-interface|memories/2026-03-18_225239_major-workspace-infrastructure-session-1",
+    "decisions/indexed-command-interface|memories/2026-03-19_005231_primitives-are-the-universal-organizatio",
+    "decisions/indexed-command-interface|memories/2026-03-19_204801_design-principle-from-shael-clock-cycles",
     "decisions/indexed-command-interface|memories/2026-03-19_212142_voice-transcription-capability-establish",
+    "decisions/indexed-command-interface|memories/2026-03-20_022019_built-indexed-command-interface-for-bela",
+    "decisions/indexed-command-interface|memories/2026-03-20_032150_indexed-command-interface-fully-deployed",
     "decisions/memory-as-index-not-store|decisions/memory-as-primitive-type",
+    "decisions/memory-as-index-not-store|memories/2026-03-17_033419_built-two-major-systems-tonight-1-analys",
     "decisions/memory-as-index-not-store|memories/2026-03-17_134119_built-multi-agent-memory-system-each-age",
+    "decisions/memory-as-index-not-store|memories/2026-03-17_134119_major-session-built-three-infrastructure",
     "decisions/memory-as-index-not-store|memories/2026-03-17_152800_full-workspace-portability-now-includes",
     "decisions/memory-as-index-not-store|memories/2026-03-17_221720_hierarchical-memory-system-built-and-dep",
     "decisions/memory-as-index-not-store|memories/2026-03-18_192056_created-orchestration-skill-skillsorches",
@@ -304,9 +313,9 @@
     "tasks/build-equilibrium-snn|tasks/setup-vectorbt-nautilus-pipeline"
   ],
   "links_created": 25,
-  "pairs_evaluated": 124,
-  "no_relationship_count": 99,
+  "pairs_evaluated": 132,
+  "no_relationship_count": 107,
   "heuristic_links": 187,
   "started_at": "2026-03-20T05:58:23.301576+00:00",
-  "last_run": "2026-03-20T10:00:56.582513+00:00"
+  "last_run": "2026-03-20T10:45:18.396167+00:00"
 }
