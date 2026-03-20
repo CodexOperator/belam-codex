@@ -5,6 +5,7 @@ status: accepted
 date: 2026-03-18
 project: workspace-infrastructure
 tags: [memory, primitives, hierarchy, infrastructure]
+downstream: [memory/2026-03-18_235054_commands-and-skills-promoted-to-first-cl, memory/2026-03-19_005231_primitives-are-the-universal-organizatio]
 ---
 
 # Decision: Memory Hierarchy as Primitive Type

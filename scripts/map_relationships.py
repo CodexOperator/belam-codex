@@ -355,111 +355,133 @@ def save_progress(progress):
 
 # ── LLM Judgment (single pair) ────────────────────────────────────────────
 
-def format_primitive_for_prompt(key, meta):
-    """Format a primitive's content for the comparison prompt."""
-    ptype = meta["_type"]
-    slug = meta["_slug"]
-    tags = ", ".join(get_tags(meta)) if get_tags(meta) else "none"
-    date = meta.get("date", meta.get("created", meta.get("timestamp", "unknown")))
-    status = meta.get("status", "unknown")
-    importance = meta.get("importance", "")
-    category = meta.get("category", "")
-
-    content = meta.get("_content", "")
-    # Also include the 'content' frontmatter field for memory entries (often richer)
-    fm_content = meta.get("content", "")
-    if fm_content and fm_content not in content:
-        content = fm_content + "\n\n" + content
-
-    if len(content) > 2000:
-        content = content[:2000] + "\n[... truncated]"
-
-    header = f"## {ptype}/{slug}\n"
-    header += f"Type: {ptype} | Date: {date} | Tags: [{tags}]"
-    if importance:
-        header += f" | Importance: {importance}/5"
-    if category:
-        header += f" | Category: {category}"
-    header += f" | Status: {status}"
-
-    return f"{header}\n\n{content}"
-
-
-def build_single_pair_prompt(key_a, meta_a, key_b, meta_b):
-    """Build the prompt for judging a single pair."""
-
-    prim_a = format_primitive_for_prompt(key_a, meta_a)
-    prim_b = format_primitive_for_prompt(key_b, meta_b)
-
-    # Determine valid upstream counts
+def build_agent_task(key_a, meta_a, key_b, meta_b):
+    """Build a navigation task for the subagent to judge a single pair.
+    
+    Instead of dumping content, give the agent identifiers and let it 
+    browse using belam CLI, memory_search, and read.
+    """
     up_count_a = count_upstream(meta_a)
     up_count_b = count_upstream(meta_b)
     cap_note_a = f" ({up_count_a}/{MAX_UPSTREAM} upstream slots used)" if up_count_a > 0 else ""
     cap_note_b = f" ({up_count_b}/{MAX_UPSTREAM} upstream slots used)" if up_count_b > 0 else ""
 
-    return f"""You are analyzing whether a causal or dependency relationship exists between two workspace primitives.
+    # Give the agent the file paths so it can read them directly
+    path_a = meta_a["_path"]
+    path_b = meta_b["_path"]
 
-## Relationship Semantics
+    return f"""RELATIONSHIP JUDGMENT TASK — respond with your judgment only, no conversational text.
 
-**Upstream** = A causally informed, enabled, motivated, or is a prerequisite for B.
-- A memory that crystallized into a lesson → memory is upstream of lesson
-- A lesson that informed an architectural decision → lesson is upstream of decision
-- A memory observation that directly led to a decision → memory is upstream of decision
+Evaluate whether a causal upstream/downstream relationship exists between these two primitives:
 
-**Downstream** = B was created because of, builds upon, or extends A.
+  A: {key_a}  →  {path_a}{cap_note_a}
+  B: {key_b}  →  {path_b}{cap_note_b}
 
-## Constraints
+INSTRUCTIONS:
+1. Read both files to understand their content
+2. If you need more context, use memory_search or read related files — check conversation logs, git history, whatever helps you judge causation
+3. Determine if A caused/enabled/motivated B, or B caused/enabled/motivated A, or neither
 
-- Only identify relationships that are **genuinely causal** — not just topically similar
-- Shared tags or domain are NOT sufficient. Look for: "A happened/existed, and because of that, B exists"
-- Each primitive has a soft cap of {MAX_UPSTREAM} upstream links. Prefer the strongest causal link.
-- If the relationship is weak or ambiguous, output NONE — it's better to miss a link than create a false one
+SEMANTICS:
+- Upstream = A causally informed, enabled, or is a prerequisite for B
+- Only genuinely CAUSAL links — shared tags or topic is NOT enough
+- "A happened, and because of that, B exists" is the test
+- Soft cap: {MAX_UPSTREAM} upstream links per primitive. Prefer the strongest causal link.
+- When in doubt, output NONE — missing a link is better than a false one
 
-## Primitives
+RESPOND WITH EXACTLY:
+Line 1: `LINK: {{upstream_ref}} > {{downstream_ref}}` or `NONE`
+Line 2: One-sentence rationale
 
-{prim_a}
-
----
-
-{prim_b}
-
----
-
-## Current Link State
-- {key_a}{cap_note_a}
-- {key_b}{cap_note_b}
-
-## Your Judgment
-
-Respond with exactly ONE line:
-- `LINK: {{upstream_ref}} > {{downstream_ref}}` — if a causal relationship exists (use exact type/slug refs)
-- `NONE` — if no meaningful causal relationship exists
-
-Then on the next line, a brief rationale (one sentence).
-"""
+Use exact type/slug refs like: {key_a} or {key_b}"""
 
 
-def call_opus_single(prompt, dry_run=False):
+def call_opus_single(task_message, dry_run=False):
     """Spawn a fresh Opus subagent to judge a single pair.
 
-    Returns the raw response text, or empty string on failure.
+    Uses `openclaw agent` CLI — the agent gets full workspace access to
+    browse primitives via belam CLI, memory_search, read, etc.
 
-    TODO: Wire to sessions_spawn or direct API.
+    Returns the raw response text, or empty string on failure.
+    Raises TokenExhaustedError if rate-limited / quota hit.
     """
     if dry_run:
         return ""
 
-    # ── STUB: Replace with actual Opus invocation ──
-    # The agent sees only this pair's content and judges the relationship.
-    # Expected response format:
-    #   LINK: memories/some-slug > lessons/some-other-slug
-    #   The memory observation about X directly crystallized into this lesson.
-    # or:
-    #   NONE
-    #   These primitives share tags but have no causal relationship.
+    AGENT_TIMEOUT = 300  # 5 minutes — room for browsing + judgment
 
-    print("  ⚠ LLM judgment not yet wired — skeleton mode")
-    return ""
+    # Use a unique session-id per invocation so it doesn't collide
+    # with the coordinator's main session
+    import uuid
+    session_id = f"mapper-{uuid.uuid4().hex[:12]}"
+
+    cmd = [
+        'openclaw', 'agent',
+        '--agent', 'architect',
+        '--session-id', session_id,
+        '--thinking', 'low',
+        '--message', task_message,
+        '--timeout', str(AGENT_TIMEOUT),
+        '--json',
+    ]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=AGENT_TIMEOUT + 30,
+        )
+
+        if result.returncode == 0:
+            try:
+                data = json.loads(result.stdout)
+                status = data.get('status', 'unknown')
+
+                # Extract response text
+                response_text = ''
+                payloads = data.get('result', {}).get('payloads', [])
+                if payloads:
+                    response_text = payloads[0].get('text', '')
+
+                if status == 'ok' and response_text:
+                    return response_text
+                else:
+                    print(f"    ⚠ Agent returned status={status}, response length={len(response_text)}")
+                    return response_text or ""
+
+            except json.JSONDecodeError:
+                print(f"    ⚠ Failed to parse agent JSON response")
+                return ""
+        else:
+            stderr = result.stderr[:300] if result.stderr else ""
+            # Detect token exhaustion patterns
+            if any(phrase in stderr.lower() for phrase in
+                   ["rate limit", "quota", "429", "tokens", "capacity", "overloaded"]):
+                raise TokenExhaustedError(f"Token/rate limit hit: {stderr[:100]}")
+            print(f"    ⚠ Agent exit code {result.returncode}: {stderr[:100]}")
+            return ""
+
+    except subprocess.TimeoutExpired:
+        print(f"    ⚠ Agent timed out after {AGENT_TIMEOUT}s")
+        return ""
+    except TokenExhaustedError:
+        raise  # re-raise for caller to handle
+    except FileNotFoundError:
+        print(f"    ✗ openclaw CLI not found on PATH")
+        return ""
+    except Exception as e:
+        err_str = str(e).lower()
+        if any(phrase in err_str for phrase in
+               ["rate limit", "quota", "429", "tokens", "capacity"]):
+            raise TokenExhaustedError(str(e))
+        print(f"    ⚠ Unexpected error: {e}")
+        return ""
+
+
+class TokenExhaustedError(Exception):
+    """Raised when token quota or rate limit is hit."""
+    pass
 
 
 def parse_single_judgment(response, key_a, key_b):
@@ -735,15 +757,22 @@ def run_llm_batch(count, primitives, progress, dry_run=False):
 
         print(f"  [{idx}/{len(batch)}] [{score:3d}] {ka} ↔ {kb}  ({', '.join(reasons)})")
 
-        prompt = build_single_pair_prompt(ka, meta_a, kb, meta_b)
+        task = build_agent_task(ka, meta_a, kb, meta_b)
 
         if dry_run:
-            print(f"    [dry-run] prompt: {len(prompt)} chars")
+            print(f"    [dry-run] task: {len(task)} chars")
             progress["completed_pairs"].add(pair_key(ka, kb))
             total_evaluated += 1
             continue
 
-        response = call_opus_single(prompt, dry_run=dry_run)
+        try:
+            response = call_opus_single(task)
+        except TokenExhaustedError as e:
+            print(f"\n  ⏸ Token quota exhausted: {e}")
+            print(f"  Saving progress ({total_evaluated} pairs evaluated this run)...")
+            save_progress(progress)
+            print(f"  Will resume from here on next invocation.")
+            return total_evaluated, total_links
 
         if response:
             result = parse_single_judgment(response, ka, kb)
@@ -761,6 +790,12 @@ def run_llm_batch(count, primitives, progress, dry_run=False):
             else:
                 progress["no_relationship_count"] = progress.get("no_relationship_count", 0) + 1
                 print(f"    NONE — {result.get('rationale', '')}")
+        else:
+            # Empty response — might be transient failure, don't mark as completed
+            # so it gets retried next run
+            print(f"    ⚠ No response — will retry next run")
+            save_progress(progress)
+            continue
 
         progress["completed_pairs"].add(pair_key(ka, kb))
         progress["pairs_evaluated"] = progress.get("pairs_evaluated", 0) + 1
@@ -768,12 +803,6 @@ def run_llm_batch(count, primitives, progress, dry_run=False):
 
         # Save progress after each pair (resumable)
         save_progress(progress)
-
-        # Delay between pairs (except last)
-        if idx < len(batch) and not dry_run:
-            # 3-minute spacing handled externally (cron/heartbeat)
-            # For burst mode, no artificial delay — burn tokens
-            pass
 
     return total_evaluated, total_links
 
@@ -829,7 +858,15 @@ def main():
     # LLM mode: default 1 pair, or burst N
     count = args.burst if args.burst > 0 else 1
     print(f"  Loaded {len(primitives)} primitives")
-    evaluated, links = run_llm_batch(count, primitives, progress, dry_run=args.dry_run)
+
+    try:
+        evaluated, links = run_llm_batch(count, primitives, progress, dry_run=args.dry_run)
+    except TokenExhaustedError as e:
+        # Top-level catch in case it propagates
+        print(f"\n  ⏸ Token quota exhausted: {e}")
+        print(f"  Progress saved. Will resume on next cron invocation.")
+        save_progress(progress)
+        sys.exit(0)  # Clean exit for cron — not an error
 
     if links > 0 and not args.dry_run:
         rebuild_indexes()

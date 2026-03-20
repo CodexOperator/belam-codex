@@ -7,6 +7,7 @@ tags: [infrastructure, cost, design-principle, tokens]
 source: "session"
 content: "Design principle from Shael: clock cycles are cheaper than tokens by incomprehensible orders of magnitude. Every operation that can be done via script/CLI instead of LLM reasoning should be. Applies to heartbeat tasks, primitive edits, pipeline management, file operations — all of it. The belam CLI and autorun scripts are the right pattern. Continuously migrate LLM-decision work to deterministic code wherever judgment isn't genuinely needed."
 status: consolidated
+downstream: [decision/clock-cycles-over-tokens]
 ---
 
 # Memory Entry

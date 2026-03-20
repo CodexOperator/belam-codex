@@ -6,6 +6,7 @@ priority: high
 tags: [infrastructure, memory-system, cron, knowledge-graph]
 project: workspace-infrastructure
 decided_by: [Shael, Belam]
+downstream: [memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe]
 ---
 
 # Hierarchical Memory Consolidation System
