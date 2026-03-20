@@ -184,6 +184,32 @@ def normalize_list_value(raw: str) -> str:
 
 # ── CLI ────────────────────────────────────────────────────────────────────────
 
+def _rejoin_list_args(argv: list[str]) -> list[str]:
+    """Rejoin shell-split list values in --set arguments.
+
+    The shell splits `--set downstream=[a, b, c]` into multiple tokens.
+    This reassembles them by detecting an unclosed `[` and consuming
+    subsequent tokens until the closing `]` is found.
+    """
+    result = []
+    i = 0
+    while i < len(argv):
+        token = argv[i]
+        # Check if this is a --set value with an unclosed bracket
+        if "=[" in token and "]" not in token:
+            # Accumulate until we find the closing ]
+            parts = [token]
+            i += 1
+            while i < len(argv) and "]" not in parts[-1]:
+                parts.append(argv[i])
+                i += 1
+            result.append(" ".join(parts))
+        else:
+            result.append(token)
+            i += 1
+    return result
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Edit workspace primitives with post-edit index trigger."
@@ -201,7 +227,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Show what would be changed without writing.",
     )
-    return parser.parse_args()
+    # Pre-process sys.argv to rejoin shell-split list values
+    # e.g. --set downstream=[a, b, c] arrives as ['--set', 'downstream=[a,', 'b,', 'c]']
+    # We rejoin them so argparse sees: ['--set', 'downstream=[a, b, c]']
+    args_fixed = _rejoin_list_args(sys.argv[1:])
+    return parser.parse_args(args_fixed)
 
 
 def main():
