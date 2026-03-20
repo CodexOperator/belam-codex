@@ -1,15 +1,13 @@
 {
   "status": "complete",
-  "session": "a6677470-aa48-4e7a-a298-e06f289140b0",
+  "session": "f1efec11-8776-4cd8-a4ef-639b7261ffa4",
   "instance": "main",
   "date": "2026-03-20",
-  "completed_at": "2026-03-20T22:02:00Z",
+  "completed_at": "2026-03-20T22:28:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-20_215135_built-automated-session-memory-extractio.md",
-    "lessons/auto-memory-extraction-on-bootstrap.md",
-    "decisions/auto-memory-extraction-architecture.md",
-    "memory/entries/2026-03-20_220104_boot-context-cleanup-agentsmd-159kb22kb.md",
-    "lessons/archive-embed-primitives-when-supermap-replaces-it.md",
-    "decisions/boot-context-trim-static-indexes.md"
+    "memory/entries/2026-03-20_222815_debugged-memory-extract-hook-not-firing.md",
+    "lessons/memory-extract-hook-session-file-detection-mismatch.md",
+    "lessons/sage-agent-session-key-stale-after-rename.md",
+    "decisions/memory-extract-hook-error-handling-fix.md"
   ]
 }

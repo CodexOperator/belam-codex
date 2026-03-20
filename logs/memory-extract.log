@@ -1,2 +1,6 @@
 2026-03-20T21:44:30.309Z [debug] Hook fired {"type":"agent","hasContext":true}
 2026-03-20T21:44:30.309Z [debug] Skipping — not agent:bootstrap {"type":"agent"}
+2026-03-20T22:27:29.523Z [info] Hook fired: new {"instance":"main","workspaceDir":"/home/ubuntu/.openclaw/workspace"}
+2026-03-20T22:27:29.531Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-20-2227.md
+2026-03-20T22:27:29.676Z [info] Prompt loaded (40817 bytes), spawning sage
+2026-03-20T22:27:29.690Z [info] Sage spawned {"sessionId":"mem-extract-1774045649531","pid":2646551}
