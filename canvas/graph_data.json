@@ -50,7 +50,8 @@
           "gate"
         ],
         "project": "snn-applied-finance",
-        "source": "Shael directive 2026-03-17"
+        "source": "Shael directive 2026-03-17",
+        "downstream": []
       }
     },
     {
@@ -76,7 +77,8 @@
         ],
         "applies_to": [
           "snn-applied-finance"
-        ]
+        ],
+        "downstream": []
       }
     },
     {
@@ -701,7 +703,8 @@
           "derivatives",
           "greeks",
           "infrastructure"
-        ]
+        ],
+        "upstream": []
       }
     },
     {
@@ -739,7 +742,8 @@
           "agents",
           "orchestration"
         ],
-        "skill": "launch-pipeline"
+        "skill": "launch-pipeline",
+        "upstream": []
       }
     },
     {
@@ -775,7 +779,8 @@
           "architecture",
           "decision"
         ],
-        "skill": "pipelines"
+        "skill": "pipelines",
+        "upstream": []
       }
     },
     {
@@ -2273,6 +2278,36 @@
       }
     },
     {
+      "id": "command/link",
+      "type": "command",
+      "title": "belam link",
+      "tags": [
+        "link",
+        "relationships",
+        "primitives",
+        "graph"
+      ],
+      "status": "",
+      "frontmatter": {
+        "title": "belam link",
+        "command": "belam link <expr>...",
+        "aliases": [
+          "belam ln"
+        ],
+        "category": "primitives",
+        "tags": [
+          "link",
+          "relationships",
+          "primitives",
+          "graph"
+        ],
+        "upstream": [
+          "decisions/indexed-command-interface",
+          "decisions/primitive-relationship-graph"
+        ]
+      }
+    },
+    {
       "id": "command/log",
       "type": "command",
       "title": "belam log",
@@ -3029,6 +3064,14 @@
     {
       "source": "decision/indexed-command-interface",
       "target": "decision/primitive-relationship-graph"
+    },
+    {
+      "source": "decision/indexed-command-interface",
+      "target": "command/link"
+    },
+    {
+      "source": "decision/primitive-relationship-graph",
+      "target": "command/link"
     }
   ]
 }

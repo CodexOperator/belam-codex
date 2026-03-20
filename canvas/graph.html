@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🔮 Belam Primitive Graph</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d1a;
+    --bg2: #12122a;
+    --bg3: #1a1a35;
+    --border: #2a2a4a;
+    --text: #c8c8e8;
+    --text-dim: #666688;
+    --accent: #6060ff;
+
+    --col-lesson:   #f59e0b;
+    --col-decision: #3b82f6;
+    --col-task:     #22c55e;
+    --col-project:  #a855f7;
+    --col-pipeline: #06b6d4;
+    --col-command:  #94a3b8;
+    --col-skill:    #ec4899;
+    --col-knowledge:#14b8a6;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  #brand {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: #a0a0ff;
+    white-space: nowrap;
+  }
+
+  #search-wrap {
+    flex: 1;
+    min-width: 140px;
+    position: relative;
+  }
+
+  #search {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px 5px 28px;
+    color: var(--text);
+    font-size: 0.85rem;
+    outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+  #search::placeholder { color: var(--text-dim); }
+  #search-icon {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    pointer-events: none;
+  }
+
+  #type-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .type-btn {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    background: var(--bg3);
+    opacity: 0.5;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .type-btn.active { opacity: 1; }
+  .type-btn:hover { transform: scale(1.05); }
+
+  #stats {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  /* ── CANVAS AREA ── */
+  #canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #graph-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  #graph-canvas.dragging { cursor: grabbing; }
+
+  /* ── SIDE PANEL ── */
+  #panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    max-width: 90vw;
+    height: 100%;
+    background: rgba(13,13,26,0.95);
+    border-left: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #panel.open { transform: translateX(0); }
+
+  #panel-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  #panel-type-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  #panel-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    flex: 1;
+  }
+
+  #panel-close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  #panel-close:hover { color: var(--text); }
+
+  #panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  #panel-body::-webkit-scrollbar { width: 4px; }
+  #panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .panel-section {
+    margin-bottom: 14px;
+  }
+  .panel-label {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+  }
+  .panel-value {
+    color: var(--text);
+  }
+
+  .tag-chip {
+    display: inline-block;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 6px;
+    margin: 2px 2px 2px 0;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+  }
+
+  .rel-link {
+    display: block;
+    padding: 3px 0;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.78rem;
+  }
+  .rel-link:hover { text-decoration: underline; }
+
+  .fm-row {
+    display: flex;
+    gap: 6px;
+    padding: 2px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .fm-key {
+    color: var(--text-dim);
+    min-width: 80px;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+  }
+  .fm-val {
+    color: var(--text);
+    font-size: 0.72rem;
+    word-break: break-all;
+  }
+
+  /* ── TOOLTIP ── */
+  #tooltip {
+    position: absolute;
+    background: rgba(18,18,42,0.95);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    pointer-events: none;
+    z-index: 30;
+    max-width: 220px;
+    display: none;
+    backdrop-filter: blur(8px);
+  }
+  #tooltip-title { font-weight: 600; margin-bottom: 2px; }
+  #tooltip-meta { color: var(--text-dim); font-size: 0.7rem; }
+
+  /* ── HINT ── */
+  #hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(18,18,42,0.8);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    pointer-events: none;
+    transition: opacity 0.5s;
+    white-space: nowrap;
+    z-index: 5;
+  }
+
+  /* ── LEGEND ── */
+  #legend {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(13,13,26,0.85);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.7rem;
+    z-index: 5;
+    backdrop-filter: blur(6px);
+  }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+  }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-label { color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div id="brand">🔮 Primitive Graph</div>
+
+  <div id="search-wrap">
+    <span id="search-icon">⌕</span>
+    <input id="search" type="text" placeholder="Search nodes…" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div id="type-filters"></div>
+  <div id="stats"></div>
+</div>
+
+<!-- CANVAS -->
+<div id="canvas-wrap">
+  <canvas id="graph-canvas"></canvas>
+
+  <!-- SIDE PANEL -->
+  <div id="panel">
+    <div id="panel-header">
+      <div id="panel-type-dot"></div>
+      <div id="panel-title">Node</div>
+      <button id="panel-close">✕</button>
+    </div>
+    <div id="panel-body"></div>
+  </div>
+
+  <!-- TOOLTIP -->
+  <div id="tooltip">
+    <div id="tooltip-title"></div>
+    <div id="tooltip-meta"></div>
+  </div>
+
+  <!-- HINT -->
+  <div id="hint">Click to select · Double-click for details · Drag to move · Scroll to zoom</div>
+
+  <!-- LEGEND -->
+  <div id="legend"></div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const TYPE_COLORS = {
+  lesson:    '#f59e0b',
+  decision:  '#3b82f6',
+  task:      '#22c55e',
+  project:   '#a855f7',
+  pipeline:  '#06b6d4',
+  command:   '#94a3b8',
+  skill:     '#ec4899',
+  knowledge: '#14b8a6',
+};
+
+const TYPE_ORDER = Object.keys(TYPE_COLORS);
+
+const NODE_RADIUS = 7;
+const SELECTED_RADIUS = 10;
+const EDGE_ARROW_SIZE = 6;
+
+// Force simulation params
+const REPEL_STRENGTH = 3200;
+const ATTRACT_STRENGTH = 0.06;
+const CENTER_STRENGTH = 0.018;
+const DAMPING = 0.82;
+const TICK_MS = 16;
+const COOL_THRESHOLD = 0.3;
+const MAX_TICKS = 500;
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let allNodes = [];
+let allEdges = [];
+let simNodes = [];   // visible + positioned
+let simEdges = [];   // edges between visible nodes
+let nodeMap = {};    // id → simNode
+
+let viewX = 0, viewY = 0, viewScale = 1;
+let selectedId = null;
+let hoveredId = null;
+let draggingNode = null;
+let draggingBg = false;
+let dragStartX = 0, dragStartY = 0;
+let dragOriginX = 0, dragOriginY = 0;
+let lastPinchDist = 0;
+let panStartViewX = 0, panStartViewY = 0;
+
+let visibleTypes = new Set(TYPE_ORDER);
+let searchQuery = '';
+
+let simRunning = false;
+let simTick = 0;
+let animFrameId = null;
+
+const canvas = document.getElementById('graph-canvas');
+const ctx = canvas.getContext('2d');
+
+// ─────────────────────────────────────────────
+// LOAD DATA
+// ─────────────────────────────────────────────
+async function loadData() {
+  let data;
+  try {
+    const resp = await fetch('graph_data.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    data = await resp.json();
+  } catch (e) {
+    showError(`Failed to load graph_data.json: ${e.message}`);
+    return;
+  }
+
+  allNodes = data.nodes || [];
+  allEdges = data.edges || [];
+
+  buildFilters();
+  buildLegend();
+  rebuildVisible();
+  startSim();
+}
+
+function showError(msg) {
+  ctx.fillStyle = '#ff6666';
+  ctx.font = '14px monospace';
+  ctx.fillText(msg, 20, canvas.height / 2);
+}
+
+// ─────────────────────────────────────────────
+// FILTER / REBUILD
+// ─────────────────────────────────────────────
+function rebuildVisible() {
+  const q = searchQuery.toLowerCase();
+
+  const visNodeIds = new Set();
+  simNodes = allNodes.filter(n => {
+    if (!visibleTypes.has(n.type)) return false;
+    if (q) {
+      const haystack = (n.title + ' ' + (n.tags||[]).join(' ')).toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    visNodeIds.add(n.id);
+    return true;
+  }).map(n => {
+    // Preserve existing position if node was already placed
+    const existing = nodeMap[n.id];
+    return {
+      ...n,
+      x: existing ? existing.x : (Math.random() - 0.5) * 400,
+      y: existing ? existing.y : (Math.random() - 0.5) * 400,
+      vx: existing ? existing.vx * 0.5 : 0,
+      vy: existing ? existing.vy * 0.5 : 0,
+      pinned: existing ? existing.pinned : false,
+    };
+  });
+
+  nodeMap = {};
+  simNodes.forEach(n => { nodeMap[n.id] = n; });
+
+  simEdges = allEdges.filter(e => visNodeIds.has(e.source) && visNodeIds.has(e.target));
+
+  updateStats();
+}
+
+// ─────────────────────────────────────────────
+// FORCE SIMULATION
+// ─────────────────────────────────────────────
+function startSim() {
+  simRunning = true;
+  simTick = 0;
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animFrameId = requestAnimationFrame(simLoop);
+}
+
+function simLoop() {
+  if (simRunning && simTick < MAX_TICKS) {
+    tickForces();
+    simTick++;
+  }
+  drawGraph();
+  animFrameId = requestAnimationFrame(simLoop);
+}
+
+function tickForces() {
+  const n = simNodes.length;
+  if (n === 0) return;
+
+  // Reset forces
+  for (let i = 0; i < n; i++) {
+    simNodes[i].fx = 0;
+    simNodes[i].fy = 0;
+  }
+
+  // Repulsion between all pairs
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const a = simNodes[i], b = simNodes[j];
+      let dx = b.x - a.x, dy = b.y - a.y;
+      const d2 = dx * dx + dy * dy + 1;
+      const d = Math.sqrt(d2);
+      const f = REPEL_STRENGTH / d2;
+      const nx = dx / d, ny = dy / d;
+      a.fx -= nx * f;
+      a.fy -= ny * f;
+      b.fx += nx * f;
+      b.fy += ny * f;
+    }
+  }
+
+  // Edge attraction
+  for (const e of simEdges) {
+    const a = nodeMap[e.source], b = nodeMap[e.target];
+    if (!a || !b) continue;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    a.fx += dx * ATTRACT_STRENGTH;
+    a.fy += dy * ATTRACT_STRENGTH;
+    b.fx -= dx * ATTRACT_STRENGTH;
+    b.fy -= dy * ATTRACT_STRENGTH;
+  }
+
+  // Center gravity
+  for (const node of simNodes) {
+    node.fx -= node.x * CENTER_STRENGTH;
+    node.fy -= node.y * CENTER_STRENGTH;
+  }
+
+  // Integrate
+  let totalKE = 0;
+  for (const node of simNodes) {
+    if (node.pinned) { node.vx = 0; node.vy = 0; continue; }
+    node.vx = (node.vx + node.fx) * DAMPING;
+    node.vy = (node.vy + node.fy) * DAMPING;
+    node.x += node.vx;
+    node.y += node.vy;
+    totalKE += node.vx * node.vx + node.vy * node.vy;
+  }
+
+  if (totalKE / n < COOL_THRESHOLD) simRunning = false;
+}
+
+// ─────────────────────────────────────────────
+// DRAW
+// ─────────────────────────────────────────────
+function drawGraph() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#0d0d1a';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.translate(W / 2 + viewX, H / 2 + viewY);
+  ctx.scale(viewScale, viewScale);
+
+  // Determine dimming
+  const highlightSet = getHighlightSet();
+
+  // Draw edges first
+  drawEdges(highlightSet);
+
+  // Draw nodes
+  drawNodes(highlightSet);
+
+  ctx.restore();
+}
+
+function getHighlightSet() {
+  if (!selectedId) return null;
+  const set = new Set([selectedId]);
+  for (const e of simEdges) {
+    if (e.source === selectedId) set.add(e.target);
+    if (e.target === selectedId) set.add(e.source);
+  }
+  return set;
+}
+
+function drawEdges(highlightSet) {
+  for (const e of simEdges) {
+    const src = nodeMap[e.source], tgt = nodeMap[e.target];
+    if (!src || !tgt) continue;
+
+    const isHighlighted = highlightSet && (highlightSet.has(e.source) && highlightSet.has(e.target));
+    const dimmed = highlightSet && !isHighlighted;
+
+    const alpha = dimmed ? 0.08 : (isHighlighted ? 0.9 : 0.35);
+
+    const dx = tgt.x - src.x, dy = tgt.y - src.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 1) continue;
+
+    const nx = dx / len, ny = dy / len;
+
+    // End point just before the target node circle
+    const ex = tgt.x - nx * (NODE_RADIUS + 2);
+    const ey = tgt.y - ny * (NODE_RADIUS + 2);
+
+    // Use source node color for edge
+    const col = TYPE_COLORS[src.type] || '#888';
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = isHighlighted ? 1.5 : 0.8;
+
+    ctx.beginPath();
+    ctx.moveTo(src.x, src.y);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+
+    // Arrow head
+    const as = EDGE_ARROW_SIZE * (isHighlighted ? 1.2 : 0.8);
+    const ax = ex - nx * as + ny * as * 0.4;
+    const ay = ey - ny * as - nx * as * 0.4;
+    const bx = ex - nx * as - ny * as * 0.4;
+    const by = ey - ny * as + nx * as * 0.4;
+
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(ex, ey);
+    ctx.lineTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function drawNodes(highlightSet) {
+  for (const node of simNodes) {
+    const isSelected = node.id === selectedId;
+    const isHovered  = node.id === hoveredId;
+    const inHighlight = !highlightSet || highlightSet.has(node.id);
+    const dimmed = highlightSet && !inHighlight;
+
+    const col = TYPE_COLORS[node.type] || '#888';
+    const r = isSelected ? SELECTED_RADIUS : (isHovered ? NODE_RADIUS + 2 : NODE_RADIUS);
+    const alpha = dimmed ? 0.15 : 1.0;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // Glow
+    if (!dimmed && (isSelected || isHovered)) {
+      const glowR = r * 2.8;
+      const grd = ctx.createRadialGradient(node.x, node.y, r * 0.5, node.x, node.y, glowR);
+      grd.addColorStop(0, col + '44');
+      grd.addColorStop(1, col + '00');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (!dimmed) {
+      // Subtle ambient glow
+      const glowR = r * 2;
+      const grd = ctx.createRadialGradient(node.x, node.y, r * 0.3, node.x, node.y, glowR);
+      grd.addColorStop(0, col + '22');
+      grd.addColorStop(1, col + '00');
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, glowR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = dimmed ? '#333' : col + 'cc';
+    ctx.fill();
+    ctx.strokeStyle = dimmed ? '#555' : col;
+    ctx.lineWidth = isSelected ? 2 : 1;
+    ctx.stroke();
+
+    // Label (only when not too zoomed out and not dimmed)
+    if (!dimmed && viewScale > 0.45) {
+      const fontSize = Math.max(8, Math.min(11, 10 / viewScale));
+      ctx.font = `${isSelected ? 600 : 400} ${fontSize}px -apple-system, sans-serif`;
+      ctx.fillStyle = isSelected ? '#ffffff' : '#ccccee';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      // Truncate long labels
+      let label = node.title;
+      const maxChars = Math.max(12, Math.floor(30 / viewScale));
+      if (label.length > maxChars) label = label.substring(0, maxChars - 1) + '…';
+
+      ctx.fillText(label, node.x, node.y + r + 2);
+    }
+
+    ctx.restore();
+  }
+}
+
+// ─────────────────────────────────────────────
+// HIT TEST
+// ─────────────────────────────────────────────
+function canvasToGraph(cx, cy) {
+  const W = canvas.width, H = canvas.height;
+  return {
+    x: (cx - W / 2 - viewX) / viewScale,
+    y: (cy - H / 2 - viewY) / viewScale,
+  };
+}
+
+function hitNode(cx, cy) {
+  const {x, y} = canvasToGraph(cx, cy);
+  let best = null, bestD2 = (NODE_RADIUS * 2) ** 2 / (viewScale * viewScale);
+  for (const node of simNodes) {
+    const dx = node.x - x, dy = node.y - y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < bestD2) { bestD2 = d2; best = node; }
+  }
+  return best;
+}
+
+// ─────────────────────────────────────────────
+// INTERACTIONS
+// ─────────────────────────────────────────────
+let clickTimer = null;
+
+function handlePointerDown(cx, cy) {
+  const node = hitNode(cx, cy);
+  if (node) {
+    draggingNode = node;
+    node.pinned = true;
+    canvas.classList.add('dragging');
+    const gp = canvasToGraph(cx, cy);
+    dragStartX = gp.x - node.x;
+    dragStartY = gp.y - node.y;
+  } else {
+    draggingBg = true;
+    canvas.classList.add('dragging');
+    dragStartX = cx;
+    dragStartY = cy;
+    panStartViewX = viewX;
+    panStartViewY = viewY;
+  }
+}
+
+function handlePointerMove(cx, cy) {
+  if (draggingNode) {
+    const {x, y} = canvasToGraph(cx, cy);
+    draggingNode.x = x - dragStartX;
+    draggingNode.y = y - dragStartY;
+    draggingNode.vx = 0;
+    draggingNode.vy = 0;
+    if (!simRunning) startSim();
+  } else if (draggingBg) {
+    viewX = panStartViewX + (cx - dragStartX);
+    viewY = panStartViewY + (cy - dragStartY);
+  } else {
+    // Hover
+    const node = hitNode(cx, cy);
+    const newId = node ? node.id : null;
+    if (newId !== hoveredId) {
+      hoveredId = newId;
+      updateTooltip(node, cx, cy);
+    } else if (newId && hoveredId) {
+      updateTooltip(node, cx, cy);
+    }
+  }
+}
+
+function handlePointerUp(cx, cy, isClick, isDblClick) {
+  const wasDraggingNode = draggingNode;
+  const wasDraggingBg = draggingBg;
+  draggingBg = false;
+  canvas.classList.remove('dragging');
+
+  if (draggingNode) {
+    draggingNode.pinned = false;
+    draggingNode = null;
+  }
+
+  if (isClick) {
+    const node = hitNode(cx, cy);
+    if (isDblClick) {
+      if (node) openPanel(node);
+    } else {
+      // Single click
+      if (node) {
+        selectedId = (selectedId === node.id) ? null : node.id;
+      } else {
+        selectedId = null;
+      }
+    }
+  }
+}
+
+// Mouse
+let mouseDown = false;
+let mouseDownX = 0, mouseDownY = 0;
+let mouseDownTime = 0;
+let lastClickTime = 0, lastClickX = 0, lastClickY = 0;
+
+canvas.addEventListener('mousedown', e => {
+  mouseDown = true;
+  mouseDownX = e.offsetX;
+  mouseDownY = e.offsetY;
+  mouseDownTime = Date.now();
+  handlePointerDown(e.offsetX, e.offsetY);
+});
+
+canvas.addEventListener('mousemove', e => {
+  if (mouseDown) {
+    handlePointerMove(e.offsetX, e.offsetY);
+  } else {
+    handlePointerMove(e.offsetX, e.offsetY);
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (!mouseDown) return;
+  mouseDown = false;
+  const dx = e.offsetX - mouseDownX, dy = e.offsetY - mouseDownY;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const dt = Date.now() - mouseDownTime;
+  const isClick = dist < 5 && dt < 300;
+
+  const now = Date.now();
+  const dblDx = e.offsetX - lastClickX, dblDy = e.offsetY - lastClickY;
+  const isDbl = isClick && (now - lastClickTime) < 400 && Math.sqrt(dblDx*dblDx+dblDy*dblDy) < 10;
+
+  if (isClick) {
+    lastClickTime = now;
+    lastClickX = e.offsetX;
+    lastClickY = e.offsetY;
+  }
+
+  handlePointerUp(e.offsetX, e.offsetY, isClick, isDbl);
+});
+
+canvas.addEventListener('mouseleave', () => {
+  mouseDown = false;
+  draggingBg = false;
+  draggingNode = null;
+  canvas.classList.remove('dragging');
+  hoveredId = null;
+  hideTooltip();
+});
+
+// Scroll / zoom
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  const cx = e.offsetX, cy = e.offsetY;
+  const W = canvas.width, H = canvas.height;
+
+  // Zoom toward cursor
+  const wx = (cx - W/2 - viewX) / viewScale;
+  const wy = (cy - H/2 - viewY) / viewScale;
+
+  viewScale = Math.max(0.1, Math.min(5, viewScale * factor));
+  viewX = cx - W/2 - wx * viewScale;
+  viewY = cy - H/2 - wy * viewScale;
+}, { passive: false });
+
+// Touch
+let touches = [];
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touches = Array.from(e.touches);
+  if (touches.length === 1) {
+    handlePointerDown(touches[0].clientX - canvas.getBoundingClientRect().left,
+                      touches[0].clientY - canvas.getBoundingClientRect().top);
+  } else if (touches.length === 2) {
+    draggingNode = null;
+    draggingBg = false;
+    lastPinchDist = pinchDist(touches[0], touches[1]);
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const newTouches = Array.from(e.touches);
+
+  if (newTouches.length === 1) {
+    const cx = newTouches[0].clientX - rect.left;
+    const cy = newTouches[0].clientY - rect.top;
+    handlePointerMove(cx, cy);
+  } else if (newTouches.length === 2) {
+    // Pinch zoom + pan
+    const d = pinchDist(newTouches[0], newTouches[1]);
+    if (lastPinchDist > 0) {
+      const factor = d / lastPinchDist;
+      const midX = (newTouches[0].clientX + newTouches[1].clientX) / 2 - rect.left;
+      const midY = (newTouches[0].clientY + newTouches[1].clientY) / 2 - rect.top;
+      const W = canvas.width, H = canvas.height;
+      const wx = (midX - W/2 - viewX) / viewScale;
+      const wy = (midY - H/2 - viewY) / viewScale;
+      viewScale = Math.max(0.1, Math.min(5, viewScale * factor));
+      viewX = midX - W/2 - wx * viewScale;
+      viewY = midY - H/2 - wy * viewScale;
+    }
+    lastPinchDist = d;
+  }
+  touches = newTouches;
+}, { passive: false });
+
+let touchDownTime = 0, touchDownX = 0, touchDownY = 0;
+let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
+
+canvas.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    const rect = canvas.getBoundingClientRect();
+    touchDownX = e.touches[0].clientX - rect.left;
+    touchDownY = e.touches[0].clientY - rect.top;
+    touchDownTime = Date.now();
+  }
+}, { passive: false, capture: true });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const t = e.changedTouches[0];
+  const cx = t.clientX - rect.left;
+  const cy = t.clientY - rect.top;
+
+  const dx = cx - touchDownX, dy = cy - touchDownY;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  const dt = Date.now() - touchDownTime;
+  const isClick = dist < 10 && dt < 400;
+
+  const now = Date.now();
+  const dblDx = cx - lastTapX, dblDy = cy - lastTapY;
+  const isDbl = isClick && (now - lastTapTime) < 400 && Math.sqrt(dblDx*dblDx+dblDy*dblDy) < 20;
+
+  if (isClick) {
+    lastTapTime = now;
+    lastTapX = cx;
+    lastTapY = cy;
+  }
+
+  draggingNode = null;
+  draggingBg = false;
+  canvas.classList.remove('dragging');
+  handlePointerUp(cx, cy, isClick, isDbl);
+  touches = [];
+}, { passive: false });
+
+function pinchDist(t1, t2) {
+  const dx = t1.clientX - t2.clientX, dy = t1.clientY - t2.clientY;
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+// ─────────────────────────────────────────────
+// TOOLTIP
+// ─────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+const ttTitle = document.getElementById('tooltip-title');
+const ttMeta  = document.getElementById('tooltip-meta');
+
+function updateTooltip(node, cx, cy) {
+  if (!node) { hideTooltip(); return; }
+  ttTitle.textContent = node.title;
+  const parts = [node.type];
+  if (node.status) parts.push(node.status);
+  if (node.tags && node.tags.length) parts.push(node.tags.slice(0,3).join(', '));
+  ttMeta.textContent = parts.join(' · ');
+  ttTitle.style.color = TYPE_COLORS[node.type] || '#888';
+
+  const rect = canvas.getBoundingClientRect();
+  let tx = cx + 14, ty = cy - 10;
+  if (tx + 220 > canvas.width) tx = cx - 230;
+  if (ty + 60 > canvas.height) ty = cy - 70;
+
+  tooltip.style.left = tx + 'px';
+  tooltip.style.top  = ty + 'px';
+  tooltip.style.display = 'block';
+}
+
+function hideTooltip() {
+  tooltip.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+// SIDE PANEL
+// ─────────────────────────────────────────────
+const panel = document.getElementById('panel');
+const panelTitle = document.getElementById('panel-title');
+const panelDot = document.getElementById('panel-type-dot');
+const panelBody = document.getElementById('panel-body');
+document.getElementById('panel-close').addEventListener('click', closePanel);
+
+function openPanel(node) {
+  selectedId = node.id;
+  panelTitle.textContent = node.title;
+  panelDot.style.background = TYPE_COLORS[node.type] || '#888';
+
+  const html = [];
+
+  // Type + status
+  html.push(`<div class="panel-section">
+    <div class="panel-label">Type</div>
+    <div class="panel-value" style="color:${TYPE_COLORS[node.type]||'#888'}">${node.type}</div>
+  </div>`);
+
+  if (node.status) {
+    html.push(`<div class="panel-section">
+      <div class="panel-label">Status</div>
+      <div class="panel-value">${node.status}</div>
+    </div>`);
+  }
+
+  // Tags
+  if (node.tags && node.tags.length) {
+    const chips = node.tags.map(t => `<span class="tag-chip">${t}</span>`).join('');
+    html.push(`<div class="panel-section">
+      <div class="panel-label">Tags</div>
+      <div>${chips}</div>
+    </div>`);
+  }
+
+  // Upstream / Downstream
+  const upEdges = simEdges.filter(e => e.target === node.id).map(e => e.source);
+  const downEdges = simEdges.filter(e => e.source === node.id).map(e => e.target);
+
+  if (upEdges.length) {
+    const links = upEdges.map(id => {
+      const n = nodeMap[id] || allNodes.find(x => x.id === id);
+      const title = n ? n.title : id;
+      const col = n ? (TYPE_COLORS[n.type]||'#888') : '#888';
+      return `<a class="rel-link" style="color:${col}" data-nodeid="${id}">▴ ${title}</a>`;
+    }).join('');
+    html.push(`<div class="panel-section">
+      <div class="panel-label">Upstream</div>
+      <div>${links}</div>
+    </div>`);
+  }
+
+  if (downEdges.length) {
+    const links = downEdges.map(id => {
+      const n = nodeMap[id] || allNodes.find(x => x.id === id);
+      const title = n ? n.title : id;
+      const col = n ? (TYPE_COLORS[n.type]||'#888') : '#888';
+      return `<a class="rel-link" style="color:${col}" data-nodeid="${id}">▾ ${title}</a>`;
+    }).join('');
+    html.push(`<div class="panel-section">
+      <div class="panel-label">Downstream</div>
+      <div>${links}</div>
+    </div>`);
+  }
+
+  // Frontmatter
+  const fm = node.frontmatter || {};
+  const skipKeys = new Set(['primitive','title','tags','upstream','downstream','status','confidence']);
+  const fmKeys = Object.keys(fm).filter(k => !skipKeys.has(k));
+  if (fmKeys.length) {
+    const rows = fmKeys.map(k => {
+      const v = Array.isArray(fm[k]) ? fm[k].join(', ') : String(fm[k]);
+      return `<div class="fm-row"><span class="fm-key">${k}</span><span class="fm-val">${v}</span></div>`;
+    }).join('');
+    html.push(`<div class="panel-section">
+      <div class="panel-label">Frontmatter</div>
+      <div>${rows}</div>
+    </div>`);
+  }
+
+  // Node ID
+  html.push(`<div class="panel-section">
+    <div class="panel-label">ID</div>
+    <div class="panel-value" style="color:#666688;font-size:0.72rem">${node.id}</div>
+  </div>`);
+
+  panelBody.innerHTML = html.join('');
+
+  // Navigate on link click
+  panelBody.querySelectorAll('.rel-link[data-nodeid]').forEach(el => {
+    el.addEventListener('click', () => {
+      const tid = el.dataset.nodeid;
+      const tn = nodeMap[tid];
+      if (tn) {
+        centerOn(tn);
+        openPanel(tn);
+      }
+    });
+  });
+
+  panel.classList.add('open');
+}
+
+function closePanel() {
+  panel.classList.remove('open');
+}
+
+function centerOn(node) {
+  viewX = -node.x * viewScale;
+  viewY = -node.y * viewScale;
+}
+
+// ─────────────────────────────────────────────
+// FILTERS + SEARCH
+// ─────────────────────────────────────────────
+function buildFilters() {
+  const wrap = document.getElementById('type-filters');
+  wrap.innerHTML = '';
+
+  TYPE_ORDER.forEach(type => {
+    // Check if any nodes of this type exist
+    const exists = allNodes.some(n => n.type === type);
+    if (!exists) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'type-btn active';
+    btn.textContent = type;
+    btn.style.borderColor = TYPE_COLORS[type];
+    btn.style.color = TYPE_COLORS[type];
+    btn.dataset.type = type;
+
+    btn.addEventListener('click', () => {
+      if (visibleTypes.has(type)) {
+        visibleTypes.delete(type);
+        btn.classList.remove('active');
+      } else {
+        visibleTypes.add(type);
+        btn.classList.add('active');
+      }
+      rebuildVisible();
+      startSim();
+    });
+
+    wrap.appendChild(btn);
+  });
+}
+
+function buildLegend() {
+  const legend = document.getElementById('legend');
+  const rows = TYPE_ORDER.filter(t => allNodes.some(n => n.type === t))
+    .map(t => `<div class="legend-row">
+      <div class="legend-dot" style="background:${TYPE_COLORS[t]}"></div>
+      <span class="legend-label">${t}</span>
+    </div>`).join('');
+  legend.innerHTML = rows;
+}
+
+function updateStats() {
+  document.getElementById('stats').textContent =
+    `${simNodes.length} nodes · ${simEdges.length} edges`;
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  rebuildVisible();
+  startSim();
+});
+
+// ─────────────────────────────────────────────
+// RESIZE
+// ─────────────────────────────────────────────
+function resize() {
+  const wrap = document.getElementById('canvas-wrap');
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+}
+
+window.addEventListener('resize', () => {
+  resize();
+});
+
+// ─────────────────────────────────────────────
+// HINT FADE
+// ─────────────────────────────────────────────
+const hint = document.getElementById('hint');
+setTimeout(() => { hint.style.opacity = '0'; }, 4000);
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+resize();
+loadData();
+</script>
+</body>
+</html>

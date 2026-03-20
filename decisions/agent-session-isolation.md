@@ -18,7 +18,7 @@ consequences:
 project: snn-applied-finance
 tags: [infrastructure, agents, orchestration]
 skill: launch-pipeline
-upstream: [lessons/analysis-phase2-gate-mandatory]
+upstream: []
 ---
 
 # Decision: Agent Session Isolation

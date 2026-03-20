@@ -81,6 +81,7 @@ _Active implementation pipelines. Read when: checking build progress or phase ga
 ### Tasks
 _Read when: checking open/blocked/in-pipeline work._
 - `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [complete/critical]
+- `tasks/build-incremental-relationship-mapper.md` — Build Incremental Relationship Mapper [open/medium] →primitive-relationship-graph
 - `tasks/report-to-youtube-pipeline.md` — Build Report-to-YouTube Video Pipeline [open/high]
 - `tasks/setup-vectorbt-nautilus-pipeline.md` — Set Up Two-Phase Backtest Pipeline [open/medium] →build-equilibrium-snn
 - `tasks/stack-specialist-ensemble.md` — Stack Specialist Micro-Networks [complete/high]
@@ -95,6 +96,7 @@ _Read when: making architectural choices._
 - `decisions/clock-cycles-over-tokens.md` — Clock Cycles Over Tokens [infrastructure,cost,design-principle]
 - `decisions/derivative-specialist-skill.md` — Derivative Specialist Skill [derivatives,pricing,volatility]
 - `decisions/hierarchical-memory-system.md` — Hierarchical Memory Consolidation System [infrastructure,memory-system,cron]
+- `decisions/incremental-relationship-mapping-via-pairwise-opus-comparison.md` — Incremental Relationship Mapping via Pairwise Opus Compar... [infrastructure,knowledge-graph,primitives]
 - `decisions/indexed-command-interface.md` — Indexed Command Interface as Default belam UX [infrastructure,cli,ux]
 - `decisions/memory-as-index-not-store.md` — MEMORY.md as Boot Index, Not Knowledge Store [infrastructure,memory,primitives]
 - `decisions/memory-as-primitive-type.md` — Memory Hierarchy as Primitive Type [memory,primitives,hierarchy]

@@ -577,6 +577,14 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
@@ -607,7 +615,7 @@ lessons/ (24)  (+1 archived/superseded)
   ├─ use-scaffold-then-edit-not-overwrite  use-scaffold-then-edit-not-overwrite  high  [infrastructure,primitives,conventions,clock-cycles]
   └─ verify-notebook-paths-resolve-before-automation  Verify Notebook Paths Resolve Before Automation  high  [infrastructure,naming,automation,debugging]
 
-decisions/ (22)
+decisions/ (23)
   ├─ aad-over-finite-differences  AAD Over Finite Differences for Greeks  [derivatives,greeks,infrastructure]
   ├─ agent-session-isolation  Agent Session Isolation  skill:launch-pipeline  [infrastructure,agents,orchestration]
   ├─ agent-trio-architecture  Architect / Critic / Builder Agent Trio  skill:pipelines  [agents,architecture,decision]
@@ -615,6 +623,7 @@ decisions/ (22)
   ├─ clock-cycles-over-tokens  Clock Cycles Over Tokens  [infrastructure,cost,design-principle,tokens]
   ├─ derivative-specialist-skill  Derivative Specialist Skill  [derivatives,pricing,volatility,knowledge]
   ├─ hierarchical-memory-system  Hierarchical Memory Consolidation System  [infrastructure,memory-system,cron,knowledge-graph]
+  ├─ incremental-relationship-mapping-via-pairwise-opus-comparison  Incremental Relationship Mapping via Pairwise Opus Compar...  [infrastructure,knowledge-graph,primitives,relationships]
   ├─ indexed-command-interface  Indexed Command Interface as Default belam UX  [infrastructure,cli,ux,belam]
   ├─ memory-as-index-not-store  MEMORY.md as Boot Index, Not Knowledge Store  [infrastructure,memory,primitives]
   ├─ memory-as-primitive-type  Memory Hierarchy as Primitive Type  [memory,primitives,hierarchy,infrastructure]
@@ -631,8 +640,9 @@ decisions/ (22)
   ├─ supervised-builder-experiments  Supervised Builder Agent for Experiment Execution  [infrastructure,experiments,builder,architecture]
   └─ two-phase-backtest-workflow  Two-Phase Backtest Workflow  [backtesting,infrastructure,workflow]
 
-tasks/ (5)
+tasks/ (6)
   ├─ build-equilibrium-snn  Build Equilibrium SNN Architecture  complete/critical  [snn,architecture,streaming]
+  ├─ build-incremental-relationship-mapper  Build Incremental Relationship Mapper  open/medium  →primitive-relationship-graph  [infrastructure,knowledge-graph,primitives,relationships]
   ├─ report-to-youtube-pipeline  Build Report-to-YouTube Video Pipeline  open/high  [video,youtube,automation,infrastructure]
   ├─ setup-vectorbt-nautilus-pipeline  Set Up Two-Phase Backtest Pipeline  open/medium  →build-equilibrium-snn  [backtesting,infrastructure]
   ├─ stack-specialist-ensemble  Stack Specialist Micro-Networks  complete/high  [snn,ensemble,specialists]
@@ -691,7 +701,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 04:41 UTC_
+_Updated: 2026-03-20 05:08 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -699,9 +709,9 @@ _Updated: 2026-03-20 04:41 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 04:41 UTC)
+Memory (2026-03-20 05:08 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
-├── entries/    81 indexed
+├── entries/    82 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

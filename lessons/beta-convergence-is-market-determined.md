@@ -6,7 +6,7 @@ confidence: high
 project: snn-applied-finance
 tags: [snn, hyperparameters, convergence]
 applies_to: [snn-applied-finance]
-downstream: [decisions/agent-trio-architecture]
+downstream: []
 ---
 
 # β Convergence Is Market-Determined

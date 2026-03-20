@@ -4,7 +4,7 @@ date: 2026-03-20
 source: session — Shael asked if workspace changes were backed up, they weren't
 confidence: high
 upstream: [decision/belam-codex-resurrection]
-downstream: [decisions/aad-over-finite-differences]
+downstream: []
 tags: [infrastructure, git, backup, redundancy]
 ---
 

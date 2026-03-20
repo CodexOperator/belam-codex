@@ -9,7 +9,7 @@ consequences: [Each agent has dedicated Telegram bot, role-specific knowledge fi
 project: multi-agent-infrastructure
 tags: [agents, architecture, decision]
 skill: pipelines
-upstream: [lessons/beta-convergence-is-market-determined]
+upstream: []
 ---
 
 # Architect / Critic / Builder Agent Trio
