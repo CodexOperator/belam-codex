@@ -1793,6 +1793,201 @@ def execute_undo(args):
     return 0
 
 
+# ─── Action Registry ────────────────────────────────────────────────────────────
+
+ACTION_REGISTRY = {
+    # Memory
+    'log':              {'script': 'log_memory.py',             'description': 'Quick memory entry'},
+    'consolidate':      {'script': 'consolidate_memories.py',   'description': 'Run memory consolidation'},
+    'cons':             {'alias': 'consolidate'},
+
+    # Pipelines
+    'pipelines':        {'script': 'pipeline_dashboard.py',     'description': 'List all pipelines'},
+    'pl':               {'alias': 'pipelines'},
+    'kickoff':          {'script': 'pipeline_orchestrate.py',   'args_prefix': ['kickoff'],       'description': 'Kick off a pipeline'},
+    'kick':             {'alias': 'kickoff'},
+    'ko':               {'alias': 'kickoff'},
+    'revise':           {'handler': 'revise',                   'description': 'Trigger Phase 1 revision'},
+    'rev':              {'alias': 'revise'},
+    'autorun':          {'script': 'pipeline_autorun.py',       'description': 'Auto-kick gated/stalled pipelines'},
+    'auto':             {'alias': 'autorun'},
+    'cleanup':          {'script': 'cleanup_stale_sessions.py', 'description': 'Kill stale sessions'},
+    'clean':            {'alias': 'cleanup'},
+    'handoffs':         {'script': 'pipeline_orchestrate.py',   'args_prefix': ['--check-pending'], 'description': 'Check stuck handoffs'},
+
+    # Experiments
+    'run':              {'script': 'pipeline_orchestrate.py',   'needs_version': True,  'args_suffix': ['run-experiment'],  'description': 'Run experiments'},
+    'analyze':          {'script': 'analyze_experiment.py',     'description': 'Run experiment analysis'},
+    'analyze-local':    {'script': 'pipeline_orchestrate.py',   'needs_version': True,  'args_suffix': ['local-analysis'],  'description': 'Orchestrated local analysis'},
+    'al':               {'alias': 'analyze-local'},
+    'report':           {'script': 'pipeline_orchestrate.py',   'needs_version': True,  'args_suffix': ['report-build'],    'description': 'Build LaTeX report'},
+
+    # Primitives
+    'create':           {'script': 'create_primitive.py',       'description': 'Create a new primitive'},
+    'new':              {'alias': 'create'},
+    'edit':             {'script': 'edit_primitive.py',         'description': 'Edit a primitive'},
+    'audit':            {'script': 'audit_primitives.py',       'description': 'Audit primitive consistency'},
+    'au':               {'alias': 'audit'},
+    'embed-primitives': {'script': 'embed_primitives.py',       'description': 'Regenerate indexes'},
+    'ep':               {'alias': 'embed-primitives'},
+    'link':             {'handler': 'link',                     'description': 'Wire relationships'},
+    'ln':               {'alias': 'link'},
+
+    # Notebooks
+    'build':            {'script': 'build_notebook.py',         'description': 'Build a notebook'},
+    'notebooks':        {'handler': 'notebooks',                'description': 'List notebooks'},
+    'nb':               {'alias': 'notebooks'},
+
+    # Other
+    'status':           {'handler': 'status',                   'description': 'Workspace overview'},
+    'conversations':    {'script': 'export_agent_conversations.py', 'description': 'Export conversations'},
+    'conv':             {'alias': 'conversations'},
+    'knowledge-sync':   {'script': 'weekly_knowledge_sync.py',  'description': 'Weekly knowledge sync'},
+    'ks':               {'alias': 'knowledge-sync'},
+    'transcribe':       {'script': 'transcribe_audio.py',       'description': 'Transcribe audio'},
+    'tr':               {'alias': 'transcribe'},
+    'queue-revision':   {'script': 'create_revision_request.py', 'description': 'Queue revision request'},
+    'qr':               {'alias': 'queue-revision'},
+    'help':             {'handler': 'help',                     'description': 'Show help'},
+}
+
+# Resolved set of all known action words (including aliases)
+_ALL_ACTION_WORDS = set(ACTION_REGISTRY.keys())
+
+
+def _resolve_alias(word):
+    """Resolve an alias to its canonical action word. Returns the word itself if not an alias."""
+    entry = ACTION_REGISTRY.get(word)
+    if entry and 'alias' in entry:
+        return entry['alias']
+    return word
+
+
+def is_coordinate(arg):
+    """Return True if arg looks like a primitive coordinate (e.g. t1, p5, md2, t, md, t1-t3).
+    Does NOT match action words or flags."""
+    if not arg or arg.startswith('-'):
+        return False
+    # Must start with known prefix letters only: single letters or md/mw
+    # Pattern: (md|mw|[a-z])(\d+)?(-\d+)?  — must not contain other non-digit chars after prefix
+    m = re.match(r'^(md|mw|[a-z])(\d+)?(?:-(\d+))?$', arg, re.IGNORECASE)
+    if not m:
+        return False
+    prefix = m.group(1).lower()
+    # Must be a known namespace prefix
+    return prefix in NAMESPACE
+
+
+def _run_script(script_name, extra_args):
+    """Run a scripts/ python file with given args. Returns exit code."""
+    scripts_dir = WORKSPACE / 'scripts'
+    script_path = scripts_dir / script_name
+    cmd = [sys.executable, str(script_path)] + [str(a) for a in extra_args]
+    result = subprocess.run(cmd, cwd=str(WORKSPACE))
+    return result.returncode
+
+
+def dispatch_action(action_word, remaining_args):
+    """Dispatch an action word with remaining args. Returns exit code."""
+    canonical = _resolve_alias(action_word)
+    entry = ACTION_REGISTRY.get(canonical)
+    if not entry:
+        print(f"dispatch_action: unknown action '{action_word}'")
+        return 1
+
+    belam_bin = '/home/ubuntu/.local/bin/belam'
+
+    # ── Handler-based dispatch ─────────────────────────────────────────────────
+    if 'handler' in entry:
+        handler = entry['handler']
+
+        if handler == 'status':
+            result = subprocess.run([belam_bin, '--raw', 'status'] + list(remaining_args), cwd=str(WORKSPACE))
+            return result.returncode
+
+        elif handler == 'notebooks':
+            result = subprocess.run([belam_bin, '--raw', 'notebooks'] + list(remaining_args), cwd=str(WORKSPACE))
+            return result.returncode
+
+        elif handler == 'revise':
+            # revise <version> --context "..." [rest]
+            if not remaining_args:
+                print("Usage: belam revise <version> --context \"revision directions...\"")
+                return 1
+            version = remaining_args[0]
+            rest = list(remaining_args[1:])
+            scripts_dir = WORKSPACE / 'scripts'
+            cmd = [sys.executable, str(scripts_dir / 'pipeline_orchestrate.py'), version, 'revise'] + rest
+            result = subprocess.run(cmd, cwd=str(WORKSPACE))
+            return result.returncode
+
+        elif handler == 'link':
+            scripts_dir = WORKSPACE / 'scripts'
+            cmd = [sys.executable, str(scripts_dir / 'belam_index.py'), 'link'] + list(remaining_args)
+            result = subprocess.run(cmd, cwd=str(WORKSPACE))
+            return result.returncode
+
+        elif handler == 'help':
+            _print_action_help()
+            return 0
+
+        else:
+            print(f"dispatch_action: unknown handler '{handler}'")
+            return 1
+
+    # ── Script-based dispatch ──────────────────────────────────────────────────
+    if 'script' in entry:
+        script_name = entry['script']
+        args_prefix = entry.get('args_prefix', [])
+        args_suffix = entry.get('args_suffix', [])
+        needs_version = entry.get('needs_version', False)
+
+        if needs_version:
+            if not remaining_args:
+                print(f"Usage: belam {canonical} <version> [options]")
+                return 1
+            version = remaining_args[0]
+            extra = list(remaining_args[1:])
+            # e.g. pipeline_orchestrate.py <version> run-experiment [extra]
+            cmd_args = args_prefix + [version] + extra + args_suffix
+        else:
+            cmd_args = args_prefix + list(remaining_args) + args_suffix
+
+        return _run_script(script_name, cmd_args)
+
+    print(f"dispatch_action: malformed entry for '{canonical}': {entry}")
+    return 1
+
+
+def _print_action_help():
+    """Print compact help grouped by category."""
+    categories = [
+        ('Memory',     ['log', 'consolidate']),
+        ('Pipelines',  ['pipelines', 'kickoff', 'revise', 'autorun', 'cleanup', 'handoffs', 'queue-revision']),
+        ('Experiments',['run', 'analyze', 'analyze-local', 'report']),
+        ('Primitives', ['create', 'edit', 'audit', 'embed-primitives', 'link']),
+        ('Notebooks',  ['build', 'notebooks']),
+        ('Other',      ['status', 'conversations', 'knowledge-sync', 'transcribe', 'help']),
+    ]
+    # Build alias map: canonical → [aliases]
+    alias_map = {}
+    for word, entry in ACTION_REGISTRY.items():
+        if 'alias' in entry:
+            target = entry['alias']
+            alias_map.setdefault(target, []).append(word)
+
+    print("belam — action words\n")
+    for cat_name, words in categories:
+        print(f"  {cat_name}")
+        for word in words:
+            entry = ACTION_REGISTRY.get(word, {})
+            desc = entry.get('description', '')
+            aliases = alias_map.get(word, [])
+            alias_str = f"  ({', '.join(aliases)})" if aliases else ''
+            print(f"    {word:<20} {desc}{alias_str}")
+        print()
+
+
 # ─── Main Entry Point ───────────────────────────────────────────────────────────
 
 def main(args=None):
@@ -1812,30 +2007,52 @@ def main(args=None):
     # Strip --raw/--plain flags (passed through by belam)
     clean_args = [a for a in args if a not in ('--raw', '--plain')]
 
-    # Check for mode flags — mutation modes first
-    if clean_args and clean_args[0] == '-e':
+    if not clean_args:
+        content = render_supermap()
+        _, output = tracker.track_render(content)
+        print(output)
+        return
+
+    first = clean_args[0]
+
+    # 1. -e flag → edit mode
+    if first == '-e':
         sys.exit(execute_edit(clean_args[1:]))
 
-    if clean_args and clean_args[0] == '-n':
+    # 2. -n flag → create mode
+    if first == '-n':
         sys.exit(execute_create(clean_args[1:]))
 
-    if clean_args and clean_args[0] == '-z':
+    # 3. -z flag → undo mode
+    if first == '-z':
         sys.exit(execute_undo(clean_args[1:]))
 
-    if clean_args and clean_args[0] == '-g':
+    # 4. -g flag → graph mode
+    if first == '-g':
         content = render_graph(clean_args[1:])
         _, output = tracker.track_render(content)
         print(output)
         return
 
-    if clean_args and clean_args[0] == '-x':
+    # 5. -x flag → explicit execute mode
+    if first == '-x':
         execute_action(clean_args[1:])
         return
 
-    # Zoom mode
-    content = render_zoom(args)
-    _, output = tracker.track_render(content)
-    print(output)
+    # 6. First arg is a coordinate → zoom/view mode
+    if is_coordinate(first):
+        content = render_zoom(clean_args)
+        _, output = tracker.track_render(content)
+        print(output)
+        return
+
+    # 7. First arg is a known action word → implicit execute / action dispatch
+    if first in _ALL_ACTION_WORDS:
+        rc = dispatch_action(first, clean_args[1:])
+        sys.exit(rc)
+
+    # 8. Nothing matched → fall through (exit code 2 signals bash to try legacy dispatch)
+    sys.exit(2)
 
 
 if __name__ == '__main__':

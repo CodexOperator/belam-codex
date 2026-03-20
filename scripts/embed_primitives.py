@@ -537,7 +537,10 @@ def inject_section(filepath, start_marker: str, end_marker: str, content: str, m
             section = f"\n{start_marker}\n{content}\n{end_marker}\n"
             new_text = text + section
         else:
-            print(f"  ⚠ Not enough space in {filepath.name} ({len(text)} chars used)")
+            if filepath:
+                print(f"  ⚠ Not enough space in {filepath.name} ({len(text)} chars used)")
+            else:
+                print(f"  ⚠ Not enough space ({len(text)} chars used)")
             return text
     
     return new_text

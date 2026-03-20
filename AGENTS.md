@@ -123,7 +123,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/beta-convergence-is-market-determined.md` — β Convergence Is Market-Determined [high] [snn,hyperparameters,convergence]
 - `lessons/breakeven-accuracy-before-building.md` — Calculate Breakeven Accuracy Before Building [high] [trading,costs,validation]
 - `lessons/checkpoint-and-resume-pattern.md` — Checkpoint-and-Resume for Long Agent Tasks [high] [infrastructure,agents,orchestration]
-- `lessons/codex-engine-feels-native-at-v1.md` — codex-engine-feels-native-at-v1 [?] []
+- `lessons/codex-engine-feels-native-at-v1.md` — Codex Engine Feels Native at V1 [high] [codex-engine,architecture,attention]
 - `lessons/confident-abstention-is-signal.md` — Confident Abstention Is a Real Signal Type [medium] [snn,trading,abstention]
 - `lessons/continuous-input-beats-spike-mode.md` — Continuous Input Mode Consistently Outperforms Spike Mode [high] [snn,encoding,input-mode]
 - `lessons/control-input-dimensionality-in-encoding-comparisons.md` — Control Input Dimensionality When Comparing Encoding Schemes [high] [snn,encoding,experimental-design]
