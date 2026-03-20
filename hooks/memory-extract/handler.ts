@@ -1,6 +1,6 @@
-import { execSync } from 'child_process';
-import { readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync } from 'fs';
-import { spawn } from 'child_process';
+import { execSync } from 'node:child_process';
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import * as path from 'path';
 import * as os from 'os';
 
@@ -178,8 +178,6 @@ function resolveSessionFile(event: any, workspaceDir: string, instance: string):
 }
 
 function spawnMemoryExtraction(event: any, workspaceDir: string, instance: string): void {
-  const timestamp = Date.now();
-
   // Resolve session file from event context (avoids race with .reset.* rename)
   const sessionFile = resolveSessionFile(event, workspaceDir, instance);
   const sessionFileArgs = sessionFile ? ` --session-file "${sessionFile}"` : '';
@@ -218,22 +216,13 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
   }
 
   const promptFile = promptMatch[1].trim();
-  let promptContent: string;
-  try {
-    promptContent = readFileSync(promptFile, 'utf-8');
-  } catch (err: any) {
-    log('error', 'Failed to read prompt file', { promptFile, message: err?.message });
-    return;
-  }
+  log('info', `Prompt ready at ${promptFile}, spawning sage via codex engine`);
 
-  log('info', `Prompt loaded (${promptContent.length} bytes), spawning sage`);
-
-  // Step 3: Spawn sage as detached background process
-  const sessionId = `mem-extract-${timestamp}`;
+  // Step 3: Use belam -x spawn sage @promptFile (auto-rotates session + sends)
   try {
     const child = spawn(
-      'openclaw',
-      ['agent', '--agent', 'sage', '--session-id', sessionId, '--message', promptContent],
+      'python3',
+      ['scripts/codex_engine.py', 'spawn', 'sage', `@${promptFile}`, '--bg'],
       {
         detached: true,
         stdio: 'ignore',
@@ -242,10 +231,10 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
       }
     );
     child.on('error', (err) => {
-      log('error', 'Sage spawn error event', { message: err?.message });
+      log('error', 'Spawn error event', { message: err?.message });
     });
     child.unref();
-    log('info', 'Sage spawned', { sessionId, pid: child.pid });
+    log('info', 'Sage spawn dispatched via codex engine', { pid: child.pid });
   } catch (err: any) {
     log('error', 'Failed to spawn sage', { message: err?.message });
   }

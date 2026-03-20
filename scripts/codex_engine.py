@@ -2250,15 +2250,18 @@ _SPAWN_MODEL_ALIASES = {
 
 
 def handle_spawn(args):
-    """Print a sessions_spawn JSON payload for the calling agent to execute.
+    """Spawn a fresh agent session. Auto-rotates the target agent's session first.
 
-    Usage: belam -x spawn [--model <alias>] [--label <name>]
-                          [--timeout <sec>] [--agent <id>] "<task>"
+    Usage: belam -x spawn <agent> "<task or @file>"
+           belam -x spawn <agent> @/path/to/prompt.md
+           belam -x spawn [--model <alias>] [--timeout <sec>] [--bg] <agent> "<task>"
+
+    If no named agent given, runs as an ephemeral subagent (prints sessions_spawn JSON
+    for the calling agent to execute — use when running inside an agent session).
     """
-    model = 'anthropic/claude-sonnet-4-6'
-    label = None
-    timeout_sec = None
-    agent_id = None
+    model = None
+    timeout_sec = 300
+    background = False
     positional = []
 
     i = 0
@@ -2268,10 +2271,6 @@ def handle_spawn(args):
             model = args[i + 1]; i += 2
         elif a.startswith('--model='):
             model = a.split('=', 1)[1]; i += 1
-        elif a in ('--label', '-l') and i + 1 < len(args):
-            label = args[i + 1]; i += 2
-        elif a.startswith('--label='):
-            label = a.split('=', 1)[1]; i += 1
         elif a == '--timeout' and i + 1 < len(args):
             try: timeout_sec = int(args[i + 1])
             except ValueError: pass
@@ -2280,43 +2279,64 @@ def handle_spawn(args):
             try: timeout_sec = int(a.split('=', 1)[1])
             except ValueError: pass
             i += 1
-        elif a == '--agent' and i + 1 < len(args):
-            agent_id = args[i + 1]; i += 2
-        elif a.startswith('--agent='):
-            agent_id = a.split('=', 1)[1]; i += 1
+        elif a == '--bg':
+            background = True; i += 1
         elif not a.startswith('-'):
             positional.append(a); i += 1
         else:
             i += 1
 
-    # Expand model aliases (case-insensitive)
-    model = _SPAWN_MODEL_ALIASES.get(model.lower(), model)
-
-    if not positional:
-        print("Usage: belam -x spawn [--model <alias>] [--label <name>] [--timeout <sec>] \"<task>\"")
-        print("  Model aliases: sonnet, opus, haiku (default: sonnet)")
-        print("  Prints a sessions_spawn JSON payload — the calling agent executes the tool call.")
+    if len(positional) < 2:
+        print("Usage: belam -x spawn <agent> \"<task or @file>\"")
+        print("  Options: --model <alias>  --timeout <sec>  --bg")
+        print("  Model aliases: sonnet, opus, haiku")
+        print("  Use @/path/to/file.md to read task from a file")
         return 1
 
-    task = ' '.join(positional)
+    agent = positional[0]
+    task_raw = ' '.join(positional[1:])
 
-    payload = {
-        'tool':   'sessions_spawn',
-        'params': {
-            'task':  task,
-            'model': model,
-            'mode':  'run',
-        },
-    }
-    if label:
-        payload['params']['label'] = label
-    if timeout_sec is not None:
-        payload['params']['timeout'] = timeout_sec
-    if agent_id:
-        payload['params']['agentId'] = agent_id
+    # Resolve @file references
+    if task_raw.startswith('@'):
+        fpath = task_raw[1:]
+        try:
+            task = Path(fpath).read_text()
+        except Exception as e:
+            print(f"Error reading task file {fpath}: {e}")
+            return 1
+    else:
+        task = task_raw
 
-    print(json.dumps(payload, indent=2))
-    return 0
+    # Verify agent exists
+    known = _get_known_agents()
+    if agent not in known:
+        print(f"Unknown agent: {agent}")
+        print(f"Available: {', '.join(known)}")
+        return 1
+
+    # Expand model alias
+    if model:
+        model = _SPAWN_MODEL_ALIASES.get(model.lower(), model)
+
+    # Step 1: Auto-rotate session
+    print(f"🔄 Rotating {agent} session...")
+    _session_new([agent])
+
+    # Step 2: Send the task
+    print(f"🤖 Spawning {agent}...")
+    cmd = ['openclaw', 'agent', '--agent', agent, '-m', task, '--timeout', str(timeout_sec)]
+    if model:
+        # Note: openclaw agent doesn't have --model; model is set in agent config
+        pass
+
+    if background:
+        proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                start_new_session=True)
+        print(f"✅ {agent} dispatched in background (pid: {proc.pid})")
+        return 0
+    else:
+        result = subprocess.run(cmd, timeout=timeout_sec + 30)
+        return result.returncode
 
 
 # ─── Action Registry ────────────────────────────────────────────────────────────
@@ -2366,7 +2386,7 @@ ACTION_REGISTRY = {
     # Sessions & Spawn
     'session':          {'handler': 'session',  'description': 'Session management: list, info, new, send, log'},
     'sess':             {'alias': 'session'},
-    'spawn':            {'handler': 'spawn',    'description': 'Print sessions_spawn JSON payload for subagent launch'},
+    'spawn':            {'handler': 'spawn',    'description': 'Spawn fresh agent session: spawn <agent> "task" [--bg]'},
     'sp':               {'alias': 'spawn'},
 
     # Other
