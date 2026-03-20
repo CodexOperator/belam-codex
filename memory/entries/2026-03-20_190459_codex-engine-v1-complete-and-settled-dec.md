@@ -6,7 +6,7 @@ importance: 3
 tags: [codex-engine, milestone, v1-complete]
 source: "session"
 content: "Codex Engine V1 complete and settled. Decision primitive: d6 codex-engine-v1-architecture. Five modes live: view (implicit), edit (-e with F-labels + cascading), create (-n), undo (-z), graph (-g with BFS). 55 action words dispatch natively — no legacy fall-through. R-label tracking with pin detection. Lesson l6: feels cognitively cheaper than file paths even at V1. Six polish items documented in decision body. Four subagents built it in ~25 min. Next: let V1 settle, then tackle t4 (soul instance access restriction)."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

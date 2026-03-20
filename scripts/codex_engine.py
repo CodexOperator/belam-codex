@@ -1995,6 +1995,11 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
+    # --supermap: render supermap to stdout (no R-labels, no disk write)
+    if '--supermap' in args:
+        print(render_supermap())
+        return
+
     # --boot: inject supermap into AGENTS.md for OpenClaw auto-injection, no R-labels
     if '--boot' in args:
         content = render_supermap()
