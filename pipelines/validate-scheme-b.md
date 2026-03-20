@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: experiment_complete
+status: local_analysis_complete
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -9,6 +9,7 @@ agents: [architect, critic, builder]
 tags: [validation, statistics, snn]
 project: snn-applied-finance
 started: 2026-03-17
+version_label: v5-validation
 ---
 
 # Implementation Pipeline: VALIDATE-SCHEME-B
@@ -67,6 +68,17 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 1 attempts: Process exited with code 1 |
 | local_experiment_running | 2026-03-19 | system | Experiment run started (PID: 2579811, mode: supervised) |
 | local_experiment_running | 2026-03-19 | system | Experiments complete. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b |
+| local_analysis_architect | 2026-03-19 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/ |
+| local_analysis_architect | 2026-03-19 | architect | Analysis report complete. VERDICT: MIXED — signal confirmed, profitability unproven, abstention broken. Accuracy lift is REAL (t=4.80, p=0.001, 9/10 folds). Abstention 100% broken in all folds. Net Sharpe +0.40 NOT significant (p=0.49). Gross Sharpe reliably positive (20/20 folds). Turnover is the Sharpe killer (r=0.83 with gap). Temporal degradation significant (r=-0.71, p=0.02). Run incomplete (3/12 experiments). 6 additional analysis scripts specified. |
+| local_analysis_architect | 2026-03-19 | architect | Analysis complete. Signal real (p=0.001), abstention broken, Sharpe NS. 6 scripts specified. |
+| local_analysis_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 5 FLAGs. Core findings verified against raw pkl: accuracy lift real (t=4.80, p=0.001 confirmed), 100% abstention confirmed, net Sharpe NS (p=0.49 confirmed), gross Sharpe 20/20 positive. FLAGS: (1) Section 6.1 reports net_sharpe_full r=-0.71 but labels it gross Sharpe (actual gross r=-0.65), (2) 4/10 positive Sharpe folds not 5/10, (3) turnover bucket fold assignments wrong (corrected buckets strengthen the narrative), (4) VSB-03 stale (7 folds now vs 3 in report), (5) training dynamics plot from wrong pipeline. Statistical hygiene 10/10. Review at: validate-scheme-b_critic_local_analysis_review.md |
+| local_analysis_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 5 FLAGs. Core findings verified. Review at validate-scheme-b_critic_local_analysis_review.md |
+| local_analysis_critic_review | 2026-03-19 | critic | APPROVED |
+| local_analysis_builder | 2026-03-20 | builder | Full 12-experiment analysis (120 records, 12 exp x 10 folds). All 5 Critic FLAGs fixed: FLAG-1 temporal degradation gross vs net labels, FLAG-2 positive folds=4/10, FLAG-3 turnover bucket assignments corrected, FLAG-4 VSB-03 updated to 10 folds, FLAG-5 training dynamics plot regenerated. 0/6 Architect scripts executable (all blocked by missing per-candle data). 8 supplementary analyses + 5 visualizations + LaTeX PDF (157KB). KEY: CTRL-01 (Scheme 0) has higher accuracy lift than VSB-01 — signal is feature-based. Abstention ~30% not 100% and hurts performance. |
+| local_analysis_builder | 2026-03-20 | builder | Full 12-experiment analysis (120 records). 5/5 Critic FLAGs fixed. 0/6 Architect scripts blocked (no per-candle data). 8 supplementary analyses, 5 visualizations, LaTeX PDF. KEY: CTRL-01 (Scheme 0) beats VSB-01 on accuracy — signal is feature-based. Abstention ~30% not 100% and hurts. |
+| local_analysis_code_review | 2026-03-20 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 medium, 2 low). All 5 prior FLAGs verified fixed. 120-record analysis (12 exp × 10 folds) correctly analyzed. Code quality high: deterministic seeds, proper scipy APIs, matplotlib standards. FLAG-1 (MED): '100% abstention error' framing is misleading — data changed between GPU/CPU runs, not original error. FLAG-2 (MED): 'signal is feature-based' claim needs paired test (p=0.048, barely significant; delta encoding has execution advantage not captured by accuracy). FLAG-3 (LOW): turnover-Sharpe correlation now p=0.093 (NS), narrative overstates evidence. FLAG-4 (LOW): abstention harms because |prediction magnitude| ≠ confidence (active_accuracy < accuracy in multiple folds). Review at: validate-scheme-b_critic_local_analysis_code_review.md |
+| local_analysis_report_build | 2026-03-20 | system | Building LaTeX report from validate-scheme-b_analysis_report.md |
+| local_analysis_report_build | 2026-03-20 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/validate-scheme-b_report.pdf (512.2 KB) |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_

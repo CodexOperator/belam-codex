@@ -367,11 +367,149 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (18)  (+1 archived/superseded)
+lessons/ (21)  (+1 archived/superseded)
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
   ├─ breakeven-accuracy-before-building  Calculate Breakeven Accuracy Before Building  high  [trading,costs,validation]
@@ -382,10 +520,13 @@ lessons/ (18)  (+1 archived/superseded)
   ├─ event-detection-not-state-classification  Simple SNNs Detect Events, Not States  high  [snn,specialists,architecture]
   ├─ gpu-parallel-thrashing-t4  GPU Parallel Worker Thrashing on Tesla T4  high  [gpu,parallelism,performance,colab]
   ├─ per-fold-significance-tests-required  Per-Fold Significance Tests and Permutation Tests Are Req...  high  [methodology,statistics,validation]
+  ├─ phasic-only-ablation-wins-equilibrium  Phasic-Only Ablation Wins in Equilibrium SNN  high  [snn,architecture,ablation,equilibrium]
   ├─ pipeline-table-separator-required  Pipeline Table Separator Required for Update Script  high  [pipeline,infrastructure,markdown,debugging]
+  ├─ scheme-b-validated-10-fold  Scheme B Accuracy Validated Across 10 Folds  high  [snn,validation,scheme-b,statistics]
   ├─ session-reset-targets-main-not-group  OpenClaw Agent CLI Uses `main` Session, Not Group Session  high  [infrastructure,agents,openclaw,debugging]
   ├─ sessions-send-timeout-filesystem-first  sessions_send Timeouts — Use Filesystem-First Coordination  [multi-agent,coordination,sessions-send,timeout]
   ├─ snn-treats-like-weird-cnn  Don't Treat SNNs Like Weird CNNs  high  [snn,architecture,critical]
+  ├─ stacking-specialists-is-dead-end  Stacking Specialist Micro-Networks Is a Dead End  high  [snn,ensemble,stacking,architecture]
   ├─ subprocess-run-doesnt-raise-on-failure  subprocess.run Does Not Raise on Non-Zero Exit Code  [python,debugging,infrastructure]
   ├─ telegram-bots-cant-see-bots  Telegram Bots Cannot See Other Bots' Messages  high  [telegram,agents,infrastructure]
   ├─ torch-buffer-requires-tensor-assignment  torch.nn.Buffer Requires Tensor Assignment, Not Float  high  [snn,pytorch,debugging]
@@ -423,12 +564,10 @@ projects/ (5)
   ├─ snn-applied-finance  SNN Applied Finance  active  [snn,finance,crypto,trading]
   └─ snn-standard-benchmarks  SNN Standard Model Benchmarks  complete  [snn,research,benchmarking]
 
-pipelines/ (3)  (+2 archived/superseded)
-  ├─ build-equilibrium-snn  Implementation Pipeline: BUILD-EQUILIBRIUM-SNN  local_analysis_complete/critical  started:2026-03-17  [snn,architecture,streaming]
-  ├─ stack-specialists  Implementation Pipeline: STACK-SPECIALISTS  local_analysis_report/high  started:2026-03-17  [snn,ensemble,specialists]
-  └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  experiment_complete/high  started:2026-03-17  [validation,statistics,snn]
+pipelines/ (1)  (+4 archived/superseded)
+  └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  local_analysis_complete/high  started:2026-03-17  [validation,statistics,snn]
 
-commands/ (28)
+commands/ (29)
   ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,local,orchestration,experiment]
   ├─ analyze  belam analyze  belam analyze <ver>  analysis  [analysis,experiment,phase2]
   ├─ audit  belam audit  belam audit  primitives  [audit,primitives,consistency,maintenance]
@@ -456,7 +595,8 @@ commands/ (28)
   ├─ run  belam run <ver>  belam run <ver>  experiment  [experiment,run,analysis,local]
   ├─ status  belam status  belam status  infrastructure  [overview,dashboard,status]
   ├─ task  belam task  belam task <name>  primitives  [task,detail,fuzzy-match]
-  └─ tasks  belam tasks  belam tasks  primitives  [tasks,list,status]
+  ├─ tasks  belam tasks  belam tasks  primitives  [tasks,list,status]
+  └─ transcribe  belam transcribe <file>  belam transcribe <file>  tools
 
 skills/ (3)
   ├─ launch-pipeline  launch-pipeline  Launch and kick off implementation pipelines fr...
@@ -469,7 +609,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-19 19:34 UTC_
+_Updated: 2026-03-20 01:11 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -477,9 +617,9 @@ _Updated: 2026-03-19 19:34 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-19 19:34 UTC)
-├── daily/      7 active  2026-03-12 → 2026-03-20
-├── entries/    67 indexed
+Memory (2026-03-20 01:11 UTC)
+├── daily/      7 active  2026-03-15 → 2026-03-21
+├── entries/    75 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

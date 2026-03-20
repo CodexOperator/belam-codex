@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "local_analysis_critic_review",
+  "next_stage": "local_analysis_builder",
+  "next_agent": "builder",
+  "timestamp": "2026-03-19T20:21:22.621058+00:00",
+  "pipeline_session_id": "40203e17-8e84-43b1-876c-03a79a752ce9",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "bc12f01e-2996-42c5-a544-29312697bf62",
+    "response_preview": "Now let me read the Architect's analysis report and understand the 6 follow-up scripts I need to imp"
+  },
+  "verified": true
+}

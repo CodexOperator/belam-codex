@@ -69,9 +69,7 @@ Knowledge files. Read with `Read` when relevant. YAML frontmatter + markdown bod
 
 ### Pipelines
 _Active implementation pipelines. Read when: checking build progress or phase gates._
-- `pipelines/build-equilibrium-snn.md` — Implementation Pipeline: BUILD-EQUILIBRIUM-SNN [local_analysis_complete/critical] started:2026-03-17 [snn,architecture,streaming]
-- `pipelines/stack-specialists.md` — Implementation Pipeline: STACK-SPECIALISTS [local_analysis_report/high] started:2026-03-17 [snn,ensemble,specialists]
-- `pipelines/validate-scheme-b.md` — Implementation Pipeline: VALIDATE-SCHEME-B [experiment_complete/high] started:2026-03-17 [validation,statistics,snn]
+- `pipelines/validate-scheme-b.md` — Implementation Pipeline: VALIDATE-SCHEME-B [local_analysis_complete/high] started:2026-03-17 [validation,statistics,snn]
 
 ### Projects
 - `projects/agent-roster.md` — Active Agent Roster [active] [agents,infrastructure,roster]
@@ -119,10 +117,13 @@ _Read when: encountering problems or before making changes._
 - `lessons/event-detection-not-state-classification.md` — Simple SNNs Detect Events, Not States [high] [snn,specialists,architecture]
 - `lessons/gpu-parallel-thrashing-t4.md` — GPU Parallel Worker Thrashing on Tesla T4 [high] [gpu,parallelism,performance]
 - `lessons/per-fold-significance-tests-required.md` — Per-Fold Significance Tests and Permutation Tests Are Req... [high] [methodology,statistics,validation]
+- `lessons/phasic-only-ablation-wins-equilibrium.md` — Phasic-Only Ablation Wins in Equilibrium SNN [high] [snn,architecture,ablation]
 - `lessons/pipeline-table-separator-required.md` — Pipeline Table Separator Required for Update Script [high] [pipeline,infrastructure,markdown]
+- `lessons/scheme-b-validated-10-fold.md` — Scheme B Accuracy Validated Across 10 Folds [high] [snn,validation,scheme-b]
 - `lessons/session-reset-targets-main-not-group.md` — OpenClaw Agent CLI Uses `main` Session, Not Group Session [high] [infrastructure,agents,openclaw]
 - `lessons/sessions-send-timeout-filesystem-first.md` — sessions_send Timeouts — Use Filesystem-First Coordination [?] [multi-agent,coordination,sessions-send]
 - `lessons/snn-treats-like-weird-cnn.md` — Don't Treat SNNs Like Weird CNNs [high] [snn,architecture,critical]
+- `lessons/stacking-specialists-is-dead-end.md` — Stacking Specialist Micro-Networks Is a Dead End [high] [snn,ensemble,stacking]
 - `lessons/subprocess-run-doesnt-raise-on-failure.md` — subprocess.run Does Not Raise on Non-Zero Exit Code [?] [python,debugging,infrastructure]
 - `lessons/telegram-bots-cant-see-bots.md` — Telegram Bots Cannot See Other Bots' Messages [high] [telegram,agents,infrastructure]
 - `lessons/torch-buffer-requires-tensor-assignment.md` — torch.nn.Buffer Requires Tensor Assignment, Not Float [high] [snn,pytorch,debugging]
@@ -158,6 +159,7 @@ _`belam` CLI commands. Read when: needing usage details or flags._
 - `commands/status.md` — `belam status` (belam s) — Full overview: pipelines + tasks + memory + git
 - `commands/task.md` — `belam task <name>` — Show one task (fuzzy match)
 - `commands/tasks.md` — `belam tasks` (belam t) — List all tasks with status and priority
+- `commands/transcribe.md` — `belam transcribe <file>` (belam tr) — Transcribe audio files (ogg/mp3/wav) via faster-whisper. --model tiny|base|small|medium, --json for structured output.
 
 ### Skills
 _Agent skills with SKILL.md. Read when: task matches skill description._

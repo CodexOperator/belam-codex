@@ -32,3 +32,4 @@ related: [experiment-methodology, financial-encoding, research-workflow]
 
 - [→ Daily 2026-03-17](../memory/2026-03-17.md)
 - [→ Daily 2026-03-19](../memory/2026-03-19.md)
+- [→ Daily 2026-03-20](../memory/2026-03-20.md)

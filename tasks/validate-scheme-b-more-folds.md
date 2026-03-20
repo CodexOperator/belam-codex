@@ -7,6 +7,7 @@ tags: [validation, statistics, snn]
 project: snn-applied-finance
 estimate: 4h
 depends_on: []
+version_label: v5-validation
 ---
 
 # Validate Scheme B Sharpe with 7+ Folds

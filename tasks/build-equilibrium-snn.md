@@ -7,6 +7,7 @@ tags: [snn, architecture, streaming]
 project: snn-applied-finance
 estimate: 1-2 days
 depends_on: []
+version_label: v5-equilibrium
 ---
 
 # Build Equilibrium SNN Architecture

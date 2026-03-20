@@ -1,0 +1,15 @@
+{
+  "version": "stack-specialists",
+  "completed_stage": "phase2_critic_design_review",
+  "next_stage": "phase2_builder_implementation",
+  "next_agent": "builder",
+  "timestamp": "2026-03-20T00:06:14.645907+00:00",
+  "pipeline_session_id": "442bce07-d920-4cc3-8e54-fe5da5fbbf7b",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "ed23f989-d721-4e8f-a1be-295e01d31c6e",
+    "response_preview": "Now let me read the required pipeline context files and the critic's Phase 2 design review."
+  },
+  "verified": true
+}

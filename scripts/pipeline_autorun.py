@@ -747,6 +747,83 @@ def _extract_body(path: Path) -> str:
     return text
 
 
+def check_phase2_eligible(dry_run: bool = False) -> list[str]:
+    """
+    Check for Phase 2 direction files and kick off Phase 2 when found.
+
+    Phase 2 is gated on a human-authored direction file:
+        pipeline_builds/{version}_phase2_shael_direction.md
+
+    When a pipeline is at local_analysis_complete AND the direction file exists,
+    auto-kick Phase 2 (wake architect with the direction content).
+    The direction file is NOT consumed — it stays for the architect to read.
+
+    Returns list of versions where Phase 2 was kicked.
+    """
+    print(f"\n🎯 Checking for Phase 2 direction files...\n")
+    kicked = []
+
+    # Enforce one-at-a-time
+    active = get_active_agent_pipeline()
+    if active:
+        print(f"  🔒 Pipeline '{active}' has active agent work — skipping Phase 2 kicks")
+        return kicked
+
+    # Find pipelines at local_analysis_complete
+    pipelines = get_active_pipelines()
+    priority_order = {'critical': 0, 'high': 1, 'medium': 2, 'normal': 2, 'low': 3}
+    eligible = []
+
+    for p in pipelines:
+        version = p['version']
+        status = p['frontmatter'].get('status', '')
+        if status != 'local_analysis_complete':
+            continue
+
+        # Check for direction file
+        direction_file = BUILDS_DIR / f'{version}_phase2_shael_direction.md'
+        if not direction_file.exists():
+            print(f"  ⏳ {version}: at local_analysis_complete — no direction file yet")
+            continue
+
+        eligible.append(p)
+
+    if not eligible:
+        print("  No Phase 2-eligible pipelines.")
+        return kicked
+
+    # Sort by priority
+    eligible.sort(key=lambda p: priority_order.get(p['frontmatter'].get('priority', 'medium'), 2))
+
+    for p in eligible:
+        version = p['version']
+        direction_file = BUILDS_DIR / f'{version}_phase2_shael_direction.md'
+        print(f"  ✅ {version}: direction file found — kicking Phase 2")
+
+        if dry_run:
+            print(f"     [DRY RUN] Would kick Phase 2 for {version}")
+            kicked.append(version)
+            break
+
+        try:
+            sys.path.insert(0, str(SCRIPTS))
+            from pipeline_orchestrate import orchestrate_complete
+            result = orchestrate_complete(version, 'local_analysis_complete', 'system',
+                                          f'Phase 2 approved. Direction at {direction_file.name}')
+            if result is not False:
+                print(f"  ✅ Phase 2 kicked for {version}")
+                kicked.append(version)
+            else:
+                print(f"  ❌ Phase 2 kick failed for {version}")
+        except Exception as e:
+            print(f"  ❌ Phase 2 error for {version}: {e}")
+
+        # ONE at a time
+        break
+
+    return kicked
+
+
 def check_analysis_eligible(dry_run: bool = False) -> list[str]:
     """
     Check for pipelines at experiment_complete that are ready for local analysis.

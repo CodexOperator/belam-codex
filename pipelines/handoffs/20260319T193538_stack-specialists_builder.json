@@ -1,0 +1,15 @@
+{
+  "version": "stack-specialists",
+  "completed_stage": "local_analysis_code_review",
+  "next_stage": "local_analysis_report_build",
+  "next_agent": "builder",
+  "timestamp": "2026-03-19T19:35:38.957985+00:00",
+  "pipeline_session_id": "c999649f-1297-45a7-997e-7e6cc50652e3",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "40350fea-9039-4f8a-b439-a203b2e168cb",
+    "response_preview": "Good, pdflatex is available. Now let me build the LaTeX document."
+  },
+  "verified": true
+}

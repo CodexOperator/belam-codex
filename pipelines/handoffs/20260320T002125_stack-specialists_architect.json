@@ -1,0 +1,15 @@
+{
+  "version": "stack-specialists",
+  "completed_stage": "phase2_critic_code_review",
+  "next_stage": "phase2_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-20T00:21:25.174434+00:00",
+  "pipeline_session_id": "7d80a2d0-cf91-4ba0-bc59-78f1480af540",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "b40f6e39-ac2b-45ae-a0b6-7375b274e90a",
+    "response_preview": "Good, I have full context. Now let me check the pipeline state and read the critic's code review."
+  },
+  "verified": true
+}

@@ -682,6 +682,14 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
 
     # Step 2: Determine next agent from transition map
     transition = STAGE_TRANSITIONS.get(stage)
+
+    # Special case: local_analysis_complete is a human gate — requires direction file.
+    # Autorun detects {version}_phase2_shael_direction.md and calls orchestrate_complete.
+    if stage == 'local_analysis_complete' and not transition:
+        transition = ('phase2_architect_design', 'architect',
+                      'Phase 2 approved. Design Phase 2 per pipeline_builds/{v}_experiment_results.md '
+                      'and analysis at notebooks/local_results/{v}/')
+
     if not transition:
         print(f"\n   ℹ️  No auto-transition for '{stage}' — no handoff needed")
         return True
@@ -694,12 +702,22 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         print(f"\n   📄 Analysis approved — triggering LaTeX report build...")
         return orchestrate_report_build(version)
 
-    # Special case: local_analysis_report_build → complete (auto-handled)
+    # Special case: local_analysis_report_build → local_analysis_complete (HUMAN GATE)
+    # local_analysis_complete is a terminal stage. Phase 2 requires explicit human approval.
     if stage == 'local_analysis_report_build':
         print(f"\n   ✅ Report build complete — local analysis done")
-        # The stage transition to local_analysis_complete is already handled by pipeline_update
-        # Now proceed to wake the next agent (phase2 architect) via normal flow
-        pass
+        # Update stage to local_analysis_complete
+        run_pipeline_update([
+            version, 'complete', 'local_analysis_complete',
+            '--agent', 'system',
+            '--notes', 'Local analysis complete. Awaiting human review for Phase 2.'
+        ])
+        # Notify coordinator that human approval is needed
+        send_orchestrator_notification(version, '📊 Local analysis complete',
+            f'<b>{version}</b> local analysis is complete with PDF report. '
+            f'Awaiting Phase 2 approval to proceed.\n'
+            f'Approve: <code>belam kickoff {version} --phase2 [--direction file.md]</code>')
+        return True
 
     # Step 3: Reset agent session for fresh context
     print(f"\n   🔄 Resetting {next_agent} session for fresh context...")
@@ -1563,9 +1581,38 @@ def main():
     elif action in ('report-build', 'report', 'build-report'):
         orchestrate_report_build(version)
 
+    elif action == 'kickoff':
+        phase2 = '--phase2' in sys.argv
+        direction = flags.get('direction', '')
+        if phase2:
+            # Phase 2 kickoff with optional direction file
+            notes = 'Phase 2 approved by Shael'
+            if direction:
+                direction_path = Path(direction)
+                if not direction_path.exists():
+                    # Try relative to pipeline_builds
+                    direction_path = BUILDS_DIR / direction
+                if not direction_path.exists():
+                    # Try relative to workspace
+                    direction_path = WORKSPACE / direction
+                if direction_path.exists():
+                    # Copy to standard location for architect to find
+                    target = BUILDS_DIR / f'{version}_phase2_shael_direction.md'
+                    import shutil
+                    shutil.copy2(direction_path, target)
+                    notes = f'Phase 2 approved by Shael. Direction at {target.name}'
+                    print(f"   📄 Direction file: {target.name}")
+                else:
+                    print(f"   ❌ Direction file not found: {direction}")
+                    sys.exit(1)
+            orchestrate_complete(version, 'local_analysis_complete', 'belam-main', notes)
+        else:
+            # Standard Phase 1 kickoff
+            orchestrate_complete(version, 'pipeline_created', 'belam-main', 'Pipeline kickoff')
+
     else:
         print(f"Unknown action: {action}")
-        print("Actions: show, complete, block, start, status, verify, revise, run-experiment, local-analysis, report-build")
+        print("Actions: show, complete, block, start, status, verify, revise, kickoff, run-experiment, local-analysis, report-build")
         print("Global: --check-pending")
         sys.exit(1)
 

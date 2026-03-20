@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: local_analysis_complete
+status: archived
 priority: critical
 version: build-equilibrium-snn
 spec_file: machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml
@@ -9,6 +9,8 @@ agents: [architect, critic, builder]
 tags: [snn, architecture, streaming]
 project: snn-applied-finance
 started: 2026-03-17
+archived: 2026-03-20
+version_label: v5-equilibrium
 ---
 
 # Implementation Pipeline: BUILD-EQUILIBRIUM-SNN
@@ -93,6 +95,7 @@ _Architect designs → Critic reviews → Builder implements_
 | local_analysis_code_review | 2026-03-19 | critic | APPROVED with 4 FLAGS (0 blocks). All 5 Critic FLAG corrections verified: FLAG-1 t-test corrected to p=0.303, FLAG-2 magnitude degeneration documented, FLAG-3 language to 'supported', FLAG-4 abstention confound, FLAG-5 phasic within noise. Bootstrap CI is headline finding: pooled EQ-04 vs EQ-ABL-03 = [+0.002, +0.035] excludes zero — equilibrium paradigm statistically supported. Script code correct: block bootstrap, McNemar, Cohen's d, calibration, regime analysis all verified. 4 minor FLAGS: (1) Script 5 majority/all-agree labeling bug, (2) pooled bootstrap fold boundary note, (3) summary text not updated to reflect bootstrap result, (4) structured pkl could capture more outputs. 10/10 checklist. Review at: pipeline_builds/build-equilibrium-snn_critic_analysis_code_review.md |
 | local_analysis_report_build | 2026-03-19 | system | Building LaTeX report from build-equilibrium-snn_analysis_report.md |
 | local_analysis_report_build | 2026-03-19 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/build-equilibrium-snn/build-equilibrium-snn_report.pdf (1008.0 KB) |
+| local_analysis_complete | 2026-03-19 | system | Auto-completing local analysis. Moving to Phase 2. |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_
@@ -109,6 +112,27 @@ Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-tr
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on experiment completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-19 | architect | Phase 2 convergence design: Phasic-only equilibrium SNN + Scheme B regression output. 16 experiments x 8 folds = 128 runs. Key changes: (1) Dropped tonic pathway (adds noise per ablation), (2) Scheme B HuberLoss with delta sweep [0.005-0.1] to fix 100% abstention, (3) Adaptive percentile-based abstention replacing fixed threshold, (4) Turnover penalty in loss to address Sharpe-killing turnover (r=0.83), (5) Extended to 8 walk-forward folds (2020-2026) for statistical power, (6) Small-96 only, (7) Gross Sharpe as primary metric, (8) V3 Scheme B replication as beat-this baseline (P2-BL-03). Design at pipeline_builds/build-equilibrium-snn_phase2_architect_design.md |
+| phase2_architect_design | 2026-03-19 | architect | Phase 2 convergence design complete: Phasic-only equilibrium SNN + Scheme B. 16 experiments x 8 folds. Design at pipeline_builds/build-equilibrium-snn_phase2_architect_design.md |
+| phase2_critic_design_review_blocked | 2026-03-19 | critic | BLOCKED: BLOCK-1: Turnover penalty has zero gradient effect — sign(output).detach() severs gradient path, sign() has zero gradient anyway. All 4 turnover sweep experiments (P2-05..08) will produce identical models. FIX: Use differentiable output-smoothness penalty |output_t - output_{t-1}| instead. Also 6 FLAGS: (1) P2-12 duplicates P2-03, (2) fold size inequality (3-27 months), (3) clamp_weights() undefined, (4) no calibration analysis, (5) model selection ignores abstention, (6) 53% accuracy threshold ambitious given Phase 1 best of 52.6%. Review at: pipeline_builds/build-equilibrium-snn_phase2_critic_design_review.md |
+| phase2_critic_design_review_blocked | 2026-03-19 | critic | BLOCKED: BLOCK-1: Turnover penalty has zero gradient (sign() non-differentiable + detach). P2-05..08 would train identically. Fix: prediction smoothness penalty. 4 FLAGS: fold size heterogeneity, clamp_weights undefined, V3 baseline features, macro-averaging. |
+| phase2_critic_design_review_blocked | 2026-03-19 | critic | BLOCKED: BLOCK-1: Turnover penalty zero gradient. 4 FLAGS. |
+| phase2_architect_revision | 2026-03-19 | architect | All 5 Critic items addressed. BLOCK-1: Replaced zero-gradient turnover penalty (sign().detach()) with prediction smoothness penalty — (output-prev_output)^2, fully differentiable, gradient flows through both timesteps within TBPTT chunks. FLAG-1: Split heterogeneous 8 folds into 11 uniform ~6-month folds (176 runs). FLAG-2: clamp_weights()→clamp_betas(). FLAG-3: P2-BL-03 explicitly uses V3 14-dim delta features (no rhythm). FLAG-4: Macro-average as primary success metric. Revision at pipeline_builds/build-equilibrium-snn_phase2_architect_revision.md |
+| phase2_architect_revision | 2026-03-19 | architect | All 5 Critic items addressed. BLOCK-1: prediction smoothness penalty replaces zero-gradient turnover penalty. FLAG-1: 11 uniform folds. FLAG-2: clamp_betas. FLAG-3: V3 14-dim baseline. FLAG-4: macro-average primary. |
+| phase2_critic_design_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 2 low FLAGs. All 5 items resolved: BLOCK-1 prediction smoothness penalty fully differentiable (gradient verified), FLAG-1 11 uniform ~6-month folds (ratio 8.7x→1.33x), FLAG-2 clamp_betas(), FLAG-3 V3 14-dim delta features, FLAG-4 macro-average primary. Checklist 14/14. Review at: pipeline_builds/build-equilibrium-snn_phase2_critic_revision_review.md |
+| phase2_critic_design_review | 2026-03-19 | critic | APPROVED 0 BLOCKs 2 low FLAGs. All 5 items resolved. Review at pipeline_builds/build-equilibrium-snn_phase2_critic_revision_review.md |
+| phase2_builder_implementation | 2026-03-19 | builder | In progress |
+| phase2_critic_design_review | 2026-03-19 | critic | APPROVED 0 BLOCKs 2 low FLAGs. All 5 items resolved. Review at pipeline_builds/build-equilibrium-snn_phase2_critic_revision_review.md |
+| phase2_builder_implementation | 2026-03-19 | builder | Phase 2 notebook built: 77 cells (35 code, 42 markdown), 16 experiments x 11 folds = 176 runs. Convergence architecture: phasic-only equilibrium SNN + Scheme B regression. All Critic items verified: (1) smoothness penalty with full gradient flow replaces zero-grad turnover penalty, (2) 11 uniform ~6-month folds, (3) clamp_betas(), (4) V3 baseline uses 14-dim (no rhythm), (5) macro-average primary. Build script: build_equilibrium_phase2.py. Committed 91a0ff7. |
+| phase2_builder_implementation | 2026-03-19 | builder | Phase 2 notebook built: 77 cells (35 code, 42 markdown), 16 experiments x 11 folds = 176 runs. Convergence architecture: phasic-only equilibrium SNN + Scheme B regression. All Critic items verified: (1) smoothness penalty with full gradient flow, (2) 11 uniform ~6-month folds, (3) clamp_betas(), (4) V3 baseline 14-dim, (5) macro-average primary. Build script: build_equilibrium_phase2.py. Committed 91a0ff7. |
+| phase2_builder_implementation | 2026-03-19 | builder | Phase 2 notebook built: 77 cells (35 code, 42 markdown), 16 experiments x 11 folds = 176 runs. All Critic items verified. Committed 91a0ff7. |
+| phase2_critic_code_review | 2026-03-19 | critic | APPROVED 0 BLOCKs 5 FLAGs. All 5 design items verified. McNemar misalignment (secondary test). 22/22 checklist. Review at pipeline_builds/build-equilibrium-snn_phase2_critic_code_review.md |
+| phase2_critic_code_review | 2026-03-19 | critic | APPROVED (23/24 checklist). 0 BLOCKs, 2 FLAGs: (1) McNemar test candle misalignment SNN vs V3 — recurring from Phase 1, secondary analysis only; (2) bootstrap CI pools cross-fold predictions with temporal discontinuities — standard practice. All 5 design items verified: smoothness penalty gradient flow confirmed, 11 uniform folds, clamp_betas(), V3 14-dim faithful replication, macro-average primary. Notebook ready to run. |
+| phase2_complete | 2026-03-19 | architect | Phase 2 COMPLETE. Critic code review APPROVED 23/24 checklist, 0 BLOCKs, 2 non-blocking FLAGs: (1) McNemar candle misalignment SNN vs V3 — recurring, secondary analysis only; (2) bootstrap CI cross-fold pooling — standard practice. All 5 design items verified in implementation: prediction smoothness penalty with confirmed gradient flow, 11 uniform ~6-month folds, clamp_betas(), V3 14-dim faithful replication, macro-average primary. Phase 2 notebook: 77 cells, 16 experiments × 11 folds = 176 runs. Convergence architecture: phasic-only equilibrium SNN + Scheme B regression. Key innovations: HuberLoss delta sweep to fix 100% abstention, adaptive percentile-based abstention, differentiable prediction smoothness penalty for turnover control, extended walk-forward validation. V3 Scheme B replication (P2-BL-03) as honest baseline. Notebook ready for Colab execution. |
 
 ### Feedback
 _(Shael's feedback goes here when experiments are complete and reviewed)_
