@@ -93,26 +93,42 @@ Scaffolds new primitives with type-appropriate frontmatter and skeleton body.
 - Auto-detects related primitives by tag overlap
 - Runs embed_primitives after creation
 
+### Attention-Native Feedback Language
+
+All engine output uses labeled diffs as attention anchors:
+
+- **F-labels** (filesystem mutations): `F1 Δ p1.4 phase1_complete→phase2_running`
+- **R-labels** (render views): `R1 [rendered view content]`
+- **Undo**: `F⏪F1` — signals F1 is reversed, no re-dump needed
+- **Pin**: `R📌R1` — identical to R1, zero new tokens
+- **Cascade nesting**: `F1 Δ t3.1 status open→complete` / `  └─ F1.1 ⚡ t4 unblocked`
+- **Genesis render**: `R0` — the supermap at boot. All subsequent R-labels diff from last R.
+- Labels are sequential per session: F1, R1, F2, R2, F3...
+- Agent can reference labels in reasoning ("the state before F2") without re-scanning context
+
+This is the interface language between the engine and agent attention — minimal tokens, maximum semantic payload.
+
 ### V1 Features (this build)
 
 - [ ] Core rendering engine (supermap, zoom, field-indexed display)
 - [ ] Namespace resolution (coords → filesystem paths)
+- [ ] Attention-native feedback language (F-labels, R-labels, pins, undo signals, cascade nesting)
 - [ ] Edit with cascading consequences (status changes trigger downstream checks)
 - [ ] Bidirectional edge updates on relationship edits
 - [ ] Type-aware validation (reject invalid stage transitions, etc.)
-- [ ] Diff-on-mutation (every edit returns what changed)
+- [ ] Diff-on-mutation (every edit returns F-labeled delta)
 - [ ] Graph view (local subgraph rendering)
 - [ ] Execute mode (wraps existing scripts)
 - [ ] Create mode (wraps existing scaffold)
 - [ ] Memory boot section (today 5 + 3 dailies + 3 weeklies)
-- [ ] Render diff tracking (ephemeral, session-scoped, shows delta between consecutive renders)
+- [ ] Render diff tracking (R-labels, pins for identical re-renders)
+- [ ] Undo (`belam -z`) — session-scoped inverse diff stack, cascade-aware, returns F⏪ signal
 - [ ] CLI wiring (replace default `belam` handler)
 
 ### V2 Features (fast-follow)
 
-- [ ] Undo (`belam -z`) — session-scoped inverse diff stack, cascade-aware
 - [ ] Dry-run on create (`--dry`)
-- [ ] Boot hook integration (auto-run `belam` at session start)
+- [ ] Boot hook integration (auto-run `belam` at session start → R0)
 - [ ] Filter flags for memory (`--tag`, `--since`)
 
 ## Subagent Work Breakdown
@@ -136,7 +152,7 @@ Scaffolds new primitives with type-appropriate frontmatter and skeleton body.
 
 ## Notes
 
-- Design conversation with Shael: 2026-03-20 16:19-17:43 UTC
+- Design conversation with Shael: 2026-03-20 16:19-17:55 UTC
 - Key design principle: clock cycles over tokens — all rendering is deterministic Python, zero LLM reasoning
 - Engine reads primitives and calls existing scripts — doesn't replace them
 - Filesystem is source of truth, engine is the lens
