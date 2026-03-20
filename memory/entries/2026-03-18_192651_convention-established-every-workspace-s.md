@@ -7,7 +7,8 @@ tags: [skills, primitives, convention]
 source: "Shael directive 2026-03-18"
 content: "Convention established: every workspace skill MUST have a corresponding decision primitive with a skill: cross-reference field in frontmatter. The primitive captures the WHY (architectural rationale, alternatives considered, consequences) while the SKILL.md captures the HOW (usage, commands, patterns). Primitives use naming pattern: {skill-name}-skill.md for dedicated ones, or existing decisions that naturally map (e.g. pipelines→agent-trio-architecture). When creating new skills, always create the primitive alongside it."
 status: consolidated
-upstream: [decision/skill-primitive-pairing]
+upstream: [decision/skill-primitive-pairing, memory/2026-03-18_192056_created-orchestration-skill-skillsorches, memory/2026-03-18_192319_created-decision-primitives-for-all-4-sp]
+downstream: [memory/2026-03-18_235054_commands-and-skills-promoted-to-first-cl, memory/2026-03-19_005231_primitives-are-the-universal-organizatio]
 ---
 
 # Memory Entry

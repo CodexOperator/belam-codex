@@ -7,6 +7,8 @@ tags: [skills, primitives, knowledge]
 source: "session"
 content: "Created decision primitives for all 4 specialist skills: derivative-specialist-skill, predictionmarket-specialist-skill, quant-infrastructure-skill, quant-workflow-skill. Every workspace skill now has a corresponding primitive with skill: cross-reference. Full mapping: derivative-specialist→derivative-specialist-skill, launch-pipeline→agent-session-isolation, orchestration→orchestration-architecture, pipelines→agent-trio-architecture, predictionmarket-specialist→predictionmarket-specialist-skill, quant-infrastructure→quant-infrastructure-skill, quant-workflow→quant-workflow-skill."
 status: consolidated
+downstream: [memory/2026-03-18_192651_convention-established-every-workspace-s, memory/2026-03-18_235054_commands-and-skills-promoted-to-first-cl, memory/2026-03-19_033706_completed-workspace-refactor-three-works]
+upstream: [memory/2026-03-18_192056_created-orchestration-skill-skillsorches]
 ---
 
 # Memory Entry

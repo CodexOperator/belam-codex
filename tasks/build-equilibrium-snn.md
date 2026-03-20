@@ -8,6 +8,7 @@ project: snn-applied-finance
 estimate: 1-2 days
 depends_on: []
 version_label: v5-equilibrium
+downstream: [task/setup-vectorbt-nautilus-pipeline]
 ---
 
 # Build Equilibrium SNN Architecture

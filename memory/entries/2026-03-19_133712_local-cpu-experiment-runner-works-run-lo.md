@@ -7,6 +7,7 @@ tags: [infrastructure, experiments, cpu, local-runner]
 source: "session"
 content: "Local CPU experiment runner works. run_local.py in machinelearning/snn_applied_finance/scripts/ runs all 81 equilibrium experiments on the 4-core ARM server without GPU. Full run: ~2.5 hours with --workers 1. Models small enough (nano-15 to medium-192) that GPU adds no real advantage. Dead neuron re-initialization added to SNNEquilibriumV2: Kaiming reinit for <1% spike rate neurons every 5 epochs after warmup, preserves sparsity masks. torch.nn.Buffer requires .fill_() not direct float assignment. Results save to notebooks/local_results/ with incremental saves and --resume support. Saves Colab Pro hours for tasks that don't need GPU."
 status: consolidated
+downstream: [memory/2026-03-19_191633_supervised-builder-experiment-runner-wor, memory/2026-03-19_150631_built-pipeline-integrated-local-experime]
 ---
 
 # Memory Entry

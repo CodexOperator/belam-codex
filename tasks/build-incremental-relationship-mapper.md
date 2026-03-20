@@ -1,7 +1,8 @@
 ---
 primitive: task
-status: open
+status: active
 priority: medium
+execution: standalone_cron
 created: 2026-03-20
 owner: belam
 depends_on: [primitive-relationship-graph]

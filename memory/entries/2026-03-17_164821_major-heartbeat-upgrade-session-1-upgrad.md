@@ -7,6 +7,8 @@ tags: [infrastructure, heartbeat, orchestration]
 source: "session"
 content: "Major heartbeat upgrade session. (1) Upgraded heartbeat from flat checklist to context-aware orchestrator — templates/heartbeat.md is the decision framework (script refs, gate rules, task-to-pipeline mapping, anti-patterns), HEARTBEAT.md is the task list that references it. Sonnet reads orchestrator ref each cycle. (2) Phase 3 iteration chain protocol (Shael directive): main and analysis pipelines interleave strictly — main iter N → analysis iter Na,Nb,Nc → all clear → main iter N+1. Multiple analysis per main allowed, but next main blocked until analysis fully done. Encoded in pipeline.md, analysis_pipeline.md, heartbeat.md templates. (3) Standalone Colab notebooks dir (notebooks/standalone/) for non-pipeline tasks. (4) Fixed v4 pipeline frontmatter desync (status was phase2_build, should have been phase2_complete — same old pipeline_update.py bug). (5) Non-gated tasks (specialist ensemble, scheme B validation) now eligible for heartbeat to spawn independently."
 status: consolidated
+upstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
+downstream: [memory/2026-03-17_234248_built-launch-pipeline-skill-belam-kickof, memory/2026-03-18_001630_updated-pipeline-orchestratepy-session-r, memory/2026-03-18_233943_built-phase-1-revision-system-new-stages, memory/2026-03-19_031427_built-revision-queue-system-for-pipeline, memory/2026-03-19_150631_built-pipeline-integrated-local-experime]
 ---
 
 # Memory Entry

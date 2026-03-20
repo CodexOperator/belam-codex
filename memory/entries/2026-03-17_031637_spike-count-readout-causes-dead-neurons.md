@@ -7,6 +7,7 @@ tags: [snn, v4, gradients]
 source: "session"
 content: "Spike-count readout causes dead neurons — always use membrane potential readout"
 status: consolidated
+downstream: [memory/2026-03-17_031649_t4-optimal-config-2-cuda-streams-batch-s]
 ---
 
 # Memory Entry

@@ -125,7 +125,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/control-input-dimensionality-in-encoding-comparisons.md` — Control Input Dimensionality When Comparing Encoding Schemes [high] [snn,encoding,experimental-design]
 - `lessons/event-detection-not-state-classification.md` — Simple SNNs Detect Events, Not States [high] [snn,specialists,architecture]
 - `lessons/gpu-parallel-thrashing-t4.md` — GPU Parallel Worker Thrashing on Tesla T4 [high] [gpu,parallelism,performance]
-- `lessons/openclaw-agent-routes-to-active-session.md` — openclaw-agent-routes-to-active-session [?] []
+- `lessons/openclaw-agent-routes-to-active-session.md` — openclaw agent CLI Routes to Active Session, Not Isolated [high] [infrastructure,agents,openclaw]
 - `lessons/per-fold-significance-tests-required.md` — Per-Fold Significance Tests and Permutation Tests Are Req... [high] [methodology,statistics,validation]
 - `lessons/phasic-only-ablation-wins-equilibrium.md` — Phasic-Only Ablation Wins in Equilibrium SNN [high] [snn,architecture,ablation]
 - `lessons/pipeline-table-separator-required.md` — Pipeline Table Separator Required for Update Script [high] [pipeline,infrastructure,markdown]

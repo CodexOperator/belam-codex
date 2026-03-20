@@ -7,6 +7,7 @@ tags: [snn, v4, t4, gpu]
 source: "session"
 content: "T4 optimal config: 2 CUDA streams + batch_size 4096. Dry_run mode was why earlier runs seemed faster."
 status: consolidated
+upstream: [memory/2026-03-17_031637_spike-count-readout-causes-dead-neurons]
 ---
 
 # Memory Entry
