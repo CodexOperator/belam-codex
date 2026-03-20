@@ -18,7 +18,8 @@ consequences:
 project: snn-applied-finance
 tags: [infrastructure, agents, orchestration]
 skill: launch-pipeline
-upstream: []
+upstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
+downstream: [decision/orchestration-architecture, lesson/checkpoint-and-resume-pattern, memory/2026-03-18_001630_updated-pipeline-orchestratepy-session-r, lesson/session-reset-targets-main-not-group]
 ---
 
 # Decision: Agent Session Isolation

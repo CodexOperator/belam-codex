@@ -14,7 +14,7 @@ consequences:
   - "Primitives become the canonical knowledge store"
 project: snn-applied-finance
 tags: [infrastructure, memory, primitives]
-downstream: [memory/2026-03-18_225239_major-workspace-infrastructure-session-1, memory/2026-03-19_005231_primitives-are-the-universal-organizatio]
+downstream: [memory/2026-03-18_225239_major-workspace-infrastructure-session-1, memory/2026-03-19_005231_primitives-are-the-universal-organizatio, decision/memory-as-primitive-type, memory/2026-03-18_200633_built-embed-primitivespy-auto-generates, memory/2026-03-18_203356_memory-hierarchy-now-indexed-as-primitiv]
 ---
 
 # Decision: MEMORY.md as Boot Index, Not Knowledge Store

@@ -5,7 +5,7 @@ priority: medium
 created: 2026-03-20
 owner: belam
 depends_on: [primitive-relationship-graph]
-upstream: [decision/primitive-relationship-graph, decision/indexed-command-interface]
+upstream: [decision/primitive-relationship-graph, decision/indexed-command-interface, memory/2026-03-20_033917_primitive-relationship-graph-deployed-al]
 downstream: []
 tags: [infrastructure, knowledge-graph, primitives, relationships]
 ---

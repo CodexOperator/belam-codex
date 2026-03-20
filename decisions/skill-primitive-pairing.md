@@ -15,6 +15,7 @@ consequences:
   - "Existing skills without primitives should be backfilled"
 project: workspace-conventions
 tags: [skills, primitives, conventions, knowledge-management]
+downstream: [memory/2026-03-18_192651_convention-established-every-workspace-s]
 ---
 
 # Decision: Every Skill Gets a Primitive

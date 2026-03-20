@@ -7,6 +7,8 @@ tags: [infrastructure, primitives, knowledge-graph]
 source: "session"
 content: "Primitive relationship graph deployed. All primitives now support upstream/downstream frontmatter fields (type/slug references). Create, edit, and scaffold all support the new fields. Decision: decisions/primitive-relationship-graph.md. First links already wired: indexed-command-interface ← clock-cycles-over-tokens, → primitive-relationship-graph."
 status: consolidated
+downstream: [decision/incremental-relationship-mapping-via-pairwise-opus-comparison, task/build-incremental-relationship-mapper]
+upstream: [decision/primitive-relationship-graph]
 ---
 
 # Memory Entry

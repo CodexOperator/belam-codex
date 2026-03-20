@@ -337,7 +337,15 @@ def load_progress():
     try:
         with open(PROGRESS_FILE) as f:
             data = json.load(f)
-        data["completed_pairs"] = set(data.get("completed_pairs", []))
+        raw_pairs = data.get("completed_pairs", [])
+        # Handle both formats: list of strings (original) or list of dicts (from coordinator)
+        pairs_set = set()
+        for item in raw_pairs:
+            if isinstance(item, str):
+                pairs_set.add(item)
+            elif isinstance(item, dict) and "a" in item and "b" in item:
+                pairs_set.add("|".join(sorted([item["a"], item["b"]])))
+        data["completed_pairs"] = pairs_set
         return data
     except (json.JSONDecodeError, KeyError):
         return default
@@ -397,10 +405,10 @@ Use exact type/slug refs like: {key_a} or {key_b}"""
 
 
 def call_opus_single(task_message, dry_run=False):
-    """Spawn a fresh Opus subagent to judge a single pair.
+    """Judge a single pair via openclaw agent with isolated session.
 
-    Uses `openclaw agent` CLI — the agent gets full workspace access to
-    browse primitives via belam CLI, memory_search, read, etc.
+    Uses `openclaw agent --agent main --session-id mapper-<uuid>` for isolation.
+    The fresh session-id ensures no collision with the coordinator's active session.
 
     Returns the raw response text, or empty string on failure.
     Raises TokenExhaustedError if rate-limited / quota hit.
@@ -410,16 +418,16 @@ def call_opus_single(task_message, dry_run=False):
 
     AGENT_TIMEOUT = 300  # 5 minutes — room for browsing + judgment
 
-    # Use a unique session-id per invocation so it doesn't collide
-    # with the coordinator's main session
     import uuid
     session_id = f"mapper-{uuid.uuid4().hex[:12]}"
 
+    # Use code-tutor agent (Sonnet) — lightweight, own session space,
+    # won't collide with main coordinator session
     cmd = [
         'openclaw', 'agent',
-        '--agent', 'architect',
+        '--agent', 'code-tutor',
         '--session-id', session_id,
-        '--thinking', 'low',
+        '--thinking', 'off',
         '--message', task_message,
         '--timeout', str(AGENT_TIMEOUT),
         '--json',
@@ -433,12 +441,23 @@ def call_opus_single(task_message, dry_run=False):
             timeout=AGENT_TIMEOUT + 30,
         )
 
+        stdout = result.stdout.strip() if result.stdout else ""
+        stderr = result.stderr.strip() if result.stderr else ""
+        combined = (stderr + " " + stdout).lower()
+
+        # Detect token exhaustion patterns early (only in stderr — stdout
+        # JSON legitimately contains "tokens" in stats fields)
+        stderr_lower = stderr.lower()
+        if any(phrase in stderr_lower for phrase in
+               ["rate limit", "quota", "429", "capacity", "overloaded",
+                "rate_limit", "too many requests"]):
+            raise TokenExhaustedError(f"Token/rate limit: {stderr[:150]}")
+
         if result.returncode == 0:
             try:
-                data = json.loads(result.stdout)
+                data = json.loads(stdout)
                 status = data.get('status', 'unknown')
 
-                # Extract response text
                 response_text = ''
                 payloads = data.get('result', {}).get('payloads', [])
                 if payloads:
@@ -447,35 +466,38 @@ def call_opus_single(task_message, dry_run=False):
                 if status == 'ok' and response_text:
                     return response_text
                 else:
-                    print(f"    ⚠ Agent returned status={status}, response length={len(response_text)}")
+                    print(f"    ⚠ Agent status={status}, len={len(response_text)}")
                     return response_text or ""
 
             except json.JSONDecodeError:
-                print(f"    ⚠ Failed to parse agent JSON response")
+                # Try plain text if it contains judgment markers
+                if "LINK:" in stdout or "NONE" in stdout:
+                    return stdout
+                print(f"    ⚠ Failed to parse agent response")
                 return ""
         else:
-            stderr = result.stderr[:300] if result.stderr else ""
-            # Detect token exhaustion patterns
-            if any(phrase in stderr.lower() for phrase in
-                   ["rate limit", "quota", "429", "tokens", "capacity", "overloaded"]):
-                raise TokenExhaustedError(f"Token/rate limit hit: {stderr[:100]}")
-            print(f"    ⚠ Agent exit code {result.returncode}: {stderr[:100]}")
+            stderr_lower = stderr.lower()
+            if any(phrase in stderr_lower for phrase in
+                   ["rate limit", "quota", "429", "capacity", "overloaded",
+                    "rate_limit", "too many requests"]):
+                raise TokenExhaustedError(f"Token/rate limit: {stderr[:150]}")
+            print(f"    ⚠ Exit code {result.returncode}: {(stderr or stdout)[:100]}")
             return ""
 
     except subprocess.TimeoutExpired:
-        print(f"    ⚠ Agent timed out after {AGENT_TIMEOUT}s")
+        print(f"    ⚠ Timed out after {AGENT_TIMEOUT}s")
         return ""
     except TokenExhaustedError:
-        raise  # re-raise for caller to handle
+        raise
     except FileNotFoundError:
-        print(f"    ✗ openclaw CLI not found on PATH")
+        print(f"    ✗ openclaw CLI not found")
         return ""
     except Exception as e:
         err_str = str(e).lower()
         if any(phrase in err_str for phrase in
-               ["rate limit", "quota", "429", "tokens", "capacity"]):
+               ["rate limit", "quota", "429", "capacity"]):
             raise TokenExhaustedError(str(e))
-        print(f"    ⚠ Unexpected error: {e}")
+        print(f"    ⚠ Error: {e}")
         return ""
 
 
@@ -815,6 +837,8 @@ def main():
     parser.add_argument("--heuristic", action="store_true", help="Run heuristic linking (no LLM)")
     parser.add_argument("--reset", action="store_true", help="Clear progress, start fresh")
     parser.add_argument("--filter-only", action="store_true", help="Show candidate counts, exit")
+    parser.add_argument("--queue", type=int, default=0, help="Generate N task JSONs to canvas/mapper_queue.json for coordinator")
+    parser.add_argument("--apply-result", type=str, default="", help="Apply a judgment result: 'key_a|key_b|LINK|up>down|rationale' or 'key_a|key_b|NONE|rationale'")
     args = parser.parse_args()
 
     if args.reset:
@@ -845,6 +869,65 @@ def main():
         for score, ka, kb, reasons in heur_cands[:10]:
             print(f"    [{score:3d}] {ka} ↔ {kb}  ({', '.join(reasons)})")
         print()
+        return
+
+    if args.apply_result:
+        # Format: "key_a|key_b|LINK|upstream>downstream|rationale" or "key_a|key_b|NONE|rationale"
+        parts = args.apply_result.split("|")
+        ka, kb = parts[0], parts[1]
+        action = parts[2]
+        pk = pair_key(ka, kb)
+
+        if action == "LINK" and len(parts) >= 5:
+            link_parts = parts[3].split(">")
+            upstream, downstream = link_parts[0].strip(), link_parts[1].strip()
+            rationale = parts[4] if len(parts) > 4 else ""
+            if downstream in primitives and count_upstream(primitives[downstream]) < MAX_UPSTREAM:
+                created = apply_link(upstream, downstream)
+                if created:
+                    progress["links_created"] = progress.get("links_created", 0) + 1
+                    print(f"  ✓ LINK: {upstream} > {downstream}")
+                else:
+                    print(f"  · Link already exists or failed")
+            else:
+                print(f"  · Skip (upstream cap or unknown downstream)")
+        else:
+            progress["no_relationship_count"] = progress.get("no_relationship_count", 0) + 1
+            print(f"  · NONE: {ka} ↔ {kb}")
+
+        progress["completed_pairs"].add(pk)
+        progress["pairs_evaluated"] = progress.get("pairs_evaluated", 0) + 1
+        save_progress(progress)
+        return
+
+    if args.queue > 0:
+        candidates = generate_candidates(primitives, LLM_TYPE_PAIRS)
+        remaining = [
+            (score, ka, kb, reasons)
+            for score, ka, kb, reasons in candidates
+            if pair_key(ka, kb) not in progress["completed_pairs"]
+        ]
+        batch = remaining[:args.queue]
+        tasks = []
+        for score, ka, kb, reasons in batch:
+            meta_a = primitives[ka]
+            meta_b = primitives[kb]
+            up_a = count_upstream(meta_a)
+            up_b = count_upstream(meta_b)
+            if up_a >= MAX_UPSTREAM and up_b >= MAX_UPSTREAM:
+                continue
+            task_text = build_agent_task(ka, meta_a, kb, meta_b)
+            tasks.append({
+                "key_a": ka,
+                "key_b": kb,
+                "score": score,
+                "task": task_text,
+            })
+        queue_file = os.path.join(os.path.dirname(PROGRESS_FILE), "mapper_queue.json")
+        with open(queue_file, "w") as f:
+            json.dump(tasks, f, indent=2)
+        print(f"  Queued {len(tasks)} tasks to {queue_file}")
+        print(f"  Remaining after queue: {len(remaining) - len(tasks)}")
         return
 
     if args.heuristic:

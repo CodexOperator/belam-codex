@@ -7,6 +7,7 @@ alternatives: [file-based passive gate, no gate]
 rationale: Explicit approval is clearest; one command bundles approval + direction
 consequences: [pipelines pause at local_analysis_complete, autorun never touches Phase 2]
 tags: [pipeline, gate, phase2, infrastructure]
+upstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
 ---
 
 # Phase 2 Requires Explicit Human Approval

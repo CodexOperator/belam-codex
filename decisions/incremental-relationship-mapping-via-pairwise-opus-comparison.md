@@ -6,7 +6,7 @@ context: Primitive relationship graph exists but is sparsely linked — need a w
 alternatives: [single-pass-bulk-analysis, manual-linking-only, embedding-similarity]
 rationale: Fresh context per batch preserves judgment quality; deterministic orchestration keeps token cost low; incremental progress is auditable
 consequences: [knowledge-graph-densifies-over-days, canvas-visualization-becomes-useful, relationship-quality-depends-on-prompt-design]
-upstream: [decision/primitive-relationship-graph, decision/clock-cycles-over-tokens]
+upstream: [decision/primitive-relationship-graph, decision/clock-cycles-over-tokens, memory/2026-03-20_033917_primitive-relationship-graph-deployed-al]
 downstream: [task/build-incremental-relationship-mapper]
 tags: [infrastructure, knowledge-graph, primitives, relationships]
 ---
