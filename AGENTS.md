@@ -129,6 +129,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/scheme-b-validated-10-fold.md` — Scheme B Accuracy Validated Across 10 Folds [high] [snn,validation,scheme-b]
 - `lessons/session-reset-targets-main-not-group.md` — OpenClaw Agent CLI Uses `main` Session, Not Group Session [high] [infrastructure,agents,openclaw]
 - `lessons/sessions-send-timeout-filesystem-first.md` — sessions_send Timeouts — Use Filesystem-First Coordination [?] [multi-agent,coordination,sessions-send]
+- `lessons/shell-splits-unquoted-list-args.md` — shell-splits-unquoted-list-args [?] []
 - `lessons/snn-treats-like-weird-cnn.md` — Don't Treat SNNs Like Weird CNNs [high] [snn,architecture,critical]
 - `lessons/stacking-specialists-is-dead-end.md` — Stacking Specialist Micro-Networks Is a Dead End [high] [snn,ensemble,stacking]
 - `lessons/subprocess-run-doesnt-raise-on-failure.md` — subprocess.run Does Not Raise on Non-Zero Exit Code [?] [python,debugging,infrastructure]

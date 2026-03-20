@@ -569,11 +569,13 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
 
-lessons/ (23)  (+1 archived/superseded)
+lessons/ (24)  (+1 archived/superseded)
   ├─ always-back-up-workspace-to-github  Always Back Up Workspace to GitHub  high  [infrastructure,git,backup,redundancy]
   ├─ analysis-phase2-gate-mandatory  Analysis Phase 2 is a Mandatory Gate Before New Versions  [pipeline,methodology,analysis,gate]
   ├─ beta-convergence-is-market-determined  β Convergence Is Market-Determined  high  [snn,hyperparameters,convergence]
@@ -590,6 +592,7 @@ lessons/ (23)  (+1 archived/superseded)
   ├─ scheme-b-validated-10-fold  Scheme B Accuracy Validated Across 10 Folds  high  [snn,validation,scheme-b,statistics]
   ├─ session-reset-targets-main-not-group  OpenClaw Agent CLI Uses `main` Session, Not Group Session  high  [infrastructure,agents,openclaw,debugging]
   ├─ sessions-send-timeout-filesystem-first  sessions_send Timeouts — Use Filesystem-First Coordination  [multi-agent,coordination,sessions-send,timeout]
+  ├─ shell-splits-unquoted-list-args  shell-splits-unquoted-list-args  
   ├─ snn-treats-like-weird-cnn  Don't Treat SNNs Like Weird CNNs  high  [snn,architecture,critical]
   ├─ stacking-specialists-is-dead-end  Stacking Specialist Micro-Networks Is a Dead End  high  [snn,ensemble,stacking,architecture]
   ├─ subprocess-run-doesnt-raise-on-failure  subprocess.run Does Not Raise on Non-Zero Exit Code  [python,debugging,infrastructure]
@@ -681,7 +684,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 04:17 UTC_
+_Updated: 2026-03-20 04:23 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -689,7 +692,7 @@ _Updated: 2026-03-20 04:17 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 04:17 UTC)
+Memory (2026-03-20 04:23 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
 ├── entries/    80 indexed
 ├── weekly/
