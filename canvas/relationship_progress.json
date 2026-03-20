@@ -206,11 +206,19 @@
     "decisions/quant-infrastructure-skill|memories/2026-03-17_033419_built-two-major-systems-tonight-1-analys",
     "decisions/quant-infrastructure-skill|memories/2026-03-17_134119_major-session-built-three-infrastructure",
     "decisions/quant-infrastructure-skill|memories/2026-03-17_164821_major-heartbeat-upgrade-session-1-upgrad",
+    "decisions/quant-infrastructure-skill|memories/2026-03-17_221720_hierarchical-memory-system-built-and-dep",
+    "decisions/quant-infrastructure-skill|memories/2026-03-17_223924_built-hierarchical-memory-system-dailywe",
     "decisions/skill-primitive-pairing|memories/2026-03-18_192651_convention-established-every-workspace-s",
     "decisions/skill-primitive-pairing|memories/2026-03-18_225239_major-workspace-infrastructure-session-1",
     "decisions/skill-primitive-pairing|memories/2026-03-18_235054_commands-and-skills-promoted-to-first-cl",
     "decisions/skill-primitive-pairing|memories/2026-03-19_005231_primitives-are-the-universal-organizatio",
+    "decisions/superseded-primitive-lifecycle|memories/2026-03-18_192651_convention-established-every-workspace-s",
+    "decisions/superseded-primitive-lifecycle|memories/2026-03-18_225239_major-workspace-infrastructure-session-1",
+    "decisions/superseded-primitive-lifecycle|memories/2026-03-18_235054_commands-and-skills-promoted-to-first-cl",
     "decisions/superseded-primitive-lifecycle|memories/2026-03-19_005231_primitives-are-the-universal-organizatio",
+    "decisions/supervised-builder-experiments|memories/2026-03-17_033419_built-two-major-systems-tonight-1-analys",
+    "decisions/supervised-builder-experiments|memories/2026-03-17_134119_major-session-built-three-infrastructure",
+    "decisions/supervised-builder-experiments|memories/2026-03-17_164821_major-heartbeat-upgrade-session-1-upgrad",
     "decisions/supervised-builder-experiments|memories/2026-03-19_005231_primitives-are-the-universal-organizatio",
     "decisions/supervised-builder-experiments|memories/2026-03-19_133712_local-cpu-experiment-runner-works-run-lo",
     "decisions/supervised-builder-experiments|memories/2026-03-19_191633_supervised-builder-experiment-runner-wor",
@@ -477,9 +485,9 @@
     "tasks/build-equilibrium-snn|tasks/setup-vectorbt-nautilus-pipeline"
   ],
   "links_created": 32,
-  "pairs_evaluated": 290,
-  "no_relationship_count": 253,
+  "pairs_evaluated": 298,
+  "no_relationship_count": 261,
   "heuristic_links": 187,
   "started_at": "2026-03-20T05:58:23.301576+00:00",
-  "last_run": "2026-03-20T15:15:50.405142+00:00"
+  "last_run": "2026-03-20T15:45:49.615711+00:00"
 }
