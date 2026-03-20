@@ -10,6 +10,7 @@ project: multi-agent-infrastructure
 tags: [agents, architecture, decision]
 skill: pipelines
 upstream: []
+downstream: [memory/2026-03-17_134119_agent-workspace-structure-discovered-eac]
 ---
 
 # Architect / Critic / Builder Agent Trio

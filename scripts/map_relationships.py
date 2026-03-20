@@ -33,6 +33,8 @@ import re
 import subprocess
 import sys
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -829,11 +831,125 @@ def run_llm_batch(count, primitives, progress, dry_run=False):
     return total_evaluated, total_links
 
 
+def _process_one_pair(idx, total, score, ka, kb, reasons, primitives, dry_run=False):
+    """Process a single pair — thread-safe, returns result dict."""
+    meta_a = primitives[ka]
+    meta_b = primitives[kb]
+
+    up_a = count_upstream(meta_a)
+    up_b = count_upstream(meta_b)
+    if up_a >= MAX_UPSTREAM and up_b >= MAX_UPSTREAM:
+        return {"ka": ka, "kb": kb, "action": "skip", "rationale": "both at upstream cap"}
+
+    task = build_agent_task(ka, meta_a, kb, meta_b)
+
+    if dry_run:
+        return {"ka": ka, "kb": kb, "action": "dry_run", "rationale": f"task: {len(task)} chars"}
+
+    try:
+        response = call_opus_single(task)
+    except TokenExhaustedError as e:
+        return {"ka": ka, "kb": kb, "action": "token_exhausted", "rationale": str(e)}
+
+    if not response:
+        return {"ka": ka, "kb": kb, "action": "no_response", "rationale": "empty response"}
+
+    result = parse_single_judgment(response, ka, kb)
+    return {"ka": ka, "kb": kb, "score": score, "reasons": reasons, **result}
+
+
+_progress_lock = threading.Lock()
+
+
+def run_llm_batch_parallel(count, workers, primitives, progress, dry_run=False):
+    """Run N pairs with W parallel workers."""
+    candidates = generate_candidates(primitives, LLM_TYPE_PAIRS)
+    remaining = [
+        (score, ka, kb, reasons)
+        for score, ka, kb, reasons in candidates
+        if pair_key(ka, kb) not in progress["completed_pairs"]
+    ]
+
+    if not remaining:
+        print("  ✓ All LLM candidate pairs evaluated!")
+        return 0, 0
+
+    batch = remaining[:count]
+    total_evaluated = 0
+    total_links = 0
+    token_exhausted = False
+
+    print(f"  Processing {len(batch)} pairs with {workers} workers...\n")
+
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        futures = {}
+        for idx, (score, ka, kb, reasons) in enumerate(batch, 1):
+            f = executor.submit(_process_one_pair, idx, len(batch), score, ka, kb, reasons, primitives, dry_run)
+            futures[f] = (idx, score, ka, kb, reasons)
+
+        for future in as_completed(futures):
+            idx, score, ka, kb, reasons = futures[future]
+            try:
+                result = future.result()
+            except Exception as e:
+                print(f"  [{idx}/{len(batch)}] ⚠ Exception: {e}")
+                continue
+
+            pk = pair_key(result["ka"], result["kb"])
+
+            if result["action"] == "token_exhausted":
+                print(f"  [{idx}/{len(batch)}] ⏸ Token exhausted")
+                token_exhausted = True
+                continue
+
+            if result["action"] == "no_response":
+                print(f"  [{idx}/{len(batch)}] [{score:3d}] {ka} ↔ {kb} — ⚠ no response, will retry")
+                continue
+
+            if result["action"] == "skip":
+                with _progress_lock:
+                    progress["completed_pairs"].add(pk)
+                print(f"  [{idx}/{len(batch)}] Skip (cap): {ka} ↔ {kb}")
+                continue
+
+            if result["action"] == "link":
+                dn_key = result["downstream"]
+                with _progress_lock:
+                    if dn_key in primitives and count_upstream(primitives[dn_key]) < MAX_UPSTREAM:
+                        created = apply_link(result["upstream"], result["downstream"])
+                        if created:
+                            total_links += 1
+                            progress["links_created"] = progress.get("links_created", 0) + 1
+                        print(f"  [{idx}/{len(batch)}] [{score:3d}] {ka} ↔ {kb} → LINK: {result['upstream']} > {result['downstream']}")
+                    else:
+                        print(f"  [{idx}/{len(batch)}] [{score:3d}] {ka} ↔ {kb} → Skip link (upstream cap)")
+            else:
+                with _progress_lock:
+                    progress["no_relationship_count"] = progress.get("no_relationship_count", 0) + 1
+                print(f"  [{idx}/{len(batch)}] [{score:3d}] {ka} ↔ {kb} → NONE")
+
+            with _progress_lock:
+                progress["completed_pairs"].add(pk)
+                progress["pairs_evaluated"] = progress.get("pairs_evaluated", 0) + 1
+                total_evaluated += 1
+                # Save periodically
+                if total_evaluated % 5 == 0:
+                    save_progress(progress)
+
+    save_progress(progress)
+
+    if token_exhausted:
+        raise TokenExhaustedError("Hit during parallel batch")
+
+    return total_evaluated, total_links
+
+
 def main():
     parser = argparse.ArgumentParser(description="Incremental Relationship Mapper")
     parser.add_argument("--dry-run", action="store_true", help="Show what would happen, no writes")
     parser.add_argument("--status", action="store_true", help="Show progress statistics")
     parser.add_argument("--burst", type=int, default=0, help="Burn through N pairs in LLM mode")
+    parser.add_argument("--workers", type=int, default=1, help="Parallel workers for burst mode")
     parser.add_argument("--heuristic", action="store_true", help="Run heuristic linking (no LLM)")
     parser.add_argument("--reset", action="store_true", help="Clear progress, start fresh")
     parser.add_argument("--filter-only", action="store_true", help="Show candidate counts, exit")
@@ -940,16 +1056,25 @@ def main():
 
     # LLM mode: default 1 pair, or burst N
     count = args.burst if args.burst > 0 else 1
+    workers = args.workers if args.workers > 1 else 1
     print(f"  Loaded {len(primitives)} primitives")
 
-    try:
-        evaluated, links = run_llm_batch(count, primitives, progress, dry_run=args.dry_run)
-    except TokenExhaustedError as e:
-        # Top-level catch in case it propagates
-        print(f"\n  ⏸ Token quota exhausted: {e}")
-        print(f"  Progress saved. Will resume on next cron invocation.")
-        save_progress(progress)
-        sys.exit(0)  # Clean exit for cron — not an error
+    if workers > 1 and count > 1:
+        try:
+            evaluated, links = run_llm_batch_parallel(count, workers, primitives, progress, dry_run=args.dry_run)
+        except TokenExhaustedError as e:
+            print(f"\n  ⏸ Token quota exhausted: {e}")
+            print(f"  Progress saved. Will resume on next cron invocation.")
+            save_progress(progress)
+            sys.exit(0)
+    else:
+        try:
+            evaluated, links = run_llm_batch(count, primitives, progress, dry_run=args.dry_run)
+        except TokenExhaustedError as e:
+            print(f"\n  ⏸ Token quota exhausted: {e}")
+            print(f"  Progress saved. Will resume on next cron invocation.")
+            save_progress(progress)
+            sys.exit(0)
 
     if links > 0 and not args.dry_run:
         rebuild_indexes()

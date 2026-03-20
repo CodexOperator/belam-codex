@@ -19,7 +19,7 @@ tags: [infrastructure, orchestration, agents, architecture]
 skill: orchestration
 cli: "belam autorun, belam orchestrate, belam revise, belam handoffs"
 upstream: [decision/agent-session-isolation, memory/2026-03-17_134119_major-session-built-three-infrastructure]
-downstream: [lesson/checkpoint-and-resume-pattern, memory/2026-03-18_233943_built-phase-1-revision-system-new-stages]
+downstream: [lesson/checkpoint-and-resume-pattern, memory/2026-03-18_233943_built-phase-1-revision-system-new-stages, lesson/openclaw-agent-routes-to-active-session, memory/2026-03-17_033425_all-three-agents-architect-critic-builde]
 ---
 
 # Decision: Centralized Orchestration Architecture

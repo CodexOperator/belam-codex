@@ -83,6 +83,7 @@ _Read when: checking open/blocked/in-pipeline work._
 - `tasks/build-equilibrium-snn.md` — Build Equilibrium SNN Architecture [complete/critical]
 - `tasks/build-incremental-relationship-mapper.md` — Build Incremental Relationship Mapper [active/medium] →primitive-relationship-graph
 - `tasks/report-to-youtube-pipeline.md` — Build Report-to-YouTube Video Pipeline [open/high]
+- `tasks/sample-task.md` — sample-task [open/medium]
 - `tasks/setup-vectorbt-nautilus-pipeline.md` — Set Up Two-Phase Backtest Pipeline [open/medium] →build-equilibrium-snn
 - `tasks/stack-specialist-ensemble.md` — Stack Specialist Micro-Networks [complete/high]
 - `tasks/validate-scheme-b-more-folds.md` — Validate Scheme B Sharpe with 7+ Folds [in_pipeline/high]

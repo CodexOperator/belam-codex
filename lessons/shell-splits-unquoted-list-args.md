@@ -3,7 +3,7 @@ primitive: lesson
 date: 2026-03-20
 source: session — belam edit --set with list values broke on spaces
 confidence: high
-upstream: [decision/indexed-command-interface]
+upstream: [decision/indexed-command-interface, memory/2026-03-18_225239_major-workspace-infrastructure-session-1]
 downstream: []
 tags: [infrastructure, cli, debugging, belam, argparse]
 ---

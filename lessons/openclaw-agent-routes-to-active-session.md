@@ -3,7 +3,7 @@ primitive: lesson
 date: 2026-03-20
 source: relationship-mapper-burn-session
 confidence: high
-upstream: [decisions/agent-session-isolation]
+upstream: [decisions/agent-session-isolation, decision/orchestration-architecture]
 downstream: []
 tags: [infrastructure, agents, openclaw, session-routing]
 ---
