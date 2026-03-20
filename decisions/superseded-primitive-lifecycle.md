@@ -14,6 +14,7 @@ consequences:
   - MEMORY.md tree shows count with "(+N archived/superseded)" suffix for transparency
   - Pattern applies to any primitive type, not just lessons
 tags: [primitives, conventions, lifecycle, boot-optimization]
+note: "References to embed_primitives.py filtering are stale — codex engine supermap handles boot index filtering"
 ---
 
 # Superseded Primitive Lifecycle

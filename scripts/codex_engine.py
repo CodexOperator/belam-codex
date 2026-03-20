@@ -1843,7 +1843,7 @@ ACTION_REGISTRY = {
     'help':             {'handler': 'help',                     'description': 'Show help'},
 
     # Memory extraction + edge checking
-    'extract':          {'handler': 'extract',                  'description': 'Manually trigger memory extraction (spawns sage)'},
+    'extract':          {'handler': 'extract',                  'description': 'Memory extraction [instance] [--file PATH] [--bg]'},
     'ex':               {'alias': 'extract'},
     'edges':            {'handler': 'edges',                    'description': 'Check/fix missing inter-primitive edges'},
     'eg':               {'alias': 'edges'},
