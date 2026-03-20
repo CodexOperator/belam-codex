@@ -8,6 +8,7 @@ rationale: AAD computes all first-order Greeks in ≤4× forward cost vs O(N) fo
 consequences: [Use PyTorch autograd or JAX for all Greeks computation, Finite differences only as validation/debugging tool]
 project: snn-applied-finance
 tags: [derivatives, greeks, infrastructure]
+upstream: [lessons/always-back-up-workspace-to-github]
 ---
 
 # AAD Over Finite Differences for Greeks

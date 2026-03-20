@@ -5,6 +5,7 @@ priority: critical
 tags: [pipeline, methodology, analysis, gate]
 project: snn-applied-finance
 source: Shael directive 2026-03-17
+downstream: [decisions/agent-session-isolation]
 ---
 
 # Lesson: Analysis Phase 2 is a Mandatory Gate Before New Versions

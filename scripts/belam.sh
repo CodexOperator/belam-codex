@@ -286,6 +286,11 @@ case "${1:-help}" in
         esac
         ;;
 
+    # ── Link relationships ────────────────────────────────────────────────────
+    link|ln)
+        python3 "$SCRIPTS/belam_index.py" "$@"
+        ;;
+
     # ── Primitives ────────────────────────────────────────────────────────────
     tasks|t)
         list_primitives "tasks" "task"

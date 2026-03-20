@@ -1,0 +1,3034 @@
+{
+  "nodes": [
+    {
+      "id": "lesson/always-back-up-workspace-to-github",
+      "type": "lesson",
+      "title": "Always Back Up Workspace to GitHub",
+      "tags": [
+        "infrastructure",
+        "git",
+        "backup",
+        "redundancy"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-20",
+        "source": "session \u2014 Shael asked if workspace changes were backed up, they weren't",
+        "confidence": "high",
+        "upstream": [
+          "decision/belam-codex-resurrection"
+        ],
+        "downstream": [],
+        "tags": [
+          "infrastructure",
+          "git",
+          "backup",
+          "redundancy"
+        ]
+      }
+    },
+    {
+      "id": "lesson/analysis-phase2-gate-mandatory",
+      "type": "lesson",
+      "title": "Lesson: Analysis Phase 2 is a Mandatory Gate Before New Versions",
+      "tags": [
+        "pipeline",
+        "methodology",
+        "analysis",
+        "gate"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "primitive": "lesson",
+        "status": "active",
+        "priority": "critical",
+        "tags": [
+          "pipeline",
+          "methodology",
+          "analysis",
+          "gate"
+        ],
+        "project": "snn-applied-finance",
+        "source": "Shael directive 2026-03-17"
+      }
+    },
+    {
+      "id": "lesson/beta-convergence-is-market-determined",
+      "type": "lesson",
+      "title": "\u03b2 Convergence Is Market-Determined",
+      "tags": [
+        "snn",
+        "hyperparameters",
+        "convergence"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-15",
+        "source": "V2 and V3 experiment results (93 models total)",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "snn",
+          "hyperparameters",
+          "convergence"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/breakeven-accuracy-before-building",
+      "type": "lesson",
+      "title": "Calculate Breakeven Accuracy Before Building",
+      "tags": [
+        "trading",
+        "costs",
+        "validation"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-15",
+        "source": "V2 transaction cost analysis + Production Quant Handbook",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "trading",
+          "costs",
+          "validation"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/checkpoint-and-resume-pattern",
+      "type": "lesson",
+      "title": "Lesson: Checkpoint-and-Resume for Long Agent Tasks",
+      "tags": [
+        "infrastructure",
+        "agents",
+        "orchestration",
+        "pattern"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-18",
+        "source": "Agent infrastructure redesign session with Shael",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "infrastructure",
+          "agents",
+          "orchestration",
+          "pattern"
+        ],
+        "applies_to": [
+          "orchestrator",
+          "pipeline-autorun",
+          "agent-management"
+        ]
+      }
+    },
+    {
+      "id": "lesson/confident-abstention-is-signal",
+      "type": "lesson",
+      "title": "Confident Abstention Is a Real Signal Type",
+      "tags": [
+        "snn",
+        "trading",
+        "abstention"
+      ],
+      "status": "medium",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-15",
+        "source": "V3 Scheme B results",
+        "confidence": "medium",
+        "project": "snn-applied-finance",
+        "tags": [
+          "snn",
+          "trading",
+          "abstention"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/continuous-input-beats-spike-mode",
+      "type": "lesson",
+      "title": "Continuous Input Mode Consistently Outperforms Spike Mode",
+      "tags": [
+        "snn",
+        "encoding",
+        "input-mode"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "V2 deep analysis \u2014 continuous vs spike input comparison across all model variants",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "snn",
+          "encoding",
+          "input-mode"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/control-input-dimensionality-in-encoding-comparisons",
+      "type": "lesson",
+      "title": "Control Input Dimensionality When Comparing Encoding Schemes",
+      "tags": [
+        "snn",
+        "encoding",
+        "experimental-design"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "V2 critic review \u2014 population coding (35 inputs) vs delta encoding (14 inputs) confound",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "snn",
+          "encoding",
+          "experimental-design"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/event-detection-not-state-classification",
+      "type": "lesson",
+      "title": "Simple SNNs Detect Events, Not States",
+      "tags": [
+        "snn",
+        "specialists",
+        "architecture"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-15",
+        "source": "V3 specialist micro-network results",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "snn",
+          "specialists",
+          "architecture"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/gpu-parallel-thrashing-t4",
+      "type": "lesson",
+      "title": "GPU Parallel Worker Thrashing on Tesla T4",
+      "tags": [
+        "gpu",
+        "parallelism",
+        "performance",
+        "colab",
+        "t4"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "type": "lesson",
+        "id": "gpu-parallel-thrashing-t4",
+        "title": "GPU parallel worker thrashing on Tesla T4 with Python threads",
+        "status": "active",
+        "learned": "2026-03-16",
+        "source": "v4-notebook-benchmarking",
+        "confidence": "high",
+        "tags": [
+          "gpu",
+          "parallelism",
+          "performance",
+          "colab",
+          "t4"
+        ],
+        "related": [
+          "beta-convergence",
+          "snn-treats-like-weird-cnn"
+        ],
+        "supersedes": "tiny-snn-gpu-parallelism"
+      }
+    },
+    {
+      "id": "lesson/per-fold-significance-tests-required",
+      "type": "lesson",
+      "title": "Per-Fold Significance Tests and Permutation Tests Are Required",
+      "tags": [
+        "methodology",
+        "statistics",
+        "validation"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "V2 and V3 critique reviews \u2014 statistical methodology gaps",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "methodology",
+          "statistics",
+          "validation"
+        ],
+        "applies_to": [
+          "snn-applied-finance"
+        ]
+      }
+    },
+    {
+      "id": "lesson/phasic-only-ablation-wins-equilibrium",
+      "type": "lesson",
+      "title": "Phasic-Only Ablation Wins in Equilibrium SNN",
+      "tags": [
+        "snn",
+        "architecture",
+        "ablation",
+        "equilibrium",
+        "phasic"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "build-equilibrium-snn pipeline \u2014 27 experiments, 81 runs, ablation studies",
+        "confidence": "high",
+        "priority": "high",
+        "tags": [
+          "snn",
+          "architecture",
+          "ablation",
+          "equilibrium",
+          "phasic"
+        ]
+      }
+    },
+    {
+      "id": "lesson/pipeline-table-separator-required",
+      "type": "lesson",
+      "title": "Pipeline Table Separator Required for Update Script",
+      "tags": [
+        "pipeline",
+        "infrastructure",
+        "markdown",
+        "debugging"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-15",
+        "source": "builder agent (v4 pipeline build)",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "pipeline",
+          "infrastructure",
+          "markdown",
+          "debugging"
+        ],
+        "applies_to": [
+          "pipeline_update.py",
+          "pipeline primitives"
+        ]
+      }
+    },
+    {
+      "id": "lesson/scheme-b-validated-10-fold",
+      "type": "lesson",
+      "title": "Scheme B Accuracy Validated Across 10 Folds",
+      "tags": [
+        "snn",
+        "validation",
+        "scheme-b",
+        "statistics",
+        "confirmed"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "validate-scheme-b pipeline \u2014 2 experiments, 10 folds, cross-validation",
+        "confidence": "high",
+        "priority": "critical",
+        "tags": [
+          "snn",
+          "validation",
+          "scheme-b",
+          "statistics",
+          "confirmed"
+        ]
+      }
+    },
+    {
+      "id": "lesson/session-reset-targets-main-not-group",
+      "type": "lesson",
+      "title": "Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session",
+      "tags": [
+        "infrastructure",
+        "agents",
+        "openclaw",
+        "debugging"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-18",
+        "source": "Pipeline debugging \u2014 agents processing 3 pipelines in one session despite one-at-a-time gate",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "infrastructure",
+          "agents",
+          "openclaw",
+          "debugging"
+        ],
+        "applies_to": [
+          "orchestrator",
+          "pipeline-autorun",
+          "agent-management"
+        ]
+      }
+    },
+    {
+      "id": "lesson/sessions-send-timeout-filesystem-first",
+      "type": "lesson",
+      "title": "Lesson: sessions_send Timeouts \u2014 Use Filesystem-First Coordination",
+      "tags": [
+        "multi-agent",
+        "coordination",
+        "sessions-send",
+        "timeout"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "primitive": "lesson",
+        "status": "active",
+        "severity": "high",
+        "discovered": "2026-03-15",
+        "context": "v4 pipeline \u2014 Critic\u2192Builder sessions_send timeout",
+        "tags": [
+          "multi-agent",
+          "coordination",
+          "sessions-send",
+          "timeout"
+        ]
+      }
+    },
+    {
+      "id": "lesson/shell-splits-unquoted-list-args",
+      "type": "lesson",
+      "title": "Shell Splits Unquoted List Arguments",
+      "tags": [
+        "infrastructure",
+        "cli",
+        "debugging",
+        "belam",
+        "argparse"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-20",
+        "source": "session \u2014 belam edit --set with list values broke on spaces",
+        "confidence": "high",
+        "upstream": [
+          "decision/indexed-command-interface"
+        ],
+        "downstream": [],
+        "tags": [
+          "infrastructure",
+          "cli",
+          "debugging",
+          "belam",
+          "argparse"
+        ]
+      }
+    },
+    {
+      "id": "lesson/snn-treats-like-weird-cnn",
+      "type": "lesson",
+      "title": "Don't Treat SNNs Like Weird CNNs",
+      "tags": [
+        "snn",
+        "architecture",
+        "critical"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-14",
+        "source": "V1-V3 experiment results + stock predictor analysis",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "snn",
+          "architecture",
+          "critical"
+        ],
+        "applies_to": [
+          "snn-applied-finance",
+          "equilibrium-snn"
+        ]
+      }
+    },
+    {
+      "id": "lesson/stacking-specialists-is-dead-end",
+      "type": "lesson",
+      "title": "Stacking Specialist Micro-Networks Is a Dead End",
+      "tags": [
+        "snn",
+        "ensemble",
+        "stacking",
+        "architecture",
+        "dead-end"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "stack-specialists pipeline \u2014 15 experiments, 42 runs, full stacking evaluation",
+        "confidence": "high",
+        "priority": "high",
+        "tags": [
+          "snn",
+          "ensemble",
+          "stacking",
+          "architecture",
+          "dead-end"
+        ]
+      }
+    },
+    {
+      "id": "lesson/subprocess-run-doesnt-raise-on-failure",
+      "type": "lesson",
+      "title": "subprocess.run Does Not Raise on Non-Zero Exit Code",
+      "tags": [
+        "python",
+        "debugging",
+        "infrastructure"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "lesson",
+        "severity": "high",
+        "date": "2026-03-19",
+        "context": "run_experiment.py papermill detection set papermill_available=True even when papermill wasn't installed",
+        "tags": [
+          "python",
+          "debugging",
+          "infrastructure"
+        ]
+      }
+    },
+    {
+      "id": "lesson/telegram-bots-cant-see-bots",
+      "type": "lesson",
+      "title": "Telegram Bots Cannot See Other Bots' Messages",
+      "tags": [
+        "telegram",
+        "agents",
+        "infrastructure"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-14",
+        "source": "Multi-agent Telegram setup",
+        "confidence": "high",
+        "project": "multi-agent-infrastructure",
+        "tags": [
+          "telegram",
+          "agents",
+          "infrastructure"
+        ],
+        "applies_to": [
+          "multi-agent-infrastructure"
+        ]
+      }
+    },
+    {
+      "id": "lesson/tiny-snn-gpu-parallelism",
+      "type": "lesson",
+      "title": "Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution",
+      "tags": [
+        "gpu",
+        "parallelism",
+        "performance",
+        "infrastructure"
+      ],
+      "status": "superseded",
+      "frontmatter": {
+        "primitive": "lesson",
+        "status": "superseded",
+        "date": "2026-03-16",
+        "source": "v4 notebook GPU profiling (Shael observed 2GB steady climb)",
+        "confidence": "high",
+        "project": "snn-applied-finance",
+        "tags": [
+          "gpu",
+          "parallelism",
+          "performance",
+          "infrastructure"
+        ],
+        "applies_to": [
+          "pipeline-template",
+          "v4",
+          "v5+"
+        ],
+        "superseded_by": "gpu-parallel-thrashing-t4"
+      }
+    },
+    {
+      "id": "lesson/torch-buffer-requires-tensor-assignment",
+      "type": "lesson",
+      "title": "torch.nn.Buffer Requires Tensor Assignment, Not Float",
+      "tags": [
+        "snn",
+        "pytorch",
+        "debugging"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "build-equilibrium-snn pipeline, Shael experiment run",
+        "confidence": "high",
+        "tags": [
+          "snn",
+          "pytorch",
+          "debugging"
+        ]
+      }
+    },
+    {
+      "id": "lesson/use-scaffold-then-edit-not-overwrite",
+      "type": "lesson",
+      "title": "use-scaffold-then-edit-not-overwrite",
+      "tags": [
+        "infrastructure",
+        "primitives",
+        "conventions",
+        "clock-cycles"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-20",
+        "source": "session",
+        "confidence": "high",
+        "tags": [
+          "infrastructure",
+          "primitives",
+          "conventions",
+          "clock-cycles"
+        ]
+      }
+    },
+    {
+      "id": "lesson/verify-notebook-paths-resolve-before-automation",
+      "type": "lesson",
+      "title": "Verify Notebook Paths Resolve Before Automation",
+      "tags": [
+        "infrastructure",
+        "naming",
+        "automation",
+        "debugging"
+      ],
+      "status": "high",
+      "frontmatter": {
+        "primitive": "lesson",
+        "date": "2026-03-19",
+        "source": "(add source)",
+        "confidence": "high",
+        "tags": [
+          "infrastructure",
+          "naming",
+          "automation",
+          "debugging"
+        ]
+      }
+    },
+    {
+      "id": "decision/aad-over-finite-differences",
+      "type": "decision",
+      "title": "AAD Over Finite Differences for Greeks",
+      "tags": [
+        "derivatives",
+        "greeks",
+        "infrastructure"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "Production Quant Handbook \u2014 Greeks computation for any derivatives pricing work",
+        "alternatives": [
+          "analytical closed-form",
+          "finite differences (bumping)",
+          "AAD"
+        ],
+        "rationale": "AAD computes all first-order Greeks in \u22644\u00d7 forward cost vs O(N) for bumping \u2014 up to 1,000\u00d7 faster for large portfolios. PyTorch autograd gives 20% overhead for delta+vega vs 500%+ for finite diff. JAX jax.grad for GPU-native workflows.",
+        "consequences": [
+          "Use PyTorch autograd or JAX for all Greeks computation",
+          "Finite differences only as validation/debugging tool"
+        ],
+        "project": "snn-applied-finance",
+        "tags": [
+          "derivatives",
+          "greeks",
+          "infrastructure"
+        ]
+      }
+    },
+    {
+      "id": "decision/agent-session-isolation",
+      "type": "decision",
+      "title": "Decision: Agent Session Isolation",
+      "tags": [
+        "infrastructure",
+        "agents",
+        "orchestration"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-18",
+        "context": "Agent pipelines were stalling because architect/critic/builder shared accumulated session context across multiple pipelines, causing confusion and timeouts",
+        "alternatives": [
+          "Subagents (stateless, no memory persistence)",
+          "Separate agent instances with shared sessions (old approach)",
+          "Separate agent instances with fresh sessions per handoff (chosen)"
+        ],
+        "rationale": "Fresh sessions ensure each pipeline gets undivided agent attention. Memory files provide continuity across sessions without context pollution. One-pipeline-at-a-time prevents overload.",
+        "consequences": [
+          "Each handoff resets agent main + group sessions via gateway API",
+          "Agents must read memory files at session start for continuity",
+          "Orchestrator auto-writes memory via --learnings flag before handoff",
+          "Checkpoint-and-resume handles timeouts gracefully (up to 5 cycles)",
+          "Stale lock detection (5min) catches hung processes that block dispatch",
+          "One pipeline active at a time \u2014 autorun enforces this"
+        ],
+        "project": "snn-applied-finance",
+        "tags": [
+          "infrastructure",
+          "agents",
+          "orchestration"
+        ],
+        "skill": "launch-pipeline"
+      }
+    },
+    {
+      "id": "decision/agent-trio-architecture",
+      "type": "decision",
+      "title": "Architect / Critic / Builder Agent Trio",
+      "tags": [
+        "agents",
+        "architecture",
+        "decision"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-14",
+        "context": "Multi-agent design for SNN finance research",
+        "alternatives": [
+          "single agent",
+          "pair (proposer+builder)",
+          "full team (5+ roles)"
+        ],
+        "rationale": "Three specialized roles cover the full research cycle. Architect holds the design space and makes structural decisions. Critic validates statistical rigor, detects hype, and prevents overfitting. Builder implements with production-quality code. The trio generates interference patterns between perspectives that single-agent can't reach.",
+        "consequences": [
+          "Each agent has dedicated Telegram bot",
+          "role-specific knowledge files guide behavior",
+          "sessions_send for inter-agent comms",
+          "filesystem is shared state"
+        ],
+        "project": "multi-agent-infrastructure",
+        "tags": [
+          "agents",
+          "architecture",
+          "decision"
+        ],
+        "skill": "pipelines"
+      }
+    },
+    {
+      "id": "decision/belam-codex-resurrection",
+      "type": "decision",
+      "title": "Belam Codex Resurrection Architecture",
+      "tags": [
+        "infrastructure",
+        "git",
+        "backup",
+        "continuity"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-20",
+        "context": "Workspace had no remote \u2014 all infrastructure work (belam CLI, primitive system, 40+ scripts, memory hierarchy) was local-only and at risk of loss",
+        "alternatives": [
+          "single monorepo with machinelearning",
+          "continue using openclaw-knowledge repo",
+          "no backup"
+        ],
+        "rationale": "Clean separation of concerns \u2014 soul/infrastructure vs research output. Two repos = complete resurrection with fresh API keys.",
+        "consequences": [
+          "heartbeat auto-commits push to both repos",
+          "incarnate.sh enables one-command setup on fresh machines"
+        ],
+        "upstream": [
+          "decision/clock-cycles-over-tokens",
+          "decision/hierarchical-memory-system"
+        ],
+        "downstream": [
+          "lesson/always-back-up-workspace-to-github",
+          "memory/entries/2026-03-20_041755_belam-codex-resurrection-architecture-es"
+        ],
+        "tags": [
+          "infrastructure",
+          "git",
+          "backup",
+          "continuity"
+        ]
+      }
+    },
+    {
+      "id": "decision/clock-cycles-over-tokens",
+      "type": "decision",
+      "title": "Clock Cycles Over Tokens",
+      "tags": [
+        "infrastructure",
+        "cost",
+        "design-principle",
+        "tokens"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-19",
+        "context": "LLM tokens cost orders of magnitude more than CPU cycles",
+        "alternatives": [
+          "LLM-driven heartbeat decisions"
+        ],
+        "rationale": "Every deterministic operation should be code, not reasoning",
+        "consequences": [
+          "belam CLI and autorun scripts are the right pattern",
+          "continuously migrate"
+        ],
+        "tags": [
+          "infrastructure",
+          "cost",
+          "design-principle",
+          "tokens"
+        ]
+      }
+    },
+    {
+      "id": "decision/derivative-specialist-skill",
+      "type": "decision",
+      "title": "Decision: Derivative Specialist Skill",
+      "tags": [
+        "derivatives",
+        "pricing",
+        "volatility",
+        "knowledge"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "Agents need derivatives pricing knowledge for SNN output interpretation, vol surface construction, and Greeks computation in crypto markets",
+        "alternatives": [
+          "Inline derivatives knowledge in agent KNOWLEDGE.md files (not discoverable by other agents)",
+          "External API calls to pricing libraries (latency, dependency)",
+          "OpenClaw skill with progressive disclosure (chosen)"
+        ],
+        "rationale": "Derivatives pricing is cross-cutting \u2014 architect needs it for output layer design (what are we predicting?), critic needs it for validating financial assumptions, builder needs it for implementing pricing logic. A shared skill ensures consistent methodology.",
+        "consequences": [
+          "All agents can access vol surface construction (SVI/SSVI), Greeks (AAD), stochastic vol (Heston, SABR)",
+          "Arbitrage-free constraints are non-negotiable \u2014 encoded as hard rules in the skill",
+          "GARCH calibration and Monte Carlo patterns available for experiment design",
+          "QuantLib is the reference implementation for validation"
+        ],
+        "project": "quant-knowledge-skills",
+        "tags": [
+          "derivatives",
+          "pricing",
+          "volatility",
+          "knowledge"
+        ],
+        "knowledge": "derivative-specialist",
+        "cli": "belam lessons (for derivative-related findings)"
+      }
+    },
+    {
+      "id": "decision/hierarchical-memory-system",
+      "type": "decision",
+      "title": "Hierarchical Memory Consolidation System",
+      "tags": [
+        "infrastructure",
+        "memory-system",
+        "cron",
+        "knowledge-graph"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-17",
+        "priority": "high",
+        "tags": [
+          "infrastructure",
+          "memory-system",
+          "cron",
+          "knowledge-graph"
+        ],
+        "project": "workspace-infrastructure",
+        "decided_by": [
+          "Shael",
+          "Belam"
+        ]
+      }
+    },
+    {
+      "id": "decision/indexed-command-interface",
+      "type": "decision",
+      "title": "Indexed Command Interface as Default belam UX",
+      "tags": [
+        "infrastructure",
+        "cli",
+        "ux",
+        "belam"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "title": "Indexed Command Interface as Default belam UX",
+        "status": "accepted",
+        "date": "2026-03-20",
+        "upstream": [
+          "decisions/clock-cycles-over-tokens"
+        ],
+        "downstream": [
+          "decisions/primitive-relationship-graph"
+        ],
+        "tags": [
+          "infrastructure",
+          "cli",
+          "ux",
+          "belam"
+        ]
+      }
+    },
+    {
+      "id": "decision/memory-as-index-not-store",
+      "type": "decision",
+      "title": "Decision: MEMORY.md as Boot Index, Not Knowledge Store",
+      "tags": [
+        "infrastructure",
+        "memory",
+        "primitives"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-18",
+        "context": "MEMORY.md was a 186-line curated narrative duplicating content from primitives (lessons, decisions, daily logs). Redundant and hard to maintain.",
+        "alternatives": [
+          "Keep MEMORY.md as full narrative (old approach)",
+          "Kill MEMORY.md entirely, rely on memory_search + primitives",
+          "Replace with lean boot index pointing to primitives (chosen)"
+        ],
+        "rationale": "Index primes the agent to use the primitive system for all knowledge retrieval. Eliminates duplication. 48 lines vs 186. Cold-start orientation preserved via pointers.",
+        "consequences": [
+          "Agent must use memory_search and read primitives for detailed context",
+          "No more manual MEMORY.md maintenance \u2014 just update pointers when new primitives are created",
+          "Primitives become the canonical knowledge store"
+        ],
+        "project": "snn-applied-finance",
+        "tags": [
+          "infrastructure",
+          "memory",
+          "primitives"
+        ]
+      }
+    },
+    {
+      "id": "decision/memory-as-primitive-type",
+      "type": "decision",
+      "title": "Decision: Memory Hierarchy as Primitive Type",
+      "tags": [
+        "memory",
+        "primitives",
+        "hierarchy",
+        "infrastructure"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "type": "decision",
+        "title": "Decision: Memory Hierarchy as Primitive Type",
+        "status": "accepted",
+        "date": "2026-03-18",
+        "project": "workspace-infrastructure",
+        "tags": [
+          "memory",
+          "primitives",
+          "hierarchy",
+          "infrastructure"
+        ]
+      }
+    },
+    {
+      "id": "decision/orchestration-architecture",
+      "type": "decision",
+      "title": "Decision: Centralized Orchestration Architecture",
+      "tags": [
+        "infrastructure",
+        "orchestration",
+        "agents",
+        "architecture"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-18",
+        "context": "Pipeline work between agents (architect/critic/builder) needed reliable handoffs, timeout recovery, and hung-process detection \u2014 without human intervention",
+        "alternatives": [
+          "Direct sessions_send between agents (no central orchestrator) \u2014 fragile, no recovery",
+          "Subagent spawning per stage (stateless, no memory persistence) \u2014 loses continuity",
+          "Central orchestrator with three-tier recovery (chosen)"
+        ],
+        "rationale": "A central script (pipeline_orchestrate.py) as the single handoff path ensures every transition gets memory consolidation, session reset, state updates, and notifications. pipeline_autorun.py adds event-driven automation on top. Together they create a self-healing pipeline system.",
+        "consequences": [
+          "All agent stage transitions MUST go through pipeline_orchestrate.py \u2014 no direct sessions_send",
+          "Three-tier recovery: 5min lock staleness, 10min checkpoint-and-resume, 120min stall re-kick",
+          "One pipeline active at a time \u2014 prevents agent context overload",
+          "Heartbeat becomes code-driven (pipeline_autorun.py) rather than LLM-decided",
+          "Agent memory files are the only continuity mechanism across sessions"
+        ],
+        "project": "snn-applied-finance",
+        "tags": [
+          "infrastructure",
+          "orchestration",
+          "agents",
+          "architecture"
+        ],
+        "skill": "orchestration",
+        "cli": "belam autorun, belam orchestrate, belam revise, belam handoffs"
+      }
+    },
+    {
+      "id": "decision/phase2-human-gate",
+      "type": "decision",
+      "title": "Phase 2 Requires Explicit Human Approval",
+      "tags": [
+        "pipeline",
+        "gate",
+        "phase2",
+        "infrastructure"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-20",
+        "context": "Phase 2 is human-directed \u2014 requires Shael's input before proceeding",
+        "alternatives": [
+          "file-based passive gate",
+          "no gate"
+        ],
+        "rationale": "Explicit approval is clearest; one command bundles approval + direction",
+        "consequences": [
+          "pipelines pause at local_analysis_complete",
+          "autorun never touches Phase 2"
+        ],
+        "tags": [
+          "pipeline",
+          "gate",
+          "phase2",
+          "infrastructure"
+        ]
+      }
+    },
+    {
+      "id": "decision/population-coding-over-delta",
+      "type": "decision",
+      "title": "Population Coding Over Delta Encoding (Default)",
+      "tags": [
+        "encoding",
+        "snn",
+        "decision"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "V2 and V3 experiments compared population coding vs delta encoding for SNN financial prediction",
+        "alternatives": [
+          "pure delta encoding",
+          "hybrid delta+absolute",
+          "multi-scale delta"
+        ],
+        "rationale": "Population coding (35 inputs) beats delta encoding (14 inputs) by +2.11pp accuracy. Delta encoding destroys regime context \u2014 absolute feature levels (RSI, Bollinger position) carry information that delta discards. Dimensionality confound not fully resolved but the information argument is strong.",
+        "consequences": [
+          "Population coding is default for V4+",
+          "Delta encoding reserved for specialist sub-networks (crash/rally detection)",
+          "Hybrid encode remains worth exploring"
+        ],
+        "project": "snn-applied-finance",
+        "tags": [
+          "encoding",
+          "snn",
+          "decision"
+        ]
+      }
+    },
+    {
+      "id": "decision/predictionmarket-specialist-skill",
+      "type": "decision",
+      "title": "Decision: Prediction Market Specialist Skill",
+      "tags": [
+        "prediction-markets",
+        "microstructure",
+        "market-making",
+        "knowledge"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "SNN outputs can be interpreted as prediction market prices \u2014 softmax readout IS an LMSR market maker. Understanding market microstructure informs both output design and potential deployment.",
+        "alternatives": [
+          "Treat prediction markets as pure application layer (miss the architectural insight)",
+          "Build custom AMM logic from scratch (reinventing wheels)",
+          "Encode market microstructure as shared skill (chosen)"
+        ],
+        "rationale": "The deep connection between softmax and LMSR cost functions means prediction market theory directly informs SNN architecture. Avellaneda-Stoikov market making, VPIN adverse selection, and Almgren-Chriss execution are all relevant to how SNN predictions get consumed. This isn't just application knowledge \u2014 it's architectural.",
+        "consequences": [
+          "LMSR/softmax equivalence available to architect for output layer design",
+          "Market impact models inform how predictions should be sized and executed",
+          "Polymarket/Kalshi architecture patterns available for deployment design",
+          "Combinatorial prediction markets (Hanson's approach) relevant for multi-asset SNN"
+        ],
+        "project": "quant-knowledge-skills",
+        "tags": [
+          "prediction-markets",
+          "microstructure",
+          "market-making",
+          "knowledge"
+        ],
+        "knowledge": "predictionmarket-specialist"
+      }
+    },
+    {
+      "id": "decision/primitive-relationship-graph",
+      "type": "decision",
+      "title": "Primitive Relationship Graph",
+      "tags": [
+        "infrastructure",
+        "primitives",
+        "knowledge-graph",
+        "conventions"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-20",
+        "context": "Primitives exist in isolation \u2014 no way to trace how lessons led to decisions, decisions spawned tasks, or memories crystallized into lessons",
+        "alternatives": [
+          "flat tags only",
+          "explicit link files",
+          "frontmatter relationship fields"
+        ],
+        "rationale": "Frontmatter fields are the simplest approach \u2014 no new infrastructure needed, just two directional fields that create typed edges between primitives. The audit system can validate links and the index can render them.",
+        "consequences": [
+          "primitives become a navigable graph",
+          "audit can detect orphaned/broken links",
+          "belam can show upstream/downstream in detail views"
+        ],
+        "upstream": [
+          "decisions/indexed-command-interface"
+        ],
+        "downstream": [],
+        "tags": [
+          "infrastructure",
+          "primitives",
+          "knowledge-graph",
+          "conventions"
+        ]
+      }
+    },
+    {
+      "id": "decision/quant-infrastructure-skill",
+      "type": "decision",
+      "title": "Decision: Quant Infrastructure Skill",
+      "tags": [
+        "infrastructure",
+        "backtesting",
+        "gpu",
+        "data",
+        "knowledge"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "Agents building SNN experiments need to make infrastructure choices \u2014 data storage, backtesting frameworks, GPU configuration, real-time pipelines. Wrong choices waste GPU hours and produce unreliable results.",
+        "alternatives": [
+          "Let each agent figure out infrastructure independently (inconsistent choices)",
+          "Hardcode infrastructure in templates (inflexible)",
+          "Shared skill with best-practice recommendations (chosen)"
+        ],
+        "rationale": "Infrastructure decisions cascade \u2014 wrong data storage means slow backtests, wrong GPU config means wasted compute, wrong framework means unreproducible results. A shared skill ensures all agents make consistent, informed infrastructure choices.",
+        "consequences": [
+          "Two-phase backtest workflow standardized: VectorBT PRO (discovery) \u2192 NautilusTrader (validation)",
+          "Data storage recommendations: QuestDB for time series, Polars over Pandas for transforms",
+          "GPU patterns: batch_size 4096, 2 CUDA streams, fp32 for T4 (from empirical SNN experiments)",
+          "Builder and critic share same infrastructure vocabulary"
+        ],
+        "project": "quant-knowledge-skills",
+        "tags": [
+          "infrastructure",
+          "backtesting",
+          "gpu",
+          "data",
+          "knowledge"
+        ],
+        "knowledge": "quant-infrastructure",
+        "cli": "belam lessons (for infrastructure-related findings)"
+      }
+    },
+    {
+      "id": "decision/quant-workflow-skill",
+      "type": "decision",
+      "title": "Decision: Quant Workflow Skill",
+      "tags": [
+        "methodology",
+        "statistics",
+        "overfitting",
+        "workflow",
+        "knowledge"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "SNN research must follow rigorous quant methodology \u2014 overfitting is the #1 risk in financial ML. Agents need shared understanding of statistical hygiene, feature engineering, and the research-to-production pipeline.",
+        "alternatives": [
+          "Trust agents to know quant methodology (they don't always)",
+          "Embed methodology in critic's knowledge only (architect and builder miss it)",
+          "Shared skill accessible to all agents (chosen)"
+        ],
+        "rationale": "Statistical hygiene is everyone's responsibility. Architect needs it for experiment design (how many folds? what validation scheme?). Critic needs it for review (is this overfit? did they use purged CV?). Builder needs it for implementation (correct train/test splitting, DSR calculation). A shared skill creates common vocabulary.",
+        "consequences": [
+          "Deflated Sharpe Ratio (DSR) required for all backtest evaluation",
+          "Purged k-fold CV with embargo mandatory \u2014 no information leakage",
+          "Walk-forward validation as primary out-of-sample test",
+          "Fractional differentiation for stationarity while preserving memory",
+          "All agents share same statistical vocabulary and thresholds"
+        ],
+        "project": "quant-knowledge-skills",
+        "tags": [
+          "methodology",
+          "statistics",
+          "overfitting",
+          "workflow",
+          "knowledge"
+        ],
+        "knowledge": "quant-workflow"
+      }
+    },
+    {
+      "id": "decision/skill-extraction-from-reports",
+      "type": "decision",
+      "title": "Extract Domain Reports Into Skills + Knowledge Files",
+      "tags": [
+        "skills",
+        "knowledge",
+        "workflow"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "How to make domain knowledge available to all agents",
+        "alternatives": [
+          "inline in AGENT_SOUL.md",
+          "separate knowledge files only",
+          "OpenClaw skills"
+        ],
+        "rationale": "Skills are the right abstraction \u2014 they're discoverable by any agent, loaded on-demand via progressive disclosure, and shareable across OpenClaw instances. Knowledge files give role-specific depth. Skills give cross-cutting domain access. Both are needed.",
+        "consequences": [
+          "New domain reports \u2192 extract into skills + agent knowledge files",
+          "Skills symlinked to ~/.openclaw/skills/ for discovery",
+          "Reference files for deep detail keep SKILL.md lean"
+        ],
+        "project": "quant-knowledge-skills",
+        "tags": [
+          "skills",
+          "knowledge",
+          "workflow"
+        ]
+      }
+    },
+    {
+      "id": "decision/skill-primitive-pairing",
+      "type": "decision",
+      "title": "Decision: Every Skill Gets a Primitive",
+      "tags": [
+        "skills",
+        "primitives",
+        "conventions",
+        "knowledge-management"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-18",
+        "context": "Skills document HOW to use tools/knowledge, but not WHY they exist or what architectural choices they encode. Without a primitive, the rationale behind a skill is lost when context rotates.",
+        "alternatives": [
+          "Skills are self-documenting (they're not \u2014 SKILL.md is usage-focused)",
+          "Rationale lives only in memory (decays, not discoverable by other agents)",
+          "Every skill gets a decision primitive with skill: cross-reference (chosen)"
+        ],
+        "rationale": "Skills and primitives serve complementary roles. SKILL.md is the HOW \u2014 commands, patterns, usage. The primitive is the WHY \u2014 architectural rationale, alternatives rejected, consequences accepted. Pairing them ensures agents can both USE a skill and UNDERSTAND it.",
+        "consequences": [
+          "Every new skill MUST have a corresponding decision primitive created alongside it",
+          "Primitive frontmatter includes skill: field for cross-referencing",
+          "Naming: {skill-name}-skill.md for dedicated primitives, or reuse existing decisions that naturally map",
+          "Existing skills without primitives should be backfilled"
+        ],
+        "project": "workspace-conventions",
+        "tags": [
+          "skills",
+          "primitives",
+          "conventions",
+          "knowledge-management"
+        ]
+      }
+    },
+    {
+      "id": "decision/superseded-primitive-lifecycle",
+      "type": "decision",
+      "title": "Superseded Primitive Lifecycle",
+      "tags": [
+        "primitives",
+        "conventions",
+        "lifecycle",
+        "boot-optimization"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-19",
+        "context": "Conflicting lessons (gpu-parallel-thrashing-t4 vs tiny-snn-gpu-parallelism) showed that outdated primitives in the boot index waste tokens and risk agents following stale advice",
+        "alternatives": [
+          "Delete superseded files entirely (loses searchability and audit trail)",
+          "Move to archive/ directory (adds directory complexity, breaks existing paths)",
+          "Add warning banner only (still wastes boot tokens)"
+        ],
+        "rationale": "Status field filtering reuses existing patterns (like archived pipelines) and keeps files discoverable via memory_search while removing them from expensive boot context",
+        "consequences": [
+          "Superseded primitives no longer appear in AGENTS.md or MEMORY.md boot indexes",
+          "Files remain in their original directory, searchable via memory_search",
+          "MEMORY.md tree shows count with \"(+N archived/superseded)\" suffix for transparency",
+          "Pattern applies to any primitive type, not just lessons"
+        ],
+        "tags": [
+          "primitives",
+          "conventions",
+          "lifecycle",
+          "boot-optimization"
+        ]
+      }
+    },
+    {
+      "id": "decision/supervised-builder-experiments",
+      "type": "decision",
+      "title": "Supervised Builder Agent for Experiment Execution",
+      "tags": [
+        "infrastructure",
+        "experiments",
+        "builder",
+        "architecture"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-19",
+        "context": "Experiment runner failed on 2/3 pipelines due to fragile mechanical execution and broken error recovery",
+        "alternatives": [
+          "direct notebook execution",
+          "reactive builder recovery",
+          "manual Colab"
+        ],
+        "rationale": "Proactive supervision catches bugs before they crash, creates knowledge, and self-heals",
+        "consequences": [
+          "self-healing experiments",
+          "automatic primitive creation",
+          "builder busy during runs",
+          "one-at-a-time enforced"
+        ],
+        "tags": [
+          "infrastructure",
+          "experiments",
+          "builder",
+          "architecture"
+        ]
+      }
+    },
+    {
+      "id": "decision/two-phase-backtest-workflow",
+      "type": "decision",
+      "title": "Two-Phase Backtest Workflow",
+      "tags": [
+        "backtesting",
+        "infrastructure",
+        "workflow"
+      ],
+      "status": "accepted",
+      "frontmatter": {
+        "primitive": "decision",
+        "status": "accepted",
+        "date": "2026-03-15",
+        "context": "Production Quant Handbook \u2014 backtesting architecture for all trading strategy research",
+        "alternatives": [
+          "single framework",
+          "custom build",
+          "vectorized only",
+          "event-driven only"
+        ],
+        "rationale": "Industry standard 2025-2026. Vectorized (VectorBT PRO) for high-throughput discovery and parameter sweeps. Event-driven (NautilusTrader) for production-fidelity validation with order book replay and exchange-accurate fills. Two phases cover speed and realism.",
+        "consequences": [
+          "Use VectorBT PRO for parameter sweeps and robustness analysis",
+          "Use NautilusTrader for final validation before paper trading",
+          "Microsoft Qlib for AI-driven factor discovery"
+        ],
+        "project": "snn-applied-finance",
+        "tags": [
+          "backtesting",
+          "infrastructure",
+          "workflow"
+        ]
+      }
+    },
+    {
+      "id": "task/build-equilibrium-snn",
+      "type": "task",
+      "title": "Build Equilibrium SNN Architecture",
+      "tags": [
+        "snn",
+        "architecture",
+        "streaming"
+      ],
+      "status": "complete",
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "critical",
+        "owner": "builder",
+        "tags": [
+          "snn",
+          "architecture",
+          "streaming"
+        ],
+        "project": "snn-applied-finance",
+        "estimate": "1-2 days",
+        "depends_on": [],
+        "version_label": "v5-equilibrium"
+      }
+    },
+    {
+      "id": "task/report-to-youtube-pipeline",
+      "type": "task",
+      "title": "Build Report-to-YouTube Video Pipeline",
+      "tags": [
+        "video",
+        "youtube",
+        "automation",
+        "infrastructure",
+        "manim",
+        "tts"
+      ],
+      "status": "open",
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-20",
+        "owner": "belam",
+        "depends_on": [],
+        "upstream": [],
+        "downstream": [],
+        "tags": [
+          "video",
+          "youtube",
+          "automation",
+          "infrastructure",
+          "manim",
+          "tts"
+        ]
+      }
+    },
+    {
+      "id": "task/setup-vectorbt-nautilus-pipeline",
+      "type": "task",
+      "title": "Set Up Two-Phase Backtest Pipeline",
+      "tags": [
+        "backtesting",
+        "infrastructure"
+      ],
+      "status": "open",
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": [
+          "backtesting",
+          "infrastructure"
+        ],
+        "project": "snn-applied-finance",
+        "estimate": "1 day",
+        "depends_on": [
+          "build-equilibrium-snn"
+        ]
+      }
+    },
+    {
+      "id": "task/stack-specialist-ensemble",
+      "type": "task",
+      "title": "Stack Specialist Micro-Networks",
+      "tags": [
+        "snn",
+        "ensemble",
+        "specialists"
+      ],
+      "status": "complete",
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "high",
+        "owner": "builder",
+        "tags": [
+          "snn",
+          "ensemble",
+          "specialists"
+        ],
+        "project": "snn-applied-finance",
+        "estimate": "4h",
+        "depends_on": [],
+        "version_label": "v5-stacking"
+      }
+    },
+    {
+      "id": "task/validate-scheme-b-more-folds",
+      "type": "task",
+      "title": "Validate Scheme B Sharpe with 7+ Folds",
+      "tags": [
+        "validation",
+        "statistics",
+        "snn"
+      ],
+      "status": "in_pipeline",
+      "frontmatter": {
+        "primitive": "task",
+        "status": "in_pipeline",
+        "priority": "high",
+        "owner": "builder",
+        "tags": [
+          "validation",
+          "statistics",
+          "snn"
+        ],
+        "project": "snn-applied-finance",
+        "estimate": "4h",
+        "depends_on": [],
+        "version_label": "v5-validation"
+      }
+    },
+    {
+      "id": "project/agent-roster",
+      "type": "project",
+      "title": "Active Agent Roster",
+      "tags": [
+        "agents",
+        "infrastructure",
+        "roster"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "primitive": "project",
+        "title": "Active Agent Roster",
+        "type": "project",
+        "status": "active",
+        "tags": [
+          "agents",
+          "infrastructure",
+          "roster"
+        ]
+      }
+    },
+    {
+      "id": "project/multi-agent-infrastructure",
+      "type": "project",
+      "title": "Multi-Agent Infrastructure",
+      "tags": [
+        "agents",
+        "infrastructure",
+        "telegram"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "primitive": "project",
+        "status": "active",
+        "priority": "high",
+        "owner": "belam",
+        "tags": [
+          "agents",
+          "infrastructure",
+          "telegram"
+        ],
+        "start_date": "2026-03-14"
+      }
+    },
+    {
+      "id": "project/quant-knowledge-skills",
+      "type": "project",
+      "title": "Quant Knowledge Skills",
+      "tags": [
+        "skills",
+        "knowledge",
+        "infrastructure"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "primitive": "project",
+        "status": "active",
+        "priority": "medium",
+        "owner": "belam",
+        "tags": [
+          "skills",
+          "knowledge",
+          "infrastructure"
+        ],
+        "start_date": "2026-03-15",
+        "location": "workspace/skills/"
+      }
+    },
+    {
+      "id": "project/snn-applied-finance",
+      "type": "project",
+      "title": "SNN Applied Finance",
+      "tags": [
+        "snn",
+        "finance",
+        "crypto",
+        "trading"
+      ],
+      "status": "active",
+      "frontmatter": {
+        "primitive": "project",
+        "status": "active",
+        "priority": "critical",
+        "owner": "belam",
+        "tags": [
+          "snn",
+          "finance",
+          "crypto",
+          "trading"
+        ],
+        "start_date": "2026-03-12",
+        "repo": "github.com/CodexOperator/machinelearning.git",
+        "location": "machinelearning/snn_applied_finance/"
+      }
+    },
+    {
+      "id": "project/snn-standard-benchmarks",
+      "type": "project",
+      "title": "SNN Standard Model Benchmarks",
+      "tags": [
+        "snn",
+        "research",
+        "benchmarking"
+      ],
+      "status": "complete",
+      "frontmatter": {
+        "primitive": "project",
+        "status": "complete",
+        "priority": "high",
+        "owner": "belam",
+        "tags": [
+          "snn",
+          "research",
+          "benchmarking"
+        ],
+        "start_date": "2026-03-12",
+        "target_date": "2026-03-12",
+        "repo": "github.com/CodexOperator/machinelearning.git",
+        "location": "machinelearning/snn_standard_model/"
+      }
+    },
+    {
+      "id": "pipeline/build-equilibrium-snn",
+      "type": "pipeline",
+      "title": "Implementation Pipeline: BUILD-EQUILIBRIUM-SNN",
+      "tags": [
+        "snn",
+        "architecture",
+        "streaming"
+      ],
+      "status": "archived",
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "version": "build-equilibrium-snn",
+        "spec_file": "machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/crypto_build-equilibrium-snn_predictor.ipynb",
+        "agents": [
+          "architect",
+          "critic",
+          "builder"
+        ],
+        "tags": [
+          "snn",
+          "architecture",
+          "streaming"
+        ],
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "archived": "2026-03-20",
+        "version_label": "v5-equilibrium"
+      }
+    },
+    {
+      "id": "pipeline/stack-specialists",
+      "type": "pipeline",
+      "title": "Implementation Pipeline: STACK-SPECIALISTS",
+      "tags": [
+        "snn",
+        "ensemble",
+        "specialists"
+      ],
+      "status": "archived",
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "version": "stack-specialists",
+        "spec_file": "machinelearning/snn_applied_finance/specs/stack-specialists_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/crypto_stack-specialists_predictor.ipynb",
+        "agents": [
+          "architect",
+          "critic",
+          "builder"
+        ],
+        "tags": [
+          "snn",
+          "ensemble",
+          "specialists"
+        ],
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "archived": "2026-03-20",
+        "version_label": "v5-stacking"
+      }
+    },
+    {
+      "id": "pipeline/v4-deep-analysis",
+      "type": "pipeline",
+      "title": "Analysis Pipeline: V4 Deep Analysis",
+      "tags": [
+        "snn",
+        "finance",
+        "analysis",
+        "v4",
+        "dead-neuron-postmortem"
+      ],
+      "status": "archived",
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "version": "v4-deep-analysis",
+        "spec_file": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4-deep-analysis_design_brief.md",
+        "output_notebook": "SNN_research/machinelearning/snn_applied_finance/notebooks/crypto_v4_analysis.ipynb",
+        "agents": [
+          "architect",
+          "critic",
+          "builder"
+        ],
+        "tags": [
+          "snn",
+          "finance",
+          "analysis",
+          "v4",
+          "dead-neuron-postmortem"
+        ],
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "archived": "2026-03-18"
+      }
+    },
+    {
+      "id": "pipeline/v4",
+      "type": "pipeline",
+      "title": "Implementation Pipeline: V4 \u2014 Differential Output & Network Scale Exploration",
+      "tags": [
+        "snn",
+        "finance",
+        "differential-output",
+        "nano-networks",
+        "equilibrium"
+      ],
+      "status": "archived",
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "version": "v4",
+        "spec_file": "machinelearning/snn_applied_finance/specs/v4_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_v4_combined.ipynb",
+        "agents": [
+          "architect",
+          "critic",
+          "builder"
+        ],
+        "tags": [
+          "snn",
+          "finance",
+          "differential-output",
+          "nano-networks",
+          "equilibrium"
+        ],
+        "patch_notes": [
+          "{date: 2026-03-16, author: shael+belam, summary: \"Remove tqdm \u2014 replace with simple print milestones\", commits: [119a3d4]}",
+          "{date: 2026-03-16, author: belam, summary: \"Parallel experiment execution via ThreadPoolExecutor + CUDA streams (auto-detect GPU workers)\", commits: [e7862b1]}",
+          "{date: 2026-03-16, author: shael+belam, summary: \"Fix torch API: total_mem \u2192 total_memory; increase workers T4:3\u21928 for small models\", commits: [3818485]}",
+          "{date: 2026-03-16, author: shael+belam, summary: \"fp32 throughout (remove AMP/autocast/GradScaler \u2014 BCE unsafe with fp16); batch_size 256\u21921024\", commits: [f94eb61]}",
+          "{date: 2026-03-16, author: belam, summary: \"GPU memory cleanup: gc+empty_cache after each fold/group/phase, del model after training\", commits: [18698a4]}",
+          "{date: 2026-03-16, author: shael+belam, summary: \"Push GPU utilization: batch_size 1024\u21922048, parallel workers +50-67% (T4:12,A100:20,H100:24), pin_memory+persistent_workers, prefetch_to_gpu() eliminates per-batch CPU\u2192GPU copies\", commits: [9c97f57]}"
+        ],
+        "project": "snn-applied-finance",
+        "started": "2026-03-15",
+        "archived": "2026-03-18"
+      }
+    },
+    {
+      "id": "pipeline/validate-scheme-b",
+      "type": "pipeline",
+      "title": "Implementation Pipeline: VALIDATE-SCHEME-B",
+      "tags": [
+        "validation",
+        "statistics",
+        "snn"
+      ],
+      "status": "local_analysis_complete",
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "local_analysis_complete",
+        "priority": "high",
+        "version": "validate-scheme-b",
+        "spec_file": "machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/crypto_validate-scheme-b_predictor.ipynb",
+        "agents": [
+          "architect",
+          "critic",
+          "builder"
+        ],
+        "tags": [
+          "validation",
+          "statistics",
+          "snn"
+        ],
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "version_label": "v5-validation"
+      }
+    },
+    {
+      "id": "command/analyze-local",
+      "type": "command",
+      "title": "belam analyze-local",
+      "tags": [
+        "analysis",
+        "local",
+        "orchestration",
+        "experiment"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam analyze-local <ver>",
+        "aliases": [
+          "belam al <ver>"
+        ],
+        "description": "Orchestrated local analysis \u2014 data prep + architect\u2192critic\u2192builder loop with reasoning",
+        "category": "analysis",
+        "tags": [
+          "analysis",
+          "local",
+          "orchestration",
+          "experiment"
+        ]
+      }
+    },
+    {
+      "id": "command/analyze",
+      "type": "command",
+      "title": "belam analyze",
+      "tags": [
+        "analysis",
+        "experiment",
+        "phase2"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam analyze <ver>",
+        "aliases": [
+          "belam a <ver>"
+        ],
+        "description": "Run experiment analysis (auto-finds pipeline)",
+        "category": "analysis",
+        "tags": [
+          "analysis",
+          "experiment",
+          "phase2"
+        ]
+      }
+    },
+    {
+      "id": "command/audit",
+      "type": "command",
+      "title": "belam audit",
+      "tags": [
+        "audit",
+        "primitives",
+        "consistency",
+        "maintenance"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam audit",
+        "aliases": [
+          "belam au"
+        ],
+        "description": "Scan all primitives for consistency issues (orphaned commands, stale refs, missing decisions, duplicates)",
+        "category": "primitives",
+        "tags": [
+          "audit",
+          "primitives",
+          "consistency",
+          "maintenance"
+        ]
+      }
+    },
+    {
+      "id": "command/autorun",
+      "type": "command",
+      "title": "belam autorun",
+      "tags": [
+        "autorun",
+        "automation",
+        "gates",
+        "stall-detection",
+        "revisions"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam autorun",
+        "aliases": [
+          "belam auto"
+        ],
+        "description": "Auto-kick gated/stalled/revision pipelines (event-driven)",
+        "category": "pipeline",
+        "tags": [
+          "autorun",
+          "automation",
+          "gates",
+          "stall-detection",
+          "revisions"
+        ]
+      }
+    },
+    {
+      "id": "command/build",
+      "type": "command",
+      "title": "belam build",
+      "tags": [
+        "build",
+        "notebook",
+        "execution"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam build <ver>",
+        "aliases": [],
+        "description": "Build a notebook version",
+        "category": "pipeline",
+        "tags": [
+          "build",
+          "notebook",
+          "execution"
+        ]
+      }
+    },
+    {
+      "id": "command/cleanup",
+      "type": "command",
+      "title": "belam cleanup",
+      "tags": [
+        "cleanup",
+        "sessions",
+        "maintenance"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam cleanup",
+        "aliases": [
+          "belam clean"
+        ],
+        "description": "Kill stale agent sessions (default: dry run)",
+        "category": "infrastructure",
+        "tags": [
+          "cleanup",
+          "sessions",
+          "maintenance"
+        ]
+      }
+    },
+    {
+      "id": "command/consolidate",
+      "type": "command",
+      "title": "belam consolidate",
+      "tags": [
+        "memory",
+        "consolidation",
+        "maintenance"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam consolidate",
+        "aliases": [
+          "belam cons"
+        ],
+        "description": "Run memory consolidation",
+        "category": "memory",
+        "tags": [
+          "memory",
+          "consolidation",
+          "maintenance"
+        ]
+      }
+    },
+    {
+      "id": "command/conversations",
+      "type": "command",
+      "title": "belam conversations",
+      "tags": [
+        "conversations",
+        "export",
+        "agents"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam conversations",
+        "aliases": [
+          "belam conv"
+        ],
+        "description": "Export agent conversations",
+        "category": "infrastructure",
+        "tags": [
+          "conversations",
+          "export",
+          "agents"
+        ]
+      }
+    },
+    {
+      "id": "command/create",
+      "type": "command",
+      "title": "belam create",
+      "tags": [
+        "create",
+        "primitives",
+        "scaffolding"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam create <type>",
+        "aliases": [],
+        "description": "Create a new primitive (lesson/decision/task/project/skill) with frontmatter scaffolding",
+        "category": "primitives",
+        "tags": [
+          "create",
+          "primitives",
+          "scaffolding"
+        ]
+      }
+    },
+    {
+      "id": "command/decisions",
+      "type": "command",
+      "title": "belam decisions",
+      "tags": [
+        "decisions",
+        "architecture",
+        "list"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam decisions",
+        "aliases": [
+          "belam d"
+        ],
+        "description": "List all architectural decisions",
+        "category": "primitives",
+        "tags": [
+          "decisions",
+          "architecture",
+          "list"
+        ]
+      }
+    },
+    {
+      "id": "command/edit",
+      "type": "command",
+      "title": "belam edit",
+      "tags": [
+        "edit",
+        "primitives",
+        "fuzzy-match",
+        "frontmatter"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam edit <primitive>",
+        "aliases": [],
+        "description": "Fuzzy-match and edit primitives, --set key=value for frontmatter updates",
+        "category": "primitives",
+        "tags": [
+          "edit",
+          "primitives",
+          "fuzzy-match",
+          "frontmatter"
+        ]
+      }
+    },
+    {
+      "id": "command/embed-primitives",
+      "type": "command",
+      "title": "belam embed-primitives",
+      "tags": [
+        "embed",
+        "primitives",
+        "index",
+        "regenerate"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam embed-primitives",
+        "aliases": [
+          "belam ep"
+        ],
+        "description": "Regenerate primitive indexes in AGENTS.md and MEMORY.md",
+        "category": "primitives",
+        "tags": [
+          "embed",
+          "primitives",
+          "index",
+          "regenerate"
+        ]
+      }
+    },
+    {
+      "id": "command/kickoff",
+      "type": "command",
+      "title": "belam kickoff",
+      "tags": [
+        "kickoff",
+        "pipeline",
+        "architect",
+        "launch"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam kickoff <ver>",
+        "aliases": [
+          "belam kick"
+        ],
+        "description": "Kick off a created pipeline (wake architect)",
+        "category": "pipeline",
+        "tags": [
+          "kickoff",
+          "pipeline",
+          "architect",
+          "launch"
+        ]
+      }
+    },
+    {
+      "id": "command/knowledge-sync",
+      "type": "command",
+      "title": "belam knowledge-sync",
+      "tags": [
+        "knowledge",
+        "sync",
+        "weekly",
+        "maintenance"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam knowledge-sync",
+        "aliases": [
+          "belam ks"
+        ],
+        "description": "Run weekly knowledge sync",
+        "category": "memory",
+        "tags": [
+          "knowledge",
+          "sync",
+          "weekly",
+          "maintenance"
+        ]
+      }
+    },
+    {
+      "id": "command/lessons",
+      "type": "command",
+      "title": "belam lessons",
+      "tags": [
+        "lessons",
+        "knowledge",
+        "list"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam lessons",
+        "aliases": [
+          "belam l"
+        ],
+        "description": "List all lessons learned",
+        "category": "primitives",
+        "tags": [
+          "lessons",
+          "knowledge",
+          "list"
+        ]
+      }
+    },
+    {
+      "id": "command/log",
+      "type": "command",
+      "title": "belam log",
+      "tags": [
+        "memory",
+        "log",
+        "quick-entry"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam log \\\"msg\\",
+        "aliases": [],
+        "description": "Quick memory entry, optionally tagged",
+        "category": "memory",
+        "tags": [
+          "memory",
+          "log",
+          "quick-entry"
+        ]
+      }
+    },
+    {
+      "id": "command/notebooks",
+      "type": "command",
+      "title": "belam notebooks",
+      "tags": [
+        "notebooks",
+        "list"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam notebooks",
+        "aliases": [
+          "belam nb"
+        ],
+        "description": "List notebooks",
+        "category": "infrastructure",
+        "tags": [
+          "notebooks",
+          "list"
+        ]
+      }
+    },
+    {
+      "id": "command/orchestrate",
+      "type": "command",
+      "title": "belam orchestrate",
+      "tags": [
+        "orchestration",
+        "direct-access",
+        "stages"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam orchestrate",
+        "aliases": [
+          "belam orch"
+        ],
+        "description": "Direct orchestrator access (complete/block/start/status/verify/revise)",
+        "category": "pipeline",
+        "tags": [
+          "orchestration",
+          "direct-access",
+          "stages"
+        ]
+      }
+    },
+    {
+      "id": "command/pipeline",
+      "type": "command",
+      "title": "belam pipeline",
+      "tags": [
+        "pipeline",
+        "detail",
+        "stages",
+        "watch"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam pipeline <ver>",
+        "aliases": [
+          "belam p <ver>"
+        ],
+        "description": "Detail view of a pipeline with stage history, plus update/launch/analyze subcommands",
+        "category": "pipeline",
+        "tags": [
+          "pipeline",
+          "detail",
+          "stages",
+          "watch"
+        ]
+      }
+    },
+    {
+      "id": "command/pipelines",
+      "type": "command",
+      "title": "belam pipelines",
+      "tags": [
+        "pipelines",
+        "dashboard",
+        "status"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam pipelines",
+        "aliases": [
+          "belam pl"
+        ],
+        "description": "Pipeline dashboard with statuses",
+        "category": "pipeline",
+        "tags": [
+          "pipelines",
+          "dashboard",
+          "status"
+        ]
+      }
+    },
+    {
+      "id": "command/projects",
+      "type": "command",
+      "title": "belam projects",
+      "tags": [
+        "projects",
+        "list",
+        "overview"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam projects",
+        "aliases": [
+          "belam pj"
+        ],
+        "description": "List all projects",
+        "category": "primitives",
+        "tags": [
+          "projects",
+          "list",
+          "overview"
+        ]
+      }
+    },
+    {
+      "id": "command/queue-revision",
+      "type": "command",
+      "title": "belam queue-revision",
+      "tags": [
+        "revision",
+        "queue",
+        "autorun",
+        "pipeline"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam queue-revision <ver> [opts]",
+        "aliases": [
+          "belam qr"
+        ],
+        "description": "Queue a revision request for autorun pickup",
+        "category": "pipeline",
+        "tags": [
+          "revision",
+          "queue",
+          "autorun",
+          "pipeline"
+        ]
+      }
+    },
+    {
+      "id": "command/report",
+      "type": "command",
+      "title": "belam report",
+      "tags": [
+        "report",
+        "latex",
+        "pdf",
+        "analysis"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam report <ver>",
+        "aliases": [],
+        "description": "Build LaTeX\u2192PDF report from approved analysis (orchestrated via pipeline_orchestrate.py)",
+        "category": "analysis",
+        "tags": [
+          "report",
+          "latex",
+          "pdf",
+          "analysis"
+        ]
+      }
+    },
+    {
+      "id": "command/revise",
+      "type": "command",
+      "title": "belam revise",
+      "tags": [
+        "revision",
+        "phase1",
+        "architect",
+        "critic",
+        "builder"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam revise <ver> --context \\\"...\\",
+        "aliases": [
+          "belam rev"
+        ],
+        "description": "Trigger Phase 1 revision cycle (coordinator-initiated)",
+        "category": "pipeline",
+        "tags": [
+          "revision",
+          "phase1",
+          "architect",
+          "critic",
+          "builder"
+        ]
+      }
+    },
+    {
+      "id": "command/run",
+      "type": "command",
+      "title": "belam run <ver>",
+      "tags": [
+        "experiment",
+        "run",
+        "analysis",
+        "local"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam run <ver>",
+        "aliases": [
+          "belam r"
+        ],
+        "description": "Run experiments locally for a pipeline. Auto-updates stages. Builder agent fixes errors.",
+        "category": "experiment",
+        "tags": [
+          "experiment",
+          "run",
+          "analysis",
+          "local"
+        ]
+      }
+    },
+    {
+      "id": "command/status",
+      "type": "command",
+      "title": "belam status",
+      "tags": [
+        "overview",
+        "dashboard",
+        "status"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam status",
+        "aliases": [
+          "belam s"
+        ],
+        "description": "Full overview: pipelines + tasks + memory + git",
+        "category": "infrastructure",
+        "tags": [
+          "overview",
+          "dashboard",
+          "status"
+        ]
+      }
+    },
+    {
+      "id": "command/task",
+      "type": "command",
+      "title": "belam task",
+      "tags": [
+        "task",
+        "detail",
+        "fuzzy-match"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam task <name>",
+        "aliases": [],
+        "description": "Show one task (fuzzy match)",
+        "category": "primitives",
+        "tags": [
+          "task",
+          "detail",
+          "fuzzy-match"
+        ]
+      }
+    },
+    {
+      "id": "command/tasks",
+      "type": "command",
+      "title": "belam tasks",
+      "tags": [
+        "tasks",
+        "list",
+        "status"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam tasks",
+        "aliases": [
+          "belam t"
+        ],
+        "description": "List all tasks with status and priority",
+        "category": "primitives",
+        "tags": [
+          "tasks",
+          "list",
+          "status"
+        ]
+      }
+    },
+    {
+      "id": "command/transcribe",
+      "type": "command",
+      "title": "belam transcribe <file>",
+      "tags": [],
+      "status": "",
+      "frontmatter": {
+        "primitive": "command",
+        "command": "belam transcribe <file>",
+        "aliases": [
+          "belam tr"
+        ],
+        "description": "Transcribe audio files (ogg/mp3/wav) via faster-whisper. --model tiny|base|small|medium, --json for structured output.",
+        "category": "tools",
+        "tags": []
+      }
+    },
+    {
+      "id": "skill/launch-pipeline",
+      "type": "skill",
+      "title": "Launch Pipeline",
+      "tags": [],
+      "status": "",
+      "frontmatter": {
+        "name": "launch-pipeline",
+        "description": ">"
+      }
+    },
+    {
+      "id": "skill/orchestration",
+      "type": "skill",
+      "title": "Orchestration",
+      "tags": [],
+      "status": "",
+      "frontmatter": {
+        "name": "orchestration",
+        "description": ">"
+      }
+    },
+    {
+      "id": "skill/pipelines",
+      "type": "skill",
+      "title": "Pipelines",
+      "tags": [],
+      "status": "",
+      "frontmatter": {
+        "name": "pipelines",
+        "description": ">"
+      }
+    },
+    {
+      "id": "knowledge/agent-coordination",
+      "type": "knowledge",
+      "title": "Agent Coordination Patterns",
+      "tags": [
+        "agent",
+        "coordinator",
+        "heartbeat",
+        "openclaw",
+        "orchestrat",
+        "session",
+        "sub-agent",
+        "subagent"
+      ],
+      "status": "",
+      "frontmatter": {
+        "topic": "Agent Coordination Patterns",
+        "tags": [
+          "agent",
+          "coordinator",
+          "heartbeat",
+          "openclaw",
+          "orchestrat",
+          "session",
+          "sub-agent",
+          "subagent"
+        ],
+        "created": "2026-03-17",
+        "updated": "2026-03-17",
+        "sources": [
+          "lessons/pipeline-table-separator-required.md",
+          "lessons/telegram-bots-cant-see-bots.md",
+          "lessons/tiny-snn-gpu-parallelism.md"
+        ],
+        "related": [
+          "experiment-methodology",
+          "financial-encoding"
+        ]
+      }
+    },
+    {
+      "id": "knowledge/derivative-specialist",
+      "type": "knowledge",
+      "title": "Derivatives Specialist",
+      "tags": [
+        "derivatives",
+        "pricing",
+        "volatility",
+        "greeks",
+        "monte-carlo"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "knowledge",
+        "name": "derivative-specialist",
+        "description": "Derivatives pricing engineering \u2014 volatility surface construction (SVI/SSVI), Greeks computation (AAD, finite differences), stochastic volatility models (Heston, SABR), Monte Carlo pricing (GPU, variance reduction), and GARCH calibration. Use when pricing options, constructing vol surfaces, computing Greeks, calibrating Heston or SABR models, running Monte Carlo simulations, fitting GARCH models, or working with QuantLib. Also use for implied volatility, Black-Scholes extensions, exotic derivatives pricing, or risk-neutral valuation.",
+        "tags": [
+          "derivatives",
+          "pricing",
+          "volatility",
+          "greeks",
+          "monte-carlo"
+        ],
+        "migrated_from": "skills/derivative-specialist"
+      }
+    },
+    {
+      "id": "knowledge/experiment-methodology",
+      "type": "knowledge",
+      "title": "Experiment Methodology",
+      "tags": [
+        "accuracy",
+        "backtest",
+        "experiment",
+        "hypothesis",
+        "loss",
+        "metric",
+        "result",
+        "sharpe"
+      ],
+      "status": "",
+      "frontmatter": {
+        "topic": "Experiment Methodology",
+        "tags": [
+          "accuracy",
+          "backtest",
+          "experiment",
+          "hypothesis",
+          "loss",
+          "metric",
+          "result",
+          "sharpe"
+        ],
+        "created": "2026-03-17",
+        "updated": "2026-03-17",
+        "sources": [
+          "lessons/breakeven-accuracy-before-building.md",
+          "lessons/confident-abstention-is-signal.md",
+          "lessons/pipeline-table-separator-required.md",
+          "lessons/snn-treats-like-weird-cnn.md",
+          "lessons/tiny-snn-gpu-parallelism.md"
+        ],
+        "related": [
+          "agent-coordination",
+          "financial-encoding",
+          "research-workflow",
+          "snn-architecture"
+        ]
+      }
+    },
+    {
+      "id": "knowledge/financial-encoding",
+      "type": "knowledge",
+      "title": "Financial Data Encoding",
+      "tags": [
+        "bitcoin",
+        "candle",
+        "delta encoding",
+        "financial",
+        "ohlcv",
+        "population coding",
+        "price",
+        "rate coding"
+      ],
+      "status": "",
+      "frontmatter": {
+        "topic": "Financial Data Encoding",
+        "tags": [
+          "bitcoin",
+          "candle",
+          "delta encoding",
+          "financial",
+          "ohlcv",
+          "population coding",
+          "price",
+          "rate coding"
+        ],
+        "created": "2026-03-17",
+        "updated": "2026-03-17",
+        "sources": [
+          "lessons/beta-convergence-is-market-determined.md",
+          "lessons/breakeven-accuracy-before-building.md",
+          "lessons/confident-abstention-is-signal.md",
+          "lessons/event-detection-not-state-classification.md",
+          "lessons/pipeline-table-separator-required.md",
+          "lessons/snn-treats-like-weird-cnn.md",
+          "lessons/tiny-snn-gpu-parallelism.md"
+        ],
+        "related": [
+          "agent-coordination",
+          "experiment-methodology",
+          "research-workflow",
+          "snn-architecture"
+        ]
+      }
+    },
+    {
+      "id": "knowledge/gpu-optimization",
+      "type": "knowledge",
+      "title": "GPU & Compute Optimization",
+      "tags": [
+        "a100",
+        "batch size",
+        "colab",
+        "cuda",
+        "fp16",
+        "mixed precision",
+        "throughput",
+        "training time"
+      ],
+      "status": "",
+      "frontmatter": {
+        "topic": "GPU & Compute Optimization",
+        "tags": [
+          "a100",
+          "batch size",
+          "colab",
+          "cuda",
+          "fp16",
+          "mixed precision",
+          "throughput",
+          "training time"
+        ],
+        "created": "2026-03-17",
+        "updated": "2026-03-17",
+        "sources": [
+          "lessons/tiny-snn-gpu-parallelism.md"
+        ],
+        "related": []
+      }
+    },
+    {
+      "id": "knowledge/predictionmarket-specialist",
+      "type": "knowledge",
+      "title": "Prediction Market Specialist",
+      "tags": [
+        "prediction-markets",
+        "microstructure",
+        "market-making",
+        "lmsr",
+        "execution"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "knowledge",
+        "name": "predictionmarket-specialist",
+        "description": "Prediction market mechanics and market microstructure \u2014 LMSR cost functions, Polymarket architecture, market impact models, algorithmic market making (Avellaneda-Stoikov), VPIN adverse selection, optimal execution (Almgren-Chriss), and combinatorial prediction markets. Use when working with prediction markets (Polymarket, Kalshi, Metaculus), implementing automated market makers, analyzing market impact, building market-making strategies, or understanding order execution optimization. Also use for CLOB mechanics, conditional tokens, softmax-as-pricing, or information-theoretic market design.",
+        "tags": [
+          "prediction-markets",
+          "microstructure",
+          "market-making",
+          "lmsr",
+          "execution"
+        ],
+        "migrated_from": "skills/predictionmarket-specialist"
+      }
+    },
+    {
+      "id": "knowledge/quant-infrastructure",
+      "type": "knowledge",
+      "title": "Quant Infrastructure",
+      "tags": [
+        "infrastructure",
+        "backtesting",
+        "gpu",
+        "data",
+        "portfolio-optimization"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "knowledge",
+        "name": "quant-infrastructure",
+        "description": "Production quant finance infrastructure \u2014 data storage, backtesting frameworks, portfolio optimization, compute hardware, and real-time data pipelines. Use when designing or building data storage for financial time series, choosing backtesting frameworks, setting up portfolio optimization, configuring GPU/TPU compute for financial models, or architecting real-time market data ingestion. Also use when comparing frameworks (VectorBT vs NautilusTrader, QuestDB vs kdb+, Polars vs Pandas) or selecting data vendors.",
+        "tags": [
+          "infrastructure",
+          "backtesting",
+          "gpu",
+          "data",
+          "portfolio-optimization"
+        ],
+        "migrated_from": "skills/quant-infrastructure"
+      }
+    },
+    {
+      "id": "knowledge/quant-workflow",
+      "type": "knowledge",
+      "title": "Quant Research Workflow",
+      "tags": [
+        "methodology",
+        "statistics",
+        "overfitting",
+        "workflow",
+        "feature-engineering"
+      ],
+      "status": "",
+      "frontmatter": {
+        "primitive": "knowledge",
+        "name": "quant-workflow",
+        "description": "Quant research workflow \u2014 research-to-production pipeline, statistical hygiene (overfitting prevention), feature engineering, model selection, and the daily workflow of quant researchers at top firms. Use when designing research pipelines, validating backtest results, checking for overfitting, engineering features for financial ML, selecting ML models for quant finance, or understanding production quant workflows. Also use for Deflated Sharpe Ratio, purged cross-validation, fractional differentiation, or walk-forward validation.",
+        "tags": [
+          "methodology",
+          "statistics",
+          "overfitting",
+          "workflow",
+          "feature-engineering"
+        ],
+        "migrated_from": "skills/quant-workflow"
+      }
+    },
+    {
+      "id": "knowledge/research-workflow",
+      "type": "knowledge",
+      "title": "Research Workflow",
+      "tags": [
+        "commit",
+        "consolidat",
+        "decision",
+        "document",
+        "insight",
+        "knowledge",
+        "lesson",
+        "memory"
+      ],
+      "status": "",
+      "frontmatter": {
+        "topic": "Research Workflow",
+        "tags": [
+          "commit",
+          "consolidat",
+          "decision",
+          "document",
+          "insight",
+          "knowledge",
+          "lesson",
+          "memory"
+        ],
+        "created": "2026-03-17",
+        "updated": "2026-03-17",
+        "sources": [
+          "lessons/breakeven-accuracy-before-building.md",
+          "lessons/tiny-snn-gpu-parallelism.md"
+        ],
+        "related": [
+          "experiment-methodology",
+          "financial-encoding",
+          "snn-architecture"
+        ]
+      }
+    },
+    {
+      "id": "knowledge/snn-architecture",
+      "type": "knowledge",
+      "title": "SNN Architecture Patterns",
+      "tags": [
+        "alpha",
+        "leaky",
+        "membrane",
+        "neuron",
+        "potential",
+        "snntorch",
+        "spike",
+        "synaptic"
+      ],
+      "status": "",
+      "frontmatter": {
+        "topic": "SNN Architecture Patterns",
+        "tags": [
+          "alpha",
+          "leaky",
+          "membrane",
+          "neuron",
+          "potential",
+          "snntorch",
+          "spike",
+          "synaptic"
+        ],
+        "created": "2026-03-17",
+        "updated": "2026-03-17",
+        "sources": [
+          "lessons/beta-convergence-is-market-determined.md",
+          "lessons/breakeven-accuracy-before-building.md",
+          "lessons/confident-abstention-is-signal.md",
+          "lessons/event-detection-not-state-classification.md",
+          "lessons/snn-treats-like-weird-cnn.md",
+          "lessons/tiny-snn-gpu-parallelism.md"
+        ],
+        "related": [
+          "experiment-methodology",
+          "financial-encoding",
+          "research-workflow"
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "decision/belam-codex-resurrection",
+      "target": "lesson/always-back-up-workspace-to-github"
+    },
+    {
+      "source": "decision/indexed-command-interface",
+      "target": "lesson/shell-splits-unquoted-list-args"
+    },
+    {
+      "source": "decision/clock-cycles-over-tokens",
+      "target": "decision/belam-codex-resurrection"
+    },
+    {
+      "source": "decision/hierarchical-memory-system",
+      "target": "decision/belam-codex-resurrection"
+    },
+    {
+      "source": "decision/clock-cycles-over-tokens",
+      "target": "decision/indexed-command-interface"
+    },
+    {
+      "source": "decision/indexed-command-interface",
+      "target": "decision/primitive-relationship-graph"
+    }
+  ]
+}

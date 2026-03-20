@@ -571,6 +571,12 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
@@ -592,7 +598,7 @@ lessons/ (24)  (+1 archived/superseded)
   ├─ scheme-b-validated-10-fold  Scheme B Accuracy Validated Across 10 Folds  high  [snn,validation,scheme-b,statistics]
   ├─ session-reset-targets-main-not-group  OpenClaw Agent CLI Uses `main` Session, Not Group Session  high  [infrastructure,agents,openclaw,debugging]
   ├─ sessions-send-timeout-filesystem-first  sessions_send Timeouts — Use Filesystem-First Coordination  [multi-agent,coordination,sessions-send,timeout]
-  ├─ shell-splits-unquoted-list-args  shell-splits-unquoted-list-args  
+  ├─ shell-splits-unquoted-list-args  Shell Splits Unquoted List Arguments  high  [infrastructure,cli,debugging,belam]
   ├─ snn-treats-like-weird-cnn  Don't Treat SNNs Like Weird CNNs  high  [snn,architecture,critical]
   ├─ stacking-specialists-is-dead-end  Stacking Specialist Micro-Networks Is a Dead End  high  [snn,ensemble,stacking,architecture]
   ├─ subprocess-run-doesnt-raise-on-failure  subprocess.run Does Not Raise on Non-Zero Exit Code  [python,debugging,infrastructure]
@@ -642,7 +648,7 @@ projects/ (5)
 pipelines/ (1)  (+4 archived/superseded)
   └─ validate-scheme-b  Implementation Pipeline: VALIDATE-SCHEME-B  local_analysis_complete/high  started:2026-03-17  [validation,statistics,snn]
 
-commands/ (29)
+commands/ (30)
   ├─ analyze-local  belam analyze-local  belam analyze-local <ver>  analysis  [analysis,local,orchestration,experiment]
   ├─ analyze  belam analyze  belam analyze <ver>  analysis  [analysis,experiment,phase2]
   ├─ audit  belam audit  belam audit  primitives  [audit,primitives,consistency,maintenance]
@@ -658,6 +664,7 @@ commands/ (29)
   ├─ kickoff  belam kickoff  belam kickoff <ver>  pipeline  [kickoff,pipeline,architect,launch]
   ├─ knowledge-sync  belam knowledge-sync  belam knowledge-sync  memory  [knowledge,sync,weekly,maintenance]
   ├─ lessons  belam lessons  belam lessons  primitives  [lessons,knowledge,list]
+  ├─ link  belam link  belam link <expr>...  primitives  [link,relationships,primitives,graph]
   ├─ log  belam log  belam log "msg"  memory  [memory,log,quick-entry]
   ├─ notebooks  belam notebooks  belam notebooks  infrastructure  [notebooks,list]
   ├─ orchestrate  belam orchestrate  belam orchestrate  pipeline  [orchestration,direct-access,stages]
@@ -684,7 +691,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 04:23 UTC_
+_Updated: 2026-03-20 04:41 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -692,9 +699,9 @@ _Updated: 2026-03-20 04:23 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 04:23 UTC)
+Memory (2026-03-20 04:41 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
-├── entries/    80 indexed
+├── entries/    81 indexed
 ├── weekly/
 │   └─ 2026-W11  2026-03-09 → 2026-03-15  [memory]
 ├── monthly/    —

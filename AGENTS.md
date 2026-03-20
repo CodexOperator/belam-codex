@@ -129,7 +129,7 @@ _Read when: encountering problems or before making changes._
 - `lessons/scheme-b-validated-10-fold.md` — Scheme B Accuracy Validated Across 10 Folds [high] [snn,validation,scheme-b]
 - `lessons/session-reset-targets-main-not-group.md` — OpenClaw Agent CLI Uses `main` Session, Not Group Session [high] [infrastructure,agents,openclaw]
 - `lessons/sessions-send-timeout-filesystem-first.md` — sessions_send Timeouts — Use Filesystem-First Coordination [?] [multi-agent,coordination,sessions-send]
-- `lessons/shell-splits-unquoted-list-args.md` — shell-splits-unquoted-list-args [?] []
+- `lessons/shell-splits-unquoted-list-args.md` — Shell Splits Unquoted List Arguments [high] [infrastructure,cli,debugging]
 - `lessons/snn-treats-like-weird-cnn.md` — Don't Treat SNNs Like Weird CNNs [high] [snn,architecture,critical]
 - `lessons/stacking-specialists-is-dead-end.md` — Stacking Specialist Micro-Networks Is a Dead End [high] [snn,ensemble,stacking]
 - `lessons/subprocess-run-doesnt-raise-on-failure.md` — subprocess.run Does Not Raise on Non-Zero Exit Code [?] [python,debugging,infrastructure]
@@ -155,6 +155,7 @@ _`belam` CLI commands. Read when: needing usage details or flags._
 - `commands/kickoff.md` — `belam kickoff <ver>` (belam kick) — Kick off a created pipeline (wake architect)
 - `commands/knowledge-sync.md` — `belam knowledge-sync` (belam ks) — Run weekly knowledge sync
 - `commands/lessons.md` — `belam lessons` (belam l) — List all lessons learned
+- `commands/link.md` — `belam link <expr>...` (belam ln) — 
 - `commands/log.md` — `belam log "msg"` — Quick memory entry, optionally tagged
 - `commands/notebooks.md` — `belam notebooks` (belam nb) — List notebooks
 - `commands/orchestrate.md` — `belam orchestrate` (belam orch) — Direct orchestrator access (complete/block/start/status/verify/revise)

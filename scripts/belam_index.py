@@ -52,6 +52,7 @@ COMMAND_REGISTRY = [
         ("decisions",   "decisions",   "List decisions"),
         ("projects",    "projects",    "List projects"),
         ("agents",      "agents",      "Show agent roster"),
+        ("link <expr>", "link",        "Wire upstream/downstream relationships"),
     ]),
     ("CREATE / EDIT", [
         ("create <type> <title>", "create",  "Create a new primitive"),
@@ -746,6 +747,256 @@ def render_create_scaffold(ptype):
     return True
 
 
+# ── Link Command ─────────────────────────────────────────────────────────────
+
+# Maps type-prefix letters to workspace directory names
+LINK_TYPE_MAP = {
+    'l':  'lessons',
+    'd':  'decisions',
+    't':  'tasks',
+    'p':  'pipelines',
+    'pj': 'projects',
+    'k':  'knowledge',
+}
+
+
+def resolve_type_prefix(coord):
+    """Parse a type-prefixed coord like l4, d7, pj3 → (ptype, index) or (None, None)."""
+    # Try two-char prefix first (pj), then single
+    m = re.match(r'^(pj|[ldtpk])(\d+)$', coord.lower())
+    if m:
+        prefix = m.group(1)
+        idx = int(m.group(2))
+        ptype = LINK_TYPE_MAP.get(prefix)
+        return ptype, idx
+    return None, None
+
+
+def get_primitives_for_type(ptype):
+    """Return sorted list of stem names for all .md files in the given type dir."""
+    pdir = Path(WORKSPACE) / ptype
+    if not pdir.is_dir():
+        return []
+    return sorted(f.stem for f in pdir.glob("*.md"))
+
+
+def resolve_link_coord(coord):
+    """Resolve a link coordinate to (ptype, slug) or (None, None).
+
+    Supports:
+    - Type-prefixed index: l4, d7, t2, p1, pj3, k2
+    - Bare number: resolved against ~/.belam_last_context
+    """
+    coord_lower = coord.lower()
+
+    # Type-prefixed coord
+    ptype, idx = resolve_type_prefix(coord_lower)
+    if ptype is not None:
+        items = get_primitives_for_type(ptype)
+        if not items:
+            return None, None
+        if idx < 1 or idx > len(items):
+            return None, None
+        return ptype, items[idx - 1]
+
+    # Bare number: resolve from last list context
+    if re.match(r'^\d+$', coord_lower):
+        ctx = load_context()
+        if ctx and ctx.get("type", "").startswith("list:"):
+            ptype_from_ctx = ctx["type"].split(":", 1)[1]
+            slug = ctx["mapping"].get(coord_lower)
+            if slug:
+                return ptype_from_ctx, slug
+        return None, None
+
+    return None, None
+
+
+def _parse_yaml_list(raw):
+    """Parse a YAML list value '[a, b, c]' into a Python list."""
+    raw = raw.strip()
+    if raw.startswith("[") and raw.endswith("]"):
+        inner = raw[1:-1]
+        if not inner.strip():
+            return []
+        return [item.strip() for item in inner.split(",") if item.strip()]
+    elif raw:
+        return [raw]
+    return []
+
+
+def _format_yaml_list(items):
+    """Format a list back to YAML inline list format."""
+    return "[" + ", ".join(items) + "]"
+
+
+def _add_to_frontmatter_list(content, key, value):
+    """Add value to a frontmatter list field, avoiding duplicates.
+
+    Returns (new_content, changed: bool).
+    """
+    if not content.startswith("---"):
+        return content, False
+
+    end = content.find("\n---", 3)
+    if end == -1:
+        return content, False
+
+    fm_raw = content[3:end]
+    body = content[end + 4:]
+    fm_lines = fm_raw.split("\n")
+
+    found = False
+    changed = False
+    new_lines = []
+
+    for line in fm_lines:
+        m = re.match(r'^(\w[\w-]*):\s*(.*)', line)
+        if m and m.group(1) == key:
+            found = True
+            current = _parse_yaml_list(m.group(2))
+            if value not in current:
+                current.append(value)
+                new_lines.append(f"{key}: {_format_yaml_list(current)}")
+                changed = True
+            else:
+                new_lines.append(line)  # already present, no change
+        else:
+            new_lines.append(line)
+
+    if not found:
+        # Append new key at end of frontmatter
+        new_lines.append(f"{key}: [{value}]")
+        changed = True
+
+    new_fm = "\n".join(new_lines)
+    new_content = "---" + new_fm + "\n---" + body
+    return new_content, changed
+
+
+def cmd_link(exprs):
+    """Handle `belam link <expr> [<expr> ...]`.
+
+    Each expr is:  a>b  (a downstream b, b upstream a)
+                   a<b  (b downstream a, a upstream b)
+    Coords: l4 d7 t2 p1 pj3 k2  or bare numbers against last list context.
+    """
+    if not exprs:
+        print(f"\n  {RD}✗{R} Usage: belam link <expr> [<expr>...]")
+        print(f"  {D}Examples:{R}  belam link l4>d7   belam link l1>d1 d1>t1")
+        print(f"  {D}Types:{R}    l=lesson  d=decision  t=task  p=pipeline  pj=project  k=knowledge")
+        print(f"  {D}Syntax:{R}   a>b  (a→downstream, b←upstream)   a<b  (b→downstream, a←upstream)\n")
+        sys.exit(1)
+
+    pairs = []   # (up_ptype, up_slug, dn_ptype, dn_slug)
+    errors = []
+
+    for expr in exprs:
+        if ">" in expr:
+            left, _, right = expr.partition(">")
+            upstream_coord, downstream_coord = left.strip(), right.strip()
+        elif "<" in expr:
+            left, _, right = expr.partition("<")
+            # a<b means b is upstream of a
+            downstream_coord, upstream_coord = left.strip(), right.strip()
+        else:
+            errors.append(f"Invalid expression (no > or <): {expr!r}")
+            continue
+
+        if not upstream_coord or not downstream_coord:
+            errors.append(f"Malformed expression: {expr!r}")
+            continue
+
+        up_ptype, up_slug = resolve_link_coord(upstream_coord)
+        dn_ptype, dn_slug = resolve_link_coord(downstream_coord)
+
+        if up_ptype is None:
+            errors.append(f"Cannot resolve coord {upstream_coord!r} — run a list command first or use type prefix (l/d/t/p/pj/k)")
+            continue
+        if dn_ptype is None:
+            errors.append(f"Cannot resolve coord {downstream_coord!r} — run a list command first or use type prefix (l/d/t/p/pj/k)")
+            continue
+
+        pairs.append((up_ptype, up_slug, dn_ptype, dn_slug))
+
+    if errors:
+        for err in errors:
+            print(f"  {RD}✗{R} {err}")
+        if not pairs:
+            sys.exit(1)
+
+    linked = []    # [(up_ref, dn_ref, [change_strings])]
+    skipped = []   # [(up_ref, dn_ref)]
+
+    for up_ptype, up_slug, dn_ptype, dn_slug in pairs:
+        up_path = Path(WORKSPACE) / up_ptype / f"{up_slug}.md"
+        dn_path = Path(WORKSPACE) / dn_ptype / f"{dn_slug}.md"
+
+        if not up_path.exists():
+            print(f"  {RD}✗{R} File not found: {up_ptype}/{up_slug}.md")
+            continue
+        if not dn_path.exists():
+            print(f"  {RD}✗{R} File not found: {dn_ptype}/{dn_slug}.md")
+            continue
+
+        dn_ref = f"{dn_ptype}/{dn_slug}"
+        up_ref = f"{up_ptype}/{up_slug}"
+
+        up_content = up_path.read_text(encoding="utf-8")
+        dn_content = dn_path.read_text(encoding="utf-8")
+
+        up_content, up_changed = _add_to_frontmatter_list(up_content, "downstream", dn_ref)
+        dn_content, dn_changed = _add_to_frontmatter_list(dn_content, "upstream", up_ref)
+
+        if up_changed or dn_changed:
+            if up_changed:
+                up_path.write_text(up_content, encoding="utf-8")
+            if dn_changed:
+                dn_path.write_text(dn_content, encoding="utf-8")
+            changes = []
+            if up_changed:
+                changes.append(f"{up_ref}  downstream += {dn_ref}")
+            if dn_changed:
+                changes.append(f"{dn_ref}  upstream   += {up_ref}")
+            linked.append((up_ref, dn_ref, changes))
+        else:
+            skipped.append((up_ref, dn_ref))
+
+    # Summary
+    print()
+    if linked:
+        print(f"  {G}✓{R}  {B}Linked {len(linked)} relationship(s):{R}")
+        for up_ref, dn_ref, changes in linked:
+            print(f"    {C}{up_ref}{R}  →  {C}{dn_ref}{R}")
+            for change in changes:
+                print(f"      {D}+ {change}{R}")
+    if skipped:
+        print(f"  {D}ℹ  Skipped {len(skipped)} (already linked):{R}")
+        for up_ref, dn_ref in skipped:
+            print(f"    {D}{up_ref} → {dn_ref}{R}")
+    if not linked and not skipped:
+        print(f"  {Y}⚠{R}  No links applied.")
+    print()
+
+    # Rebuild index once after all writes
+    if linked:
+        try:
+            embed_script = Path(WORKSPACE) / "scripts" / "embed_primitives.py"
+            result = subprocess.run(
+                [sys.executable, str(embed_script)],
+                capture_output=True, text=True, timeout=60,
+                cwd=str(WORKSPACE),
+            )
+            if result.returncode == 0:
+                print(f"  {G}✓{R}  {D}Primitive index rebuilt{R}\n")
+            else:
+                print(f"  {Y}⚠{R}  Index rebuild exited {result.returncode} (non-fatal)\n")
+        except Exception as e:
+            print(f"  {Y}⚠{R}  Index rebuild failed: {e} (non-fatal)\n")
+
+    sys.exit(0)
+
+
 # ── CLI Entry Point ───────────────────────────────────────────────────────────
 
 def main():
@@ -789,6 +1040,12 @@ def main():
             print(f"  {RD}✗{R} No context for coordinate '{cmd}'. Run a command first.")
             sys.exit(1)
     
+    # Handle link command
+    if cmd in ("link", "ln"):
+        cmd_link(args[1:])
+        # cmd_link always calls sys.exit, but be defensive:
+        sys.exit(0)
+
     # Handle create scaffold: `belam create <type>` with no title → show scaffold
     if cmd in ("create", "new", "c") and not raw_mode:
         if len(args) >= 2 and args[1] in CREATE_SCHEMAS:
