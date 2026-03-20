@@ -1995,6 +1995,31 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
+    # --boot: inject supermap into AGENTS.md for OpenClaw auto-injection, no R-labels
+    if '--boot' in args:
+        content = render_supermap()
+        agents_path = Path(__file__).resolve().parent.parent / 'AGENTS.md'
+        start_marker = '<!-- BEGIN:SUPERMAP -->'
+        end_marker = '<!-- END:SUPERMAP -->'
+        section = f"{start_marker}\n\n## Codex Engine Supermap\n\n```\n{content}\n```\n\n{end_marker}"
+
+        text = agents_path.read_text(encoding='utf-8')
+        if start_marker in text and end_marker in text:
+            import re as _re
+            text = _re.sub(
+                f'{_re.escape(start_marker)}.*?{_re.escape(end_marker)}',
+                section, text, flags=_re.DOTALL,
+            )
+        else:
+            # Append before primitives section or at end
+            prim_marker = '<!-- BEGIN:PRIMITIVES -->'
+            if prim_marker in text:
+                text = text.replace(prim_marker, f"{section}\n{prim_marker}")
+            else:
+                text = text.rstrip() + f"\n\n{section}\n"
+        agents_path.write_text(text, encoding='utf-8')
+        return
+
     tracker = get_render_tracker()
 
     if not args:

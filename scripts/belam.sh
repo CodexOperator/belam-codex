@@ -442,11 +442,17 @@ case "${1:-help}" in
         shift
         python3 "$SCRIPTS/consolidate_memories.py" "$@"
         python3 "$SCRIPTS/embed_primitives.py"
+        python3 "$SCRIPTS/codex_engine.py" --boot
         ;;
 
     embed-primitives|ep)
         shift
         python3 "$SCRIPTS/embed_primitives.py" "$@"
+        python3 "$SCRIPTS/codex_engine.py" --boot
+        ;;
+
+    boot)
+        python3 "$SCRIPTS/codex_engine.py" --boot
         ;;
 
     # ── Audit primitives ──────────────────────────────────────────────────────

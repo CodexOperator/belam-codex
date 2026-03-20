@@ -61,6 +61,78 @@ Use heartbeats productively — check emails, calendar, project status, memory m
 ## Make It Yours
 
 This is a starting point. Add conventions and patterns as you discover what resonates.
+<!-- BEGIN:SUPERMAP -->
+
+## Codex Engine Supermap
+
+```
+╶─ Codex Engine Supermap [2026-03-20 19:15 UTC]
+╶─ p   pipelines (1)
+│  ╶─ p5    validate-scheme-b  local_analysis_complete/high
+╶─ t   tasks (9)
+│  ╶─ t1    build-codex-engine  active/critical  ←d17,m69,d11
+│  ╶─ t2    build-equilibrium-snn  complete/critical  →t7
+│  ╶─ t3    build-incremental-relationship-mapper  active/medium  ←d17,d10,m79
+│  ╶─ t4    limit-soul-read-write  open/high  ←t1,d6
+│  ╶─ t5    report-to-youtube-pipeline  open/high
+│  ╶─ t6    sample-task  open/medium
+│  ╶─ t7    setup-vectorbt-nautilus-pipeline  open/medium  ←t2
+│  ╶─ t8    stack-specialist-ensemble  complete/high
+│  ╶─ t9    validate-scheme-b-more-folds  in_pipeline/high
+╶─ d   decisions (24)
+│  ╶─ d1    aad-over-finite-differences
+│  ╶─ d2    agent-session-isolation  →d13,l5,m30
+│  ╶─ d3    agent-trio-architecture  →m8
+│  ╶─ d4    belam-codex-resurrection  →l1,m80
+│  ╶─ d5    clock-cycles-over-tokens  ←m69
+│  ... (+19 more)
+╶─ l   lessons (26)
+│  ╶─ l1    always-back-up-workspace-to-github  high  ←d4
+│  ╶─ l2    analysis-phase2-gate-mandatory
+│  ╶─ l3    beta-convergence-is-market-determined  high
+│  ╶─ l4    breakeven-accuracy-before-building  high
+│  ╶─ l5    checkpoint-and-resume-pattern  high  ←d2,d13
+│  ... (+21 more)
+╶─ w   workspaces (5)
+│  ╶─ w1    agent-roster  active
+│  ╶─ w2    multi-agent-infrastructure  active
+│  ╶─ w3    quant-knowledge-skills  active
+│  ╶─ w4    snn-applied-finance  active
+│  ╶─ w5    snn-standard-benchmarks  complete
+╶─ c   commands (30)
+│  ╶─ c1    analyze-local  Orchestrated local analysis — data prep ...
+│  ╶─ c2    analyze  Run experiment analysis (auto-finds pipe...
+│  ╶─ c3    audit  Scan all primitives for consistency issu...
+│  ╶─ c4    autorun  Auto-kick gated/stalled/revision pipelin...
+│  ╶─ c5    build  Build a notebook version
+│  ... (+25 more)
+╶─ k   knowledge (13)
+│  ╶─ k1    README
+│  ╶─ k2    _index
+│  ╶─ k3    _tags
+│  ╶─ k4    agent-coordination
+│  ╶─ k5    derivative-specialist  Derivatives pricing engineering — volatility surfa...
+│  ... (+8 more)
+╶─ s   skills (3)
+│  ╶─ s1    launch-pipeline
+│  ╶─ s2    orchestration
+│  ╶─ s3    pipelines
+╶─ m   memory
+│  ╶─ today (13 entries)
+│  │  ╶─ m86 [19:04] Codex Engine V1 complete and settled. Decision primitive: d6 code...
+│  │  ╶─ m85 [18:52] Codex Engine V1 live and tested. First full session using only co...
+│  │  ╶─ m84 [18:18] Embodied consciousness architecture decided with Shael. Soul inst...
+│  │  ╶─ m83 [17:44] Codex Engine design locked with Shael. Unified primitive nav/edit...
+│  │  ╶─ m82 [05:08] Decided on incremental pairwise relationship mapping: fresh Opus ...
+│  ╶─ dailies (7)
+│  │  ╶─ md1 2026-03-21  0 entries  
+│  │  ╶─ md2 2026-03-20  32 entries  
+│  │  ╶─ md3 2026-03-19  35 entries  
+│  ╶─ weeklies (1)
+│     ╶─ mw1 2026-03-09 → 2026-03-15  
+```
+
+<!-- END:SUPERMAP -->
 <!-- BEGIN:PRIMITIVES -->
 
 ## Workspace Primitives
@@ -188,8 +260,7 @@ _Agent skills with SKILL.md. Read when: task matches skill description._
 ### Knowledge
 _Domain knowledge references. Read when: needing deep technical reference._
 - `knowledge/derivative-specialist.md` — derivative-specialist: Derivatives pricing engineering — volatility surface construction (SVI/SSVI),... [derivatives,pricing,volatility]
-- `knowledge/predictionmarket-specialist.md` — predictionmarket-specialist: Prediction market mechanics and market microstructure — LMSR cost functions, ... [prediction-markets,microstructure,market-making]
-- `knowledge/quant-infrastructure.md` — quant-infrastructure: Production quant finance infrastructure — data storage, backtesting framework... [infrastructure,backtesting,gpu]
-- `knowledge/quant-workflow.md` — quant-workflow: Quant research workflow — research-to-production pipeline, statistical hygien... [methodology,statistics,overfitting]
+- `knowledge/predictionmarket-specialist.md` — predictionmarket-speci
 
+_[truncated — run `belam primitives` for full list]_
 <!-- END:PRIMITIVES -->
