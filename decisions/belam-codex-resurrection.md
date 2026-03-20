@@ -7,7 +7,7 @@ alternatives: [single monorepo with machinelearning, continue using openclaw-kno
 rationale: Clean separation of concerns — soul/infrastructure vs research output. Two repos = complete resurrection with fresh API keys.
 consequences: [heartbeat auto-commits push to both repos, incarnate.sh enables one-command setup on fresh machines]
 upstream: [decision/clock-cycles-over-tokens, decision/hierarchical-memory-system]
-downstream: [lesson/always-back-up-workspace-to-github]
+downstream: [lesson/always-back-up-workspace-to-github, memory/entries/2026-03-20_041755_belam-codex-resurrection-architecture-es]
 tags: [infrastructure, git, backup, continuity]
 ---
 
