@@ -1,12 +1,12 @@
 {
   "status": "complete",
-  "session": "2a293aef-442b-4e3d-88f8-c96537ef7e36",
+  "session": "a6677470-aa48-4e7a-a298-e06f289140b0",
   "instance": "main",
   "date": "2026-03-20",
-  "completed_at": "2026-03-20T20:07:00Z",
+  "completed_at": "2026-03-20T21:51:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-20_200721_session-2a293aef-wired-codex-engine-v1-s.md",
-    "lessons/openclaw-fixed-context-injection-list.md",
-    "lessons/supermap-boot-hook-via-embed-primitives.md"
+    "memory/entries/2026-03-20_215135_built-automated-session-memory-extractio.md",
+    "lessons/auto-memory-extraction-on-bootstrap.md",
+    "decisions/auto-memory-extraction-architecture.md"
   ]
 }

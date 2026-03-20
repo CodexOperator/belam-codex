@@ -1930,11 +1930,10 @@ def dispatch_action(action_word, remaining_args):
             return 0
 
         elif handler == 'extract':
-            # belam extract [instance]
-            # Delegates to belam_extract.sh which runs extract_session_memory.sh + spawns sage
-            instance = remaining_args[0] if remaining_args else 'main'
+            # belam extract [instance] [--file PATH] [--bg] [--last]
+            # Delegates to belam_extract.sh — passes all args through
             extract_script = str(WORKSPACE / 'scripts' / 'belam_extract.sh')
-            result = subprocess.run(['bash', extract_script, instance], cwd=str(WORKSPACE))
+            result = subprocess.run(['bash', extract_script] + remaining_args, cwd=str(WORKSPACE))
             return result.returncode
 
         elif handler == 'edges':

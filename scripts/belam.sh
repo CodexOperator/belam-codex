@@ -554,7 +554,7 @@ case "${1:-help}" in
 
     # ── Memory extraction ─────────────────────────────────────────────────────
     extract|ex)
-        bash "$SCRIPTS/belam_extract.sh" "${2:-main}"
+        bash "$SCRIPTS/belam_extract.sh" "${@:2}"
         ;;
 
     # ── Edge checker ──────────────────────────────────────────────────────────
