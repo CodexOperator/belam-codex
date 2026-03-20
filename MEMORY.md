@@ -535,6 +535,10 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 
 
+
+
+
+
 <!-- BEGIN:PRIMITIVE_INDEX -->
 
 ## Primitive Index
@@ -643,7 +647,7 @@ knowledge/ (4)
   ├─ quant-infrastructure  quant-infrastructure  Production quant finance infrastructure — data ...  [infrastructure,backtesting,gpu,data]
   └─ quant-workflow  quant-workflow  Quant research workflow — research-to-productio...  [methodology,statistics,overfitting,workflow]
 
-_Updated: 2026-03-20 02:33 UTC_
+_Updated: 2026-03-20 02:41 UTC_
 
 <!-- END:PRIMITIVE_INDEX -->
 <!-- BEGIN:MEMORY_HIERARCHY -->
@@ -651,7 +655,7 @@ _Updated: 2026-03-20 02:33 UTC_
 ## Memory Hierarchy
 
 ```
-Memory (2026-03-20 02:33 UTC)
+Memory (2026-03-20 02:41 UTC)
 ├── daily/      7 active  2026-03-15 → 2026-03-21
 ├── entries/    77 indexed
 ├── weekly/
