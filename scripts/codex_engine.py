@@ -67,13 +67,34 @@ TYPE_WORD_TO_PREFIX = {
 COORD_RE = re.compile(r'^(md|mw|[a-z]+)(\d+)?(?:-\d+)?$', re.IGNORECASE)
 # Regex for range coords: e.g. t1-t3
 RANGE_RE = re.compile(r'^(md|mw|[a-z]+)(\d+)-(\d+)$', re.IGNORECASE)
-# Regex for field selectors: digits, B, B1, B1-15
-FIELD_RE = re.compile(r'^(\d+|[Bb]\d*(?:-\d+)?)$')
+# Regex for field selectors: digits, B, B1, B1-15, B1-B15 (optional B prefix on end)
+FIELD_RE = re.compile(r'^(\d+|[Bb]\d*(?:-[Bb]?\d+)?)$')
+# Regex for body coordinate in edit mode: B, B+, B5, B5-10, B5-B10, B.SectionName
+BODY_COORD_RE = re.compile(r'^[Bb](\+|\d+(?:-[Bb]?\d+)?|\.[A-Za-z0-9_]+)?$')
 
 # ─── Primitive Discovery ────────────────────────────────────────────────────────
 
-def get_primitives(prefix):
-    """Return sorted list of (slug, filepath) for all primitives of given prefix."""
+def _quick_has_primitive_key(filepath):
+    """Return True if the file has 'primitive:' in its YAML frontmatter (fast check)."""
+    try:
+        with open(filepath, 'r', encoding='utf-8', errors='replace') as fh:
+            header = fh.read(1024)
+        if not header.startswith('---'):
+            return False
+        end = header.find('\n---', 3)
+        fm = header[3:end] if end > 0 else header[3:]
+        return bool(re.search(r'^primitive\s*:', fm, re.MULTILINE))
+    except Exception:
+        return False
+
+
+def get_primitives(prefix, active_only=True):
+    """Return sorted list of (slug, filepath) for primitives of given prefix.
+
+    active_only=True (default): exclude files with status archived or superseded,
+    and for knowledge ('k') exclude files without a 'primitive:' key in frontmatter.
+    active_only=False: return all files (used for graph loading, slug-index lookups).
+    """
     _, directory, special = NAMESPACE[prefix]
     base = WORKSPACE / directory
 
@@ -102,6 +123,14 @@ def get_primitives(prefix):
         items = []
         if base.exists():
             for f in sorted(base.glob('*.md')):
+                if active_only:
+                    # Knowledge dir: only include files with primitive: in frontmatter
+                    if prefix == 'k' and not _quick_has_primitive_key(f):
+                        continue
+                    # All dirs: skip archived/superseded
+                    st = _quick_status(f)
+                    if st and st in EXCLUDED_STATUSES:
+                        continue
                 items.append((f.stem, f))
         return items
 
@@ -323,7 +352,13 @@ def resolve_coords(args):
         if not arg:
             continue
 
-        # Check for range pattern first: t1-t3 or t1-3
+        # Check for field/body selector FIRST: digits or B-prefixed (B, B1, B1-B5, etc.)
+        # Must happen before range check to prevent B1-B5 from being consumed as coord range.
+        if FIELD_RE.match(arg):
+            field_selections.append(arg)
+            continue
+
+        # Check for range pattern: t1-t3 or t1-3
         range_m = re.match(r'^(md|mw|[a-z]+)(\d+)-(?:md|mw|[a-z]+)?(\d+)$', arg, re.IGNORECASE)
         if range_m:
             prefix_raw = range_m.group(1).lower()
@@ -367,11 +402,6 @@ def resolve_coords(args):
                             'filepath': fp, 'slug': slug, 'type': type_label,
                         })
                 continue
-
-        # Check for field selector: digit(s) or B...
-        if FIELD_RE.match(arg):
-            field_selections.append(arg)
-            continue
 
         # Unknown arg — skip silently
 
@@ -613,34 +643,113 @@ def _supermap_summary(prefix, slug, filepath, slug_index):
     return summary
 
 
-def render_supermap():
-    """Render the full supermap ASCII tree. Returns string (without R-label)."""
+def _quick_tags(filepath):
+    """Read frontmatter tags from a file without full parse. Returns list of strings."""
+    try:
+        text = filepath.read_text(encoding='utf-8', errors='replace')
+        if not text.startswith('---'):
+            return []
+        end = text.find('\n---', 3)
+        if end < 0:
+            return []
+        fm = text[3:end]
+        # Inline: tags: [a, b, c]
+        m = re.search(r'^tags:\s*\[([^\]]*)\]', fm, re.MULTILINE)
+        if m:
+            return [t.strip().strip('"\'') for t in m.group(1).split(',') if t.strip()]
+        # Block: tags:\n  - a\n  - b
+        m2 = re.search(r'^tags:\s*$', fm, re.MULTILINE)
+        if m2:
+            start = m2.end()
+            items = re.findall(r'^\s+-\s+(.+)', fm[start:], re.MULTILINE)
+            return [i.strip().strip('"\'') for i in items]
+    except Exception:
+        pass
+    return []
+
+
+# ── Persona definitions ──────────────────────────────────────────────────────
+# Maps persona name → dict of prefix → render mode ('full' or 'summary')
+# Prefixes not listed default to 'full' for non-persona / skipped for persona.
+PERSONA_CONFIGS = {
+    'architect': {
+        'd': 'full', 'k': 'full',  # full
+        't': 'summary', 'l': 'summary',  # summary
+        # p, w, c, s not shown
+    },
+    'builder': {
+        't': 'full', 'c': 'full', 'p': 'full',  # full
+        'l': 'summary',  # summary
+        # d, k, w, s not shown
+    },
+    'critic': {
+        'l': 'full',  # full
+        'd': 'summary', 'p': 'summary',  # summary
+        # t, k, w, c, s not shown
+    },
+}
+
+SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's']
+
+
+def render_supermap(persona=None, tag_filter=None, since_days=None):
+    """Render the full supermap ASCII tree. Returns string (without R-label).
+
+    persona: None | 'architect' | 'builder' | 'critic'
+    tag_filter: None | str — only show primitives tagged with this string
+    since_days: None | int — for memory section, only show entries from last N days
+    """
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     slug_index = build_slug_index()
 
     lines = []
-    lines.append(f"╶─ Codex Engine Supermap [{now}]")
+    header = f"╶─ Codex Engine Supermap [{now}]"
+    if persona:
+        header += f"  [--as {persona}]"
+    if tag_filter:
+        header += f"  [--tag {tag_filter}]"
+    if since_days is not None:
+        header += f"  [--since {since_days}d]"
+    lines.append(header)
 
-    SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's']
+    persona_cfg = PERSONA_CONFIGS.get(persona) if persona else None
 
     for prefix in SHOW_ORDER:
+        # Determine render mode for this prefix
+        if persona_cfg is not None:
+            if prefix not in persona_cfg:
+                continue  # skip this type entirely for this persona
+            mode = persona_cfg[prefix]
+        else:
+            mode = 'full'
+
         type_label = NAMESPACE[prefix][0]
-        primitives = get_primitives(prefix)  # all, including excluded
+        # get_primitives now returns only active (non-archived/superseded) primitives
+        # and for 'k' only those with primitive: in frontmatter
+        primitives = get_primitives(prefix)
 
-        # Filter excluded statuses for display, but preserve original 1-based index
-        display = []  # list of (original_index, slug, fp)
-        for i, (slug, fp) in enumerate(primitives, 1):
-            st = _quick_status(fp)
-            if st and st in EXCLUDED_STATUSES:
-                continue
-            display.append((i, slug, fp))
+        # Apply tag filter if set
+        if tag_filter:
+            filtered = []
+            for slug, fp in primitives:
+                tags = _quick_tags(fp)
+                if tag_filter.lower() in [t.lower() for t in tags]:
+                    filtered.append((slug, fp))
+            primitives = filtered
 
-        count = len(display)
+        count = len(primitives)
+
+        if mode == 'summary':
+            # Summary mode: just show type header + count, no individual items
+            lines.append(f"╶─ {prefix:<3} {type_label} ({count})  [summary]")
+            continue
+
+        # Full mode: show individual items
         MAX_SHOW = 5 if count > 10 else count
 
         lines.append(f"╶─ {prefix:<3} {type_label} ({count})")
-        for orig_i, slug, fp in display[:MAX_SHOW]:
-            coord = f"{prefix}{orig_i}"
+        for i, (slug, fp) in enumerate(primitives[:MAX_SHOW], 1):
+            coord = f"{prefix}{i}"
             summary = _supermap_summary(prefix, slug, fp, slug_index)
             lines.append(f"│  ╶─ {coord:<5} {summary}")
 
@@ -650,8 +759,15 @@ def render_supermap():
     # ── Memory section ──────────────────────────────────────────────────────────
     lines.append("╶─ m   memory")
 
-    today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')
+    now_dt = datetime.datetime.now(datetime.timezone.utc)
+    today = now_dt.strftime('%Y-%m-%d')
     all_entries = get_primitives('m')  # sorted alphabetically → chronologically
+
+    # Apply since_days filter: compute cutoff date string
+    if since_days is not None:
+        cutoff_dt = now_dt - datetime.timedelta(days=since_days)
+        cutoff_str = cutoff_dt.strftime('%Y-%m-%d')
+        all_entries = [(s, fp) for s, fp in all_entries if s[:10] >= cutoff_str]
 
     # Today's entries: filter by date prefix, show 5 most recent
     today_entries = [(s, fp) for s, fp in all_entries if s.startswith(today)]
@@ -1335,6 +1451,128 @@ def _write_frontmatter_file(filepath, fields, body_lines):
     fp.write_text('\n'.join(out_lines) + '\n', encoding='utf-8')
 
 
+def _write_body_only(filepath, new_body_lines):
+    """Rewrite only the body of a primitive file, preserving frontmatter bytes exactly."""
+    fp = Path(filepath)
+    text = fp.read_text(encoding='utf-8', errors='replace')
+
+    if not text.startswith('---'):
+        # No frontmatter: write body directly
+        fp.write_text('\n'.join(new_body_lines) + '\n', encoding='utf-8')
+        return
+
+    end = text.find('\n---', 3)
+    if end < 0:
+        # Malformed frontmatter: write body directly
+        fp.write_text('\n'.join(new_body_lines) + '\n', encoding='utf-8')
+        return
+
+    # frontmatter_part = everything up to and including closing ---
+    frontmatter_part = text[:end + 4]  # includes \n---
+
+    if new_body_lines:
+        body_text = '\n'.join(new_body_lines)
+        fp.write_text(frontmatter_part + '\n\n' + body_text + '\n', encoding='utf-8')
+    else:
+        fp.write_text(frontmatter_part + '\n', encoding='utf-8')
+
+
+def _apply_body_edit(body_lines, spec, new_content):
+    """Apply a body edit spec to body_lines. Returns new list of body lines.
+
+    Specs:
+      B          → full replacement
+      B+         → append to end
+      B5         → replace line 5 (1-indexed)
+      B5-10      → replace lines 5-10 (inclusive)
+      B5-B10     → same as B5-10
+      B.Heading  → replace section with matching ## heading
+
+    Literal \\n in new_content is unescaped to actual newlines (multi-line support).
+    """
+    # Unescape literal \n and \t sequences from command-line input
+    new_content = new_content.replace('\\n', '\n').replace('\\t', '\t')
+    spec_upper = spec.upper()
+
+    if spec_upper == 'B':
+        # Full body replacement
+        return new_content.split('\n')
+
+    if spec_upper == 'B+':
+        # Append to body
+        lines = list(body_lines)
+        # Add blank line separator if body is non-empty
+        if lines and lines[-1].strip():
+            lines.append('')
+        lines.extend(new_content.split('\n'))
+        return lines
+
+    if spec_upper.startswith('B.'):
+        # Section replacement by ## heading name
+        section_name = spec[2:]  # preserve original case for the heading
+        heading_pattern = re.compile(
+            r'^##\s+' + re.escape(section_name) + r'\s*$', re.IGNORECASE
+        )
+        start_idx = None
+        for idx, line in enumerate(body_lines):
+            if heading_pattern.match(line):
+                start_idx = idx
+                break
+
+        if start_idx is None:
+            # Section not found: append it
+            lines = list(body_lines)
+            if lines and lines[-1].strip():
+                lines.append('')
+            lines.append(f'## {section_name}')
+            lines.append('')
+            lines.extend(new_content.split('\n'))
+            return lines
+
+        # Find end of section: next ## heading or end of body
+        end_idx = len(body_lines)
+        for idx in range(start_idx + 1, len(body_lines)):
+            if re.match(r'^##\s+', body_lines[idx]):
+                end_idx = idx
+                break
+
+        new_lines = list(body_lines[:start_idx + 1])  # keep heading line
+        new_lines.append('')
+        new_lines.extend(new_content.split('\n'))
+        if end_idx < len(body_lines):
+            if new_lines and new_lines[-1].strip():
+                new_lines.append('')
+            new_lines.extend(body_lines[end_idx:])
+        return new_lines
+
+    # Numeric range: B5, B5-10, B5-B10
+    rest = spec_upper[1:]  # strip leading B
+    if '-' in rest:
+        parts = rest.split('-', 1)
+        try:
+            start = int(parts[0])
+            end = int(parts[1].lstrip('B'))
+        except ValueError:
+            # Malformed: fall back to full replacement
+            return new_content.split('\n')
+    else:
+        try:
+            start = int(rest)
+            end = start
+        except ValueError:
+            return new_content.split('\n')
+
+    new_content_lines = new_content.split('\n')
+    lines = list(body_lines)
+    # Extend body with blank lines if needed
+    while len(lines) < start:
+        lines.append('')
+    start_0 = start - 1
+    end_0 = min(end, len(lines))
+    lines[start_0:end_0] = new_content_lines
+    return lines
+
+
 def _coerce_value(new_value_str, old_value):
     """Coerce new_value_str to match the type of old_value."""
     if isinstance(old_value, list):
@@ -1404,8 +1642,17 @@ def _parse_edit_args(raw_args):
         if current_item is None:
             print(f"Error: expected coordinate before '{arg}'")
             return None
+        # Try as body selector: B, B+, B5, B5-10, B5-B10, B.SectionName
+        if BODY_COORD_RE.match(arg):
+            body_spec = arg  # keep original case
+            i += 1
+            if i >= len(raw_args):
+                print(f"Error: body selector '{body_spec}' has no value")
+                return None
+            edits.append((current_item, body_spec, raw_args[i]))
+            i += 1
         # Try as field_num value pair
-        if re.match(r'^\d+$', arg):
+        elif re.match(r'^\d+$', arg):
             field_num = int(arg)
             i += 1
             if i >= len(raw_args):
@@ -1414,7 +1661,7 @@ def _parse_edit_args(raw_args):
             edits.append((current_item, field_num, raw_args[i]))
             i += 1
         else:
-            print(f"Error: expected field number or coordinate, got '{arg}'")
+            print(f"Error: expected field number, body selector, or coordinate, got '{arg}'")
             return None
     return edits
 
@@ -1502,13 +1749,25 @@ def _sync_reverse_links(source_item, field_key, old_refs, new_refs,
 
 # ─── Mutation Functions ─────────────────────────────────────────────────────────
 
-def execute_edit(args):
-    """Handle -e mode: edit primitive fields and write back.
+def _is_body_spec(spec):
+    """Return True if spec is a body coordinate (string starting with B/b)."""
+    return isinstance(spec, str) and BODY_COORD_RE.match(spec)
 
-    Usage: belam -e <coord> <field_num> <value> [<field_num> <value> ...] [<coord> ...]
+
+def execute_edit(args):
+    """Handle -e mode: edit primitive fields and/or body and write back.
+
+    Usage:
+      belam -e <coord> <field_num> <value> [<field_num> <value> ...]
+      belam -e <coord> B  <value>           -> replace entire body
+      belam -e <coord> B+ <value>           -> append to body
+      belam -e <coord> B5 <value>           -> replace body line 5 (1-indexed)
+      belam -e <coord> B5-10 <value>        -> replace body lines 5-10
+      belam -e <coord> B5-B10 <value>       -> same as B5-10
+      belam -e <coord> B.Section <value>    -> replace ## Section content
     """
     if not args:
-        print("Usage: belam -e <coord> <field_num> <value> [<field_num> <value> ...]")
+        print("Usage: belam -e <coord> <field_num|B-spec> <value> [...]")
         return 1
 
     edits = _parse_edit_args(args)
@@ -1522,15 +1781,15 @@ def execute_edit(args):
 
     # Group by coord (preserving order), load each primitive once
     coord_order = []
-    coord_edits = {}   # coord → [(field_num, new_value_str), ...]
-    coord_items = {}   # coord → resolved_item
-    for item, field_num, new_val_str in edits:
+    coord_edits = {}   # coord -> [(field_spec, new_value_str), ...]
+    coord_items = {}   # coord -> resolved_item
+    for item, field_spec, new_val_str in edits:
         c = item['coord']
         if c not in coord_edits:
             coord_order.append(c)
             coord_edits[c] = []
             coord_items[c] = item
-        coord_edits[c].append((field_num, new_val_str))
+        coord_edits[c].append((field_spec, new_val_str))
 
     # Load primitives
     loaded = {}
@@ -1542,12 +1801,15 @@ def execute_edit(args):
             return 1
         loaded[coord] = prim
 
-    # Validate all field edits before writing anything
-    for item, field_num, new_val_str in edits:
+    # Validate all field edits before writing anything (skip body edits)
+    for item, field_spec, new_val_str in edits:
+        if _is_body_spec(field_spec):
+            continue  # body edits need no field validation
         coord = item['coord']
         prim = loaded[coord]
+        field_num = field_spec
         if field_num not in prim['fields']:
-            print(f"Error: field {field_num} not found in {coord} (fields 1–{max(prim['fields'].keys())})")
+            print(f"Error: field {field_num} not found in {coord} (fields 1\u2013{max(prim['fields'].keys())})")
             return 1
         field_info = prim['fields'][field_num]
         new_val = _coerce_value(new_val_str, field_info['value'])
@@ -1567,7 +1829,38 @@ def execute_edit(args):
     for coord in coord_order:
         item = coord_items[coord]
         prim = loaded[coord]
-        for field_num, new_val_str in coord_edits[coord]:
+        has_field_edits = any(not _is_body_spec(fs) for fs, _ in coord_edits[coord])
+        has_body_edits = any(_is_body_spec(fs) for fs, _ in coord_edits[coord])
+
+        for field_spec, new_val_str in coord_edits[coord]:
+
+            # -- Body edit --------------------------------------------------
+            if _is_body_spec(field_spec):
+                old_body = list(prim['body'])
+                new_body = _apply_body_edit(old_body, field_spec, new_val_str)
+                prim['body'] = new_body
+
+                old_line_count = len(old_body)
+                new_line_count = len(new_body)
+                spec_display = field_spec.upper()
+                diff = f"\u0394 {coord}.{spec_display} body [{old_line_count}\u2192{new_line_count} lines]"
+                if first_line:
+                    output_lines.append(f"{f_label} {diff}")
+                    first_line = False
+                else:
+                    output_lines.append(f"   {diff}")
+
+                # Record body operation for undo tracking
+                operations.append({
+                    'filepath': str(item['filepath']), 'coord': coord,
+                    'field_key': f'__body__{field_spec}',
+                    'old_value': old_body, 'new_value': new_body,
+                    'body_edit': True, 'body_spec': field_spec,
+                })
+                continue
+
+            # -- Field edit -------------------------------------------------
+            field_num = field_spec
             fi = prim['fields'][field_num]
             field_key = fi['key']
             old_val = fi['value']
@@ -1582,7 +1875,7 @@ def execute_edit(args):
 
             old_fmt = _format_value(old_val)
             new_fmt = _format_value(new_val)
-            diff = f"Δ {coord}.{field_num} {field_key} {old_fmt}→{new_fmt}"
+            diff = f"\u0394 {coord}.{field_num} {field_key} {old_fmt}\u2192{new_fmt}"
             if first_line:
                 output_lines.append(f"{f_label} {diff}")
                 first_line = False
@@ -1619,7 +1912,7 @@ def execute_edit(args):
                                     found_met = (new_val == 'complete')
                                 else:
                                     found_met = (_quick_status(kfp) == 'complete')
-                                dep_parts.append(f"{dep_slug} {'✓' if found_met else '✗'}")
+                                dep_parts.append(f"{dep_slug} {'\u2713' if found_met else '\u2717'}")
                                 break
                         else:
                             dep_parts.append(f"{dep_slug} ?")
@@ -1629,7 +1922,7 @@ def execute_edit(args):
                         cascade_counter[0] += 1
                         sub_label = f"{f_label}.{cascade_counter[0]}"
                         dep_str = ', '.join(dep_parts)
-                        output_lines.append(f"   └─ {sub_label} ⚡ t{j} unblocked (depends_on: {dep_str})")
+                        output_lines.append(f"   \u2514\u2500 {sub_label} \u26a1 t{j} unblocked (depends_on: {dep_str})")
                         cascades.append({'type': 'unblocked', 'coord': f't{j}'})
 
             # Cascade: bidirectional upstream/downstream sync
@@ -1639,8 +1932,12 @@ def execute_edit(args):
                     cascade_counter, f_label, output_lines, cascades,
                 )
 
-        # Write file
-        _write_frontmatter_file(item['filepath'], prim['fields'], prim['body'])
+        # Write file: body-only edits preserve frontmatter exactly;
+        # field edits (possibly with body) use the full rewrite path.
+        if has_body_edits and not has_field_edits:
+            _write_body_only(item['filepath'], prim['body'])
+        else:
+            _write_frontmatter_file(item['filepath'], prim['fields'], prim['body'])
 
     # Track F-label for undo
     tracker.push_f_label({
@@ -2651,19 +2948,72 @@ def _print_action_help():
 
 # ─── Main Entry Point ───────────────────────────────────────────────────────────
 
+def _parse_since(since_str):
+    """Parse since string like '3d', '7d', '1w', '2w' → int days or None."""
+    if not since_str:
+        return None
+    s = since_str.lower().strip()
+    m = re.match(r'^(\d+)([dw])$', s)
+    if not m:
+        return None
+    n = int(m.group(1))
+    unit = m.group(2)
+    return n * 7 if unit == 'w' else n
+
+
 def main(args=None):
     """Main entry point. Parses args, renders, tracks, prints."""
     if args is None:
         args = sys.argv[1:]
 
+    # ── Pre-parse global flags: --as, --tag, --since ────────────────────────────
+    persona = None
+    tag_filter = None
+    since_days = None
+    filtered_args = []
+    i = 0
+    raw_args = list(args)
+    while i < len(raw_args):
+        a = raw_args[i]
+        if a == '--as' and i + 1 < len(raw_args):
+            persona = raw_args[i + 1].lower()
+            i += 2
+        elif a.startswith('--as='):
+            persona = a[5:].lower()
+            i += 1
+        elif a == '--tag' and i + 1 < len(raw_args):
+            tag_filter = raw_args[i + 1]
+            i += 2
+        elif a.startswith('--tag='):
+            tag_filter = a[6:]
+            i += 1
+        elif a == '--since' and i + 1 < len(raw_args):
+            since_days = _parse_since(raw_args[i + 1])
+            i += 2
+        elif a.startswith('--since='):
+            since_days = _parse_since(a[8:])
+            i += 1
+        else:
+            filtered_args.append(a)
+            i += 1
+    args = filtered_args
+
+    # Validate persona
+    if persona and persona not in PERSONA_CONFIGS:
+        print(f"Unknown persona '{persona}'. Valid: {', '.join(sorted(PERSONA_CONFIGS.keys()))}")
+        sys.exit(1)
+
+    def _render_sm():
+        return render_supermap(persona=persona, tag_filter=tag_filter, since_days=since_days)
+
     # --supermap: render supermap to stdout (no R-labels, no disk write)
     if '--supermap' in args:
-        print(render_supermap())
+        print(_render_sm())
         return
 
     # --boot: inject supermap into AGENTS.md for OpenClaw auto-injection, no R-labels
     if '--boot' in args:
-        content = render_supermap()
+        content = _render_sm()
         agents_path = Path(__file__).resolve().parent.parent / 'AGENTS.md'
         start_marker = '<!-- BEGIN:SUPERMAP -->'
         end_marker = '<!-- END:SUPERMAP -->'
@@ -2689,8 +3039,8 @@ def main(args=None):
     tracker = get_render_tracker()
 
     if not args:
-        # Supermap mode
-        content = render_supermap()
+        # Supermap mode — honour persona/tag/since even with no other args
+        content = _render_sm()
         _, output = tracker.track_render(content)
         print(output)
         return
@@ -2699,7 +3049,7 @@ def main(args=None):
     clean_args = [a for a in args if a not in ('--raw', '--plain')]
 
     if not clean_args:
-        content = render_supermap()
+        content = _render_sm()
         _, output = tracker.track_render(content)
         print(output)
         return
