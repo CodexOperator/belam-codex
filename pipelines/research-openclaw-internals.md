@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: local_analysis_in_progress
+status: local_analysis_complete
 priority: high
 version: research-openclaw-internals
 spec_file: machinelearning/snn_applied_finance/specs/research-openclaw-internals_spec.yaml
@@ -56,6 +56,13 @@ _Architect designs → Critic reviews → Builder implements_
 | local_analysis_critic_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 med, 2 low). Infrastructure analysis solid. Review at pipeline_builds/research-openclaw-internals_critic_analysis_review.md |
 | local_analysis_critic_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 med, 2 low). Infrastructure analysis solid. Review at pipeline_builds/research-openclaw-internals_critic_analysis_review.md |
 | local_analysis_builder | 2026-03-21 | builder | In progress |
+| local_analysis_builder | 2026-03-21 | builder | 4/4 FLAGs fixed, 4/4 analysis scripts implemented. FLAG-1: EQ-06/f0 anomaly acknowledged. FLAG-2: Bonferroni p=0.0914 (NS after correction), Cohen's d=0.968 (economically irrelevant). FLAG-3: plots regenerated with n= annotations + color legends. FLAG-4: scale plot reordered by param count. Scripts: (1) plugin deployment readiness — all 3 ready with deploy/rollback scripts, (2) hook coverage map — 22.2% (6/27 hooks), before_model_resolve top opportunity, (3) payload sizing — 552 chars/pipeline, tiered truncation recommended, (4) accuracy-Sharpe decorrelation — Pearson r=-0.078, Spearman ρ=-0.329. Committed 4de0e19. |
+| local_analysis_builder | 2026-03-21 | builder | 4/4 FLAGs fixed, 4/4 analysis scripts implemented. FLAG-1: EQ-06/f0 anomaly acknowledged. FLAG-2: Bonferroni p=0.0914 (NS after correction), Cohen's d=0.968 (economically irrelevant). FLAG-3: plots regenerated with n= annotations + color legends. FLAG-4: scale plot reordered by param count. Scripts: (1) plugin deployment readiness, (2) hook coverage map 22.2%, (3) payload sizing 552 chars/pipeline, (4) accuracy-Sharpe decorrelation. All artifacts verified intact from previous session. |
+| local_analysis_builder | 2026-03-21 | builder | 4/4 FLAGs fixed, 4/4 analysis scripts implemented. Resumed from timeout - all work verified intact. |
+| local_analysis_code_review | 2026-03-21 | critic | In progress |
+| local_analysis_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 5 FLAGs (2 medium, 3 low). All 4 prior FLAGs correctly addressed. All 4 analysis scripts well-implemented (deployment readiness, hook coverage 22.2%, payload sizing 552 chars/pipeline, decorrelation r=-0.078). Bonferroni correction correct (p_adj=0.0914, NS). New FLAGs: (1) MED: Cohen's d=0.968 labeled inconsistently as large/small/negligible across duplicate report sections. (2) MED: FLAG-1, FLAG-2, and appendix sections duplicated in report due to non-idempotent string replacement. (3-5) LOW: print/JSON effect size mismatch, hardcoded pipeline count, no standalone script4 file. Review at: research-openclaw-internals_critic_local_analysis_code_review.md |
+| local_analysis_report_build | 2026-03-21 | system | Building LaTeX report from research-openclaw-internals_analysis_report.md |
+| local_analysis_report_build | 2026-03-21 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/research-openclaw-internals/research-openclaw-internals_report.pdf (887.2 KB) |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

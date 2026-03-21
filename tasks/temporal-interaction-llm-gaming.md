@@ -28,6 +28,9 @@ Design and prototype a daemon-free temporal interaction system for LLM agents us
 - What's the minimal viable shared world state schema?
 - How do render engines (LLM text vs human visual) converge on the same world state?
 
+## Related
+- `tasks/codex-engine-v2-modes-mcp-temporal.md` — shared SpacetimeDB eval, .codex sync, persistent agents
+
 ## Artifacts
 - Research from: research-openclaw-internals pipeline (hook architecture, plugin system)
 - SpacetimeDB: https://spacetimedb.com
