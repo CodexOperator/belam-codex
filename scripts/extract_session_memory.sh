@@ -125,23 +125,47 @@ EXISTING_ENTRIES=""
 EXISTING_COUNT=0
 if ls "$WORKSPACE/memory/entries/${TODAY}"_*.md >/dev/null 2>&1; then
   EXISTING_COUNT=$(ls "$WORKSPACE/memory/entries/${TODAY}"_*.md 2>/dev/null | wc -l)
-  # Extract slug + first line of content from each entry (compact dedup context)
   EXISTING_ENTRIES=$(for f in "$WORKSPACE/memory/entries/${TODAY}"_*.md; do
     slug=$(basename "$f" .md | sed "s/^${TODAY}_[0-9]*_//")
     firstline=$(grep -m1 "^[^-#]" "$f" 2>/dev/null | head -c 120 || true)
-    echo "  - $slug: $firstline"
+    echo "  - [memory] $slug: $firstline"
   done)
 fi
-echo "   Existing entries today: $EXISTING_COUNT"
+
+# Also gather existing lessons and decisions (these don't have date prefixes)
+EXISTING_LESSONS=""
+LESSON_COUNT=0
+if ls "$WORKSPACE/lessons/"*.md >/dev/null 2>&1; then
+  LESSON_COUNT=$(ls "$WORKSPACE/lessons/"*.md 2>/dev/null | wc -l)
+  EXISTING_LESSONS=$(for f in "$WORKSPACE/lessons/"*.md; do
+    slug=$(basename "$f" .md)
+    echo "  - [lesson] $slug"
+  done)
+fi
+
+EXISTING_DECISIONS=""
+DECISION_COUNT=0
+if ls "$WORKSPACE/decisions/"*.md >/dev/null 2>&1; then
+  DECISION_COUNT=$(ls "$WORKSPACE/decisions/"*.md 2>/dev/null | wc -l)
+  EXISTING_DECISIONS=$(for f in "$WORKSPACE/decisions/"*.md; do
+    slug=$(basename "$f" .md)
+    echo "  - [decision] $slug"
+  done)
+fi
+
+TOTAL_EXISTING=$((EXISTING_COUNT + LESSON_COUNT + DECISION_COUNT))
+echo "   Existing today: $EXISTING_COUNT memories, $LESSON_COUNT lessons, $DECISION_COUNT decisions"
 
 DEDUP_BLOCK=""
-if [[ $EXISTING_COUNT -gt 0 ]]; then
+if [[ $TOTAL_EXISTING -gt 0 ]]; then
   DEDUP_BLOCK="
-## Already Logged Today ($EXISTING_COUNT entries)
-The following memories/primitives already exist for today. **Do NOT create duplicates.**
+## Already Logged ($TOTAL_EXISTING primitives)
+The following memories/lessons/decisions already exist. **Do NOT create duplicates.**
 If the session covers the same topic as an existing entry, skip it or only add genuinely new information.
 
 $EXISTING_ENTRIES
+$EXISTING_LESSONS
+$EXISTING_DECISIONS
 "
 fi
 
