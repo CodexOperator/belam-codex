@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-orchestration_engine.py — Unified Orchestration Engine V1
+orchestration_engine.py — Unified Orchestration Engine V2
 
 Consolidates core logic from:
   - pipeline_autorun.py  (gate checking, stall detection, experiment monitoring)
@@ -9,7 +9,9 @@ Consolidates core logic from:
 
 Coordinate-aware: accepts version strings, numeric indices, or p-prefixed coordinates.
 All output is plain text (no ANSI) — designed for LLM context consumption.
-State changes use F-label format: F1 D p3.stage architect_design -> critic_review
+State changes use F-label format: F1 Δ p3.stage architect_design → critic_review
+The orchestration engine owns F-labels (field-level diffs).
+The codex-cockpit plugin owns R-labels (supermap landscape).
 
 Importable AND runnable standalone:
   python3 scripts/orchestration_engine.py                    # full sweep
@@ -19,16 +21,27 @@ Importable AND runnable standalone:
   python3 scripts/orchestration_engine.py locks              # active locks
   python3 scripts/orchestration_engine.py stalls             # stall check
   python3 scripts/orchestration_engine.py dispatch <ref> <agent>  # dispatch agent
+  python3 scripts/orchestration_engine.py dispatch-payload <ref> <agent>  # structured JSON dispatch
+  python3 scripts/orchestration_engine.py complete <ref> <stage> --agent <a> --notes "..."  # stage done
+  python3 scripts/orchestration_engine.py block <ref> <stage> --agent <a> --notes "..."    # stage blocked
   python3 scripts/orchestration_engine.py next <ref>         # next action
+  python3 scripts/orchestration_engine.py verify-hooks       # hook verification
   python3 scripts/orchestration_engine.py --dry-run          # dry run sweep
+  python3 scripts/orchestration_engine.py --json <cmd>       # JSON output mode
+
+  All commands accept --json for structured output (zero coordinator tokens).
 """
 
 import json
 import os
+import re
 import sys
 import time
+import uuid
+from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from typing import Optional, Callable
 
 # ─── Paths ──────────────────────────────────────────────────────────────────────
 
@@ -74,6 +87,544 @@ HUMAN_ACTIONS = {
     'ready_for_colab_run', 'phase1_complete', 'phase2_complete',
     'phase3_complete', 'pipeline_created', 'local_analysis_complete',
 }
+
+# Max resume attempts before alerting human
+MAX_RESUMES = 3
+
+# ─── F-Label Counter ───────────────────────────────────────────────────────────
+
+_f_counter = 0
+
+
+def _next_f_label() -> str:
+    """Generate next monotonic F-label for state transitions."""
+    global _f_counter
+    _f_counter += 1
+    return f'F{_f_counter}'
+
+
+def generate_f_label(operation: str, details: dict) -> str:
+    """Generate an F-label for a pipeline state transition.
+
+    Called during complete/block/dispatch operations.
+    The orchestration engine owns F-labels (field-level diffs).
+    The cockpit plugin owns R-labels (supermap landscape). No overlap.
+    """
+    label = _next_f_label()
+
+    if operation == 'stage_change':
+        old = details.get('old_stage', '?')
+        new = details.get('new_stage', '?')
+        coord = details.get('coord', '?')
+        return f"{label} Δ {coord}.stage {old} → {new}"
+
+    elif operation == 'lock_change':
+        pipeline = details.get('pipeline', '?')
+        action = details.get('action', '?')  # 'acquired' or 'released'
+        return f"{label} Δ {pipeline}.lock {action}"
+
+    elif operation == 'dispatch':
+        agent = details.get('agent', '?')
+        coord = details.get('coord', '?')
+        stage = details.get('stage', '')
+        return f"{label} Δ {coord}.dispatch → {agent}" + (f" ({stage})" if stage else "")
+
+    elif operation == 'handoff':
+        src = details.get('src', '?')
+        dst = details.get('dst', '?')
+        coord = details.get('coord', '?')
+        return f"{label} Δ {coord}.handoff {src} → {dst}"
+
+    return f"{label} Δ {operation}"
+
+
+# ─── Dispatch Payload (Structured, Zero Coordinator Tokens) ────────────────────
+
+@dataclass
+class DispatchPayload:
+    """Fully-formed dispatch instruction. Coordinator relays mechanically.
+
+    The payload format is forward-compatible with numeric indexing:
+    - pipeline_coord: 'p1' (future: index into field-level addressing)
+    - agent_index: integer position in agent roster (future: 7i1 = field 7, index 1)
+    - stage can be addressed by index (future: stage_index)
+    """
+
+    # Core spawn parameters
+    agent: str                               # Target agent name
+    task: str                                # Full prompt text (from template)
+    model: Optional[str] = None              # Model override (None = agent default)
+    timeout: int = 600                       # Seconds
+    label: str = ''                          # Human-readable: "{version}/{stage}"
+    session_id: str = ''                     # Fresh UUID4
+    background: bool = True                  # Always True for pipeline work
+
+    # Lifecycle actions (engine executes, not coordinator)
+    pre_actions: list = field(default_factory=list)
+    post_actions: list = field(default_factory=list)
+
+    # Context metadata (informational, forward-compatible with numeric indexing)
+    pipeline_version: str = ''
+    pipeline_coord: str = ''                 # e.g., 'p1' (future: numeric index)
+    current_stage: str = ''
+    agent_index: int = 0                     # Position in agent roster (future: field 7 index)
+    stage_index: int = 0                     # Position in stage sequence (future: coordinate)
+    files_to_read: list = field(default_factory=list)
+    completion_command: str = ''
+
+    def to_dict(self) -> dict:
+        """Serialize for JSON output / tool relay."""
+        return {
+            '_dispatch': True,
+            '_version': 'orchestration-engine-v2',
+            'spawn': {
+                'agent': self.agent,
+                'task': self.task,
+                'model': self.model,
+                'timeout': self.timeout,
+                'label': self.label,
+                'session_id': self.session_id,
+                'background': self.background,
+            },
+            'pre_actions': self.pre_actions,
+            'post_actions': self.post_actions,
+            'context': {
+                'pipeline_version': self.pipeline_version,
+                'pipeline_coord': self.pipeline_coord,
+                'current_stage': self.current_stage,
+                'agent_index': self.agent_index,
+                'stage_index': self.stage_index,
+                'files_to_read': self.files_to_read,
+                'completion_command': self.completion_command,
+            },
+        }
+
+    def to_spawn_args(self) -> list[str]:
+        """Convert to openclaw agent CLI args for direct execution."""
+        args = ['openclaw', 'agent', 'spawn', self.agent]
+        if self.model:
+            args.extend(['--model', self.model])
+        args.extend(['--timeout', str(self.timeout)])
+        if self.label:
+            args.extend(['--label', self.label])
+        if self.background:
+            args.append('--background')
+        args.extend(['--task', self.task])
+        return args
+
+
+# Agent roster with defaults (forward-compatible with numeric indexing)
+AGENT_ROSTER = {
+    'architect': {'index': 1, 'model': 'anthropic/claude-sonnet-4-20250514', 'timeout': 600},
+    'critic':    {'index': 2, 'model': 'anthropic/claude-sonnet-4-20250514', 'timeout': 600},
+    'builder':   {'index': 3, 'model': 'anthropic/claude-sonnet-4-20250514', 'timeout': 900},
+}
+
+# Stage sequence for numeric indexing (forward-compatible)
+STAGE_SEQUENCE = [
+    'pipeline_created',
+    'architect_design',
+    'critic_design_review',
+    'builder_implementation',
+    'critic_code_review',
+    'phase1_complete',
+    'phase2_architect_design',
+    'phase2_critic_design_review',
+    'phase2_builder_implementation',
+    'phase2_critic_code_review',
+    'phase2_complete',
+]
+
+
+def _get_pipeline_coord(version: str) -> str:
+    """Get the p-coordinate for a pipeline version string."""
+    versions = _get_active_versions()
+    try:
+        idx = versions.index(version)
+        return f'p{idx + 1}'
+    except ValueError:
+        return 'p?'
+
+
+def _build_completion_command(version: str, stage: str, agent: str) -> str:
+    """Build the CLI completion command agents use when done."""
+    return (f'python3 scripts/orchestration_engine.py complete {version} {stage} '
+            f'--agent {agent} --notes "summary"')
+
+
+def _build_block_command(version: str, stage: str, agent: str) -> str:
+    """Build the CLI block command agents use to report issues."""
+    return (f'python3 scripts/orchestration_engine.py block {version} {stage} '
+            f'--agent {agent} --notes "reason"')
+
+
+def _build_task_prompt(version: str, stage: str, agent: str,
+                       notes: str = '', files: list = None,
+                       is_resume: bool = False, resume_count: int = 0,
+                       partial_files: list = None) -> str:
+    """Build the full task prompt for an agent dispatch.
+
+    Centralizes all prompt construction — coordinator never touches this.
+    """
+    files = files or []
+    partial_files = partial_files or []
+    comp_cmd = _build_completion_command(version, stage, agent)
+    block_cmd = _build_block_command(version, stage, agent)
+    files_list = '\n'.join(f'  - {f}' for f in files) if files else '  (no specific files)'
+
+    if is_resume:
+        partial_list = '\n'.join(f'  - {f}' for f in partial_files) if partial_files else '  (none detected)'
+        return f"""🔄 RESUME — Pipeline {version} / Stage: {stage}
+Attempt {resume_count + 1} of {MAX_RESUMES + 1} (previous session timed out)
+
+⚠️ This is a FRESH session — you have NO context from the previous attempt.
+Read your memory files first: they contain a checkpoint of what happened.
+
+**Partial work detected:**
+{partial_list}
+
+**Critical:** Read your memory files FIRST. Continue from where the previous session left off.
+
+**When you finish:**
+```
+{comp_cmd}
+```
+
+If you need to BLOCK:
+```
+{block_cmd}
+```
+"""
+
+    return f"""🔄 Pipeline Handoff — {version}
+
+**Stage completed:** {_previous_stage(stage) or 'initial'}
+**Your task:** {stage}
+**Summary:** {notes or '(no notes from previous stage)'}
+
+⚠️ **IMPORTANT — Session Protocol:**
+This is a FRESH session. You have no prior context except your memory files.
+1. Read your memory files first: `memory/` directory in your workspace
+2. Read the files listed below for pipeline context
+3. Do your work for THIS pipeline only (one pipeline per session)
+4. Before completing, crystallize what you learned to memory.
+
+**Read these files before starting:**
+{files_list}
+
+**When you finish:**
+```
+{comp_cmd}
+```
+
+If you need to BLOCK:
+```
+{block_cmd}
+```
+"""
+
+
+def _previous_stage(stage: str) -> str | None:
+    """Get the stage that precedes this one in the sequence."""
+    try:
+        idx = STAGE_SEQUENCE.index(stage)
+        return STAGE_SEQUENCE[idx - 1] if idx > 0 else None
+    except ValueError:
+        return None
+
+
+def _files_for_stage(version: str, stage: str, agent: str) -> list[str]:
+    """Determine which files an agent should read for a given stage."""
+    base_files = []
+
+    # Task file (if exists)
+    task_candidates = list(WORKSPACE.glob(f'tasks/*{version}*'))
+    for tc in task_candidates:
+        base_files.append(str(tc.relative_to(WORKSPACE)))
+
+    # Previous stage artifacts
+    if 'critic' in stage:
+        # Critics read the architect's design
+        design_file = BUILDS_DIR / f'{version}_architect_design.md'
+        if design_file.exists():
+            base_files.append(str(design_file.relative_to(WORKSPACE)))
+    if 'builder' in stage:
+        # Builders read design + critic review
+        for suffix in ['_architect_design.md', '_critic_design_review.md']:
+            f = BUILDS_DIR / f'{version}{suffix}'
+            if f.exists():
+                base_files.append(str(f.relative_to(WORKSPACE)))
+    if 'code_review' in stage:
+        # Code reviewers read the implementation
+        impl_file = BUILDS_DIR / f'{version}_builder_implementation.md'
+        if impl_file.exists():
+            base_files.append(str(impl_file.relative_to(WORKSPACE)))
+
+    return base_files
+
+
+def _detect_partial_work(version: str, window_minutes: int = 12) -> list[str]:
+    """Scan pipeline_builds/ for recently-modified files matching this version."""
+    partial = []
+    if not BUILDS_DIR.exists():
+        return partial
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+    for f in BUILDS_DIR.glob(f'{version}*'):
+        try:
+            mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+            if mtime > cutoff:
+                partial.append(str(f.relative_to(WORKSPACE)))
+        except OSError:
+            pass
+    return partial
+
+
+def build_dispatch_payload(version: str, stage: str, agent: str,
+                            notes: str = '', is_resume: bool = False,
+                            resume_count: int = 0) -> DispatchPayload:
+    """Build a structured dispatch payload. Zero coordinator reasoning tokens.
+
+    The coordinator receives this and relays spawn parameters mechanically.
+    """
+    version = resolve_pipeline(version) or version
+    coord = _get_pipeline_coord(version)
+    agent_info = AGENT_ROSTER.get(agent, {})
+    session_id = str(uuid.uuid4())
+    files = _files_for_stage(version, stage, agent)
+    partial = _detect_partial_work(version) if is_resume else []
+
+    task = _build_task_prompt(
+        version, stage, agent, notes, files,
+        is_resume=is_resume, resume_count=resume_count,
+        partial_files=partial,
+    )
+
+    return DispatchPayload(
+        agent=agent,
+        task=task,
+        model=agent_info.get('model'),
+        timeout=agent_info.get('timeout', 600),
+        label=f'{version}/{stage}',
+        session_id=session_id,
+        background=True,
+        pre_actions=[
+            {'action': 'session_reset', 'agent': agent},
+            {'action': 'memory_consolidate', 'agent': agent, 'version': version, 'stage': stage},
+        ],
+        post_actions=[
+            {'action': 'write_handoff', 'version': version, 'stage': stage, 'agent': agent},
+            {'action': 'notify', 'channel': 'telegram', 'message': f'🏗️ {agent.title()} dispatched for {version}/{stage}'},
+        ],
+        pipeline_version=version,
+        pipeline_coord=coord,
+        current_stage=stage,
+        agent_index=agent_info.get('index', 0),
+        stage_index=STAGE_SEQUENCE.index(stage) if stage in STAGE_SEQUENCE else -1,
+        files_to_read=files,
+        completion_command=_build_completion_command(version, stage, agent),
+    )
+
+
+# ─── Atomic Lock Acquire (TOCTOU fix — critic FLAG-1) ──────────────────────────
+
+LOCKS_DIR = PIPELINES_DIR / 'locks'
+
+
+def atomic_lock_acquire(pipeline: str, agent: str, pid: int = None,
+                         timeout_minutes: int = 10) -> bool:
+    """Acquire a pipeline lock atomically using O_CREAT|O_EXCL.
+
+    Prevents TOCTOU race condition where two concurrent processes both
+    see "no lock" and both write. The kernel guarantees only one O_EXCL
+    open succeeds.
+
+    Returns True if lock acquired, False if already locked by live process.
+    """
+    if pid is None:
+        pid = os.getpid()
+
+    LOCKS_DIR.mkdir(parents=True, exist_ok=True)
+    lock_file = LOCKS_DIR / f'{pipeline}.lock.json'
+
+    # Check if existing lock is stale (different from acquire — read-only check)
+    if lock_file.exists():
+        try:
+            existing = json.loads(lock_file.read_text())
+            existing_pid = existing.get('pid')
+            if existing_pid and _pid_alive(existing_pid):
+                return False  # Genuinely locked by live process
+            # Stale lock — remove it, then try atomic acquire
+            lock_file.unlink(missing_ok=True)
+            fl = generate_f_label('lock_change', {'pipeline': pipeline, 'action': 'stale_cleared'})
+            print(f'  {fl}')
+        except (json.JSONDecodeError, OSError):
+            lock_file.unlink(missing_ok=True)
+
+    # Atomic create: O_CREAT|O_EXCL guarantees only one process wins
+    lock_data = {
+        'pipeline': pipeline,
+        'agent': agent,
+        'pid': pid,
+        'session_id': str(uuid.uuid4()),
+        'acquired_at': datetime.now(timezone.utc).isoformat(),
+        'timeout_at': (datetime.now(timezone.utc) + timedelta(minutes=timeout_minutes)).isoformat(),
+        'resume_count': 0,
+    }
+
+    try:
+        fd = os.open(str(lock_file), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        try:
+            os.write(fd, json.dumps(lock_data, indent=2).encode())
+        finally:
+            os.close(fd)
+        fl = generate_f_label('lock_change', {'pipeline': pipeline, 'action': 'acquired'})
+        print(f'  {fl}')
+        return True
+    except FileExistsError:
+        # Another process won the race
+        return False
+
+
+def atomic_lock_release(pipeline: str) -> bool:
+    """Release a pipeline lock. Returns True if lock existed."""
+    lock_file = LOCKS_DIR / f'{pipeline}.lock.json'
+    if lock_file.exists():
+        lock_file.unlink(missing_ok=True)
+        fl = generate_f_label('lock_change', {'pipeline': pipeline, 'action': 'released'})
+        print(f'  {fl}')
+        return True
+    return False
+
+
+def _pid_alive(pid: int) -> bool:
+    """Check if a PID is alive."""
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except (PermissionError, TypeError):
+        return True
+
+
+def list_central_locks() -> list[dict]:
+    """List all centralized pipeline locks."""
+    locks = []
+    if not LOCKS_DIR.exists():
+        return locks
+    for f in LOCKS_DIR.glob('*.lock.json'):
+        try:
+            data = json.loads(f.read_text())
+            pid = data.get('pid')
+            data['pid_alive'] = _pid_alive(pid) if pid else False
+            acquired = data.get('acquired_at', '')
+            data['age_minutes'] = minutes_since(acquired)
+            timeout_at = data.get('timeout_at', '')
+            if timeout_at:
+                try:
+                    dt = datetime.fromisoformat(timeout_at)
+                    data['past_timeout'] = datetime.now(timezone.utc) > dt
+                except ValueError:
+                    data['past_timeout'] = False
+            data['stale'] = (not data['pid_alive']) or data.get('past_timeout', False)
+            data['_path'] = str(f)
+            locks.append(data)
+        except (json.JSONDecodeError, OSError):
+            locks.append({'_path': str(f), 'stale': True, 'error': 'unreadable'})
+    return locks
+
+
+# ─── Hook Verification (critic FLAG-2) ─────────────────────────────────────────
+
+def verify_hooks() -> dict:
+    """Verify that orchestration-relevant hooks are properly configured.
+
+    Checks:
+    1. before_prompt_build — pipeline-context plugin injects pipeline state
+    2. Hook naming conventions (colons for internal, underscores for plugin)
+    3. Plugin files exist and are valid
+    4. agent_end hook availability
+
+    Returns dict with verification results for each hook.
+    """
+    results = {
+        'before_prompt_build': {'status': 'unknown', 'details': ''},
+        'agent_end': {'status': 'unknown', 'details': ''},
+        'plugins': [],
+        'naming_conventions': {'status': 'ok', 'issues': []},
+    }
+
+    # Check pipeline-context plugin
+    plugin_dirs = [
+        WORKSPACE / 'plugins' / 'pipeline-context',
+        WORKSPACE / '.openclaw' / 'extensions' / 'pipeline-context',
+    ]
+    for pd in plugin_dirs:
+        index_file = pd / 'index.ts'
+        if index_file.exists():
+            content = index_file.read_text()
+            if 'before_prompt_build' in content:
+                results['before_prompt_build'] = {
+                    'status': 'found',
+                    'details': f'Plugin at {pd} registers before_prompt_build hook',
+                }
+            results['plugins'].append({
+                'path': str(pd),
+                'exists': True,
+                'has_hook': 'before_prompt_build' in content,
+            })
+
+    if results['before_prompt_build']['status'] == 'unknown':
+        results['before_prompt_build'] = {
+            'status': 'not_found',
+            'details': 'No pipeline-context plugin found. Pipeline state injection via hooks unavailable.',
+        }
+
+    # Check codex-cockpit plugin (R-label separation)
+    cockpit_dir = WORKSPACE / 'plugins' / 'codex-cockpit'
+    cockpit_index = cockpit_dir / 'index.ts'
+    if cockpit_index.exists():
+        content = cockpit_index.read_text()
+        if 'F-label' in content or 'f-label' in content or 'F_label' in content:
+            results['plugins'].append({
+                'path': str(cockpit_dir),
+                'exists': True,
+                'f_label_boundary': True,
+                'note': 'Cockpit owns R-labels, engine owns F-labels. Boundary documented.',
+            })
+
+    # Check agent_end hook availability
+    agent_turn_logger = WORKSPACE / 'plugins' / 'agent-turn-logger'
+    if agent_turn_logger.exists():
+        results['agent_end'] = {
+            'status': 'available',
+            'details': 'agent-turn-logger plugin exists. agent_end hook can capture handoff metadata.',
+        }
+    else:
+        results['agent_end'] = {
+            'status': 'not_deployed',
+            'details': 'agent-turn-logger not deployed. agent_end capture deferred (Phase 2).',
+        }
+
+    # Check naming conventions in all plugin files
+    for plugin_dir in (WORKSPACE / 'plugins').iterdir() if (WORKSPACE / 'plugins').exists() else []:
+        if not plugin_dir.is_dir():
+            continue
+        for ts_file in plugin_dir.glob('*.ts'):
+            try:
+                content = ts_file.read_text()
+                # Internal hooks use colons: agent:bootstrap, before_prompt_build
+                # Plugin hooks use underscores: before_prompt_build, after_tool_call
+                # Flag any that mix conventions incorrectly
+                if 'agent.bootstrap' in content:  # Wrong: should be agent:bootstrap
+                    results['naming_conventions']['issues'].append(
+                        f'{ts_file}: uses "agent.bootstrap" instead of "agent:bootstrap"'
+                    )
+                    results['naming_conventions']['status'] = 'warning'
+            except OSError:
+                pass
+
+    return results
 
 
 # ─── Import from existing scripts (reuse, don't rewrite) ───────────────────────
@@ -397,16 +948,17 @@ def _gate_status_for(version: str, fm: dict, state: dict) -> dict:
 
 # ─── Dispatch & Handoff ────────────────────────────────────────────────────────
 
-def pipeline_dispatch(version: str, agent: str, stage: str = None) -> bool:
+def pipeline_dispatch(version: str, agent: str, stage: str = None,
+                       structured: bool = False) -> bool | dict:
     """Dispatch an agent to work on a pipeline.
 
-    Handles context assembly + session spawn via the existing orchestrate machinery.
-    Returns True if dispatch succeeded.
+    If structured=True, returns a DispatchPayload dict instead of executing.
+    This enables zero-coordinator-token relay — the coordinator just passes
+    the JSON blob to sessions_spawn without reasoning about prompt construction.
+
+    Returns True/dict if dispatch succeeded, False if failed.
     """
     version = resolve_pipeline(version) or version
-    if not _HAS_ORCHESTRATE:
-        print(f'ERROR: pipeline_orchestrate.py not available for dispatch')
-        return False
 
     state = load_state_json(version)
     pending = state.get('pending_action', 'none')
@@ -418,15 +970,33 @@ def pipeline_dispatch(version: str, agent: str, stage: str = None) -> bool:
         print(f'  No pending action for {version} -- nothing to dispatch')
         return False
 
+    # Structured dispatch: build payload and return it
+    if structured or '--json' in sys.argv:
+        payload = build_dispatch_payload(version, stage, agent)
+        fl = generate_f_label('dispatch', {
+            'agent': agent, 'coord': _get_pipeline_coord(version), 'stage': stage
+        })
+        print(f'  {fl}', file=sys.stderr)
+        return payload.to_dict()
+
+    # Legacy dispatch via orchestrate machinery
+    if not _HAS_ORCHESTRATE:
+        print(f'ERROR: pipeline_orchestrate.py not available for dispatch')
+        return False
+
+    fl = generate_f_label('dispatch', {
+        'agent': agent, 'coord': _get_pipeline_coord(version), 'stage': stage
+    })
+
     # Use orchestrate_complete to trigger the dispatch chain
     # For initial kickoff (pipeline_created), use that as the completed stage
     if stage == 'pipeline_created' or stage == 'architect_design':
-        print(f'  Dispatching {agent} for {version}/{stage}')
+        print(f'  {fl}')
         return orchestrate_complete(version, 'pipeline_created', 'belam-main',
                                      f'Dispatched by orchestration_engine')
     else:
         # Build and send a handoff message directly
-        print(f'  Dispatching {agent} for {version}/{stage}')
+        print(f'  {fl}')
         reset_agent_session(agent)
         session_id = generate_session_id(version, agent)
         handoff_msg = build_handoff_message(version, '', stage, agent,
@@ -434,15 +1004,13 @@ def pipeline_dispatch(version: str, agent: str, stage: str = None) -> bool:
         wake_result = wake_agent(agent, handoff_msg, timeout=600, session_id=session_id)
 
         if wake_result['success']:
-            print(f'  F1 D {version}.dispatch {agent} -> {stage} OK')
             write_handoff(version, '', stage, agent, wake_result, session_id)
             return True
         elif wake_result['status'] == 'timeout':
-            print(f'  F1 D {version}.dispatch {agent} -> {stage} TIMEOUT (checkpoint-and-resume)')
             wake_result = checkpoint_and_resume(agent, version, stage, '', resume_count=0)
             return wake_result.get('success', False)
         else:
-            print(f'  F1 D {version}.dispatch {agent} -> {stage} FAILED: {wake_result.get("error", "")}')
+            print(f'  FAILED: {wake_result.get("error", "")}')
             return False
 
 
@@ -974,6 +1542,133 @@ def sweep(dry_run: bool = False) -> list[str]:
     return actions
 
 
+# ─── Complete / Block Handlers ──────────────────────────────────────────────────
+
+def handle_complete(version: str, stage: str, agent: str,
+                     notes: str = '', learnings: str = '') -> dict:
+    """Handle stage completion. Returns dispatch payload for next stage.
+
+    This is what agents call when they finish their work:
+      python3 scripts/orchestration_engine.py complete <version> <stage> --agent <agent> --notes "..."
+
+    The engine:
+    1. Records completion
+    2. Determines next stage from transition map
+    3. Builds dispatch payload for the next agent
+    4. Returns payload (interactive) or executes (headless)
+    """
+    version = resolve_pipeline(version) or version
+    coord = _get_pipeline_coord(version)
+
+    # Generate F-label for state transition
+    fl = generate_f_label('stage_change', {
+        'old_stage': stage, 'new_stage': _next_stage_for(stage),
+        'coord': coord,
+    })
+    print(f'  {fl}')
+
+    # Use legacy orchestrate_complete if available
+    if _HAS_ORCHESTRATE:
+        try:
+            result = orchestrate_complete(version, stage, agent, notes)
+            return {'status': 'completed', 'dispatched': bool(result), 'f_label': fl}
+        except Exception as e:
+            return {'status': 'error', 'error': str(e), 'f_label': fl}
+
+    # Fallback: just update state and build next payload
+    next_stg = _next_stage_for(stage)
+    if not next_stg:
+        return {'status': 'terminal', 'message': f'No transition from {stage}', 'f_label': fl}
+
+    next_agent = _agent_from_action(next_stg)
+    payload = build_dispatch_payload(version, next_stg, next_agent, notes=notes)
+
+    return {
+        'status': 'completed',
+        'next_dispatch': payload.to_dict(),
+        'f_label': fl,
+    }
+
+
+def handle_block(version: str, stage: str, agent: str,
+                  notes: str = '', learnings: str = '') -> dict:
+    """Handle stage block. Routes back to the fixing agent.
+
+    Blocks reverse direction — critic sends work back to architect.
+    """
+    version = resolve_pipeline(version) or version
+    coord = _get_pipeline_coord(version)
+
+    # Determine block target
+    block_target = _block_target_for(stage)
+    fl = generate_f_label('stage_change', {
+        'old_stage': stage, 'new_stage': block_target or 'blocked',
+        'coord': coord,
+    })
+    print(f'  {fl}')
+
+    if _HAS_ORCHESTRATE:
+        try:
+            result = orchestrate_block(version, stage, agent, notes)
+            return {'status': 'blocked', 'dispatched': bool(result), 'f_label': fl}
+        except Exception as e:
+            return {'status': 'error', 'error': str(e), 'f_label': fl}
+
+    if not block_target:
+        return {'status': 'blocked', 'message': f'No block target for {stage}', 'f_label': fl}
+
+    target_agent = _agent_from_action(block_target)
+    payload = build_dispatch_payload(version, block_target, target_agent, notes=notes)
+
+    return {
+        'status': 'blocked',
+        'next_dispatch': payload.to_dict(),
+        'f_label': fl,
+    }
+
+
+def _next_stage_for(stage: str) -> str | None:
+    """Get the next stage in the standard transition sequence."""
+    # Try pipeline_update.py STAGE_TRANSITIONS first
+    try:
+        from pipeline_update import STAGE_TRANSITIONS
+        transition = STAGE_TRANSITIONS.get(stage)
+        if transition:
+            return transition[0]  # (next_stage, expected_agent, desc)
+    except ImportError:
+        pass
+
+    # Fallback to STAGE_SEQUENCE
+    try:
+        idx = STAGE_SEQUENCE.index(stage)
+        if idx + 1 < len(STAGE_SEQUENCE):
+            return STAGE_SEQUENCE[idx + 1]
+    except ValueError:
+        pass
+
+    return None
+
+
+def _block_target_for(stage: str) -> str | None:
+    """Get the block-reversal target for a stage."""
+    try:
+        from pipeline_update import BLOCK_TRANSITIONS
+        transition = BLOCK_TRANSITIONS.get(stage)
+        if transition:
+            return transition[0]
+    except ImportError:
+        pass
+
+    # Common block patterns
+    block_map = {
+        'critic_design_review': 'architect_design_revision',
+        'critic_code_review': 'builder_apply_blocks',
+        'phase2_critic_design_review': 'phase2_architect_revision',
+        'phase2_critic_code_review': 'phase2_builder_apply_blocks',
+    }
+    return block_map.get(stage)
+
+
 # ─── CLI Rendering Helpers ──────────────────────────────────────────────────────
 
 def _render_status(version: str):
@@ -1109,6 +1804,9 @@ def main():
     dry_run = '--dry-run' in args
     if dry_run:
         args.remove('--dry-run')
+    json_mode = '--json' in args
+    if json_mode:
+        args.remove('--json')
 
     if not args:
         # Full sweep
@@ -1121,20 +1819,36 @@ def main():
         if len(args) < 2:
             print('Usage: orchestration_engine.py status <version>')
             sys.exit(1)
-        _render_status(args[1])
+        if json_mode:
+            print(json.dumps(pipeline_status(args[1]), indent=2, default=str))
+        else:
+            _render_status(args[1])
 
     elif cmd == 'gates':
         version = args[1] if len(args) > 1 else None
-        _render_gates(version)
+        if json_mode:
+            print(json.dumps(check_gates(version=version), indent=2, default=str))
+        else:
+            _render_gates(version)
 
     elif cmd == 'handoffs':
-        _render_handoffs()
+        if json_mode:
+            print(json.dumps(check_handoffs(), indent=2, default=str))
+        else:
+            _render_handoffs()
 
     elif cmd == 'locks':
-        _render_locks()
+        if json_mode:
+            all_locks = list_locks() + list_central_locks()
+            print(json.dumps(all_locks, indent=2, default=str))
+        else:
+            _render_locks()
 
     elif cmd == 'stalls':
-        _render_stalls()
+        if json_mode:
+            print(json.dumps(check_stalls(), indent=2, default=str))
+        else:
+            _render_stalls()
 
     elif cmd == 'next':
         if len(args) < 2:
@@ -1149,7 +1863,52 @@ def main():
         version = args[1]
         agent = args[2]
         stage = args[3] if len(args) > 3 else None
-        pipeline_dispatch(version, agent, stage)
+        result = pipeline_dispatch(version, agent, stage, structured=json_mode)
+        if json_mode and isinstance(result, dict):
+            print(json.dumps(result, indent=2, default=str))
+
+    elif cmd == 'complete':
+        if len(args) < 3:
+            print('Usage: orchestration_engine.py complete <version> <stage> --agent <agent> --notes "..."')
+            sys.exit(1)
+        version = args[1]
+        stage = args[2]
+        agent = _extract_flag(args, '--agent') or _agent_from_action(stage)
+        notes = _extract_flag(args, '--notes') or ''
+        learnings = _extract_flag(args, '--learnings') or ''
+        result = handle_complete(version, stage, agent, notes, learnings)
+        if json_mode:
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            status = result.get('status', 'unknown')
+            fl = result.get('f_label', '')
+            print(f'\n  Complete: {version}/{stage} -> {status}')
+            if fl:
+                print(f'  {fl}')
+            if result.get('next_dispatch'):
+                next_label = result['next_dispatch'].get('spawn', {}).get('label', '')
+                print(f'  Next: {next_label}')
+            print()
+
+    elif cmd == 'block':
+        if len(args) < 3:
+            print('Usage: orchestration_engine.py block <version> <stage> --agent <agent> --notes "..."')
+            sys.exit(1)
+        version = args[1]
+        stage = args[2]
+        agent = _extract_flag(args, '--agent') or _agent_from_action(stage)
+        notes = _extract_flag(args, '--notes') or ''
+        learnings = _extract_flag(args, '--learnings') or ''
+        result = handle_block(version, stage, agent, notes, learnings)
+        if json_mode:
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            status = result.get('status', 'unknown')
+            fl = result.get('f_label', '')
+            print(f'\n  Block: {version}/{stage} -> {status}')
+            if fl:
+                print(f'  {fl}')
+            print()
 
     elif cmd == 'resume':
         if len(args) < 2:
@@ -1162,21 +1921,31 @@ def main():
             print('Usage: orchestration_engine.py release-lock <version>')
             sys.exit(1)
         release_lock(args[1])
+        # Also try central lock
+        atomic_lock_release(args[1])
 
     elif cmd == 'list':
         pipelines = get_active_pipelines()
         if not pipelines:
             print('\nNo active pipelines.\n')
             return
-        print(f'\n--- Active Pipelines ---\n')
-        for i, p in enumerate(pipelines, 1):
-            pending = p['pending_action']
-            agent = _agent_from_action(pending)
-            age = minutes_since(p['last_updated'])
-            age_str = _format_age(age)
-            pri = p['frontmatter'].get('priority', '-')
-            print(f'  p{i} {p["version"]:<35} {pending:<30} {agent:<10} {age_str:<12} [{pri}]')
-        print()
+        if json_mode:
+            print(json.dumps([{
+                'index': i, 'coord': f'p{i}',
+                'version': p['version'], 'pending_action': p['pending_action'],
+                'agent': _agent_from_action(p['pending_action']),
+                'priority': p['frontmatter'].get('priority', '-'),
+            } for i, p in enumerate(pipelines, 1)], indent=2))
+        else:
+            print(f'\n--- Active Pipelines ---\n')
+            for i, p in enumerate(pipelines, 1):
+                pending = p['pending_action']
+                agent = _agent_from_action(pending)
+                age = minutes_since(p['last_updated'])
+                age_str = _format_age(age)
+                pri = p['frontmatter'].get('priority', '-')
+                print(f'  p{i} {p["version"]:<35} {pending:<30} {agent:<10} {age_str:<12} [{pri}]')
+            print()
 
     elif cmd == 'resolve':
         if len(args) < 2:
@@ -1187,6 +1956,28 @@ def main():
 
     elif cmd == 'sweep':
         sweep(dry_run=dry_run)
+
+    elif cmd == 'verify-hooks':
+        results = verify_hooks()
+        if json_mode:
+            print(json.dumps(results, indent=2, default=str))
+        else:
+            _render_hook_verification(results)
+
+    elif cmd == 'dispatch-payload':
+        # Explicit structured dispatch payload (always JSON)
+        if len(args) < 3:
+            print('Usage: orchestration_engine.py dispatch-payload <version> <agent> [stage]')
+            sys.exit(1)
+        version = args[1]
+        agent = args[2]
+        stage = args[3] if len(args) > 3 else None
+        version = resolve_pipeline(version) or version
+        state = load_state_json(version)
+        if stage is None:
+            stage = state.get('pending_action', 'none')
+        payload = build_dispatch_payload(version, stage, agent)
+        print(json.dumps(payload.to_dict(), indent=2, default=str))
 
     elif cmd == 'help' or cmd == '--help' or cmd == '-h':
         print(__doc__)
@@ -1199,9 +1990,53 @@ def main():
         else:
             print(f'Unknown command: {cmd}')
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
-            print('          release-lock, list, resolve, sweep, help')
+            print('          complete, block, release-lock, list, resolve, sweep,')
+            print('          dispatch-payload, verify-hooks, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)
+
+
+def _extract_flag(args: list, flag: str) -> str | None:
+    """Extract a --flag value from args list."""
+    try:
+        idx = args.index(flag)
+        if idx + 1 < len(args):
+            return args[idx + 1]
+    except ValueError:
+        pass
+    return None
+
+
+def _render_hook_verification(results: dict):
+    """Render hook verification results to stdout."""
+    print(f'\n--- Hook Verification ---\n')
+
+    bpb = results.get('before_prompt_build', {})
+    print(f'  before_prompt_build: {bpb.get("status", "?")}')
+    if bpb.get('details'):
+        print(f'    {bpb["details"]}')
+
+    ae = results.get('agent_end', {})
+    print(f'  agent_end: {ae.get("status", "?")}')
+    if ae.get('details'):
+        print(f'    {ae["details"]}')
+
+    plugins = results.get('plugins', [])
+    if plugins:
+        print(f'\n  Plugins ({len(plugins)}):')
+        for p in plugins:
+            exists = '✓' if p.get('exists') else '✗'
+            print(f'    {exists} {p.get("path", "?")}')
+
+    naming = results.get('naming_conventions', {})
+    if naming.get('issues'):
+        print(f'\n  Naming Issues:')
+        for issue in naming['issues']:
+            print(f'    ⚠ {issue}')
+    else:
+        print(f'\n  Naming conventions: OK')
+
+    print()
 
 
 if __name__ == '__main__':
