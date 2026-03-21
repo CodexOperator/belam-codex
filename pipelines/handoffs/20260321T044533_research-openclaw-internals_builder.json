@@ -1,0 +1,15 @@
+{
+  "version": "research-openclaw-internals",
+  "completed_stage": "local_analysis_critic_review",
+  "next_stage": "local_analysis_builder",
+  "next_agent": "builder",
+  "timestamp": "2026-03-21T04:45:33.854939+00:00",
+  "pipeline_session_id": "12f35019-6053-4388-a9bc-244af66bd98c",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "ca1613c2-9c05-41ae-999b-58811fe5a8c1",
+    "response_preview": "Now let me check the pipeline state and read the critic review and architect design."
+  },
+  "verified": true
+}
