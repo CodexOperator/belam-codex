@@ -1,14 +1,13 @@
 {
   "status": "complete",
-  "session": "e563bfbc-506d-456b-9237-e13e792819b9",
+  "session": "b9b39122-7f16-4097-b9f0-62911c229de9",
   "instance": "main",
   "date": "2026-03-21",
-  "completed_at": "2026-03-21T06:57:00Z",
+  "completed_at": "2026-03-21T09:22:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-21_065733_major-codex-engine-v2-coordinate-grammar.md",
-    "memory/entries/2026-03-21_065733_codex-codecpy-built-and-committed-2525-t.md",
-    "decisions/codex-engine-dense-alphanumeric-coordinate-grammar.md",
-    "decisions/codex-engine-e-namespace-for-modes.md",
-    "lessons/token-ids-affect-attention-quality-not-just-count.md"
+    "memory/entries/2026-03-21_092223_task-doc-cleanup-session-closed-v1-codex.md",
+    "memory/entries/2026-03-21_092223_codex-engine-v2-and-hook-verification-su.md",
+    "lessons/memory-extraction-misses-design-convergence-in-conversation.md",
+    "lessons/agent-reconstruction-errors-from-fragments-vs-actual-conclusions.md"
   ]
 }

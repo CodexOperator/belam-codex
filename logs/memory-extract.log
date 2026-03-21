@@ -62,3 +62,7 @@
 2026-03-21T06:56:57.877Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-21-0656.md
 2026-03-21T06:56:57.954Z [info] Prompt loaded (41102 bytes), spawning sage
 2026-03-21T06:56:57.969Z [info] Sage spawned {"sessionId":"mem-extract-1774076217878","pid":2668839}
+2026-03-21T09:21:51.561Z [info] Hook fired: new {"instance":"main","workspaceDir":"/home/ubuntu/.openclaw/workspace"}
+2026-03-21T09:21:51.580Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-21-0921.md
+2026-03-21T09:21:51.702Z [info] Prompt loaded (40413 bytes), spawning sage
+2026-03-21T09:21:51.727Z [info] Sage spawned {"sessionId":"mem-extract-1774084911580","pid":2674700}
