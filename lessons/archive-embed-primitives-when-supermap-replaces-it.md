@@ -6,6 +6,8 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, embed-primitives, supermap, boot-context, cleanup, archive-pattern]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # archive-embed-primitives-when-supermap-replaces-it

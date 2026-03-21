@@ -5,6 +5,8 @@ aliases: ["belam nb"]
 description: "List notebooks"
 category: infrastructure
 tags: [notebooks, list]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam notebooks

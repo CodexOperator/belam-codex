@@ -1,10 +1,11 @@
 ---
 title: Indexed Command Interface as Default belam UX
-status: accepted
+status: superseded
 date: 2026-03-20
 upstream: [decisions/clock-cycles-over-tokens]
 downstream: [decisions/primitive-relationship-graph, decision/codex-engine-v1-architecture]
 tags: [infrastructure, cli, ux, belam]
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # Indexed Command Interface as Default belam UX

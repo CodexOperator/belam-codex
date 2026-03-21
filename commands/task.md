@@ -5,6 +5,8 @@ aliases: []
 description: "Show one task (fuzzy match)"
 category: primitives
 tags: [task, detail, fuzzy-match]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam task

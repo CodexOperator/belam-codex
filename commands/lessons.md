@@ -5,6 +5,8 @@ aliases: ["belam l"]
 description: "List all lessons learned"
 category: primitives
 tags: [lessons, knowledge, list]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam lessons

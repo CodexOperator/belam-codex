@@ -5,6 +5,8 @@ aliases: ["belam pj"]
 description: "List all projects"
 category: primitives
 tags: [projects, list, overview]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam projects

@@ -1952,11 +1952,59 @@ def execute_edit(args):
     return 0
 
 
+def _scaffold_pending_action(slug, description):
+    """Write a pending ACTION_REGISTRY stub to the dynamic registry file.
+
+    Called when a command primitive is created via belam -n c 'name'.
+    The stub uses handler: 'pending' and will print a scaffolded-but-not-implemented
+    message when dispatched. Stubs are loaded from PENDING_REGISTRY_FILE at startup.
+    """
+    registry_file = WORKSPACE / 'commands' / '_pending_registry.json'
+    try:
+        if registry_file.exists():
+            with open(registry_file) as f:
+                pending = json.load(f)
+        else:
+            pending = {}
+        # Only add if not already in ACTION_REGISTRY or pending
+        action_word = slug.lower().replace(' ', '-')
+        if action_word not in ACTION_REGISTRY and action_word not in pending:
+            pending[action_word] = {
+                'handler': 'pending',
+                'description': description or f'{action_word} command (scaffolded)',
+            }
+            with open(registry_file, 'w') as f:
+                json.dump(pending, f, indent=2)
+            return action_word
+    except Exception:
+        pass
+    return None
+
+
+def _load_pending_registry():
+    """Load dynamic pending stubs from commands/_pending_registry.json into ACTION_REGISTRY."""
+    registry_file = WORKSPACE / 'commands' / '_pending_registry.json'
+    if not registry_file.exists():
+        return
+    try:
+        with open(registry_file) as f:
+            pending = json.load(f)
+        for word, entry in pending.items():
+            if word not in ACTION_REGISTRY:
+                ACTION_REGISTRY[word] = entry
+                _ALL_ACTION_WORDS.add(word)
+    except Exception:
+        pass
+
+
 def execute_create(args):
     """Handle -n mode: create a new primitive via create_primitive.py.
 
     Usage: belam -n <type_prefix> <title words...>
     Prefixes: t=task, d=decision, l=lesson, w=project, c=command, s=skill
+
+    Primitive-first gate: when creating a command primitive (prefix 'c'),
+    auto-scaffolds a stub entry in ACTION_REGISTRY with handler: 'pending'.
     """
     import subprocess as _sp
 
@@ -2026,6 +2074,19 @@ def execute_create(args):
         for fnum, fi in prim['fields'].items():
             val = _format_value(fi['value'])
             output_lines.append(f"   ╶─ {fnum:<3} {fi['key']:<{max_key_len + 1}} {val}")
+
+    # ── Primitive-first gate: scaffold pending ACTION_REGISTRY entry for commands ──
+    if type_prefix == 'c':
+        # Extract description from frontmatter
+        desc = ''
+        for fi in prim['fields'].values():
+            if fi['key'] == 'description':
+                desc = str(fi['value'])
+                break
+        action_word = _scaffold_pending_action(slug, desc)
+        if action_word:
+            output_lines.append(f"   ╶─ 📌 scaffolded ACTION_REGISTRY['{action_word}'] handler: pending")
+            output_lines.append(f"      Edit ACTION_REGISTRY in codex_engine.py to wire the implementation.")
 
     # Track F-label (create is not undo-able via simple field restore, mark as create)
     tracker.push_f_label({
@@ -2666,9 +2727,8 @@ ACTION_REGISTRY = {
     'report':           {'script': 'pipeline_orchestrate.py',   'needs_version': True,  'args_suffix': ['report-build'],    'description': 'Build LaTeX report'},
 
     # Primitives
-    'create':           {'script': 'create_primitive.py',       'description': 'Create a new primitive'},
-    'new':              {'alias': 'create'},
-    'edit':             {'script': 'edit_primitive.py',         'description': 'Edit a primitive'},
+    # create/new: SUPERSEDED by belam -n mode (execute_create in codex_engine.py)
+    # edit: SUPERSEDED by belam -e mode (execute_edit in codex_engine.py)
     'audit':            {'script': 'audit_primitives.py',       'description': 'Audit primitive consistency'},
     'au':               {'alias': 'audit'},
     # embed-primitives: ARCHIVED — supermap hook replaced static indexes
@@ -2703,6 +2763,10 @@ ACTION_REGISTRY = {
     'ex':               {'alias': 'extract'},
     'edges':            {'handler': 'edges',                    'description': 'Check/fix missing inter-primitive edges'},
     'eg':               {'alias': 'edges'},
+
+    # Live diff daemon (V3)
+    'watch':            {'script': 'codex_watch.py', 'args_prefix': ['--watch'],       'description': 'Start/manage live diff daemon'},
+    'diffs':            {'script': 'codex_watch.py', 'args_prefix': ['--read-diffs'],  'description': 'Read accumulated live diffs since last check'},
 }
 
 # Resolved set of all known action words (including aliases)
@@ -2754,6 +2818,10 @@ def dispatch_action(action_word, remaining_args):
     # ── Handler-based dispatch ─────────────────────────────────────────────────
     if 'handler' in entry:
         handler = entry['handler']
+
+        if handler == 'pending':
+            print(f"Command '{canonical}' is scaffolded but not yet implemented. Edit ACTION_REGISTRY to wire it.")
+            return 0
 
         if handler == 'status':
             result = subprocess.run([belam_bin, '--raw', 'status'] + list(remaining_args), cwd=str(WORKSPACE))
@@ -2922,7 +2990,7 @@ def _print_action_help():
         ('Memory',     ['log', 'consolidate']),
         ('Pipelines',  ['pipelines', 'kickoff', 'revise', 'autorun', 'cleanup', 'handoffs', 'queue-revision']),
         ('Experiments',['run', 'analyze', 'analyze-local', 'report']),
-        ('Primitives', ['create', 'edit', 'audit', 'link']),
+        ('Primitives', ['audit', 'link']),
         ('Notebooks',  ['build', 'notebooks']),
         ('Sessions',   ['session', 'spawn']),
         ('Other',      ['status', 'conversations', 'knowledge-sync', 'transcribe', 'help']),
@@ -2965,6 +3033,9 @@ def main(args=None):
     """Main entry point. Parses args, renders, tracks, prints."""
     if args is None:
         args = sys.argv[1:]
+
+    # Load pending stubs from commands/_pending_registry.json (primitive-first gate)
+    _load_pending_registry()
 
     # ── Pre-parse global flags: --as, --tag, --since ────────────────────────────
     persona = None

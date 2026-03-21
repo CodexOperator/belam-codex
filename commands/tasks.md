@@ -5,6 +5,8 @@ aliases: ["belam t"]
 description: "List all tasks with status and priority"
 category: primitives
 tags: [tasks, list, status]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam tasks

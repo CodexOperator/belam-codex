@@ -5,6 +5,8 @@ aliases: ["belam p <ver>"]
 description: "Detail view of a pipeline with stage history, plus update/launch/analyze subcommands"
 category: pipeline
 tags: [pipeline, detail, stages, watch]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam pipeline

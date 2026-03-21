@@ -5,6 +5,8 @@ aliases: []
 description: "Create a new primitive (lesson/decision/task/project/skill) with frontmatter scaffolding"
 category: primitives
 tags: [create, primitives, scaffolding]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam create

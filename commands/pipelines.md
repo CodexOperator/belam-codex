@@ -5,6 +5,8 @@ aliases: ["belam pl"]
 description: "Pipeline dashboard with statuses"
 category: pipeline
 tags: [pipelines, dashboard, status]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam pipelines

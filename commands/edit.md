@@ -5,6 +5,8 @@ aliases: []
 description: "Fuzzy-match and edit primitives, --set key=value for frontmatter updates"
 category: primitives
 tags: [edit, primitives, fuzzy-match, frontmatter]
+status: superseded
+superseded_by: decision/codex-engine-v1-architecture
 ---
 
 # belam edit
