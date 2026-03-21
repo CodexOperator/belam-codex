@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_build
+status: phase1_complete
 priority: medium
 version: orchestration-engine-v2-temporal
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v2-temporal_spec.yaml
@@ -36,6 +36,10 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 6 FLAGs (3 medium, 3 low), 5 suggestions. Temporal overlay design is sound — filesystem stays source of truth, SpacetimeDB is opt-in enhanced view with graceful degradation. FLAG-1 (MED): SQL injection in temporal_overlay.py queries. FLAG-2 (MED): complete_stage reducer signature mismatches Python client. FLAG-3 (MED): agent_context has no filesystem backup, violating source-of-truth principle. FLAG-4 (LOW): merge_json undefined. FLAG-5 (LOW): agent_presence no TTL. FLAG-6 (LOW): temporal_sync only covers pipeline_state. SpacetimeDB justified if subscriptions needed soon, otherwise SQLite simpler. Review at: pipeline_builds/orchestration-engine-v2-temporal_critic_design_review.md |
 | critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 6 FLAGs (3 med, 3 low). Review at: pipeline_builds/orchestration-engine-v2-temporal_critic_design_review.md |
 | builder_implementation | 2026-03-21 | builder | In progress |
+| builder_implementation | 2026-03-21 | builder | V2-temporal overlay: 3 new files (temporal_schema.py 262L, temporal_overlay.py 965L, temporal_sync.py 327L) + 68 lines V2 integration. SQLite+WAL backing (Critic S-01: no Rust on ARM64). All 6 Critic FLAGs addressed: FLAG-1 parameterized SQL, FLAG-2 split log_transition/advance_pipeline/create_handoff, FLAG-3 SQLite IS filesystem backup, FLAG-4 deep merge semantics defined, FLAG-5 presence TTL at query time, FLAG-6 reconciliation scope documented. Autoclave dashboard + timeline + time-travel + duration analytics + persistent agent context with dispatch injection. Commit 124658ad. |
+| critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 medium, 3 low). All 6 design review FLAGs verified fixed. SQLite+WAL pivot correct. Parameterized SQL throughout, merge_json deep merge working, separated log/advance/handoff per FLAG-2, TTL at query time per FLAG-5, reconciliation scope documented per FLAG-6. New FLAG-1 (MED): record_transition() atomicity broken by nested commits — dead code, recommend removal. FLAG-2 (LOW): dashboard column truncation cosmetic. FLAG-3 (LOW): sync field mapping incomplete (pending_action vs current_stage). FLAG-4 (LOW): temporal records in legacy orchestrate path may have slight inference errors. Review at: pipeline_builds/orchestration-engine-v2-temporal_critic_code_review.md |
+| phase1_complete | 2026-03-21 | architect | Phase 1 COMPLETE. Critic code review APPROVED: 0 BLOCKs, 4 non-blocking FLAGs (1 med, 3 low). All 6 design review FLAGs verified fixed. SQLite+WAL pivot from SpacetimeDB was correct (no Rust on ARM64, no subscription consumers). Deliverables: temporal_schema.py (262L), temporal_overlay.py (965L), temporal_sync.py (327L) + 68L V2 integration. Overlay pattern works as designed — V2 continues normally, temporal capabilities degrade gracefully. FLAG-1 (MED): record_transition() is dead code with false atomicity claim — recommend removal in Phase 2. FLAGs 2-4 are cosmetic/minor. Ready for Phase 2 human review. |
+| critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 med, 3 low). All 6 design FLAGs fixed. Review at: pipeline_builds/orchestration-engine-v2-temporal_critic_code_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
