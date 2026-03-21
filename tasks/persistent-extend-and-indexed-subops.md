@@ -47,38 +47,49 @@ e31 i.personas       → F1 + config/engine_registry.yaml namespace i→personas
 
 One command: registers namespace, creates directory if needed, teaches e2 the new type, persists across sessions.
 
-## 2. Indexed e3 Sub-Operations
+## 2. Numbered e3 Sub-Operations
 
-### Current → Target
+### e3 Sub-Op Index
 
-| Current | Indexed | Function |
-|---------|---------|----------|
-| `e3 namespace <prefix> <dir>` | `e31 <prefix>.<dir>` | Register namespace |
-| `e3 category <name>` | `e32 <name>` | Create category (dir + namespace) |
-| *(future)* `e3 template <type>` | `e33 <type>` | Register frontmatter template |
-| *(future)* `e3 integrate <path>` | `e34 <path>` | Integrate external code |
+| Index | Operation | Example | Function |
+|-------|-----------|---------|----------|
+| `e3 1` | namespace | `e3 1 i.personas` | Register namespace (persists to YAML) |
+| `e3 2` | category | `e3 2 templates` | Create category (dir + namespace + prefix) |
+| `e3 3` | template | `e3 3 persona` | Register frontmatter template for e2 |
+| `e3 4` | integrate | `e3 4 scripts/new.py` | Integrate external code into engine |
+| `e3` (bare) | list | `e3` | Show all registered extensions |
 
 ### Dense Form Examples
 - `e31 i.personas` — register namespace i → personas/
 - `e32 templates` — create templates category with auto-detected prefix
 - `e33 persona` — register persona frontmatter template for e2
+- `e34 scripts/hook.py` — integrate hook script into engine dispatch
 
-## 3. Indexed e0 Sub-Operations (cleanup)
+## 3. Numbered e0 Sub-Operations
 
-Current state: single-letter shortcuts exist (g, h, s, k, l, r, d, u) but full words also work. Remove word forms, single-letter only:
+Replace all letter-based and word-based sub-ops with numbered indices. Letters route to namespaces, numbers select from lists — one convention everywhere.
 
-| Letter | Operation | Example |
-|--------|-----------|---------|
-| `g` | gates | `e0 g` or `e0g` |
-| `h` | handoffs | `e0 h` |
-| `s` | stalls | `e0 s` |
-| `k` | locks | `e0 k` |
-| `l` | list | `e0 l` |
-| `r` | resume | `e0 p1 r` |
-| `d` | dispatch | `e0 p1 d i1` |
-| `u` | unlock | `e0 u p1` |
+### e0 Sub-Op Index
 
-Full word forms (`gates`, `locks`, `stalls`, etc.) emit deprecation warning then route to single-letter equivalent.
+| Index | Operation | Example | Replaces |
+|-------|-----------|---------|----------|
+| `e0` (bare) | sweep | `e0` | `e0 sweep` |
+| `e0 1` | gates | `e0 1` or `e01` | `e0 g`, `e0 gates` |
+| `e0 2` | handoffs | `e0 2` | `e0 h`, `e0 handoffs` |
+| `e0 3` | stalls | `e0 3` | `e0 s`, `e0 stalls` |
+| `e0 4` | locks | `e0 4` | `e0 k`, `e0 locks` |
+| `e0 5` | list | `e0 5` | `e0 l`, `e0 list` |
+| `e0 6` | dispatch | `e0 p1 6 i1` | `e0 p1 d i1` |
+| `e0 7` | resume | `e0 p1 7` | `e0 p1 r` |
+| `e0 8` | unlock | `e0 8 p1` | `e0 u p1` |
+
+### Dense Form
+- `e01` = gates
+- `e0 p1 6 i1` = dispatch architect to pipeline 1
+- `e0 p1 7` = resume pipeline 1
+
+### Deprecation
+Letter shortcuts (`g`, `h`, `s`, `k`, `l`, `r`, `d`, `u`) and full words (`gates`, `locks`, etc.) emit deprecation warning suggesting numbered equivalent, then execute normally. Remove after 2 sessions.
 
 ## 4. e2 Type Learning from e3
 
@@ -87,7 +98,49 @@ When e3 registers a namespace, it also registers:
 - Default frontmatter fields for that type (from template if e33 was used, otherwise minimal: primitive, status, tags)
 - e2 can then scaffold primitives of that type: `e2 i "new persona"` just works
 
-## 5. Soul Instance Workflow (target state)
+## 5. Legacy Command Audit + Migration
+
+All remaining word-based commands, flags, and references must be migrated to the numbered index convention. No word-based operations should remain as primary interface.
+
+### Audit Scope
+
+**e1 (edit) sub-operations:**
+- Body edit specifiers: `B`, `B+`, `B5`, `B.Section` — these use letters but are field-addressing conventions, not sub-operations. Review whether they should become numbered or stay as-is (B is a special namespace within a primitive, may warrant its own convention).
+
+**e2 (create) arguments:**
+- Currently: `e2 t "title"` — uses namespace letter + quoted string. This is correct (letter = namespace routing). No change needed.
+
+**Action words in dispatch_action():**
+- Currently 55+ action words route through `_ALL_ACTION_WORDS` in codex_engine.py
+- These are legacy belam CLI commands: `pipelines`, `status`, `tasks`, `kick`, `analyze`, `revise`, etc.
+- **Target:** All action words become `e0` sub-operations or coordinate-addressed operations
+- Map each action word to its e0 numbered equivalent or coordinate form
+- Emit deprecation warnings on word usage, route to numbered equivalent
+
+**belam CLI subcommands:**
+- `belam pipelines` → `e0 5` (list)
+- `belam status` → `R` (supermap) or `e0` (sweep)
+- `belam tasks` → `t` (bare namespace)
+- `belam kick <ver>` → `e0 p1 6 i2` (dispatch builder)
+- `belam analyze <ver>` → coordinate-addressed analysis operation
+- All subcommands in `belam_relay.sh` BELAM_COMMANDS list need numbered equivalents
+
+**View modifier flags:**
+- `--as`, `--tag`, `--since`, `--depth`, `-g` — these are camera angle switches, not operations
+- Convention decision: keep as flags (they modify presentation, not state) OR convert to numbered view modifiers
+- Recommendation: keep as flags — they compose orthogonally with any coordinate and don't benefit from indexing
+
+**Hook/plugin references:**
+- Plugin names are currently strings. If plugins become primitives, they'd get a namespace (e.g., `x` for extensions) and coordinate addresses.
+
+### Migration Process
+1. Audit: list every word-based command/sub-op across codex_engine.py, belam.sh, belam_relay.sh
+2. Map: assign numbered equivalent for each
+3. Implement: add numbered routing, keep words as deprecated aliases
+4. Deprecate: words emit warnings for 2 sessions
+5. Remove: words removed, numbers-only
+
+## 6. Soul Instance Workflow (target state)
 
 The soul instance (coordinator) should be able to do everything through engine commands:
 
@@ -115,15 +168,35 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 
 ## Acceptance Criteria
 
+### Persistence
 - [ ] `config/engine_registry.yaml` created and loaded at engine startup
-- [ ] `e31 <prefix>.<dir>` persists namespace registration across sessions
-- [ ] `e32 <name>` creates category (directory + namespace) persistently
-- [ ] `e33 <type>` registers frontmatter template for e2
-- [ ] e2 can scaffold new primitive types registered via e3
-- [ ] e0 word sub-commands deprecated, single-letter is primary
-- [ ] `e0 p1 d i1` dispatches architect persona to pipeline 1
+- [ ] `e31 i.personas` persists namespace registration across sessions
+- [ ] `e32 templates` creates category persistently
+- [ ] `e33 persona` registers frontmatter template for e2
 - [ ] Engine reads registry at startup, merges with hardcoded NAMESPACE
-- [ ] Soul instance can register namespace + create primitives without raw file access
+
+### Numbered Sub-Ops
+- [ ] `e0 1` through `e0 8` replace letter/word sub-ops
+- [ ] `e3 1` through `e3 4` replace word sub-ops
+- [ ] `e0 p1 6 i1` dispatches architect persona to pipeline 1
+- [ ] Dense forms work: `e01`, `e31`, `e0p16i1`
+- [ ] Letter shortcuts (g, h, s, k, l, r, d, u) emit deprecation warnings
+- [ ] Word forms (gates, locks, stalls, etc.) emit deprecation warnings
+
+### Type Learning
+- [ ] e2 can scaffold new primitive types registered via e3
+- [ ] `e2 i "new persona"` works after `e31 i.personas`
+
+### Legacy Audit
+- [ ] All 55+ action words in `_ALL_ACTION_WORDS` mapped to numbered equivalents
+- [ ] All belam CLI subcommands mapped to coordinate equivalents
+- [ ] `belam_relay.sh` BELAM_COMMANDS list updated
+- [ ] No word-based operation remains as primary (all have numbered form)
+- [ ] View modifier flags (`--as`, `--tag`, `--since`, `-g`) confirmed as flags (no migration needed)
+
+### Soul Instance
+- [ ] Soul can register namespace + create primitives without raw file access
+- [ ] Soul can dispatch agents using only coordinates: `e0 p1 6 i1`
 
 ## Dependencies
 
