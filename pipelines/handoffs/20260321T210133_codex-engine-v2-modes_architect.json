@@ -1,10 +1,10 @@
 {
   "version": "codex-engine-v2-modes",
-  "completed_stage": "pipeline_created",
-  "next_stage": "architect_design",
+  "completed_stage": "critic_code_review",
+  "next_stage": "phase1_complete",
   "next_agent": "architect",
-  "timestamp": "2026-03-21T20:42:11.079835+00:00",
-  "pipeline_session_id": "205bd1b4-a296-4594-92c8-edf8f5f2380a",
+  "timestamp": "2026-03-21T21:01:33.331612+00:00",
+  "pipeline_session_id": "48dd8e15-d373-4e41-a1b3-634df031ef54",
   "wake_result": {
     "success": false,
     "status": "parse_error",
@@ -12,5 +12,5 @@
     "response_preview": "[plugins] [agent-end-telemetry] Registered agent_end telemetry hook\n[plugins] [agent-turn-logger] Re"
   },
   "verified": true,
-  "verified_at": "2026-03-21T21:02:02.920097+00:00"
+  "verified_at": "2026-03-21T21:02:21.060014+00:00"
 }

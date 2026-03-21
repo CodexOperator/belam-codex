@@ -11,5 +11,6 @@
     "session_id": "",
     "response_preview": ""
   },
-  "verified": false
+  "verified": true,
+  "verified_at": "2026-03-21T21:02:14.920329+00:00"
 }
