@@ -41,9 +41,8 @@ The same enum-index pattern extends to e0 orchestration commands. Operations are
 - `e0p1 1.i1` — dispatch (op 1) as architect (i1)
 - `e0p1 2` — status (op 2)
 - `e0p1 3` — gates (op 3)
-- `e0p1 4.i1.i3` — handoff (op 4) from architect to critic
-- `e0p1 5` — locks (op 5)
-- `e0p1 6.i1` — complete (op 6) as architect
+- `e0p1 4` — locks (op 4)
+- `e0p1 5.i1` — complete (op 5) as architect → auto-dispatches next agent via transition map
 
 The `.` connector = "as" — links an operation to its target individual(s). `i1`, `i2`, `i3` are already coordinate-addressable personas in the supermap.
 
@@ -56,6 +55,6 @@ No English in the command chain. `--json` flag replaced by output format index (
 - [ ] F-label output shows resolved human-readable value
 - [ ] Schema registry is extensible for new primitive types
 - [ ] `e1 d8 2 1` sets status to the first enum value for that primitive type
-- [ ] E0 operations indexed: dispatch=1, status=2, gates=3, handoff=4, locks=5, complete=6
+- [ ] E0 operations indexed: dispatch=1, status=2, gates=3, locks=4, complete=5 (handoff is implicit via transition map on complete)
 - [ ] `.` connector wires operations to persona coordinates (i1, i2, i3)
 - [ ] Output format indexable (text=default, json=1)
