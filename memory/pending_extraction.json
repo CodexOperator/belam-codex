@@ -1,14 +1,13 @@
 {
   "status": "complete",
-  "session": "1b804d67-9d0a-439b-af5b-b461df076303",
+  "session": "d274a644-00f3-4cfa-aaa8-868e1af644de",
   "instance": "main",
   "date": "2026-03-21",
-  "completed_at": "2026-03-21T01:27:00Z",
+  "completed_at": "2026-03-21T05:14:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-21_012723_auto-memory-extraction-confirmed-end-to.md",
-    "memory/entries/2026-03-21_012730_codex-engine-v2-features-shipped-in-sess.md",
-    "decisions/codex-engine-v2-live-diff-architecture.md",
-    "decisions/codex-engine-v2-primitive-first-gate.md",
-    "lessons/legacy-view-command-primitives-redundant-after-engine.md"
+    "memory/entries/2026-03-21_051420_research-openclaw-internals-pipeline-ran.md",
+    "memory/entries/2026-03-21_051420_deep-architectural-discussion-with-shael.md",
+    "decisions/codex-engine-modes-as-primitives.md",
+    "lessons/plugins-have-presence-commands-are-fire-and-forget.md"
   ]
 }
