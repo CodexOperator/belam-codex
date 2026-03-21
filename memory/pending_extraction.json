@@ -1,13 +1,14 @@
 {
   "status": "complete",
-  "session": "f1efec11-8776-4cd8-a4ef-639b7261ffa4",
+  "session": "1b804d67-9d0a-439b-af5b-b461df076303",
   "instance": "main",
-  "date": "2026-03-20",
-  "completed_at": "2026-03-20T22:28:00Z",
+  "date": "2026-03-21",
+  "completed_at": "2026-03-21T01:27:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-20_222815_debugged-memory-extract-hook-not-firing.md",
-    "lessons/memory-extract-hook-session-file-detection-mismatch.md",
-    "lessons/sage-agent-session-key-stale-after-rename.md",
-    "decisions/memory-extract-hook-error-handling-fix.md"
+    "memory/entries/2026-03-21_012723_auto-memory-extraction-confirmed-end-to.md",
+    "memory/entries/2026-03-21_012730_codex-engine-v2-features-shipped-in-sess.md",
+    "decisions/codex-engine-v2-live-diff-architecture.md",
+    "decisions/codex-engine-v2-primitive-first-gate.md",
+    "lessons/legacy-view-command-primitives-redundant-after-engine.md"
   ]
 }
