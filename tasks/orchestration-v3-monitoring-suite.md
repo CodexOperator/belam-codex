@@ -84,6 +84,14 @@ Use `v` for "view" — viewing *someone else's* state rather than your own. The 
 - Gate status visualization (what's blocking what)
 - Source: `temporal_overlay.get_dashboard()`
 
+### 6. Cascading Dependency Resolution (Live)
+- When a pipeline archives or task completes, downstream deps auto-resolve
+- Dashboard shows dependency cascade in real time: "orch-v1 archived → t8 dep satisfied → t8 eligible"
+- Gate-open events surface as `.v2` live diffs — coordinator sees eligibility the moment it happens
+- Cross-pipeline dependency graph updates reactively (not waiting for next sweep)
+- Decision: `decisions/automated-dependency-resolution-on-completion.md`
+- Source: `resolve_downstream_deps()` in orchestration_engine.py (to be implemented)
+
 ## Integration Points
 
 ### With Codex Engine V3 (t4)
