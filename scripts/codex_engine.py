@@ -1900,7 +1900,9 @@ def execute_edit(args):
             fi = prim['fields'][field_num]
             field_key = fi['key']
             old_val = fi['value']
-            new_val = _coerce_value(new_val_str, old_val)
+            # Enum resolution: numeric value → named enum (e.g., 2 → 'active' for task status)
+            resolved_val_str = _resolve_enum_value(item['prefix'], field_key, new_val_str)
+            new_val = _coerce_value(resolved_val_str, old_val)
 
             operations.append({
                 'filepath': str(item['filepath']), 'coord': coord,
@@ -3063,10 +3065,130 @@ _V2_OP_START_RE = re.compile(r'^e[0-3]([a-z]|$)', re.IGNORECASE)
 # Session-scoped extend registry (in-memory only, V3 will persist)
 _SESSION_EXTENSIONS = {}  # prefix -> (type_label, directory, special_mode)
 
+# Session-scoped integration registry (e3 integrate)
+_SESSION_INTEGRATIONS = {}  # name -> script_path_str
+
+# Extension trail for e3 audit
+_EXTENSION_TRAIL = []  # list of (timestamp, operation, details)
+
+# Deprecation usage telemetry (session-scoped counters)
+_DEPRECATION_HITS = {}  # flag → count this session
+
+# E0 numeric operation index
+E0_OP_INDEX = {
+    '1': 'dispatch', '2': 'status', '3': 'gates', '4': 'locks',
+    '5': 'complete', '6': 'block', '7': 'next', '8': 'archive', '9': 'launch',
+}
+
+# Enum field maps: field_key → {prefix → {int → string}}
+ENUM_FIELDS = {
+    'status': {
+        'd': {1: 'proposed', 2: 'accepted', 3: 'rejected', 4: 'superseded'},
+        't': {1: 'open', 2: 'active', 3: 'in_pipeline', 4: 'complete', 5: 'blocked'},
+        'p': {1: 'phase1_design', 2: 'phase1_build', 3: 'phase1_review',
+              4: 'phase1_complete', 5: 'phase2_build', 6: 'phase2_complete',
+              7: 'phase3_active', 8: 'complete', 9: 'archived'},
+    },
+    'priority': {
+        '_default': {1: 'critical', 2: 'high', 3: 'medium', 4: 'low'},
+    },
+}
+
+# RAM state layer (lazily initialized)
+_RAM = None
+
+
+def _get_ram():
+    """Lazy-init the RAM state layer. Returns CodexRAM or None on import error."""
+    global _RAM
+    if _RAM is None:
+        try:
+            from codex_ram import CodexRAM
+            _RAM = CodexRAM(WORKSPACE)
+            _RAM.snapshot()
+        except Exception:
+            return None
+    return _RAM
+
 
 def _is_v2_op_start(token):
     """Return True if token begins a V2 operation (e0-e3 mode prefix)."""
     return bool(_V2_OP_START_RE.match(token))
+
+
+def _collapse_spaced_v2(tokens):
+    """Collapse spaced V2 input: ['e0', 'p3', 'e1', 't1'] → ['e0p3', 'e1t1'].
+
+    Only collapses bare eN + namespace-target pairs where the second token
+    starts with a known namespace prefix followed by at LEAST one digit.
+    (FLAG-1: require digit to avoid collapsing string args like 'foo' or 'active'.)
+    """
+    result = []
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i]
+        if (re.match(r'^e[0-3]$', tok, re.IGNORECASE) and
+                i + 1 < len(tokens) and
+                re.match(r'^(?:md|mw|mo|[a-z])\d+', tokens[i + 1], re.IGNORECASE)):
+            # Collapse: e0 + p3 → e0p3
+            result.append(tok + tokens[i + 1])
+            i += 2
+        else:
+            result.append(tok)
+            i += 1
+    return result
+
+
+def _resolve_enum_value(prefix, field_key, value_str):
+    """If value_str is a digit and field_key has an enum map for this prefix,
+    resolve to the enum string. Otherwise return value_str unchanged.
+    """
+    if not value_str or not value_str.isdigit():
+        return value_str
+    idx = int(value_str)
+    field_enums = ENUM_FIELDS.get(field_key, {})
+    enum_map = field_enums.get(prefix) or field_enums.get('_default')
+    if enum_map and idx in enum_map:
+        return enum_map[idx]
+    return value_str
+
+
+def _parse_dot_connector(token):
+    """Parse dot-connected token into structured parts.
+
+    FLAG-3 disambiguation: .iN (letter prefix) = connector, .N (bare digit) = output format.
+    '1.i1'     → [('1', None, None), ('i', '1', None)]   — op 1, persona i1
+    '4.i1.i3'  → [('4', None, None), ('i', '1', None), ('i', '3', None)]
+    '2.1'      → [('2', None, '1')]   — op 2, output format .1
+
+    Returns list of tuples: (namespace_or_value, index_or_None, output_format_or_None)
+    """
+    parts = token.split('.')
+    result = []
+    for pi, part in enumerate(parts):
+        if pi > 0 and part.isdigit():
+            # Bare digit after dot = output format suffix (FLAG-3)
+            # Attach as output_format to the previous entry
+            if result:
+                prev = result[-1]
+                result[-1] = (prev[0], prev[1], part)
+            else:
+                result.append((part, None, None))
+            continue
+        m = re.match(r'^([a-z]*)(\d+)?$', part, re.IGNORECASE)
+        if m:
+            ns = m.group(1) or None
+            idx = m.group(2) or None
+            result.append((ns, idx, None))
+        else:
+            result.append((part, None, None))
+    return result
+
+
+def _deprecation_warn(old_flag, new_coord, example):
+    """Print deprecation warning and track usage."""
+    _DEPRECATION_HITS[old_flag] = _DEPRECATION_HITS.get(old_flag, 0) + 1
+    print(f"⚠ {old_flag} is deprecated → use {new_coord} (e.g., {example})")
 
 
 def _parse_dense_target(token):
@@ -3347,7 +3469,27 @@ def _parse_e0_args(op_args):
         remaining = remaining[1:]
         # Check for pipeline-scoped action
         if remaining:
-            action = remaining[0].lower()
+            # FLAG-2: Resolve numeric operation aliases inside pipeline-scoped block
+            raw_action = remaining[0]
+            # Strip dot-connector for alias resolution (e.g., '1.i1' → check '1')
+            action_base = raw_action.split('.')[0] if '.' in raw_action else raw_action
+            if action_base in E0_OP_INDEX:
+                action = E0_OP_INDEX[action_base]
+                # Parse dot-connector for persona (e.g., '1.i1' → dispatch as architect)
+                if '.' in raw_action:
+                    dot_parts = _parse_dot_connector(raw_action)
+                    # Extract persona from connector parts (e.g., .i1 → architect)
+                    for dp_ns, dp_idx, dp_fmt in dot_parts[1:]:
+                        if dp_ns == 'i' and dp_idx:
+                            persona_map = {
+                                '1': 'architect', '2': 'builder', '3': 'critic',
+                            }
+                            result['agent'] = persona_map.get(dp_idx, f'persona-{dp_idx}')
+                    remaining = remaining[1:]
+                else:
+                    remaining = remaining[1:]
+            else:
+                action = remaining[0].lower()
             if action == 'dispatch':
                 result['op'] = 'dispatch'
                 remaining = remaining[1:]

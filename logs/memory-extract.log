@@ -122,3 +122,31 @@
 2026-03-21T20:27:08.290Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-21-2027.md
 2026-03-21T20:27:08.696Z [info] Prompt ready at /tmp/session_extract_prompt_main_4724ea9b-9439-4994-a30f-c1fd65161578.md, spawning sage via codex engine
 2026-03-21T20:27:08.706Z [info] Sage spawn dispatched via codex engine {"pid":2707874}
+2026-03-21T20:31:17.097Z [warn] No workspaceDir in context
+2026-03-21T20:31:22.844Z [warn] No workspaceDir in context
+2026-03-21T20:32:53.732Z [warn] No workspaceDir in context
+2026-03-21T20:32:59.841Z [warn] No workspaceDir in context
+2026-03-21T20:36:21.864Z [warn] No workspaceDir in context
+2026-03-21T20:36:27.629Z [warn] No workspaceDir in context
+2026-03-21T20:37:26.544Z [warn] No workspaceDir in context
+2026-03-21T20:37:32.560Z [warn] No workspaceDir in context
+2026-03-21T20:38:46.193Z [warn] No workspaceDir in context
+2026-03-21T20:38:52.666Z [warn] No workspaceDir in context
+2026-03-21T20:38:58.612Z [warn] No workspaceDir in context
+2026-03-21T20:40:44.725Z [warn] No workspaceDir in context
+2026-03-21T20:41:55.865Z [warn] No workspaceDir in context
+2026-03-21T20:42:01.755Z [warn] No workspaceDir in context
+2026-03-21T20:42:27.784Z [warn] No workspaceDir in context
+2026-03-21T20:42:33.821Z [warn] No workspaceDir in context
+2026-03-21T20:43:10.422Z [warn] No workspaceDir in context
+2026-03-21T20:43:16.264Z [warn] No workspaceDir in context
+2026-03-21T20:43:34.541Z [warn] No workspaceDir in context
+2026-03-21T20:43:40.239Z [warn] No workspaceDir in context
+2026-03-21T20:43:44.384Z [warn] No workspaceDir in context
+2026-03-21T20:43:50.185Z [warn] No workspaceDir in context
+2026-03-21T20:44:37.535Z [warn] No workspaceDir in context
+2026-03-21T20:44:38.239Z [warn] No workspaceDir in context
+2026-03-21T20:44:44.628Z [warn] No workspaceDir in context
+2026-03-21T20:44:44.911Z [warn] No workspaceDir in context
+2026-03-21T20:45:16.371Z [warn] No workspaceDir in context
+2026-03-21T20:45:22.315Z [warn] No workspaceDir in context

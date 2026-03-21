@@ -1,0 +1,15 @@
+{
+  "version": "codex-engine-v2-modes",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-21T20:38:46.498038+00:00",
+  "pipeline_session_id": "bda901bf-2867-4482-9d5c-7a5b7108d1b2",
+  "wake_result": {
+    "success": false,
+    "status": "parse_error",
+    "session_id": "",
+    "response_preview": "[plugins] [agent-end-telemetry] Registered agent_end telemetry hook\n[plugins] [agent-turn-logger] Re"
+  },
+  "verified": false
+}
