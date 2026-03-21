@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, codex-engine, v2, subagents, hooks, dispatch]
 source: "session:b9b39122"
 content: "Codex Engine V2 and hook verification subagents dispatched at 07:28 UTC (session b9b39122). 273 messages trimmed — likely contained V2 dense alphanumeric parser implementation and before_prompt_build hook verification results. Sequencing agreed with Shael: V2 engine first, then orchestration V1 (uses improved engine), then orchestration V2."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

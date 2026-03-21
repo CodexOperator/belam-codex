@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: phase1_build
 priority: critical
 version: orchestration-engine-v2
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v2_spec.yaml
@@ -27,6 +27,8 @@ _Architect designs → Critic reviews → Builder implements_
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-21 | belam-main | Pipeline instance created |
 | pipeline_created | 2026-03-21 | belam-main | Pipeline created: Unified orchestration engine via e0 coordinates, replacing legacy scripts |
+| architect_design | 2026-03-21 | architect | test |
+| critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (3 medium, 1 low), 4 suggestions. Architecture clean, V1 consolidation well-planned. FLAG-1 (MED): STAGE_TRANSITIONS import-vs-replace contradiction in Sections 4.3 vs 12.2 — must import not replace. FLAG-2 (MED): Gate coordinate references fragile under archival — use version strings for stored conditions. FLAG-3 (MED): pre/post_actions execution responsibility ambiguous between engine and coordinator. FLAG-4 (LOW): PID-based lock staleness won't work with OpenClaw process model — use timeout-based. S-03: e0_dispatch plugin's ctx.spawnAgent doesn't exist in OpenClaw API. Review at: pipeline_builds/orchestration-engine-v2_critic_design_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

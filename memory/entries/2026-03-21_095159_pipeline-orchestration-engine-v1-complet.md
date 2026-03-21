@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:belam-main, pipeline:orchestration-engine-v1, stage:pipeline_created]
 source: "session"
 content: "Pipeline orchestration-engine-v1: completed pipeline_created. Pipeline created: Unified orchestration engine via e0 coordinates, replacing legacy scripts"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
