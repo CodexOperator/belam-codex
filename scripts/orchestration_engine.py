@@ -1,984 +1,1207 @@
 #!/usr/bin/env python3
 """
-orchestration_engine.py — Orchestration Engine V1
+orchestration_engine.py — Unified Orchestration Engine V1
 
-On-demand CLI engine with persistent .codex state buffer.
-Manages inter-agent communication, diff-based context sync, and pipeline flow.
+Consolidates core logic from:
+  - pipeline_autorun.py  (gate checking, stall detection, experiment monitoring)
+  - pipeline_orchestrate.py  (handoffs, agent wake, checkpoint-and-resume)
+  - launch_pipeline.py  (pipeline creation and kickoff)
 
-Commands:
-  status                        Show engine state (agents, pending diffs, flow)
-  sync --generate               Compute diffs for changed primitives
-  sync --deliver <agent>        Format pending diffs as R/F-labels for target agent
-  sync --ready <agent>          Mark agent sync_ready=true (work unit complete)
-  dispatch <persona> <coord>    Register dispatch intent in state
-  flow --check                  Evaluate pipeline gates and report
+Coordinate-aware: accepts version strings, numeric indices, or p-prefixed coordinates.
+All output is plain text (no ANSI) — designed for LLM context consumption.
+State changes use F-label format: F1 D p3.stage architect_design -> critic_review
 
-State files:
-  state/orchestration.codex     Main engine state (agents, diffs, flow)
-  state/primitive_hashes.codex  Coord → content hash map for diff detection
-
-Usage examples:
-  python3 scripts/orchestration_engine.py status
-  python3 scripts/orchestration_engine.py sync --generate
-  python3 scripts/orchestration_engine.py sync --deliver architect
-  python3 scripts/orchestration_engine.py sync --ready architect
-  python3 scripts/orchestration_engine.py dispatch architect t1
-  python3 scripts/orchestration_engine.py flow --check
+Importable AND runnable standalone:
+  python3 scripts/orchestration_engine.py                    # full sweep
+  python3 scripts/orchestration_engine.py status <ref>       # pipeline status
+  python3 scripts/orchestration_engine.py gates [ref]        # gate check
+  python3 scripts/orchestration_engine.py handoffs           # pending handoffs
+  python3 scripts/orchestration_engine.py locks              # active locks
+  python3 scripts/orchestration_engine.py stalls             # stall check
+  python3 scripts/orchestration_engine.py dispatch <ref> <agent>  # dispatch agent
+  python3 scripts/orchestration_engine.py next <ref>         # next action
+  python3 scripts/orchestration_engine.py --dry-run          # dry run sweep
 """
 
-import hashlib
 import json
 import os
-import re
 import sys
-from datetime import datetime, timezone
+import time
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-# ─── Configuration ─────────────────────────────────────────────────────────────
+# ─── Paths ──────────────────────────────────────────────────────────────────────
 
-WORKSPACE = Path(os.environ.get('BELAM_WORKSPACE', Path.home() / '.openclaw/workspace'))
-STATE_DIR = WORKSPACE / 'state'
-ORCH_STATE_FILE = STATE_DIR / 'orchestration.codex'
-HASH_STATE_FILE = STATE_DIR / 'primitive_hashes.codex'
+WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
+SCRIPTS = WORKSPACE / 'scripts'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
+BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+ML_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
+RESULTS_BASE = ML_DIR / 'notebooks' / 'local_results'
+HANDOFFS_DIR = PIPELINES_DIR / 'handoffs'
 
-# Namespace: prefix → subdirectory (relative to WORKSPACE)
-NAMESPACE = {
-    'p':  'pipelines',
-    'w':  'projects',
-    't':  'tasks',
-    'd':  'decisions',
-    'l':  'lessons',
-    'c':  'commands',
-    'k':  'knowledge',
+# Thresholds
+STALL_THRESHOLD_MINUTES = 120
+LOCK_STALE_MINUTES = 5
+
+# Agent session directories
+AGENT_SESSION_DIRS = {
+    'architect': Path(os.path.expanduser('~/.openclaw/agents/architect/sessions')),
+    'critic': Path(os.path.expanduser('~/.openclaw/agents/critic/sessions')),
+    'builder': Path(os.path.expanduser('~/.openclaw/agents/builder/sessions')),
 }
-# Note: memory/skills/daily handled separately; keep V1 scope to core primitives
 
-TREE_ITEM = '╶─'
-TREE_INDENT = '   '
-
-# ─── Timestamp helpers ─────────────────────────────────────────────────────────
-
-def now_utc() -> str:
-    """Return UTC time as HH:MM string."""
-    return datetime.now(timezone.utc).strftime('%H:%M')
-
-def now_iso() -> str:
-    """Return full ISO timestamp."""
-    return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-# ─── .codex format: parse ──────────────────────────────────────────────────────
-
-def parse_codex(text: str) -> dict:
-    """
-    Parse a .codex file into a dict of sections.
-
-    Format:
-      # top-level comment (ignored or stored as 'title')
-      ## section_name
-      ╶─ key  val1  val2  ...
-      ╶─ key  val1  val2  ...
-
-    Returns:
-      {
-        '_title': str,
-        'section_name': [
-          {'_raw': str, '_key': str, '_rest': str, ...parsed fields...},
-          ...
-        ],
-        ...
-      }
-
-    The parser is intentionally simple — each ╶─ line is stored as raw + key + rest.
-    Higher-level functions interpret the fields per-section.
-    """
-    result = {'_title': '', '_sections_order': []}
-    current_section = None
-    multiline_key = None
-    multiline_buf = []
-
-    for line in text.splitlines():
-        # Title comment
-        stripped = line.strip()
-        if stripped.startswith('# ') and current_section is None:
-            result['_title'] = stripped[2:].strip()
-            continue
-
-        # Section header
-        if stripped.startswith('## '):
-            # Flush any pending multiline
-            if multiline_key and current_section is not None:
-                _flush_multiline(result[current_section], multiline_key, multiline_buf)
-                multiline_key = None
-                multiline_buf = []
-
-            current_section = stripped[3:].strip()
-            if current_section not in result:
-                result[current_section] = []
-                result['_sections_order'].append(current_section)
-            continue
-
-        # Item line
-        if stripped.startswith(TREE_ITEM) and current_section is not None:
-            # Flush previous multiline if any
-            if multiline_key:
-                _flush_multiline(result[current_section], multiline_key, multiline_buf)
-                multiline_key = None
-                multiline_buf = []
-
-            rest = stripped[len(TREE_ITEM):].strip()
-            parts = rest.split(None, 1)
-            key = parts[0] if parts else ''
-            rest_str = parts[1] if len(parts) > 1 else ''
-            entry = {'_raw': line, '_key': key, '_rest': rest_str}
-            result[current_section].append(entry)
-            continue
-
-        # Indented continuation lines (multiline body under a ╶─ key)
-        if line.startswith('  ') and current_section is not None and result[current_section]:
-            last = result[current_section][-1]
-            last.setdefault('_body', []).append(stripped)
-            continue
-
-    return result
-
-
-def _flush_multiline(section_list, key, buf):
-    """Attach collected multiline body to the last entry."""
-    if section_list and buf:
-        section_list[-1].setdefault('_body', []).extend(buf)
-
-
-# ─── .codex format: serialize ─────────────────────────────────────────────────
-
-def serialize_codex(data: dict, title: str = '') -> str:
-    """
-    Serialize engine state dict back to .codex text.
-
-    data format: same as parse_codex output — sections with lists of entries.
-    """
-    lines = []
-    if title:
-        lines.append(f'# {title}')
-        lines.append('')
-
-    sections_order = data.get('_sections_order', [k for k in data if not k.startswith('_')])
-
-    for section in sections_order:
-        if section.startswith('_'):
-            continue
-        lines.append(f'## {section}')
-        items = data.get(section, [])
-        if not items:
-            lines.append('')
-        for entry in items:
-            if isinstance(entry, str):
-                # Raw string entry
-                lines.append(f'{TREE_ITEM} {entry}')
-            elif isinstance(entry, dict):
-                if '_raw_line' in entry:
-                    lines.append(entry['_raw_line'])
-                else:
-                    key = entry.get('_key', '')
-                    rest = entry.get('_rest', '')
-                    line = f'{TREE_ITEM} {key}'
-                    if rest:
-                        line += f'  {rest}'
-                    lines.append(line)
-                    for body_line in entry.get('_body', []):
-                        lines.append(f'  {body_line}')
-        lines.append('')
-
-    return '\n'.join(lines)
-
-
-# ─── State: agents ─────────────────────────────────────────────────────────────
-
-class AgentEntry:
-    """Represents one agent in the agents section."""
-
-    def __init__(self, agent_id: str, persona: str, status: str = 'idle',
-                 ctx_hash: str = 'none', synced: str = '00:00',
-                 sync_ready: bool = True, task_coord: str = ''):
-        self.agent_id = agent_id
-        self.persona = persona
-        self.status = status
-        self.ctx_hash = ctx_hash
-        self.synced = synced
-        self.sync_ready = sync_ready
-        self.task_coord = task_coord
-
-    def to_codex_line(self) -> str:
-        """Format as a ╶─ line."""
-        ready_flag = 'ready' if self.sync_ready else 'pending'
-        task_part = f'  task:{self.task_coord}' if self.task_coord else ''
-        return (
-            f'{self.agent_id}  {self.persona}  {self.status}  '
-            f'ctx:{self.ctx_hash}  synced:{self.synced}  sync:{ready_flag}{task_part}'
-        )
-
-    @classmethod
-    def from_rest(cls, agent_id: str, rest: str) -> 'AgentEntry':
-        """Parse the rest of a ╶─ line."""
-        parts = rest.split()
-        persona = parts[0] if len(parts) > 0 else 'unknown'
-        status = parts[1] if len(parts) > 1 else 'idle'
-
-        ctx_hash = 'none'
-        synced = '00:00'
-        sync_ready = True
-        task_coord = ''
-
-        for tok in parts[2:]:
-            if tok.startswith('ctx:'):
-                ctx_hash = tok[4:]
-            elif tok.startswith('synced:'):
-                synced = tok[7:]
-            elif tok.startswith('sync:'):
-                sync_ready = (tok[5:] == 'ready')
-            elif tok.startswith('task:'):
-                task_coord = tok[5:]
-
-        return cls(agent_id, persona, status, ctx_hash, synced, sync_ready, task_coord)
-
-
-# ─── State: diffs ──────────────────────────────────────────────────────────────
-
-class DiffEntry:
-    """Represents a pending diff in the pending_diffs section."""
-
-    def __init__(self, diff_id: str, target_coord: str, route: str,
-                 labels: list = None, body_lines: list = None):
-        self.diff_id = diff_id
-        self.target_coord = target_coord
-        self.route = route          # e.g. 'a2→*' or 'a1→a2'
-        self.labels = labels or []  # e.g. ['[R:status active→complete]', '[F1:+features]']
-        self.body_lines = body_lines or []  # Full diff body for delivery
-
-    def to_codex_line(self) -> str:
-        label_str = '  '.join(self.labels)
-        parts = [self.diff_id, self.target_coord, self.route]
-        if label_str:
-            parts.append(label_str)
-        return '  '.join(parts)
-
-    def to_delivery_block(self) -> str:
-        """Format for delivery to an agent."""
-        lines = [f'[SYNC {self.target_coord} {self.diff_id}]']
-        lines.extend(self.body_lines)
-        return '\n'.join(lines)
-
-    @classmethod
-    def from_entry(cls, entry: dict) -> 'DiffEntry':
-        key = entry['_key']
-        rest = entry.get('_rest', '')
-        parts = rest.split(None, 2)
-        target_coord = parts[0] if len(parts) > 0 else ''
-        route = parts[1] if len(parts) > 1 else 'unknown→*'
-        labels_raw = parts[2] if len(parts) > 2 else ''
-
-        # Extract bracket labels [R:...] [F...:...]
-        labels = re.findall(r'\[(?:R|F\d*)[^\]]*\]', labels_raw)
-
-        body = entry.get('_body', [])
-        return cls(key, target_coord, route, labels, body)
-
-
-# ─── State: flow ───────────────────────────────────────────────────────────────
-
-class FlowEntry:
-    """Represents a pipeline in the flow section."""
-
-    def __init__(self, flow_id: str, version: str, stage: str, gate: str = 'open'):
-        self.flow_id = flow_id
-        self.version = version
-        self.stage = stage
-        self.gate = gate
-
-    def to_codex_line(self) -> str:
-        return f'{self.flow_id}  {self.version}  {self.stage}  gate:{self.gate}'
-
-    @classmethod
-    def from_entry(cls, entry: dict) -> 'FlowEntry':
-        key = entry['_key']
-        rest = entry.get('_rest', '')
-        parts = rest.split()
-        version = parts[0] if len(parts) > 0 else 'unknown'
-        stage = parts[1] if len(parts) > 1 else 'unknown'
-        gate = 'open'
-        for tok in parts[2:]:
-            if tok.startswith('gate:'):
-                gate = tok[5:]
-        return cls(key, version, stage, gate)
-
-
-# ─── Engine state: load/save ───────────────────────────────────────────────────
-
-class EngineState:
-    """Full engine state: agents + pending_diffs + flow."""
-
-    def __init__(self):
-        self.agents: list[AgentEntry] = []
-        self.pending_diffs: list[DiffEntry] = []
-        self.flow: list[FlowEntry] = []
-        self._next_agent_num = 1
-        self._next_diff_num = 1
-        self._next_flow_num = 1
-
-    # ── Persistence ──────────────────────────────────────────────────────────
-
-    @classmethod
-    def load(cls) -> 'EngineState':
-        """Load from state/orchestration.codex, or return empty state."""
-        state = cls()
-        if not ORCH_STATE_FILE.exists():
-            return state
-
-        text = ORCH_STATE_FILE.read_text(encoding='utf-8')
-        parsed = parse_codex(text)
-
-        # Parse agents
-        max_agent_num = 0
-        for entry in parsed.get('agents', []):
-            key = entry['_key']
-            rest = entry.get('_rest', '')
-            if key and rest:
-                agent = AgentEntry.from_rest(key, rest)
-                state.agents.append(agent)
-                m = re.match(r'a(\d+)', key)
-                if m:
-                    max_agent_num = max(max_agent_num, int(m.group(1)))
-        state._next_agent_num = max_agent_num + 1
-
-        # Parse pending_diffs
-        max_diff_num = 0
-        for entry in parsed.get('pending_diffs', []):
-            key = entry['_key']
-            if key:
-                diff = DiffEntry.from_entry(entry)
-                state.pending_diffs.append(diff)
-                # Parse number from Δ1, Δ2, etc.
-                m = re.search(r'(\d+)', key)
-                if m:
-                    max_diff_num = max(max_diff_num, int(m.group(1)))
-        state._next_diff_num = max_diff_num + 1
-
-        # Parse flow
-        max_flow_num = 0
-        for entry in parsed.get('flow', []):
-            key = entry['_key']
-            rest = entry.get('_rest', '')
-            if key and rest:
-                flow = FlowEntry.from_entry(entry)
-                state.flow.append(flow)
-                m = re.match(r'p(\d+)', key)
-                if m:
-                    max_flow_num = max(max_flow_num, int(m.group(1)))
-        state._next_flow_num = max_flow_num + 1
-
-        return state
-
-    def save(self):
-        """Write state to state/orchestration.codex."""
-        STATE_DIR.mkdir(parents=True, exist_ok=True)
-
-        data = {
-            '_sections_order': ['agents', 'pending_diffs', 'flow'],
-            'agents': [],
-            'pending_diffs': [],
-            'flow': [],
-        }
-
-        for agent in self.agents:
-            data['agents'].append({
-                '_key': agent.agent_id,
-                '_rest': agent.to_codex_line().split(None, 1)[1] if '  ' in agent.to_codex_line() else '',
-                '_raw_line': f'{TREE_ITEM} {agent.to_codex_line()}',
-            })
-
-        for diff in self.pending_diffs:
-            entry = {
-                '_key': diff.diff_id,
-                '_rest': diff.to_codex_line().split(None, 1)[1] if '  ' in diff.to_codex_line() else '',
-                '_raw_line': f'{TREE_ITEM} {diff.to_codex_line()}',
-            }
-            if diff.body_lines:
-                entry['_body'] = diff.body_lines
-            data['pending_diffs'].append(entry)
-
-        for flow_entry in self.flow:
-            data['flow'].append({
-                '_key': flow_entry.flow_id,
-                '_rest': flow_entry.to_codex_line().split(None, 1)[1] if '  ' in flow_entry.to_codex_line() else '',
-                '_raw_line': f'{TREE_ITEM} {flow_entry.to_codex_line()}',
-            })
-
-        text = serialize_codex(data, title='orchestration.codex — Engine State')
-        ORCH_STATE_FILE.write_text(text, encoding='utf-8')
-
-    # ── Agent helpers ─────────────────────────────────────────────────────────
-
-    def find_agent(self, identifier: str) -> AgentEntry | None:
-        """Find agent by id (a1) or persona (architect)."""
-        for agent in self.agents:
-            if agent.agent_id == identifier or agent.persona == identifier:
-                return agent
-        return None
-
-    def next_agent_id(self) -> str:
-        aid = f'a{self._next_agent_num}'
-        self._next_agent_num += 1
-        return aid
-
-    def next_diff_id(self) -> str:
-        did = f'Δ{self._next_diff_num}'
-        self._next_diff_num += 1
-        return did
-
-    def next_flow_id(self) -> str:
-        fid = f'p{self._next_flow_num}'
-        self._next_flow_num += 1
-        return fid
-
-    def diffs_for_agent(self, identifier: str) -> list[DiffEntry]:
-        """Return diffs targeted at a specific agent (by id/persona) or '*'."""
-        agent = self.find_agent(identifier)
-        if not agent:
-            # Still match by persona string in route
-            target_id = identifier
-        else:
-            target_id = agent.agent_id
-
-        results = []
-        for diff in self.pending_diffs:
-            # Route like 'a2→*' or 'a1→a2' or 'a1→architect'
-            parts = diff.route.split('→')
-            dest = parts[-1] if len(parts) > 1 else '*'
-            if dest == '*' or dest == target_id or dest == identifier:
-                results.append(diff)
-            # Also check by persona
-            elif agent and dest == agent.persona:
-                results.append(diff)
-        return results
-
-
-# ─── Primitive hash state ──────────────────────────────────────────────────────
-
-def load_hash_state() -> dict:
-    """Load coord → hash map from state/primitive_hashes.codex."""
-    if not HASH_STATE_FILE.exists():
+# Actions that indicate agent work is in progress
+AGENT_ACTIONS = {
+    'architect_design', 'critic_design_review', 'builder_implementation',
+    'critic_code_review', 'architect_design_revision', 'builder_apply_blocks',
+    'phase2_architect_design', 'phase2_critic_design_review',
+    'phase2_builder_implementation', 'phase2_critic_code_review',
+    'phase2_architect_revision',
+    'analysis_architect_design', 'analysis_critic_review',
+    'analysis_builder_implementation', 'analysis_critic_code_review',
+    'local_analysis_architect', 'local_analysis_critic_review',
+    'local_analysis_builder', 'local_analysis_code_review',
+    'local_analysis_report_build',
+    'local_experiment_running', 'report_building',
+    'phase1_revision_architect', 'phase1_revision_critic_review',
+    'phase1_revision_builder', 'phase1_revision_code_review',
+    'phase1_revision_architect_fix', 'phase1_revision_builder_fix',
+}
+
+# Actions that are human-gated (don't auto-recover)
+HUMAN_ACTIONS = {
+    'ready_for_colab_run', 'phase1_complete', 'phase2_complete',
+    'phase3_complete', 'pipeline_created', 'local_analysis_complete',
+}
+
+
+# ─── Import from existing scripts (reuse, don't rewrite) ───────────────────────
+
+sys.path.insert(0, str(SCRIPTS))
+
+try:
+    from pipeline_autorun import (
+        load_pipeline_frontmatter,
+        load_state_json,
+        get_active_pipelines,
+        parse_timestamp,
+        minutes_since,
+    )
+except ImportError as e:
+    # Fallback inline implementations if import fails
+    print(f"WARN: Could not import from pipeline_autorun: {e}")
+
+    def load_pipeline_frontmatter(path: Path) -> dict:
+        content = path.read_text()
+        if not content.startswith('---'):
+            return {}
+        end = content.index('---', 3)
+        frontmatter = content[3:end]
+        result = {}
+        for line in frontmatter.strip().split('\n'):
+            if ':' in line and not line.startswith(' '):
+                key, _, val = line.partition(':')
+                val = val.strip().strip('"').strip("'")
+                if val.startswith('[') and val.endswith(']'):
+                    val = [v.strip().strip('"').strip("'") for v in val[1:-1].split(',')]
+                result[key.strip()] = val
+        return result
+
+    def load_state_json(version: str) -> dict:
+        state_file = BUILDS_DIR / f'{version}_state.json'
+        if state_file.exists():
+            return json.load(open(state_file))
         return {}
-    text = HASH_STATE_FILE.read_text(encoding='utf-8')
-    result = {}
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith(TREE_ITEM):
-            rest = stripped[len(TREE_ITEM):].strip()
-            parts = rest.split(None, 1)
-            if len(parts) == 2:
-                result[parts[0]] = parts[1]
-    return result
 
+    def get_active_pipelines() -> list:
+        pipelines = []
+        if not PIPELINES_DIR.exists():
+            return pipelines
+        for f in sorted(PIPELINES_DIR.glob('*.md')):
+            fm = load_pipeline_frontmatter(f)
+            if fm.get('status') == 'archived':
+                continue
+            version = f.stem
+            state = load_state_json(version)
+            pipelines.append({
+                'version': version,
+                'path': f,
+                'frontmatter': fm,
+                'state': state,
+                'status': fm.get('status', 'unknown'),
+                'pending_action': state.get('pending_action', 'none'),
+                'last_updated': state.get('last_updated', ''),
+            })
+        return pipelines
 
-def save_hash_state(hashes: dict):
-    """Write coord → hash map to state/primitive_hashes.codex."""
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
-    lines = ['# primitive_hashes.codex — Primitive Content Hash Map', '']
-    lines.append('## hashes')
-    for coord, h in sorted(hashes.items()):
-        lines.append(f'{TREE_ITEM} {coord}  {h}')
-    lines.append('')
-    HASH_STATE_FILE.write_text('\n'.join(lines), encoding='utf-8')
-
-
-# ─── Primitive scanning ────────────────────────────────────────────────────────
-
-def file_hash(filepath: Path) -> str:
-    """SHA256 of file content, first 8 chars."""
-    try:
-        content = filepath.read_bytes()
-        return hashlib.sha256(content).hexdigest()[:8]
-    except Exception:
-        return 'err'
-
-
-def scan_primitives() -> dict:
-    """
-    Scan all core primitive files and return coord → (hash, filepath) dict.
-    Coord format: t1, t2, d1, p1, etc. — assigned by sorted file order.
-    """
-    result = {}
-    for prefix, subdir in NAMESPACE.items():
-        base = WORKSPACE / subdir
-        if not base.exists():
-            continue
-        files = sorted(base.glob('*.md'))
-        for i, f in enumerate(files, 1):
-            coord = f'{prefix}{i}'
-            h = file_hash(f)
-            result[coord] = (h, f)
-    return result
-
-
-# ─── Diff computation ──────────────────────────────────────────────────────────
-
-def extract_frontmatter(text: str) -> dict:
-    """Extract YAML frontmatter fields as a simple dict (no yaml dep needed for V1)."""
-    fm = {}
-    if not text.startswith('---'):
-        return fm
-    end = text.find('\n---', 3)
-    if end < 0:
-        return fm
-    fm_text = text[3:end]
-    for line in fm_text.splitlines():
-        m = re.match(r'^(\w[\w-]*):\s*(.*)$', line.strip())
-        if m:
-            fm[m.group(1)] = m.group(2).strip().strip('"\'')
-    return fm
-
-
-def compute_diff(coord: str, filepath: Path, old_hash: str, new_hash: str) -> DiffEntry | None:
-    """
-    Compute a DiffEntry for a changed primitive.
-    Uses simple heuristics to classify R (structural) vs F (body) changes.
-    """
-    try:
-        text = filepath.read_text(encoding='utf-8', errors='replace')
-    except Exception:
+    def parse_timestamp(ts: str):
+        if not ts:
+            return None
+        for fmt in ['%Y-%m-%dT%H:%M:%S.%f%z', '%Y-%m-%dT%H:%M:%SZ',
+                     '%Y-%m-%dT%H:%M:%S%z', '%Y-%m-%d %H:%M', '%Y-%m-%d']:
+            try:
+                dt = datetime.strptime(ts, fmt)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                return dt
+            except ValueError:
+                continue
         return None
 
-    fm = extract_frontmatter(text)
+    def minutes_since(ts: str):
+        dt = parse_timestamp(ts)
+        if not dt:
+            return None
+        return (datetime.now(timezone.utc) - dt).total_seconds() / 60
 
-    # Build labels and body lines
-    labels = []
-    body_lines = []
-
-    # Structural fields → R labels
-    r_fields = ['status', 'priority', 'depends', 'edges', 'title', 'gate']
-    r_changes = []
-    for field in r_fields:
-        if field in fm:
-            r_changes.append(f'{field}:{fm[field]}')
-
-    if r_changes:
-        label = '[R:' + ' '.join(r_changes) + ']'
-        labels.append(label)
-        for change in r_changes:
-            body_lines.append(f'  {change}  [R]')
-
-    # Body content → F label
-    # Count non-frontmatter lines as body
-    body_start = text.find('\n---', 3)
-    if body_start >= 0:
-        body_text = text[body_start + 4:].strip()
-        body_line_count = len([l for l in body_text.splitlines() if l.strip()])
-    else:
-        body_line_count = len([l for l in text.splitlines() if l.strip()])
-
-    if body_line_count > 0:
-        labels.append(f'[F1:~body ({body_line_count} lines)]')
-        body_lines.append(f'  body: ~{body_line_count} lines  [F]')
-
-    # Hash transition label
-    hash_label = f'Δ{old_hash[:4]}→{new_hash[:4]}'
-
-    diff_id_placeholder = f'Δ?'  # Caller assigns actual ID
-    return DiffEntry(
-        diff_id=diff_id_placeholder,
-        target_coord=coord,
-        route=f'engine→*',
-        labels=labels,
-        body_lines=[f'[SYNC {coord} {hash_label}]'] + body_lines,
+try:
+    from pipeline_orchestrate import (
+        reset_agent_session,
+        wake_agent,
+        consolidate_agent_memory,
+        checkpoint_and_resume,
+        write_handoff,
+        get_pending_handoffs,
+        build_handoff_message,
+        generate_session_id,
+        orchestrate_complete,
+        orchestrate_block,
+        orchestrate_show,
+        send_orchestrator_notification,
+        AGENT_INFO,
     )
+    _HAS_ORCHESTRATE = True
+except ImportError as e:
+    print(f"WARN: Could not import from pipeline_orchestrate: {e}")
+    _HAS_ORCHESTRATE = False
+
+try:
+    from launch_pipeline import (
+        create_pipeline as _create_pipeline,
+        list_pipelines as _list_pipelines,
+        check_archivable,
+        archive_pipeline,
+    )
+    _HAS_LAUNCH = True
+except ImportError as e:
+    print(f"WARN: Could not import from launch_pipeline: {e}")
+    _HAS_LAUNCH = False
 
 
-# ─── Commands ─────────────────────────────────────────────────────────────────
+# ─── Coordinate Resolution ─────────────────────────────────────────────────────
 
-def cmd_status(args: list):
-    """Display current engine state."""
-    state = EngineState.load()
+def _get_active_versions() -> list[str]:
+    """Get sorted list of active pipeline version strings."""
+    pipelines = get_active_pipelines()
+    return [p['version'] for p in pipelines]
 
-    print('# Orchestration Engine — Status')
-    print(f'# {now_iso()}')
-    print()
 
-    # Agents
-    print('## agents')
-    if not state.agents:
-        print('  (none registered)')
+def resolve_pipeline(ref: str) -> str | None:
+    """Resolve a pipeline reference to a version string.
+
+    Accepts:
+      - version string: 'stack-specialists'
+      - bare number: '3' (3rd active pipeline, 1-indexed)
+      - coordinate: 'p3' (same as '3')
+    Returns the version string, or None if unresolvable.
+    """
+    if not ref:
+        return None
+
+    ref = ref.strip()
+
+    # Strip 'p' prefix for coordinate notation
+    bare = ref
+    if ref.startswith('p') and len(ref) > 1 and ref[1:].isdigit():
+        bare = ref[1:]
+
+    # Try numeric index (1-based)
+    if bare.isdigit():
+        idx = int(bare) - 1
+        versions = _get_active_versions()
+        if 0 <= idx < len(versions):
+            return versions[idx]
+        return None
+
+    # Try exact version match
+    pipeline_file = PIPELINES_DIR / f'{ref}.md'
+    if pipeline_file.exists():
+        return ref
+
+    # Try partial match
+    versions = _get_active_versions()
+    matches = [v for v in versions if ref.lower() in v.lower()]
+    if len(matches) == 1:
+        return matches[0]
+
+    return None
+
+
+# ─── Pipeline Status ────────────────────────────────────────────────────────────
+
+def pipeline_status(version: str) -> dict:
+    """Return full pipeline state as a dict.
+
+    Keys: version, status, stage, pending_action, agent, last_updated,
+          locks, gates, next_action, stages, frontmatter
+    """
+    version = resolve_pipeline(version) or version
+    state = load_state_json(version)
+    pipeline_file = PIPELINES_DIR / f'{version}.md'
+
+    if not state and not pipeline_file.exists():
+        return {'version': version, 'error': 'not_found'}
+
+    fm = {}
+    if pipeline_file.exists():
+        fm = load_pipeline_frontmatter(pipeline_file)
+
+    pending = state.get('pending_action', 'none')
+    last_updated = state.get('last_updated', '')
+
+    # Determine current agent from pending action
+    agent = _agent_from_action(pending)
+
+    # Check locks
+    locks = _get_locks_for(version)
+
+    # Determine next action
+    next_act = pipeline_next_action(version)
+
+    # Gate status
+    gates = _gate_status_for(version, fm, state)
+
+    return {
+        'version': version,
+        'status': fm.get('status', state.get('status', 'unknown')),
+        'pending_action': pending,
+        'agent': agent,
+        'last_updated': last_updated,
+        'last_updated_ago': _format_age(minutes_since(last_updated)),
+        'locks': locks,
+        'gates': gates,
+        'next_action': next_act,
+        'stages': state.get('stages', {}),
+        'priority': fm.get('priority', 'normal'),
+        'frontmatter': fm,
+    }
+
+
+def pipeline_next_action(version: str) -> str | None:
+    """What should happen next for this pipeline?
+
+    Returns a human-readable action description, or None if nothing to do.
+    """
+    version = resolve_pipeline(version) or version
+    state = load_state_json(version)
+    pipeline_file = PIPELINES_DIR / f'{version}.md'
+    fm = load_pipeline_frontmatter(pipeline_file) if pipeline_file.exists() else {}
+
+    pending = state.get('pending_action', 'none')
+    status = fm.get('status', state.get('status', ''))
+    last_updated = state.get('last_updated', '')
+    elapsed = minutes_since(last_updated)
+
+    if pending == 'none' or not pending:
+        return None
+
+    # Human-gated stages
+    if pending == 'pipeline_created':
+        return f'Kick off pipeline: dispatch architect for design'
+    if pending == 'phase1_complete':
+        # Check for revision requests
+        rev_file = BUILDS_DIR / f'{version}_revision_request.md'
+        if rev_file.exists():
+            return f'Process pending revision request'
+        return f'Human gate: Phase 1 complete, awaiting experiment run or Phase 2 direction'
+    if pending == 'local_analysis_complete':
+        direction_file = BUILDS_DIR / f'{version}_phase2_shael_direction.md'
+        if direction_file.exists():
+            return f'Phase 2 direction file found -- kick off Phase 2'
+        return f'Human gate: local analysis complete, awaiting Phase 2 direction'
+    if pending in HUMAN_ACTIONS:
+        return f'Human gate: {pending}'
+
+    # Agent actions — check if stalled
+    if pending in AGENT_ACTIONS:
+        agent = _agent_from_action(pending)
+        if elapsed is not None and elapsed > STALL_THRESHOLD_MINUTES:
+            return f'STALLED: {agent} has not completed {pending} ({elapsed:.0f}min). Recovery needed.'
+        elif elapsed is not None:
+            return f'In progress: {agent} working on {pending} ({elapsed:.0f}min ago)'
+        return f'In progress: {agent} working on {pending}'
+
+    return f'Unknown pending action: {pending}'
+
+
+def _agent_from_action(action: str) -> str:
+    """Infer agent name from a pending action string."""
+    if not action or action == 'none':
+        return 'none'
+    if 'architect' in action:
+        return 'architect'
+    if 'critic' in action:
+        return 'critic'
+    if 'builder' in action:
+        return 'builder'
+    if 'experiment' in action:
+        return 'system'
+    if 'report' in action:
+        return 'system'
+    if action in HUMAN_ACTIONS:
+        return 'human-gate'
+    return 'unknown'
+
+
+def _format_age(minutes) -> str:
+    """Format minutes into human-readable age string."""
+    if minutes is None:
+        return 'unknown'
+    if minutes < 1:
+        return 'just now'
+    if minutes < 60:
+        return f'{minutes:.0f}m ago'
+    hours = minutes / 60
+    if hours < 24:
+        return f'{hours:.1f}h ago'
+    days = hours / 24
+    return f'{days:.1f}d ago'
+
+
+def _get_locks_for(version: str) -> list[dict]:
+    """Get active locks relevant to a pipeline version."""
+    all_locks = list_locks()
+    # All locks are agent-level, not pipeline-specific, but relevant
+    return all_locks
+
+
+def _gate_status_for(version: str, fm: dict, state: dict) -> dict:
+    """Determine gate status for a pipeline."""
+    pending = state.get('pending_action', 'none')
+    status = fm.get('status', '')
+
+    gates = {}
+
+    # Phase 2 gate
+    if 'phase1_complete' in pending or 'phase1_complete' in status:
+        gates['phase2'] = 'open' if BUILDS_DIR.joinpath(
+            f'{version}_phase2_shael_direction.md').exists() else 'closed'
+
+    # Phase 3 gate
+    phase2_status = state.get('phase2', {}).get('stage', '')
+    gates['phase3'] = 'open' if 'complete' in phase2_status else 'locked'
+
+    return gates
+
+
+# ─── Dispatch & Handoff ────────────────────────────────────────────────────────
+
+def pipeline_dispatch(version: str, agent: str, stage: str = None) -> bool:
+    """Dispatch an agent to work on a pipeline.
+
+    Handles context assembly + session spawn via the existing orchestrate machinery.
+    Returns True if dispatch succeeded.
+    """
+    version = resolve_pipeline(version) or version
+    if not _HAS_ORCHESTRATE:
+        print(f'ERROR: pipeline_orchestrate.py not available for dispatch')
+        return False
+
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
+
+    if stage is None:
+        stage = pending
+
+    if stage == 'none' or not stage:
+        print(f'  No pending action for {version} -- nothing to dispatch')
+        return False
+
+    # Use orchestrate_complete to trigger the dispatch chain
+    # For initial kickoff (pipeline_created), use that as the completed stage
+    if stage == 'pipeline_created' or stage == 'architect_design':
+        print(f'  Dispatching {agent} for {version}/{stage}')
+        return orchestrate_complete(version, 'pipeline_created', 'belam-main',
+                                     f'Dispatched by orchestration_engine')
     else:
-        for agent in state.agents:
-            ready_mark = '✓' if agent.sync_ready else '⏳'
-            task_part = f'  task:{agent.task_coord}' if agent.task_coord else ''
-            print(f'  {TREE_ITEM} {agent.agent_id}  {agent.persona}  [{agent.status}]  '
-                  f'ctx:{agent.ctx_hash}  synced:{agent.synced}  {ready_mark}{task_part}')
-    print()
+        # Build and send a handoff message directly
+        print(f'  Dispatching {agent} for {version}/{stage}')
+        reset_agent_session(agent)
+        session_id = generate_session_id(version, agent)
+        handoff_msg = build_handoff_message(version, '', stage, agent,
+                                             f'Dispatched by orchestration engine for {stage}')
+        wake_result = wake_agent(agent, handoff_msg, timeout=600, session_id=session_id)
 
-    # Pending diffs
-    print('## pending_diffs')
-    if not state.pending_diffs:
-        print('  (none pending)')
-    else:
-        for diff in state.pending_diffs:
-            label_str = '  '.join(diff.labels)
-            print(f'  {TREE_ITEM} {diff.diff_id}  {diff.target_coord}  {diff.route}  {label_str}')
-    print()
-
-    # Flow
-    print('## flow')
-    if not state.flow:
-        print('  (no active pipelines tracked)')
-    else:
-        for f in state.flow:
-            gate_mark = '🔒' if f.gate == 'waiting' else '🔓'
-            print(f'  {TREE_ITEM} {f.flow_id}  {f.version}  {f.stage}  {gate_mark} gate:{f.gate}')
-    print()
-
-    # Summary
-    n_agents = len(state.agents)
-    n_diffs = len(state.pending_diffs)
-    n_flows = len(state.flow)
-    n_pending = sum(1 for a in state.agents if not a.sync_ready)
-    print(f'# {n_agents} agents  {n_diffs} pending diffs  {n_flows} flow entries  {n_pending} agents pending sync')
-
-
-def cmd_sync_generate(args: list):
-    """Scan primitives, compute hashes, generate diffs for changed ones."""
-    print('# sync --generate')
-    print(f'# {now_iso()}')
-    print()
-
-    old_hashes = load_hash_state()
-    current_primitives = scan_primitives()
-
-    state = EngineState.load()
-
-    new_hashes = {}
-    new_diffs = 0
-    changed_coords = []
-
-    for coord, (new_hash, filepath) in sorted(current_primitives.items()):
-        new_hashes[coord] = new_hash
-        old_hash = old_hashes.get(coord)
-
-        if old_hash is None:
-            # New primitive — record hash, no diff (first-time scan)
-            print(f'  + {coord}  {filepath.name}  (new, hash:{new_hash})')
-        elif old_hash != new_hash:
-            # Changed — generate diff
-            diff = compute_diff(coord, filepath, old_hash, new_hash)
-            if diff:
-                diff.diff_id = state.next_diff_id()
-                state.pending_diffs.append(diff)
-                changed_coords.append(coord)
-                new_diffs += 1
-                print(f'  Δ {coord}  {filepath.name}  {old_hash[:4]}→{new_hash[:4]}  → {diff.diff_id}')
-            else:
-                print(f'  Δ {coord}  {filepath.name}  (change detected, diff failed)')
+        if wake_result['success']:
+            print(f'  F1 D {version}.dispatch {agent} -> {stage} OK')
+            write_handoff(version, '', stage, agent, wake_result, session_id)
+            return True
+        elif wake_result['status'] == 'timeout':
+            print(f'  F1 D {version}.dispatch {agent} -> {stage} TIMEOUT (checkpoint-and-resume)')
+            wake_result = checkpoint_and_resume(agent, version, stage, '', resume_count=0)
+            return wake_result.get('success', False)
         else:
-            pass  # Unchanged — silent
-
-    # Check for removed primitives
-    removed = set(old_hashes) - set(new_hashes)
-    for coord in sorted(removed):
-        print(f'  - {coord}  (removed)')
-
-    # Mark agents with pending diffs as sync_ready=false
-    if new_diffs > 0:
-        for agent in state.agents:
-            # Check if any new diff routes to this agent
-            agent_diffs = state.diffs_for_agent(agent.agent_id)
-            if agent_diffs:
-                agent.sync_ready = False
-                print(f'  ⏳ {agent.agent_id} ({agent.persona}) marked pending sync')
-
-    save_hash_state(new_hashes)
-    state.save()
-
-    print()
-    total = len(current_primitives)
-    unchanged = total - len(changed_coords) - len([c for c in new_hashes if c not in old_hashes])
-    print(f'# scanned {total} primitives  {new_diffs} diffs generated  {len(removed)} removed')
-    if not old_hashes:
-        print('# (first run — baseline established, no diffs generated)')
+            print(f'  F1 D {version}.dispatch {agent} -> {stage} FAILED: {wake_result.get("error", "")}')
+            return False
 
 
-def cmd_sync_deliver(args: list):
-    """Format and display pending diffs for a target agent."""
-    if not args:
-        print('ERROR: sync --deliver requires <agent> (id or persona)', file=sys.stderr)
-        sys.exit(1)
+def pipeline_handoff(version: str, from_agent: str, to_agent: str, notes: str = '') -> bool:
+    """Execute a handoff between agents.
 
-    target = args[0]
-    state = EngineState.load()
-
-    agent = state.find_agent(target)
-    if not agent:
-        print(f'ERROR: agent not found: {target}', file=sys.stderr)
-        print('Registered agents:', [a.agent_id + '/' + a.persona for a in state.agents], file=sys.stderr)
-        sys.exit(1)
-
-    diffs = state.diffs_for_agent(target)
-
-    print(f'# SYNC DELIVERY → {agent.agent_id} ({agent.persona})')
-    print(f'# {now_iso()}')
-    print()
-
-    if not diffs:
-        print('# No pending diffs for this agent.')
-        print(f'# sync_ready: {agent.sync_ready}')
-        return
-
-    for diff in diffs:
-        print(diff.to_delivery_block())
-        print()
-
-    print(f'# {len(diffs)} diff(s) delivered')
-    print(f'# Call: sync --ready {target}  when processing complete')
-
-    # Update agent sync timestamp
-    agent.synced = now_utc()
-    state.save()
-
-
-def cmd_sync_ready(args: list):
-    """Mark an agent as sync_ready=true (work unit complete)."""
-    if not args:
-        print('ERROR: sync --ready requires <agent> (id or persona)', file=sys.stderr)
-        sys.exit(1)
-
-    target = args[0]
-    state = EngineState.load()
-
-    agent = state.find_agent(target)
-    if not agent:
-        print(f'ERROR: agent not found: {target}', file=sys.stderr)
-        sys.exit(1)
-
-    agent.sync_ready = True
-    agent.synced = now_utc()
-    state.save()
-
-    print(f'# {agent.agent_id} ({agent.persona}) — sync_ready = true')
-    print(f'# Downstream agents may now consume diffs from this agent.')
-
-
-def cmd_dispatch(args: list):
-    """Register a dispatch intent: associate a persona with a task coord."""
-    if len(args) < 2:
-        print('ERROR: dispatch requires <persona> <task_coord>', file=sys.stderr)
-        sys.exit(1)
-
-    persona = args[0]
-    task_coord = args[1]
-    state = EngineState.load()
-
-    # Check if agent with this persona already exists
-    existing = state.find_agent(persona)
-    if existing:
-        # Update task coord and status
-        existing.task_coord = task_coord
-        existing.status = 'dispatched'
-        existing.synced = now_utc()
-        state.save()
-        print(f'# dispatch updated: {existing.agent_id} ({persona}) → {task_coord}')
-        print(f'# Note: Agent spawning is V2. Register intent only.')
-        return
-
-    # Create new agent entry
-    agent_id = state.next_agent_id()
-    ctx_hash = hashlib.sha256(f'{persona}:{task_coord}:{now_iso()}'.encode()).hexdigest()[:4]
-    agent = AgentEntry(
-        agent_id=agent_id,
-        persona=persona,
-        status='dispatched',
-        ctx_hash=ctx_hash,
-        synced=now_utc(),
-        sync_ready=True,
-        task_coord=task_coord,
-    )
-    state.agents.append(agent)
-    state.save()
-
-    print(f'# dispatch registered: {agent_id} ({persona}) → {task_coord}')
-    print(f'# Note: Agent spawning is V2. Dispatch intent recorded only.')
-    print()
-    print(f'  {TREE_ITEM} {agent.to_codex_line()}')
-
-
-def cmd_flow_check(args: list):
+    Captures output from from_agent, constructs context, spawns to_agent.
+    Returns True on success.
     """
-    Evaluate pipeline gates by reading pipeline files.
-    Reports gate states and eligible transitions.
+    version = resolve_pipeline(version) or version
+    if not _HAS_ORCHESTRATE:
+        print(f'ERROR: pipeline_orchestrate.py not available for handoff')
+        return False
+
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
+
+    # Consolidate outgoing agent's memory
+    consolidate_agent_memory(from_agent, version, pending, notes)
+
+    # Determine next stage from transition map
+    try:
+        from pipeline_update import STAGE_TRANSITIONS
+        transition = STAGE_TRANSITIONS.get(pending)
+        if transition:
+            next_stage, expected_agent, _ = transition
+            if to_agent != expected_agent:
+                print(f'  WARN: expected {expected_agent} but dispatching to {to_agent}')
+        else:
+            next_stage = None
+    except ImportError:
+        next_stage = None
+
+    if not next_stage:
+        print(f'  No transition defined for {pending} -- manual handoff')
+        next_stage = f'{to_agent}_task'
+
+    # Use orchestrate_complete for the full handoff chain
+    return orchestrate_complete(version, pending, from_agent, notes)
+
+
+def pipeline_resume(version: str) -> bool:
+    """Resume a stalled/timed-out pipeline from last checkpoint.
+
+    Returns True if resume was dispatched.
     """
-    print('# flow --check')
-    print(f'# {now_iso()}')
-    print()
+    version = resolve_pipeline(version) or version
+    if not _HAS_ORCHESTRATE:
+        print(f'ERROR: pipeline_orchestrate.py not available for resume')
+        return False
 
-    state = EngineState.load()
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
 
-    # Scan pipeline files for current gate states
-    pipelines_found = []
-    if PIPELINES_DIR.exists():
-        for pf in sorted(PIPELINES_DIR.glob('*.md')):
-            try:
-                text = pf.read_text(encoding='utf-8', errors='replace')
-                fm = extract_frontmatter(text)
-                version = fm.get('version', pf.stem)
-                status = fm.get('status', 'unknown')
-                stage = fm.get('current_stage', fm.get('stage', 'unknown'))
-                gate = fm.get('gate', 'open')
-                pending_action = fm.get('pending_action', '')
-                pipelines_found.append({
-                    'file': pf.name,
-                    'version': version,
-                    'status': status,
-                    'stage': stage,
-                    'gate': gate,
-                    'pending_action': pending_action,
-                })
-            except Exception as e:
-                print(f'  ! {pf.name}: parse error ({e})')
+    if pending in HUMAN_ACTIONS or pending == 'none':
+        print(f'  {version}: at human gate or idle ({pending}) -- nothing to resume')
+        return False
 
-    if not pipelines_found:
-        print('  No pipeline files found.')
-        print(f'  Looked in: {PIPELINES_DIR}')
+    agent = _agent_from_action(pending)
+    if agent in ('unknown', 'none', 'system'):
+        print(f'  {version}: cannot determine agent for {pending}')
+        return False
+
+    print(f'  F1 D {version}.resume {agent} for {pending}')
+    reset_agent_session(agent)
+
+    notes = f'Resume from stall. Pipeline {version} stage {pending}.'
+    wake_result = checkpoint_and_resume(agent, version, pending, notes, resume_count=0)
+    return wake_result.get('success', False)
+
+
+# ─── Gate Operations ────────────────────────────────────────────────────────────
+
+def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
+    """Check pipeline gates.
+
+    If version given, check that pipeline only.
+    Returns list of {pipeline, gate, status, blocked_by, action}.
+    """
+    results = []
+
+    if version:
+        version = resolve_pipeline(version) or version
+        pipelines = [p for p in get_active_pipelines() if p['version'] == version]
     else:
-        waiting_gates = []
-        open_gates = []
+        pipelines = get_active_pipelines()
 
-        for p in pipelines_found:
-            if p['status'] in ('archived', 'superseded', 'complete'):
-                continue
-            gate_status = p['gate']
-            if gate_status == 'waiting':
-                waiting_gates.append(p)
-            else:
-                open_gates.append(p)
+    for p in pipelines:
+        ver = p['version']
+        state = p['state']
+        fm = p['frontmatter']
+        pending = p['pending_action']
+        status = fm.get('status', '')
 
-        print(f'## active pipelines ({len(open_gates)} open, {len(waiting_gates)} waiting)')
-        for p in open_gates:
-            pending = f'  pending:{p["pending_action"]}' if p['pending_action'] else ''
-            print(f'  {TREE_ITEM} {p["version"]}  [{p["status"]}]  stage:{p["stage"]}  🔓 gate:open{pending}')
-        for p in waiting_gates:
-            pending = f'  pending:{p["pending_action"]}' if p['pending_action'] else ''
-            print(f'  {TREE_ITEM} {p["version"]}  [{p["status"]}]  stage:{p["stage"]}  🔒 gate:waiting{pending}')
-
-    print()
-
-    # Cross-reference with tracked flow entries
-    if state.flow:
-        print('## tracked flow entries')
-        for f in state.flow:
-            gate_mark = '🔒' if f.gate == 'waiting' else '🔓'
-            print(f'  {TREE_ITEM} {f.flow_id}  {f.version}  {f.stage}  {gate_mark} gate:{f.gate}')
-        print()
-
-    # Sync pipeline state into engine state
-    updated = False
-    for p in pipelines_found:
-        if p['status'] in ('archived', 'superseded', 'complete'):
+        # Pipeline-created gate: needs kickoff
+        if pending == 'pipeline_created':
+            results.append({
+                'pipeline': ver,
+                'gate': 'kickoff',
+                'status': 'eligible',
+                'blocked_by': None,
+                'action': f'Dispatch architect for initial design',
+            })
             continue
-        # Find or create flow entry
-        existing_flow = None
-        for fe in state.flow:
-            if fe.version == p['version']:
-                existing_flow = fe
-                break
-        if existing_flow is None:
-            flow_id = state.next_flow_id()
-            new_flow = FlowEntry(flow_id, p['version'], p['stage'], p['gate'])
-            state.flow.append(new_flow)
-            updated = True
-        else:
-            if existing_flow.stage != p['stage'] or existing_flow.gate != p['gate']:
-                existing_flow.stage = p['stage']
-                existing_flow.gate = p['gate']
-                updated = True
 
-    if updated:
-        state.save()
-        print('# flow state synced from pipeline files')
+        # Phase 1 complete gate: experiment or revision
+        if pending == 'phase1_complete':
+            rev_file = BUILDS_DIR / f'{ver}_revision_request.md'
+            if rev_file.exists():
+                results.append({
+                    'pipeline': ver,
+                    'gate': 'phase1_revision',
+                    'status': 'open',
+                    'blocked_by': None,
+                    'action': 'Process revision request',
+                })
+            else:
+                results.append({
+                    'pipeline': ver,
+                    'gate': 'phase1_complete',
+                    'status': 'waiting',
+                    'blocked_by': 'human_review',
+                    'action': 'Awaiting experiment run or human direction',
+                })
+            continue
+
+        # Local analysis complete gate
+        if pending == 'local_analysis_complete' or status == 'local_analysis_complete':
+            direction_file = BUILDS_DIR / f'{ver}_phase2_shael_direction.md'
+            if direction_file.exists():
+                results.append({
+                    'pipeline': ver,
+                    'gate': 'phase2_direction',
+                    'status': 'open',
+                    'blocked_by': None,
+                    'action': 'Phase 2 direction file found -- kick Phase 2',
+                })
+            else:
+                results.append({
+                    'pipeline': ver,
+                    'gate': 'phase2_direction',
+                    'status': 'waiting',
+                    'blocked_by': 'human_direction',
+                    'action': 'Awaiting Phase 2 direction file',
+                })
+            continue
+
+        # Experiment complete gate -> analysis
+        if pending == 'local_experiment_complete' or status == 'experiment_complete':
+            results.append({
+                'pipeline': ver,
+                'gate': 'analysis',
+                'status': 'open',
+                'blocked_by': None,
+                'action': 'Launch local analysis',
+            })
+            continue
+
+        # Active agent work -- not a gate, but report it
+        if pending in AGENT_ACTIONS:
+            elapsed = minutes_since(p['last_updated'])
+            if elapsed is not None and elapsed > STALL_THRESHOLD_MINUTES:
+                results.append({
+                    'pipeline': ver,
+                    'gate': 'stalled',
+                    'status': 'stalled',
+                    'blocked_by': f'{_agent_from_action(pending)} unresponsive ({elapsed:.0f}min)',
+                    'action': f'Recovery needed for {pending}',
+                })
+            # else: active work, no gate issue
+
+    return results
+
+
+# ─── Handoff Operations ────────────────────────────────────────────────────────
+
+def check_handoffs() -> list[dict]:
+    """Check for pending (unverified) handoffs.
+
+    Returns list of pending handoff records with path and metadata.
+    """
+    if not _HAS_ORCHESTRATE:
+        # Manual check
+        if not HANDOFFS_DIR.exists():
+            return []
+        pending = []
+        for f in sorted(HANDOFFS_DIR.glob('*.json')):
+            try:
+                data = json.loads(f.read_text())
+                if not data.get('verified', False):
+                    data['_path'] = str(f)
+                    pending.append(data)
+            except Exception:
+                pass
+        return pending
+
+    return get_pending_handoffs()
+
+
+# ─── Lock Operations ───────────────────────────────────────────────────────────
+
+def list_locks() -> list[dict]:
+    """Return all active pipeline locks with PID, age, agent info."""
+    locks = []
+
+    for agent, sessions_dir in AGENT_SESSION_DIRS.items():
+        if not sessions_dir.exists():
+            continue
+
+        for lock_file in sessions_dir.glob('*.lock'):
+            try:
+                lock_data = json.loads(lock_file.read_text())
+                pid = lock_data.get('pid')
+                created_at = lock_data.get('createdAt', '')
+
+                if not pid:
+                    continue
+
+                # Check if PID is alive
+                pid_alive = True
+                try:
+                    os.kill(pid, 0)
+                except ProcessLookupError:
+                    pid_alive = False
+                except PermissionError:
+                    pid_alive = True
+
+                age = minutes_since(created_at)
+
+                locks.append({
+                    'agent': agent,
+                    'file': str(lock_file),
+                    'pid': pid,
+                    'pid_alive': pid_alive,
+                    'created_at': created_at,
+                    'age_minutes': age,
+                    'stale': (not pid_alive) or (age is not None and age > LOCK_STALE_MINUTES),
+                })
+            except (json.JSONDecodeError, OSError) as e:
+                locks.append({
+                    'agent': agent,
+                    'file': str(lock_file),
+                    'pid': None,
+                    'pid_alive': False,
+                    'error': str(e),
+                    'stale': True,
+                })
+
+    return locks
+
+
+def release_lock(version: str) -> bool:
+    """Force-release a pipeline lock.
+
+    Since locks are agent-level (not pipeline-level), this releases
+    all stale locks for the agent associated with the pipeline's current stage.
+    """
+    version = resolve_pipeline(version) or version
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
+    agent = _agent_from_action(pending)
+
+    if agent in ('unknown', 'none', 'system'):
+        print(f'  Cannot determine agent for {version} (pending: {pending})')
+        return False
+
+    sessions_dir = AGENT_SESSION_DIRS.get(agent)
+    if not sessions_dir or not sessions_dir.exists():
+        print(f'  No session dir for {agent}')
+        return False
+
+    released = False
+    for lock_file in sessions_dir.glob('*.lock'):
+        try:
+            lock_data = json.loads(lock_file.read_text())
+            pid = lock_data.get('pid')
+
+            # Kill the process if alive
+            if pid:
+                try:
+                    os.kill(pid, 15)
+                    time.sleep(1)
+                    try:
+                        os.kill(pid, 9)
+                    except ProcessLookupError:
+                        pass
+                except ProcessLookupError:
+                    pass
+
+            lock_file.unlink()
+            print(f'  F1 D {version}.lock.{agent} RELEASED (PID {pid})')
+            released = True
+        except Exception as e:
+            print(f'  WARN: Failed to release {lock_file}: {e}')
+
+    return released
+
+
+# ─── Stall Detection ───────────────────────────────────────────────────────────
+
+def check_stalls(threshold_minutes: int = STALL_THRESHOLD_MINUTES) -> list[dict]:
+    """Find stalled pipelines.
+
+    Returns list of {pipeline, pending_action, agent, stalled_since, last_activity, age_minutes}.
+    """
+    stalled = []
+    pipelines = get_active_pipelines()
+
+    for p in pipelines:
+        version = p['version']
+        pending = p['pending_action']
+        last = p['last_updated']
+
+        if pending in HUMAN_ACTIONS or pending == 'none' or not pending:
+            continue
+
+        if pending not in AGENT_ACTIONS:
+            continue
+
+        elapsed = minutes_since(last)
+        if elapsed is None:
+            continue
+
+        if elapsed >= threshold_minutes:
+            stalled.append({
+                'pipeline': version,
+                'pending_action': pending,
+                'agent': _agent_from_action(pending),
+                'stalled_since': last,
+                'last_activity': last,
+                'age_minutes': elapsed,
+            })
+
+    return stalled
+
+
+# ─── Full Sweep ─────────────────────────────────────────────────────────────────
+
+def sweep(dry_run: bool = False) -> list[str]:
+    """Run all checks: stale locks, gates, stalls, experiments, revisions.
+
+    Returns list of action descriptions taken.
+    """
+    actions = []
+    now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    print(f'{"=" * 60}')
+    print(f'  ORCHESTRATION SWEEP -- {now_str}')
+    print(f'{"=" * 60}')
+
+    if dry_run:
+        print('  [DRY RUN -- no actions will be taken]\n')
+
+    # 1. Check and clear stale locks
+    print(f'\n--- Lock Check (>{LOCK_STALE_MINUTES}min threshold) ---\n')
+    locks = list_locks()
+    stale_locks = [l for l in locks if l.get('stale')]
+    healthy_locks = [l for l in locks if not l.get('stale')]
+
+    for l in healthy_locks:
+        age_str = f'{l["age_minutes"]:.0f}m' if l.get('age_minutes') is not None else '?'
+        print(f'  OK {l["agent"]}: PID {l["pid"]} alive, age {age_str}')
+
+    for l in stale_locks:
+        pid = l.get('pid', '?')
+        reason = 'dead PID' if not l.get('pid_alive') else 'stale'
+        print(f'  STALE {l["agent"]}: PID {pid} ({reason})')
+        if not dry_run:
+            try:
+                lock_path = Path(l['file'])
+                if l.get('pid') and l.get('pid_alive'):
+                    try:
+                        os.kill(l['pid'], 15)
+                        time.sleep(1)
+                        try:
+                            os.kill(l['pid'], 9)
+                        except ProcessLookupError:
+                            pass
+                    except ProcessLookupError:
+                        pass
+                lock_path.unlink(missing_ok=True)
+                actions.append(f'F1 D lock.{l["agent"]} CLEARED (PID {pid})')
+                print(f'    -> Lock cleared')
+            except Exception as e:
+                print(f'    -> Failed: {e}')
+        else:
+            actions.append(f'[DRY] Would clear lock for {l["agent"]}')
+
+    if not locks:
+        print('  No locks found.')
+
+    # 2. Check running experiments
+    print(f'\n--- Experiment Monitor ---\n')
+    exp_pids = list(BUILDS_DIR.glob('*_experiment.pid')) if BUILDS_DIR.exists() else []
+    for pid_file in exp_pids:
+        try:
+            pid_info = json.loads(pid_file.read_text())
+            pid = pid_info.get('pid')
+            ver = pid_info.get('version', pid_file.stem.replace('_experiment', ''))
+            try:
+                os.kill(pid, 0)
+                started = pid_info.get('started', '')
+                elapsed = minutes_since(started) if started else None
+                age_str = f'{elapsed:.0f}min' if elapsed else '?'
+                print(f'  RUNNING {ver}: PID {pid}, {age_str} elapsed')
+            except (OSError, ProcessLookupError):
+                print(f'  DEAD {ver}: PID {pid} -- process ended')
+                if not dry_run:
+                    pid_file.unlink(missing_ok=True)
+                    actions.append(f'F1 D {ver}.experiment.pid CLEANED')
+        except Exception:
+            pass
+
+    if not exp_pids:
+        print('  No experiments running.')
+
+    # 3. Check gates
+    print(f'\n--- Gate Check ---\n')
+    gates = check_gates(dry_run=dry_run)
+    kicked = False
+    for g in gates:
+        status_label = g['status'].upper()
+        blocked = f' (blocked by: {g["blocked_by"]})' if g.get('blocked_by') else ''
+        print(f'  {g["pipeline"]}: {g["gate"]} = {status_label}{blocked}')
+        if g.get('action'):
+            print(f'    -> {g["action"]}')
+
+        # Auto-kick eligible pipelines (one at a time)
+        if g['status'] in ('eligible', 'open') and not kicked and not dry_run:
+            if g['gate'] == 'kickoff' and _HAS_ORCHESTRATE:
+                print(f'    -> Auto-kicking {g["pipeline"]}...')
+                try:
+                    result = orchestrate_complete(g['pipeline'], 'pipeline_created',
+                                                  'belam-main', 'Auto-kicked by sweep')
+                    if result:
+                        actions.append(f'F1 D {g["pipeline"]}.kickoff -> architect_design')
+                        kicked = True
+                except Exception as e:
+                    print(f'    -> Kick failed: {e}')
+            elif g['gate'] == 'analysis' and _HAS_ORCHESTRATE:
+                print(f'    -> Auto-launching analysis for {g["pipeline"]}...')
+                try:
+                    from pipeline_orchestrate import orchestrate_local_analysis
+                    result = orchestrate_local_analysis(g['pipeline'])
+                    if result:
+                        actions.append(f'F1 D {g["pipeline"]}.analysis LAUNCHED')
+                        kicked = True
+                except Exception as e:
+                    print(f'    -> Analysis launch failed: {e}')
+            elif dry_run:
+                actions.append(f'[DRY] Would process gate {g["gate"]} for {g["pipeline"]}')
+
+    if not gates:
+        print('  All gates clear or no gate-blocked pipelines.')
+
+    # 4. Check pending revisions
+    print(f'\n--- Revision Check ---\n')
+    rev_files = list(BUILDS_DIR.glob('*_revision_request.md')) if BUILDS_DIR.exists() else []
+    if rev_files:
+        for rf in rev_files:
+            fm = load_pipeline_frontmatter(rf)
+            ver = fm.get('version', rf.stem.replace('_revision_request', ''))
+            print(f'  PENDING: {ver} revision request at {rf.name}')
+            if not kicked and not dry_run and _HAS_ORCHESTRATE:
+                try:
+                    from pipeline_orchestrate import orchestrate_revise
+                    context = rf.read_text()
+                    result = orchestrate_revise(ver, context)
+                    if result:
+                        actions.append(f'F1 D {ver}.revision KICKED')
+                        kicked = True
+                        rf.unlink()
+                except Exception as e:
+                    print(f'    -> Revision kick failed: {e}')
+    else:
+        print('  No pending revisions.')
+
+    # 5. Check stalls (only if nothing was kicked -- one at a time)
+    print(f'\n--- Stall Check (>{STALL_THRESHOLD_MINUTES}min) ---\n')
+    stalls = check_stalls()
+    if stalls:
+        for s in stalls:
+            print(f'  STALLED: {s["pipeline"]}/{s["pending_action"]} by {s["agent"]} ({s["age_minutes"]:.0f}min)')
+            if not kicked and not dry_run and _HAS_ORCHESTRATE:
+                print(f'    -> Auto-recovering...')
+                try:
+                    ok = pipeline_resume(s['pipeline'])
+                    if ok:
+                        actions.append(f'F1 D {s["pipeline"]}.stall_recovery {s["agent"]} RESUMED')
+                        kicked = True
+                except Exception as e:
+                    print(f'    -> Recovery failed: {e}')
+            elif dry_run:
+                actions.append(f'[DRY] Would resume {s["pipeline"]}/{s["pending_action"]}')
+    else:
+        print('  No stalled pipelines.')
+
+    # 6. Check pending handoffs
+    print(f'\n--- Handoff Check ---\n')
+    handoffs = check_handoffs()
+    if handoffs:
+        for h in handoffs:
+            ver = h.get('version', '?')
+            agent = h.get('next_agent', '?')
+            stage = h.get('next_stage', '?')
+            ts = h.get('timestamp', '?')[:19]
+            print(f'  PENDING: {ver} -> {agent} for {stage} (since {ts})')
+    else:
+        print('  No pending handoffs.')
 
     # Summary
-    n_waiting = len([p for p in pipelines_found
-                     if p['status'] not in ('archived', 'superseded', 'complete')
-                     and p['gate'] == 'waiting'])
-    n_open = len([p for p in pipelines_found
-                  if p['status'] not in ('archived', 'superseded', 'complete')
-                  and p['gate'] != 'waiting'])
-    print(f'# {n_open} open gates  {n_waiting} waiting gates')
-    if n_open > 0:
-        print(f'# Eligible for dispatch: {n_open} pipeline(s) ready for agent work')
+    print(f'\n{"=" * 60}')
+    pipelines = get_active_pipelines()
+    print(f'  Active pipelines: {len(pipelines)}')
+    for i, p in enumerate(pipelines, 1):
+        pending = p['pending_action']
+        agent = _agent_from_action(pending)
+        age = minutes_since(p['last_updated'])
+        age_str = _format_age(age)
+        pri = p['frontmatter'].get('priority', '-')
+        print(f'    p{i} {p["version"]:<35} {pending:<30} {agent:<10} {age_str:<12} [{pri}]')
+    if actions:
+        print(f'\n  Actions taken: {len(actions)}')
+        for a in actions:
+            print(f'    {a}')
+    else:
+        print(f'\n  No actions taken.')
+    print(f'{"=" * 60}\n')
+
+    return actions
 
 
-# ─── Main dispatcher ───────────────────────────────────────────────────────────
+# ─── CLI Rendering Helpers ──────────────────────────────────────────────────────
 
-USAGE = """
-orchestration_engine.py — Orchestration Engine V1
+def _render_status(version: str):
+    """Render pipeline status to stdout."""
+    s = pipeline_status(version)
 
-Commands:
-  status                        Show engine state
-  sync --generate               Compute diffs for changed primitives
-  sync --deliver <agent>        Deliver pending diffs to target agent
-  sync --ready <agent>          Mark agent sync_ready (work unit complete)
-  dispatch <persona> <coord>    Register dispatch intent
-  flow --check                  Evaluate pipeline gates
+    if s.get('error') == 'not_found':
+        print(f'Pipeline not found: {version}')
+        return
 
-Examples:
-  python3 scripts/orchestration_engine.py status
-  python3 scripts/orchestration_engine.py sync --generate
-  python3 scripts/orchestration_engine.py sync --deliver architect
-  python3 scripts/orchestration_engine.py sync --ready architect
-  python3 scripts/orchestration_engine.py dispatch architect t1
-  python3 scripts/orchestration_engine.py flow --check
-""".strip()
+    print(f'\n--- Pipeline Status: {s["version"]} ---\n')
+    print(f'  Status:         {s["status"]}')
+    print(f'  Pending action: {s["pending_action"]}')
+    print(f'  Current agent:  {s["agent"]}')
+    print(f'  Last updated:   {s["last_updated"]} ({s["last_updated_ago"]})')
+    print(f'  Priority:       {s["priority"]}')
 
+    if s.get('next_action'):
+        print(f'  Next action:    {s["next_action"]}')
+
+    if s.get('gates'):
+        print(f'\n  Gates:')
+        for gate, status in s['gates'].items():
+            print(f'    {gate}: {status}')
+
+    if s.get('locks'):
+        print(f'\n  Locks ({len(s["locks"])} total):')
+        for l in s['locks']:
+            alive = 'alive' if l.get('pid_alive') else 'dead'
+            stale = ' STALE' if l.get('stale') else ''
+            age = f'{l["age_minutes"]:.0f}m' if l.get('age_minutes') is not None else '?'
+            print(f'    {l["agent"]}: PID {l.get("pid", "?")} ({alive}, {age}){stale}')
+
+    # Stage history
+    stages = s.get('stages', {})
+    if stages:
+        print(f'\n  Stage History ({len(stages)} stages):')
+        for stage_name, info in stages.items():
+            status = info.get('status', '?')
+            agent = info.get('agent', '?')
+            completed = info.get('completed_at', '?')
+            notes = (info.get('notes', '') or '')[:80]
+            print(f'    {stage_name:<40} {status:<10} {agent:<10} {completed}')
+            if notes:
+                print(f'      {notes}')
+
+    print()
+
+
+def _render_gates(version: str = None):
+    """Render gate check results to stdout."""
+    gates = check_gates(version=version)
+
+    if not gates:
+        print('\nNo gate-blocked pipelines found.\n')
+        return
+
+    print(f'\n--- Gate Check ---\n')
+    for g in gates:
+        blocked = f' [{g["blocked_by"]}]' if g.get('blocked_by') else ''
+        print(f'  {g["pipeline"]:<35} {g["gate"]:<20} {g["status"].upper()}{blocked}')
+        if g.get('action'):
+            print(f'    -> {g["action"]}')
+    print()
+
+
+def _render_locks():
+    """Render lock status to stdout."""
+    locks = list_locks()
+
+    if not locks:
+        print('\nNo active locks.\n')
+        return
+
+    print(f'\n--- Active Locks ---\n')
+    for l in locks:
+        alive = 'alive' if l.get('pid_alive') else 'DEAD'
+        stale = ' STALE' if l.get('stale') else ''
+        age = f'{l["age_minutes"]:.0f}m' if l.get('age_minutes') is not None else '?'
+        print(f'  {l["agent"]:<12} PID {l.get("pid", "?"):<8} {alive} age={age}{stale}')
+        if l.get('error'):
+            print(f'    error: {l["error"]}')
+    print()
+
+
+def _render_stalls():
+    """Render stall check results to stdout."""
+    stalls = check_stalls()
+
+    if not stalls:
+        print('\nNo stalled pipelines.\n')
+        return
+
+    print(f'\n--- Stalled Pipelines ---\n')
+    for s in stalls:
+        print(f'  {s["pipeline"]:<35} {s["pending_action"]:<30} {s["agent"]:<10} {s["age_minutes"]:.0f}min')
+    print()
+
+
+def _render_handoffs():
+    """Render pending handoffs to stdout."""
+    handoffs = check_handoffs()
+
+    if not handoffs:
+        print('\nNo pending handoffs.\n')
+        return
+
+    print(f'\n--- Pending Handoffs ---\n')
+    for h in handoffs:
+        ver = h.get('version', '?')
+        agent = h.get('next_agent', '?')
+        stage = h.get('next_stage', '?')
+        ts = h.get('timestamp', '?')[:19]
+        wake_status = h.get('wake_result', {}).get('status', '?')
+        print(f'  {ver:<35} -> {agent:<10} {stage:<30} {ts} [{wake_status}]')
+    print()
+
+
+def _render_next(version: str):
+    """Render next action for a pipeline."""
+    version = resolve_pipeline(version) or version
+    action = pipeline_next_action(version)
+    if action:
+        print(f'\n{version}: {action}\n')
+    else:
+        print(f'\n{version}: No pending action.\n')
+
+
+# ─── CLI Main ──────────────────────────────────────────────────────────────────
 
 def main():
     args = sys.argv[1:]
-    if not args or args[0] in ('-h', '--help'):
-        print(USAGE)
+    dry_run = '--dry-run' in args
+    if dry_run:
+        args.remove('--dry-run')
+
+    if not args:
+        # Full sweep
+        sweep(dry_run=dry_run)
         return
 
     cmd = args[0]
-    rest = args[1:]
 
     if cmd == 'status':
-        cmd_status(rest)
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py status <version>')
+            sys.exit(1)
+        _render_status(args[1])
 
-    elif cmd == 'sync':
-        if not rest:
-            print('ERROR: sync requires --generate, --deliver <agent>, or --ready <agent>', file=sys.stderr)
+    elif cmd == 'gates':
+        version = args[1] if len(args) > 1 else None
+        _render_gates(version)
+
+    elif cmd == 'handoffs':
+        _render_handoffs()
+
+    elif cmd == 'locks':
+        _render_locks()
+
+    elif cmd == 'stalls':
+        _render_stalls()
+
+    elif cmd == 'next':
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py next <version>')
             sys.exit(1)
-        subcmd = rest[0]
-        subargs = rest[1:]
-        if subcmd == '--generate':
-            cmd_sync_generate(subargs)
-        elif subcmd == '--deliver':
-            cmd_sync_deliver(subargs)
-        elif subcmd == '--ready':
-            cmd_sync_ready(subargs)
-        else:
-            print(f'ERROR: unknown sync subcommand: {subcmd}', file=sys.stderr)
-            sys.exit(1)
+        _render_next(args[1])
 
     elif cmd == 'dispatch':
-        cmd_dispatch(rest)
-
-    elif cmd == 'flow':
-        if rest and rest[0] == '--check':
-            cmd_flow_check(rest[1:])
-        else:
-            print('ERROR: flow requires --check', file=sys.stderr)
+        if len(args) < 3:
+            print('Usage: orchestration_engine.py dispatch <version> <agent> [stage]')
             sys.exit(1)
+        version = args[1]
+        agent = args[2]
+        stage = args[3] if len(args) > 3 else None
+        pipeline_dispatch(version, agent, stage)
+
+    elif cmd == 'resume':
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py resume <version>')
+            sys.exit(1)
+        pipeline_resume(args[1])
+
+    elif cmd == 'release-lock':
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py release-lock <version>')
+            sys.exit(1)
+        release_lock(args[1])
+
+    elif cmd == 'list':
+        pipelines = get_active_pipelines()
+        if not pipelines:
+            print('\nNo active pipelines.\n')
+            return
+        print(f'\n--- Active Pipelines ---\n')
+        for i, p in enumerate(pipelines, 1):
+            pending = p['pending_action']
+            agent = _agent_from_action(pending)
+            age = minutes_since(p['last_updated'])
+            age_str = _format_age(age)
+            pri = p['frontmatter'].get('priority', '-')
+            print(f'  p{i} {p["version"]:<35} {pending:<30} {agent:<10} {age_str:<12} [{pri}]')
+        print()
+
+    elif cmd == 'resolve':
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py resolve <ref>')
+            sys.exit(1)
+        result = resolve_pipeline(args[1])
+        print(result or f'Could not resolve: {args[1]}')
+
+    elif cmd == 'sweep':
+        sweep(dry_run=dry_run)
+
+    elif cmd == 'help' or cmd == '--help' or cmd == '-h':
+        print(__doc__)
 
     else:
-        print(f'ERROR: unknown command: {cmd}', file=sys.stderr)
-        print()
-        print(USAGE)
-        sys.exit(1)
+        # Maybe it's a version string? Try status
+        resolved = resolve_pipeline(cmd)
+        if resolved:
+            _render_status(resolved)
+        else:
+            print(f'Unknown command: {cmd}')
+            print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
+            print('          release-lock, list, resolve, sweep, help')
+            print('Or pass a pipeline version/coordinate for quick status.')
+            sys.exit(1)
 
 
 if __name__ == '__main__':

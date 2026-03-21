@@ -11,7 +11,12 @@
 The primary heartbeat responsibility: move work forward. This is now **fully automated via script** — no LLM decision-making needed.
 
 1. **Run the automation script:**
+   - **Preferred (V1+):** `python3 scripts/orchestration_engine.py` or equivalent `e0` sweep
+   - **Fallback:** `python3 scripts/pipeline_autorun.py`
    ```bash
+   # Preferred: orchestration engine sweep (or use `e0` in codex engine)
+   python3 scripts/orchestration_engine.py
+   # Fallback: legacy autorun
    python3 scripts/pipeline_autorun.py
    ```
    This automatically:

@@ -3256,6 +3256,276 @@ def _list_mode_primitives():
     print('\n'.join(lines))
 
 
+def _get_orch_engine():
+    """Lazy import of orchestration engine module.
+
+    Returns the module if available, None otherwise.
+    The orchestration_engine.py may not exist yet (built in parallel).
+    """
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "orchestration_engine",
+            Path(__file__).parent / "orchestration_engine.py"
+        )
+        if spec is None:
+            return None
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+    except Exception:
+        return None
+
+
+def _parse_e0_args(op_args):
+    """Parse e0 arguments into an operation spec.
+
+    Handles dense tokens like 'p3', 'h', 'g', 's' and standalone words
+    like 'locks', 'unlock', 'sweep', 'dispatch', 'handoff', 'resume'.
+
+    Returns: dict with keys:
+        op: str — operation name ('sweep', 'pipeline_status', 'handoffs',
+                  'gates', 'stalls', 'locks', 'unlock', 'dispatch',
+                  'handoff', 'resume', 'legacy')
+        pipeline: str|None — pipeline identifier like 'p3'
+        agent: str|None — agent name for dispatch/handoff
+        extra: list — remaining unparsed args
+    """
+    if not op_args:
+        return {'op': 'sweep', 'pipeline': None, 'agent': None, 'extra': []}
+
+    result = {'op': None, 'pipeline': None, 'agent': None, 'extra': []}
+    remaining = list(op_args)
+
+    # Check first token for dense sub-commands or pipeline coordinates
+    first = remaining[0].lower()
+
+    # Single-letter sub-commands (dense, no space after e0)
+    if first == 'h':
+        result['op'] = 'handoffs'
+        remaining = remaining[1:]
+    elif first == 'g':
+        result['op'] = 'gates'
+        remaining = remaining[1:]
+        # Check for optional pipeline filter: e0g p3
+        if remaining:
+            pm = re.match(r'^p(\d+)$', remaining[0], re.IGNORECASE)
+            if pm:
+                result['pipeline'] = remaining[0].lower()
+                remaining = remaining[1:]
+    elif first == 's':
+        result['op'] = 'stalls'
+        remaining = remaining[1:]
+
+    # Pipeline coordinate: p3, p12, etc.
+    elif re.match(r'^p(\d+)$', first, re.IGNORECASE):
+        result['pipeline'] = first
+        remaining = remaining[1:]
+        # Check for pipeline-scoped action
+        if remaining:
+            action = remaining[0].lower()
+            if action == 'dispatch':
+                result['op'] = 'dispatch'
+                remaining = remaining[1:]
+                if remaining:
+                    result['agent'] = remaining[0]
+                    remaining = remaining[1:]
+            elif action == 'handoff':
+                result['op'] = 'handoff'
+                remaining = remaining[1:]
+                # Parse agent→agent pattern
+                if remaining:
+                    handoff_str = remaining[0]
+                    # Handle → or -> separator
+                    for sep in ('→', '->'):
+                        if sep in handoff_str:
+                            parts = handoff_str.split(sep, 1)
+                            result['agent'] = parts[0].strip()
+                            result['extra'] = [parts[1].strip()] + remaining[1:]
+                            remaining = []
+                            break
+                    else:
+                        result['agent'] = handoff_str
+                        remaining = remaining[1:]
+            elif action == 'resume':
+                result['op'] = 'resume'
+                remaining = remaining[1:]
+            elif action == 'launch':
+                result['op'] = 'dispatch'  # launch is an alias for dispatch
+                remaining = remaining[1:]
+                if remaining:
+                    result['agent'] = remaining[0]
+                    remaining = remaining[1:]
+            else:
+                # No recognized action → pipeline status
+                result['op'] = 'pipeline_status'
+        else:
+            result['op'] = 'pipeline_status'
+
+    # Standalone words
+    elif first == 'locks':
+        result['op'] = 'locks'
+        remaining = remaining[1:]
+    elif first == 'unlock':
+        result['op'] = 'unlock'
+        remaining = remaining[1:]
+        if remaining:
+            pm = re.match(r'^p(\d+)$', remaining[0], re.IGNORECASE)
+            if pm:
+                result['pipeline'] = remaining[0].lower()
+                remaining = remaining[1:]
+    elif first == 'sweep':
+        result['op'] = 'sweep'
+        remaining = remaining[1:]
+    else:
+        # Unknown → fall through to legacy action dispatch
+        result['op'] = 'legacy'
+
+    # Default to sweep if no op was set
+    if result['op'] is None:
+        result['op'] = 'sweep'
+
+    result['extra'] = remaining
+    return result
+
+
+def _e0_fallback_message(op=None):
+    """Print helpful fallback when orchestration engine isn't available."""
+    print("e0: orchestration engine not yet available.")
+    print("Falling back to legacy scripts. Run:")
+    print("  python3 scripts/pipeline_autorun.py          # for sweep")
+    print("  python3 scripts/pipeline_orchestrate.py ...  # for handoffs")
+
+
+def _dispatch_e0(op_args, tracker):
+    """Dispatch e0 orchestration operations.
+
+    Routes to orchestration_engine.py if available, otherwise falls back
+    to legacy scripts or shows a helpful message.
+    """
+    spec = _parse_e0_args(op_args)
+    orch = _get_orch_engine()
+
+    # If orchestration engine isn't available, try legacy fallback for some ops
+    if orch is None:
+        if spec['op'] == 'legacy':
+            # Forward to the old execute_action path
+            execute_action(op_args)
+            return 0
+        _e0_fallback_message(spec['op'])
+        return 0
+
+    # Dispatch to orchestration engine
+    try:
+        f_label = tracker.next_f_label() if spec['op'] not in ('locks', 'stalls') else None
+
+        if spec['op'] == 'sweep':
+            result = orch.sweep()
+            if result:
+                if f_label:
+                    print(f"{f_label} {result}" if isinstance(result, str) else result)
+                else:
+                    print(result)
+
+        elif spec['op'] == 'pipeline_status':
+            result = orch.pipeline_status(spec['pipeline'])
+            if result:
+                _, output = tracker.track_render(str(result))
+                print(output)
+
+        elif spec['op'] == 'handoffs':
+            result = orch.check_handoffs()
+            if result:
+                _, output = tracker.track_render(str(result))
+                print(output)
+
+        elif spec['op'] == 'gates':
+            if spec['pipeline']:
+                result = orch.check_gates(spec['pipeline'])
+            else:
+                result = orch.check_gates()
+            if result:
+                _, output = tracker.track_render(str(result))
+                print(output)
+
+        elif spec['op'] == 'stalls':
+            result = orch.check_stalls()
+            if result:
+                _, output = tracker.track_render(str(result))
+                print(output)
+
+        elif spec['op'] == 'locks':
+            result = orch.list_locks()
+            if result:
+                _, output = tracker.track_render(str(result))
+                print(output)
+
+        elif spec['op'] == 'unlock':
+            if not spec['pipeline']:
+                print("e0 unlock: specify a pipeline (e.g., e0 unlock p3)")
+                return 1
+            result = orch.release_lock(spec['pipeline'])
+            if result and f_label:
+                print(f"{f_label} Δ {spec['pipeline']}.lock released")
+            elif result:
+                print(result)
+
+        elif spec['op'] == 'dispatch':
+            if not spec['pipeline'] or not spec['agent']:
+                print("e0 dispatch: specify pipeline and agent (e.g., e0p3 dispatch architect)")
+                return 1
+            result = orch.pipeline_dispatch(spec['pipeline'], spec['agent'])
+            if result and f_label:
+                print(f"{f_label} Δ {spec['pipeline']}.dispatch → {spec['agent']}")
+            elif result:
+                print(result)
+
+        elif spec['op'] == 'handoff':
+            if not spec['pipeline'] or not spec['agent']:
+                print("e0 handoff: specify pipeline and agents (e.g., e0p3 handoff architect→critic)")
+                return 1
+            target_agent = spec['extra'][0] if spec['extra'] else None
+            result = orch.pipeline_handoff(
+                spec['pipeline'], spec['agent'], target_agent
+            )
+            if result and f_label:
+                arrow = f" → {target_agent}" if target_agent else ""
+                print(f"{f_label} Δ {spec['pipeline']}.handoff {spec['agent']}{arrow}")
+            elif result:
+                print(result)
+
+        elif spec['op'] == 'resume':
+            if not spec['pipeline']:
+                print("e0 resume: specify a pipeline (e.g., e0p3 resume)")
+                return 1
+            result = orch.pipeline_resume(spec['pipeline'])
+            if result and f_label:
+                print(f"{f_label} Δ {spec['pipeline']}.resume")
+            elif result:
+                print(result)
+
+        else:
+            # Unknown op — shouldn't happen but handle gracefully
+            print(f"e0: unknown operation '{spec['op']}'")
+            return 1
+
+    except AttributeError:
+        # Orchestration engine exists but doesn't have the expected function yet
+        # Silently fall back to legacy dispatch if possible
+        if spec['op'] in ('sweep', 'legacy'):
+            return _run_script('pipeline_autorun.py', [])
+        elif spec['op'] == 'handoffs':
+            return _run_script('pipeline_orchestrate.py', ['--check-pending'])
+        else:
+            _e0_fallback_message(spec['op'])
+            return 0
+    except Exception as e:
+        print(f"e0: error during orchestration: {e}")
+        return 1
+
+    return 0
+
+
 def _dispatch_v2_operation(mode_num, op_args, view_flags, tracker):
     """Dispatch a single V2 operation.
 
@@ -3265,12 +3535,12 @@ def _dispatch_v2_operation(mode_num, op_args, view_flags, tracker):
     tracker: RenderTracker instance
     """
     if mode_num == 0:
-        # e0 → orchestrate
+        # e0 → orchestrate via orchestration engine
         if not op_args:
-            _show_mode_help(0)
-            return 0
-        execute_action(op_args)
-        return 0
+            # Bare e0 → full sweep
+            return _dispatch_e0([], tracker)
+        return _dispatch_e0(op_args, tracker)
+
 
     elif mode_num == 1:
         # e1 → edit
@@ -3426,9 +3696,12 @@ def main(args=None):
             _list_mode_primitives()
             return
         if re.match(r'^e[0-3]$', first_lower) and len(clean_args) == 1:
-            # Bare eN with no additional args → mode help
+            # Bare eN with no additional args
             mode_num = int(first_lower[1])
-            if mode_num == 3:
+            if mode_num == 0:
+                # Bare e0 → full orchestration sweep
+                _dispatch_e0([], tracker)
+            elif mode_num == 3:
                 execute_extend([])
             else:
                 _show_mode_help(mode_num)
