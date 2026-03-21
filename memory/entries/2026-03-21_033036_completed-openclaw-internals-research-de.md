@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:architect, pipeline:research-openclaw-internals, stage:architect_design]
 source: "session"
 content: "Completed OpenClaw internals research design. Key finding: before_prompt_build plugin hook is the main leverage point for automating pipeline context injection into agent sessions. Two hook layers: internal (event scripts) and plugin (lifecycle). 5 opportunities identified: pipeline-context injection [HIGH], agent turn logging [MEDIUM], native orchestrator tool [HIGH], bootstrap file hook [MEDIUM], auto-reply commands [LOW]. Plugins run in-process with no sandbox."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

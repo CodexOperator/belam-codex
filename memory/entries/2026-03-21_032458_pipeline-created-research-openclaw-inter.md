@@ -6,7 +6,7 @@ importance: 3
 tags: [agent:main, pipeline:research-openclaw-internals, stage:pipeline_created]
 source: "pipeline_update:research-openclaw-internals:pipeline_created"
 content: "Pipeline created: Research-OpenClaw-internals-session-routing-hooks-extension-points | Pipeline: research-openclaw-internals | Stage: pipeline_created"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

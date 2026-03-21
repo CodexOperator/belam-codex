@@ -1,0 +1,15 @@
+{
+  "version": "research-openclaw-internals",
+  "completed_stage": "critic_code_review",
+  "next_stage": "phase1_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-21T03:45:27.555477+00:00",
+  "pipeline_session_id": "57f4a9b8-0ad3-4a7c-bd76-1cf4b865cb58",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "7f5f022b-d4c5-4d5f-a578-10959200d00f",
+    "response_preview": "Good \u2014 the code review is clean. 0 blocks, all design flags resolved, 3 minor new flags (none blocki"
+  },
+  "verified": true
+}

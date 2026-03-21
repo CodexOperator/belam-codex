@@ -1,0 +1,15 @@
+{
+  "version": "research-openclaw-internals",
+  "completed_stage": "builder_implementation",
+  "next_stage": "critic_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-21T03:45:44.556224+00:00",
+  "pipeline_session_id": "b7b4e5b8-bc9d-4f67-a348-8539e6fac18c",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "92526d5d-1323-4291-b414-d57665065b4a",
+    "response_preview": "Good \u2014 I have context from my earlier design review of this same pipeline. I raised 4 FLAGs. Now let"
+  },
+  "verified": true
+}
