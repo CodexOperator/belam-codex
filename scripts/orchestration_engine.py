@@ -41,6 +41,15 @@ FLAG fixes applied (orchestration-engine-v2 critic review):
                  them before returning the payload. Coordinator only relays spawn{}.
   FLAG-4 (LOW): Lock staleness uses timeout as PRIMARY mechanism, PID as SECONDARY hint.
                  Handles OpenClaw's short-lived CLI process model correctly.
+
+V2-temporal overlay integration (orchestration-engine-v2-temporal):
+  Temporal hooks in _post_state_change() call log_transition(), advance_pipeline(),
+  and create_handoff() on a SQLite-backed TemporalOverlay (graceful degradation).
+  Addresses temporal Critic FLAGs:
+    FLAG-1: Parameterized SQL queries (no injection)
+    FLAG-2: Separated log_transition + advance_pipeline (not monolithic complete_stage)
+    FLAG-3: SQLite DB IS on filesystem (agent_context inherently backed up)
+    FLAG-5: Presence TTL applied at query time in get_dashboard()
 """
 
 import json
@@ -111,8 +120,8 @@ _temporal_overlay = None  # Lazy-loaded TemporalOverlay instance
 def _get_temporal():
     """Get the TemporalOverlay instance (lazy, graceful degradation).
 
-    Returns TemporalOverlay if SpacetimeDB is available, None otherwise.
-    V2 engine continues normally when temporal is unavailable.
+    Returns TemporalOverlay if temporal DB (SQLite+WAL) is available,
+    None otherwise. V2 engine continues normally when temporal is unavailable.
     """
     global _temporal_overlay
     if _temporal_overlay is None:
@@ -133,22 +142,35 @@ def _post_state_change(version: str, from_stage: str, to_stage: str,
 
     Called after every state mutation in handle_complete/handle_block.
     Failure is silent — temporal is overlay, not critical path.
+
+    V2-temporal integration (Critic FLAG-2 resolution):
+      - log_transition(): append-only audit log (always safe)
+      - advance_pipeline(): state mutation (updates current stage/agent)
+      - create_handoff(): delivery tracking (when agent changes)
+    These are separated per Critic FLAG-2 (split complete_stage into
+    log_transition + advance_pipeline).
     """
     temporal = _get_temporal()
     if not temporal:
         return False
     try:
-        # Log the transition
-        temporal.record_transition(
+        # 1. Log the transition (immutable audit trail)
+        temporal.log_transition(
             version=version, from_stage=from_stage, to_stage=to_stage,
             agent=agent, action=action, notes=notes,
         )
-        # If advancing to next stage, also update pipeline state + create handoff
-        if action == 'complete' and to_stage and next_agent:
+        # 2. Advance pipeline state
+        if to_stage:
             temporal.advance_pipeline(
-                version=version, completed_stage=from_stage,
-                next_stage=to_stage, source_agent=agent,
-                target_agent=next_agent, notes=notes,
+                version=version, stage=to_stage,
+                agent=next_agent or agent,
+            )
+        # 3. Create handoff record if agent changes
+        if action == 'complete' and next_agent and next_agent != agent:
+            temporal.create_handoff(
+                version=version, source_agent=agent,
+                target_agent=next_agent, completed_stage=from_stage,
+                next_stage=to_stage, notes=notes,
             )
         return True
     except Exception:
@@ -549,6 +571,13 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
         is_resume=is_resume, resume_count=resume_count,
         partial_files=partial,
     )
+
+    # V2-temporal: inject persistent agent context into task prompt
+    temporal = _get_temporal()
+    if temporal:
+        lineage = temporal.get_design_lineage(version, agent)
+        if lineage:
+            task += f"\n\n## Your Persistent Context (Pipeline Memory)\n{lineage}\n"
 
     return DispatchPayload(
         agent=agent,
@@ -1887,19 +1916,29 @@ def sweep(dry_run: bool = False) -> list[str]:
     if dry_run:
         print('  [DRY RUN -- no actions will be taken]\n')
 
-    # 0a. Temporal sync: reconcile filesystem → SpacetimeDB (if available)
+    # 0a. Temporal sync: reconcile filesystem → SQLite temporal DB (if available)
     temporal = _get_temporal()
     if temporal:
-        print(f'\n--- Temporal Sync (SpacetimeDB) ---\n')
+        print(f'\n--- Temporal Sync (SQLite+WAL) ---\n')
         try:
-            sync_stats = temporal.sync_from_filesystem()
-            print(f'  Synced {sync_stats["synced"]} pipelines to SpacetimeDB')
-            if sync_stats['errors']:
-                print(f'  ⚠ {sync_stats["errors"]} sync errors')
-            # Also export agent contexts for backup (FLAG-3)
-            ctx_count = temporal.export_all_contexts()
-            if ctx_count:
-                print(f'  Exported {ctx_count} agent context(s) to filesystem')
+            from temporal_sync import run_sync, export_agent_contexts
+            summary = run_sync(dry_run=dry_run)
+            created = summary.get('created', 0)
+            updated = summary.get('updated', 0)
+            unchanged = summary.get('unchanged', 0)
+            errors = summary.get('errors', 0)
+            print(f'  Pipeline state: {created} created, {updated} updated, '
+                  f'{unchanged} unchanged')
+            if errors:
+                print(f'  ⚠ {errors} sync errors')
+                actions.append(f'temporal-sync-errors: {errors}')
+            # Export agent contexts for backup (FLAG-3)
+            if not dry_run:
+                exported = export_agent_contexts(temporal)
+                if exported:
+                    print(f'  Exported {len(exported)} agent context backup(s)')
+        except ImportError:
+            print(f'  temporal_sync.py not found — skipping')
         except Exception as e:
             print(f'  Temporal sync error (non-fatal): {e}')
 
@@ -2608,12 +2647,13 @@ def main():
         # Autoclave dashboard — shared view of all pipelines + agents
         temporal = _get_temporal()
         if not temporal:
-            print('\n⚠ SpacetimeDB unavailable — autoclave requires temporal overlay.\n')
-            print('  Setup: spacetime start && spacetime publish belam-orchestration scripts/temporal_schema/')
+            print('\n⚠ Temporal DB unavailable — autoclave requires temporal overlay.\n')
+            print('  Setup: python3 scripts/temporal_schema.py && python3 scripts/temporal_sync.py')
             sys.exit(1)
         sub = args[1] if len(args) > 1 else None
         if sub == 'agents':
-            agents = temporal.get_agent_presence() or []
+            dashboard = temporal.get_dashboard() or {}
+            agents = dashboard.get('agents', [])
             print(f'\n--- Agent Presence ---\n')
             for a in agents:
                 pipeline = a.get('current_pipeline', '-')
@@ -2652,7 +2692,7 @@ def main():
             sys.exit(1)
         temporal = _get_temporal()
         if not temporal:
-            print('\n⚠ SpacetimeDB unavailable.\n')
+            print('\n⚠ Temporal DB unavailable.\n')
             sys.exit(1)
         version = resolve_pipeline(args[1]) or args[1]
         timeline = temporal.get_timeline(version)
@@ -2673,7 +2713,7 @@ def main():
             sys.exit(1)
         temporal = _get_temporal()
         if not temporal:
-            print('\n⚠ SpacetimeDB unavailable.\n')
+            print('\n⚠ Temporal DB unavailable.\n')
             sys.exit(1)
         version = resolve_pipeline(args[1]) or args[1]
         at = _extract_flag(args, '--at') or ''
@@ -2690,16 +2730,44 @@ def main():
                 print(f'\n  No state found for {version} at {at}.\n')
 
     elif cmd == 'temporal-sync':
+        # Delegate to temporal_sync.py for filesystem → temporal DB reconciliation
+        try:
+            from temporal_sync import run_sync
+            dry_run = '--dry-run' in args or '-n' in args
+            pipeline_flag = _extract_flag(args, '--pipeline') or _extract_flag(args, '-p')
+            summary = run_sync(pipeline_filter=pipeline_flag, dry_run=dry_run,
+                               json_output=json_mode)
+            if json_mode:
+                print(json.dumps(summary, indent=2))
+            else:
+                prefix = '[DRY RUN] ' if dry_run else ''
+                print(f'{prefix}✅ Temporal sync: {summary.get("created", 0)} created, '
+                      f'{summary.get("updated", 0)} updated, '
+                      f'{summary.get("unchanged", 0)} unchanged')
+        except ImportError:
+            print('\n⚠ temporal_sync.py not found.\n')
+            sys.exit(1)
+
+    elif cmd == 'context':
+        # Show persistent agent context for a pipeline
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py context <version> [agent]')
+            sys.exit(1)
         temporal = _get_temporal()
         if not temporal:
-            print('\n⚠ SpacetimeDB unavailable.\n')
+            print('\n⚠ Temporal DB unavailable.\n')
             sys.exit(1)
-        stats = temporal.sync_from_filesystem()
-        export_ctx = '--export-contexts' in args
-        print(f'Sync: {json.dumps(stats)}')
-        if export_ctx:
-            count = temporal.export_all_contexts()
-            print(f'Exported {count} agent contexts')
+        version = resolve_pipeline(args[1]) or args[1]
+        agent_filter = args[2] if len(args) > 2 else None
+        agents_to_show = [agent_filter] if agent_filter else ['architect', 'critic', 'builder']
+        for ag in agents_to_show:
+            lineage = temporal.get_design_lineage(version, ag)
+            if lineage:
+                print(f'\n--- Persistent Context: {ag} on {version} ---')
+                print(lineage)
+            elif agent_filter:
+                print(f'\n  No context for {ag} on {version}.')
+        print()
 
     elif cmd == 'help' or cmd == '--help' or cmd == '-h':
         print(__doc__)
@@ -2714,7 +2782,7 @@ def main():
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
             print('          complete, block, release-lock, list, resolve, sweep, launch, archive,')
             print('          dispatch-payload, completions, verify-hooks,')
-            print('          autoclave, timeline, timetravel, temporal-sync, help')
+            print('          autoclave, timeline, timetravel, temporal-sync, context, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)
 

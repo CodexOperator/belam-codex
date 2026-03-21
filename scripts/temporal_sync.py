@@ -1,133 +1,327 @@
 #!/usr/bin/env python3
-"""Reconcile filesystem state → SpacetimeDB for the V2 temporal overlay.
+"""
+temporal_sync.py — Filesystem → Temporal DB reconciliation
 
-Reads all pipeline _state.json files and upserts into SpacetimeDB.
-Idempotent — safe to run repeatedly. Designed for sweep integration.
+Reads pipeline _state.json files from the filesystem and upserts them into the
+temporal SQLite database. Ensures the temporal overlay stays consistent with
+the filesystem source of truth.
 
-FLAG-6 clarification: This sync covers pipeline_state table ONLY.
-- state_transition entries are temporal-layer-native (no filesystem equivalent)
-- handoff entries partially overlap with pipelines/handoffs/*.json but
-  are temporal-layer-native for delivery tracking
-- agent_context is backed up separately via temporal_overlay.export_context()
+Reconciliation scope (Critic FLAG-6 — documented explicitly):
+  - pipeline_state: FULL SYNC — filesystem is source of truth
+  - state_transition: NOT SYNCED — these are created by the temporal overlay
+    during live operation. Historical transitions from before temporal was
+    enabled are NOT retroactively created (would require git log parsing).
+  - handoff: NOT SYNCED — created live by temporal overlay
+  - agent_context: NOT SYNCED — SQLite-native data (see FLAG-3 resolution:
+    since SQLite IS on the filesystem, this is inherently backed up)
+  - agent_presence: NOT SYNCED — ephemeral heartbeat data
+
+Designed for periodic execution (e.g., every 15min as part of sweep).
+Idempotent — safe to run repeatedly.
 
 Usage:
     python3 scripts/temporal_sync.py                    # Full sync
-    python3 scripts/temporal_sync.py --pipeline p3      # Single pipeline
+    python3 scripts/temporal_sync.py --pipeline <ver>   # Single pipeline
     python3 scripts/temporal_sync.py --dry-run           # Preview only
-    python3 scripts/temporal_sync.py --export-contexts   # Also backup agent contexts
+    python3 scripts/temporal_sync.py --json              # JSON output
+    python3 scripts/temporal_sync.py --export-context    # Export agent_context to JSON files (FLAG-3 backup)
 """
 
-import argparse
 import json
+import os
+import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
-# Add parent to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
-from temporal_overlay import TemporalOverlay
+# ─── Paths ───────────────────────────────────────────────────────────────────────
+
+WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
+BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+PIPELINES_DIR = WORKSPACE / 'pipelines'
+
+# Ensure scripts dir is on path for imports
+sys.path.insert(0, str(WORKSPACE / 'scripts'))
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Reconcile filesystem pipeline state → SpacetimeDB'
-    )
-    parser.add_argument('--pipeline', '-p', help='Sync a single pipeline version')
-    parser.add_argument('--dry-run', action='store_true', help='Preview without writing')
-    parser.add_argument('--export-contexts', action='store_true',
-                        help='Also export agent contexts to filesystem (FLAG-3 backup)')
-    parser.add_argument('--workspace', '-w',
-                        default=str(Path(__file__).parent.parent),
-                        help='Workspace root directory')
-    parser.add_argument('--db-name', default='belam-orchestration',
-                        help='SpacetimeDB database name')
-    parser.add_argument('--verbose', '-v', action='store_true')
+def discover_pipeline_states() -> list:
+    """Find all *_state.json files in the builds directory."""
+    states = []
+    if not BUILDS_DIR.exists():
+        return states
 
-    args = parser.parse_args()
-    workspace = Path(args.workspace)
-    overlay = TemporalOverlay(workspace=workspace, db_name=args.db_name)
-
-    if not overlay.available:
-        print("⚠ SpacetimeDB unavailable — cannot sync")
-        print(f"  Binary: {overlay.spacetime_bin}")
-        print(f"  Database: {overlay.db_name}")
-        print("\n  Ensure SpacetimeDB is running:")
-        print("    spacetime start")
-        print(f"    spacetime publish {overlay.db_name} scripts/temporal_schema/")
-        sys.exit(1)
-
-    pipeline_dir = (
-        workspace / 'machinelearning' / 'snn_applied_finance' /
-        'research' / 'pipeline_builds'
-    )
-
-    if not pipeline_dir.is_dir():
-        print(f"Pipeline directory not found: {pipeline_dir}")
-        sys.exit(1)
-
-    # Collect state files
-    state_files = sorted(pipeline_dir.glob('*_state.json'))
-    if args.pipeline:
-        state_files = [f for f in state_files if args.pipeline in f.stem]
-
-    if not state_files:
-        print(f"No state files found" + (f" matching '{args.pipeline}'" if args.pipeline else ""))
-        sys.exit(0)
-
-    print(f"📊 Temporal Sync: {len(state_files)} pipeline(s)")
-    print(f"   Database: {overlay.db_name}")
-    print(f"   Mode: {'dry-run' if args.dry_run else 'live'}")
-    print()
-
-    stats = {'synced': 0, 'errors': 0, 'skipped': 0}
-
-    for state_file in state_files:
+    for f in sorted(BUILDS_DIR.glob('*_state.json')):
         try:
-            state = json.loads(state_file.read_text())
-            version = state.get('version', '')
-            if not version:
-                if args.verbose:
-                    print(f"  ⏭ {state_file.name}: no version field")
-                stats['skipped'] += 1
-                continue
+            with open(f) as fh:
+                data = json.load(fh)
+                data['_source_file'] = str(f)
+                states.append(data)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"[sync] Warning: Could not read {f}: {e}", file=sys.stderr)
+    return states
 
-            status = state.get('status', 'unknown')
-            current_stage = state.get('pending_action', '')
-            current_agent = state.get('current_agent', '')
 
-            if args.verbose or args.dry_run:
-                print(f"  {'🔍' if args.dry_run else '📤'} {version}: "
-                      f"status={status}, stage={current_stage}, agent={current_agent}")
+def parse_pipeline_frontmatter(pipeline_md: Path) -> dict:
+    """Extract YAML frontmatter from a pipeline markdown file."""
+    if not pipeline_md.exists():
+        return {}
+    try:
+        content = pipeline_md.read_text()
+        if content.startswith('---'):
+            end = content.find('---', 3)
+            if end > 0:
+                # Simple YAML parsing (key: value lines)
+                frontmatter = {}
+                for line in content[3:end].strip().split('\n'):
+                    if ':' in line:
+                        key, _, value = line.partition(':')
+                        key = key.strip()
+                        value = value.strip()
+                        # Handle YAML arrays [a, b, c]
+                        if value.startswith('[') and value.endswith(']'):
+                            value = [v.strip().strip("'\"")
+                                     for v in value[1:-1].split(',')]
+                        frontmatter[key] = value
+                return frontmatter
+    except IOError:
+        pass
+    return {}
 
-            if not args.dry_run:
-                success = overlay.upsert_pipeline(
-                    version=version,
-                    status=status,
-                    current_stage=current_stage,
-                    current_agent=current_agent,
-                    tags=json.dumps(state.get('tags', [])),
-                    priority=state.get('priority', 'medium'),
-                )
-                if success:
-                    stats['synced'] += 1
-                else:
-                    print(f"  ❌ {version}: upsert failed")
-                    stats['errors'] += 1
+
+def sync_pipeline_state(state_data: dict, overlay, dry_run: bool = False) -> dict:
+    """Sync a single pipeline's state to the temporal DB.
+
+    Returns: {'version': str, 'action': 'created'|'updated'|'unchanged'|'error', ...}
+    """
+    version = state_data.get('version', state_data.get('pipeline', ''))
+    if not version:
+        return {'version': '?', 'action': 'error', 'reason': 'No version field'}
+
+    # Extract current state from JSON
+    current_stage = state_data.get('current_stage', '')
+    current_agent = state_data.get('current_agent', '')
+    status = state_data.get('status', 'unknown')
+
+    # Also check the pipeline markdown for additional metadata
+    pipeline_md = PIPELINES_DIR / f'{version}.md'
+    frontmatter = parse_pipeline_frontmatter(pipeline_md)
+    if frontmatter.get('status'):
+        status = frontmatter['status']
+    tags = json.dumps(frontmatter.get('tags', []))
+    priority = frontmatter.get('priority', 'medium')
+
+    # Check current temporal state
+    try:
+        conn = overlay._get_conn()
+        existing = conn.execute(
+            "SELECT * FROM pipeline_state WHERE version = ?",
+            (version,)
+        ).fetchone()
+    except Exception as e:
+        return {'version': version, 'action': 'error', 'reason': str(e)}
+
+    result = {'version': version, 'source': state_data.get('_source_file', '')}
+
+    if dry_run:
+        if existing:
+            # Check if anything changed
+            if (existing['current_stage'] == current_stage and
+                    existing['current_agent'] == current_agent and
+                    existing['status'] == status):
+                result['action'] = 'unchanged'
             else:
-                stats['synced'] += 1  # Would have synced
+                result['action'] = 'would_update'
+                result['changes'] = {
+                    'stage': f"{existing['current_stage']} → {current_stage}",
+                    'agent': f"{existing['current_agent']} → {current_agent}",
+                    'status': f"{existing['status']} → {status}",
+                }
+        else:
+            result['action'] = 'would_create'
+        return result
 
-        except (json.JSONDecodeError, OSError) as e:
-            print(f"  ❌ {state_file.name}: {e}")
-            stats['errors'] += 1
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    print(f"\n{'Preview' if args.dry_run else 'Results'}: "
-          f"{stats['synced']} synced, {stats['errors']} errors, {stats['skipped']} skipped")
+    try:
+        if existing:
+            if (existing['current_stage'] == current_stage and
+                    existing['current_agent'] == current_agent and
+                    existing['status'] == status):
+                result['action'] = 'unchanged'
+            else:
+                conn.execute(
+                    "UPDATE pipeline_state SET "
+                    "status = ?, current_stage = ?, current_agent = ?, "
+                    "tags = ?, priority = ?, updated_at = ? "
+                    "WHERE version = ?",
+                    (status, current_stage, current_agent,
+                     tags, priority, now, version)
+                )
+                conn.commit()
+                result['action'] = 'updated'
+        else:
+            # Get creation time from state JSON or use now
+            created = state_data.get('created_at', now)
+            conn.execute(
+                "INSERT INTO pipeline_state "
+                "(version, status, current_stage, current_agent, "
+                "tags, priority, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (version, status, current_stage, current_agent,
+                 tags, priority, created, now)
+            )
+            conn.commit()
+            result['action'] = 'created'
+    except Exception as e:
+        result['action'] = 'error'
+        result['reason'] = str(e)
 
-    # Optional: export agent contexts to filesystem (FLAG-3)
-    if args.export_contexts and not args.dry_run:
-        print("\n📦 Exporting agent contexts to filesystem...")
-        count = overlay.export_all_contexts()
-        print(f"   Exported {count} pipeline context(s)")
+    return result
 
+
+def export_agent_contexts(overlay, output_dir: Path = None) -> list:
+    """Export all agent_context rows to JSON files (FLAG-3 backup).
+
+    Writes to pipeline_builds/{version}_agent_context.json.
+    """
+    if not overlay.available:
+        return []
+
+    output_dir = output_dir or BUILDS_DIR
+    conn = overlay._get_conn()
+    rows = conn.execute("SELECT * FROM agent_context").fetchall()
+
+    exported = []
+    # Group by version
+    by_version = {}
+    for row in rows:
+        row_dict = dict(row)
+        version = row_dict['version']
+        if version not in by_version:
+            by_version[version] = {}
+        by_version[version][row_dict['agent']] = {
+            'accumulated_context': json.loads(row_dict.get('accumulated_context', '{}')),
+            'session_count': row_dict.get('session_count', 0),
+            'total_tokens_used': row_dict.get('total_tokens_used', 0),
+            'last_session_id': row_dict.get('last_session_id', ''),
+            'last_active_at': row_dict.get('last_active_at', ''),
+            'created_at': row_dict.get('created_at', ''),
+        }
+
+    for version, agents in by_version.items():
+        output_file = output_dir / f'{version}_agent_context.json'
+        try:
+            with open(output_file, 'w') as f:
+                json.dump({
+                    'version': version,
+                    'agents': agents,
+                    'exported_at': datetime.now(timezone.utc).isoformat(),
+                }, f, indent=2)
+            exported.append(str(output_file))
+        except IOError as e:
+            print(f"[sync] Error exporting context for {version}: {e}",
+                  file=sys.stderr)
+
+    return exported
+
+
+def run_sync(pipeline_filter: str = None, dry_run: bool = False,
+             json_output: bool = False) -> dict:
+    """Run the full sync process."""
+    from temporal_overlay import TemporalOverlay
+
+    overlay = TemporalOverlay()
+    if not overlay.available:
+        return {'ok': False, 'error': 'Temporal DB not available'}
+
+    states = discover_pipeline_states()
+    if pipeline_filter:
+        states = [s for s in states
+                  if s.get('version', s.get('pipeline', '')) == pipeline_filter]
+
+    results = []
+    for state_data in states:
+        result = sync_pipeline_state(state_data, overlay, dry_run=dry_run)
+        results.append(result)
+
+    summary = {
+        'ok': True,
+        'total': len(results),
+        'created': sum(1 for r in results if r['action'] == 'created'),
+        'updated': sum(1 for r in results if r['action'] == 'updated'),
+        'unchanged': sum(1 for r in results if r['action'] == 'unchanged'),
+        'errors': sum(1 for r in results if r['action'] == 'error'),
+        'dry_run': dry_run,
+        'results': results,
+        'synced_at': datetime.now(timezone.utc).isoformat(),
+    }
+
+    overlay.close()
+    return summary
+
+
+# ─── CLI ──────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description='Temporal DB sync')
+    parser.add_argument('--pipeline', '-p', help='Sync a specific pipeline only')
+    parser.add_argument('--dry-run', '-n', action='store_true',
+                        help='Preview changes without writing')
+    parser.add_argument('--json', action='store_true', help='JSON output')
+    parser.add_argument('--export-context', action='store_true',
+                        help='Export agent_context to JSON files (FLAG-3 backup)')
+    args = parser.parse_args()
+
+    if args.export_context:
+        from temporal_overlay import TemporalOverlay
+        overlay = TemporalOverlay()
+        if not overlay.available:
+            print("❌ Temporal DB not available", file=sys.stderr)
+            sys.exit(1)
+        exported = export_agent_contexts(overlay)
+        if args.json:
+            print(json.dumps({'exported': exported}))
+        else:
+            if exported:
+                print(f"✅ Exported agent context to {len(exported)} files:")
+                for f in exported:
+                    print(f"  {f}")
+            else:
+                print("No agent context to export")
+        overlay.close()
+        sys.exit(0)
+
+    summary = run_sync(
+        pipeline_filter=args.pipeline,
+        dry_run=args.dry_run,
+        json_output=args.json,
+    )
+
+    if args.json:
+        print(json.dumps(summary, indent=2))
+    else:
+        if not summary.get('ok'):
+            print(f"❌ Sync failed: {summary.get('error', 'unknown')}")
+            sys.exit(1)
+
+        prefix = '[DRY RUN] ' if args.dry_run else ''
+        print(f"{prefix}✅ Temporal sync complete:")
+        print(f"  Total pipelines: {summary['total']}")
+        if args.dry_run:
+            would_create = sum(1 for r in summary['results']
+                               if r['action'] == 'would_create')
+            would_update = sum(1 for r in summary['results']
+                               if r['action'] == 'would_update')
+            print(f"  Would create: {would_create}")
+            print(f"  Would update: {would_update}")
+        else:
+            print(f"  Created: {summary['created']}")
+            print(f"  Updated: {summary['updated']}")
+        print(f"  Unchanged: {summary['unchanged']}")
+        if summary['errors']:
+            print(f"  ⚠️ Errors: {summary['errors']}")
+            for r in summary['results']:
+                if r['action'] == 'error':
+                    print(f"    {r['version']}: {r.get('reason', '?')}")
