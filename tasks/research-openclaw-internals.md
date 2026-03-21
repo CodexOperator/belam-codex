@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: complete
+status: archived
 priority: high
 created: 2026-03-21
 completed: 2026-03-21

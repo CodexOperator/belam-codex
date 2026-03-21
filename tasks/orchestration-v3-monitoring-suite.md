@@ -16,29 +16,40 @@ tags: [orchestration, monitoring, real-time, autoclave, v3, dashboard]
 
 Build a real-time monitoring layer on top of the V2-temporal SQLite overlay. The temporal overlay stores state transitions, agent context, and pipeline history — V3 makes that data *visible* in real time.
 
-**Open question:** Is this a standalone monitoring suite, a codex engine upgrade (e0a becomes a live view), or both? Design should answer this before implementation.
+**Direction:** Option C (hybrid) confirmed by Shael. Research pipeline needed to evaluate SQLite WAL as the reactive change-detection mechanism.
 
-## Design Space
+## Architecture: Option C (Hybrid)
 
-### Option A: Standalone Monitoring Suite
-- Separate process/daemon that watches the SQLite WAL for changes
-- Renders to terminal (tmux pane), web dashboard, or canvas
-- Independent of codex engine — pure observation layer
-- Pro: clean separation, can run without engine
-- Con: another process to manage
-
-### Option B: Codex Engine Live Mode (e0a)
-- `e0a` coordinate becomes a live-updating dashboard within engine context
-- `before_prompt_build` hook injects current dashboard state per-turn
-- No daemon — reactive, renders on each agent turn
-- Pro: zero new infrastructure, agents see it automatically
-- Con: not truly real-time (only updates on agent turns)
-
-### Option C: Hybrid (Recommended?)
-- Codex engine `e0a` provides per-turn dashboard injection (Option B)
-- Lightweight watcher process for human-facing real-time view (Option A)
+- Codex engine `e0p{N}.v{M}` provides per-turn dashboard injection for agents
+- Lightweight watcher process for human-facing real-time view (SQLite WAL-based)
 - Watcher uses same SQLite DB — no duplication
 - Canvas rendering for Shael's live view via OpenClaw canvas tool
+- **Research needed:** Can SQLite WAL provide reliable change notification for live streaming?
+
+## Coordinate Design: `.v` (View) Namespace
+
+Use `v` for "view" — viewing *someone else's* state rather than your own. The `.v` suffix on a pipeline coordinate selects the view type.
+
+### View Types
+
+| Coordinate | View | Description |
+|------------|------|-------------|
+| `e0p1.v1` | Turn-by-turn | Snapshot dashboard injected per agent turn |
+| `e0p1.v2` | Live diff stream | Continuous diffs as they land between agents |
+| `e0p1.v3` | Timeline | Stage progression with durations and bottlenecks |
+| `e0p1.v4` | Agent context | Decisions, flags, learnings for pipeline agents |
+| `e0p{N}.v{M}` | (future) | Extensible — new view types register here |
+
+### Bare Forms
+- `e0v1` = global turn-by-turn view (all pipelines)
+- `e0p1.v1` = turn-by-turn view scoped to pipeline 1
+- `e0v` or `e0.v` = list available view types
+
+### Why `v` not `a`
+- `a` for "autoclave" is an internal name — `v` for "view" is what it actually does
+- `v` implies viewing *external* state (another agent's work, another pipeline's progress)
+- View types are extensible: `.v1`–`.vN` grows naturally as we add visualization modes
+- Consistent with the principle: letters route to namespaces, numbers select from lists
 
 ## Features (Design Phase — Not Committed)
 
@@ -112,4 +123,5 @@ Build a real-time monitoring layer on top of the V2-temporal SQLite overlay. The
 - Persona primitives (i1-i3) from t8
 
 ## Design Conversation
-Shael + Belam, 2026-03-21 18:02 UTC. Shael raised real-time monitoring as illustration-worthy, questioned whether it's a monitoring suite or codex engine upgrade. Also provided key Phase 2 feedback on V2-temporal: time-travel should use F/R labels with causal coupling, and autoclave views should use global coords with persona-filtered presentation.
+- **2026-03-21 18:02 UTC:** Shael raised real-time monitoring, questioned suite vs engine upgrade. Provided Phase 2 feedback on V2-temporal: F/R label causal coupling, global coords with persona-filtered views.
+- **2026-03-21 18:28 UTC:** Shael confirmed Option C (hybrid). Designed `.v` namespace: `e0p1.v1` (turn-by-turn), `e0p1.v2` (live diff stream), extensible to `.v3`+. Chose `v` over `a` — "view" is what it does, "autoclave" is internal. Research pipeline needed for SQLite WAL change detection. Dot binds view type to pipeline coordinate, space separates operations.
