@@ -6,7 +6,7 @@ importance: 3
 tags: [agent:main, pipeline:research-openclaw-internals, stage:local_analysis_report_build]
 source: "pipeline_update:research-openclaw-internals:local_analysis_report_build"
 content: "LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/research-openclaw-internals/research-openclaw-internals_report.pdf (887.2 KB) | Pipeline: research-openclaw-internals | Stage: local_analysis_report_build"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
