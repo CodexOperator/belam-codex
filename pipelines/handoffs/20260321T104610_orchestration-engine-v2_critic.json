@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-engine-v2",
+  "completed_stage": "builder_implementation",
+  "next_stage": "critic_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-21T10:46:10.549057+00:00",
+  "pipeline_session_id": "f5d27d67-4ad0-4d00-aba8-a6cfd589f346",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "c34934e8-e406-47c7-a4a2-ac8f904bee29",
+    "response_preview": "Good \u2014 I have my prior context, including the design review for orchestration-engine-v2 where I rais"
+  },
+  "verified": true
+}

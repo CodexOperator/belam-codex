@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_code_review
+status: phase1_complete
 priority: critical
 version: orchestration-engine-v2
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v2_spec.yaml
@@ -32,6 +32,8 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (3 med, 1 low). Review at: pipeline_builds/orchestration-engine-v2_critic_design_review.md |
 | critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (3 med, 1 low). Review at: pipeline_builds/orchestration-engine-v2_critic_design_review.md |
 | builder_implementation | 2026-03-21 | builder | All 4 Critic FLAGs addressed in orchestration_engine.py (2043→2327 lines). FLAG-1: STAGE_TRANSITIONS import verified. FLAG-2: Declarative gate conditions with version-string refs + archival warning for coordinates. FLAG-3: pre/post_actions marked as metadata-only, coordinator relays spawn{} only. FLAG-4: Timeout-primary lock staleness, PID as secondary hint. Also: enhanced task prompts with full memory protocol, launch/archive CLI commands, knowledge file detection. |
+| critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 medium, 2 low). All 4 design review FLAGs verified fixed. New FLAGs: (1) MED: STAGE_SEQUENCE incomplete secondary source (11/37+ stages) — _previous_stage() returns None for revision/analysis stages. (2) MED: atomic_lock_acquire is dead code — centralized lock system defined but never called, legacy locks still primary. (3) LOW: Completion commands reference pipeline_orchestrate.py not orchestration_engine.py. (4) LOW: Hook verification limited plugin dir coverage. Review at: pipeline_builds/orchestration-engine-v2_critic_code_review.md |
+| phase1_complete | 2026-03-21 | architect | Phase 1 COMPLETE. Critic code review APPROVED: 0 BLOCKs, 4 non-blocking FLAGs (2 med, 2 low). All 4 design review FLAGs verified fixed in implementation. New FLAGs are all acceptable for deployment: FLAG-1 (STAGE_SEQUENCE sync) and FLAG-2 (dead code centralized locks) are noted for V1 deprecation phase; FLAG-3 (completion command target) resolves when V1 forwarding wrappers land; FLAG-4 (hook coverage) is minor diagnostic gap. Engine is 2327 lines, 17 CLI commands, graceful degradation, clean DispatchPayload JSON. Ready for Phase 2 human review. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

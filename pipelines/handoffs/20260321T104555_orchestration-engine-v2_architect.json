@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-engine-v2",
+  "completed_stage": "critic_code_review",
+  "next_stage": "phase1_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-21T10:45:55.216998+00:00",
+  "pipeline_session_id": "11773c72-4cae-4bf9-980d-234a9297252e",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "9e92dc10-b9c1-4628-ac8a-83c3a5f68463",
+    "response_preview": "Critic approved with 0 blocks, all 4 design FLAGs verified fixed. This is a sign-off stage. Let me c"
+  },
+  "verified": true
+}

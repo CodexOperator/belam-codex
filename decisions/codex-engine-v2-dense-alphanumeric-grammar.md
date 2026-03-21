@@ -5,7 +5,7 @@ date: 2026-03-21
 context: "Codex Engine v2 needs a grammar spec for coordinate addressing that minimizes token cost while maximizing attention signal quality. Tested all separator options and numeric vs alphanumeric schemes empirically with cl100k_base tokenizer."
 alternatives: [numeric-dense-11tok, hybrid-num-prefix-13tok, dot-separated-16tok, colon-separated-16tok]
 rationale: "Dense alphanumeric (14 tokens for 4-op chain) is 2 tokens more than numeric-dense (11) but letters activate address-routing attention heads pre-loaded from training data (variables, registers, coordinates). Numbers activate quantity/arithmetic heads — fighting upstream for routing tasks. Letters-first exploits existing embedding geometry rather than imposing a new one."
-consequences: [engine-parser-rewrite, mode-switch-capability, multi-pane-rendering-future]
+consequences: [engine-parser-rewrite, mode-switch-capability, multi-pane-rendering-future, dot-as-connector, enum-field-indexing, implicit-handoff-on-complete, e0-operation-indexing]
 upstream: [decision/codex-engine-v1-architecture, decision/codex-engine-modes-as-primitives]
 downstream: [task/codex-engine-v2-modes-mcp-temporal]
 tags: [codex-engine, v2, grammar, tokenizer, attention, architecture]
@@ -75,10 +75,43 @@ Tested with `cl100k_base` tokenizer. Chain: 4 engine operations (orchestrate p3,
 | `--depth N` | Expansion depth control |
 | `--as <persona>` | Persona-filtered supermap |
 
-### Separator Rules
+### Separator & Connector Rules
 - **Spaces** between operations in a chain: `e0p3 e1t12`
 - **No dots, colons, or other separators** within operations
 - **Spaces inside human-typed messages** accepted and collapsed: `e0 p3` parsed same as `e0p3`
+- **`.` connector = "as"** — links an operation to its target: `e0p1 1.i1` = "dispatch as architect"
+- **`.` chains** compose naturally: `4.i1.i3` = "handoff from architect to critic"
+
+### Enum Field Indexing
+Field values with limited options are addressable by numeric index:
+
+| Field Type | Index Map |
+|-----------|-----------|
+| **status (decisions)** | 1=proposed, 2=accepted, 3=rejected, 4=superseded |
+| **status (tasks)** | 1=open, 2=active, 3=in_pipeline, 4=complete, 5=blocked |
+| **priority** | 1=critical, 2=high, 3=medium, 4=low |
+| **boolean** | 0=false, 1=true |
+
+Examples:
+- `e1 d8 2 1` = set decision 8, field 2 (status), to option 1 (proposed)
+- `e1 t5 2 4` = set task 5, field 2 (status), to option 4 (complete)
+
+F-label output always resolves to human-readable: `F17 Δ d8.2 status proposed→accepted`
+
+### E0 Operation Indexing
+Orchestration operations are numbered. Targets reference existing coordinates:
+
+| Op | Function | Example |
+|----|----------|---------|
+| 1 | dispatch | `e0p1 1.i1` — dispatch architect for pipeline 1 |
+| 2 | status | `e0p1 2` — pipeline 1 status |
+| 3 | gates | `e0p1 3` — pipeline 1 gate check |
+| 4 | locks | `e0p1 4` — pipeline 1 lock status |
+| 5 | complete | `e0p1 5.i1` — complete as architect → auto-dispatches next via transition map |
+
+**Handoff is implicit on complete** — the engine knows the transition map (architect→critic→builder). Completing a stage auto-dispatches the next agent. No explicit handoff command.
+
+**Output format** is indexable: default=text, `.1`=JSON
 
 ### Rendering Modes (future)
 - Dense: engine-to-engine, internal processing (default)
@@ -98,4 +131,5 @@ Tested with `cl100k_base` tokenizer. Chain: 4 engine operations (orchestrate p3,
 - Letters-first ordering is non-negotiable — it aligns with embedding space geometry
 
 ## Design Conversation
-Shael + Belam, 2026-03-21 05:35–06:36 UTC. Empirical tokenizer analysis drove the decision.
+- Shael + Belam, 2026-03-21 05:35–06:36 UTC. Empirical tokenizer analysis drove the base grammar.
+- Shael + Belam, 2026-03-21 09:41–10:45 UTC. Extended with: dot-as connector, enum field indexing, e0 operation numbering, implicit handoff on complete, output format indexing. Convention: **no English words in coordinate chains — everything is a number or letter-prefixed index.**
