@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: active
+status: complete
 priority: critical
 created: 2026-03-20
 owner: belam
@@ -123,29 +123,29 @@ This is the interface language between the engine and agent attention — minima
 
 ### V2 Features (fast-follow)
 
-**Body editing through coordinates** (required direct file access in V1):
-- [ ] `belam -e t1 B 'full body replacement'` — replace entire body
-- [ ] `belam -e t1 B5 'new line content'` — replace specific body line
+**Body editing through coordinates** (V2 scope, landed 2026-03-21):
+- [x] `belam -e t1 B 'full body replacement'` — replace entire body
+- [x] `belam -e t1 B5 'new line content'` — replace specific body line
 - [ ] `belam -e t1 B5-B10 'multi-line\nreplacement'` — replace body line range
-- [ ] `belam -e t1 B+ 'appended content'` — append to body
-- [ ] Body section editing: `belam -e t1 B.Description 'new description section content'` — replace by heading
+- [x] `belam -e t1 B+ 'appended content'` — append to body
+- [x] Body section editing: `belam -e t1 B.Description 'new description section content'` — replace by heading
 
 **Body line filtering inline with field numbers:**
-- [ ] `belam t1 2 3 B1-B10` — show fields 2, 3 and body lines 1-10 in one call (currently broken)
+- [ ] `belam t1 2 3 B1-B10` — show fields 2, 3 and body lines 1-10 in one call (known bug: mixed field+body returns pin)
 
-**Coordinate numbering cleanup:**
-- [ ] Skip archived/superseded primitives in coordinate numbering (so p1 is always the first active pipeline)
-- [ ] Filter non-primitive files from knowledge dir (README, _index, _tags)
+**Coordinate numbering cleanup** (landed 2026-03-21):
+- [x] Skip archived/superseded primitives in coordinate numbering (so p1 is always the first active pipeline)
+- [x] Filter non-primitive files from knowledge dir (README, _index, _tags) — 13→4
 
-**Persona-filtered views:**
-- [ ] `belam --as architect` — supermap weighted toward decisions, knowledge, specs
-- [ ] `belam --as builder` — supermap weighted toward tasks, code, experiments
-- [ ] `belam --as critic` — supermap weighted toward lessons, test results, validation
+**Persona-filtered views** (landed 2026-03-21):
+- [x] `belam --as architect` — supermap weighted toward decisions, knowledge, specs
+- [x] `belam --as builder` — supermap weighted toward tasks, code, experiments
+- [x] `belam --as critic` — supermap weighted toward lessons, test results, validation
 
 **Other:**
 - [ ] Dry-run on create (`--dry`)
-- [ ] Boot hook integration (auto-run `belam` at session start → R0)
-- [ ] Filter flags for memory (`--tag`, `--since`)
+- [x] Boot hook integration (auto-run `belam` at session start → R0) — via hooks/supermap-boot/
+- [x] Filter flags for memory (`--tag`, `--since`)
 - [ ] Native action dispatch for `pipeline <ver>` subcommands (update, launch, analyze)
 
 ## Subagent Work Breakdown

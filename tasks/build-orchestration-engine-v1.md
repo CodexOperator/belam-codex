@@ -99,9 +99,36 @@ Handoffs are script-mediated file operations with manual prompt construction.
 - [ ] Legacy scripts deprecated with warnings
 - [ ] Heartbeat Task 1 updated to use `e0` sweep
 
+## 6. Hook Integration (from research-openclaw-internals)
+
+Research pipeline delivered 3 plugin prototypes and cataloged 27 hooks. Orch V1 should wire these in:
+
+### Available Hooks for Orchestration
+- **`before_prompt_build`** — inject active pipeline state into agent context automatically
+- **`agent:bootstrap`** — session-start context injection (supermap already uses this)
+- **`after_tool_call`** — intercept tool results for structured logging
+- **`agent_end`** — capture final messages + metadata for handoff records
+
+### Plugin Prototypes Ready to Deploy
+| Plugin | Status | What it does |
+|--------|--------|-------------|
+| `pipeline-context` | Built, verified | Auto-injects pipeline state via `before_prompt_build` |
+| `pipeline-commands` | Built, verified | `/pipelines` and `/pstatus` slash commands |
+| `agent-turn-logger` | Built, verified | JSONL logging using both hook layers |
+
+### Pre-work: Hook Verification Scripts
+Before wiring e0 to dispatch agents through hooks, build verification scripts that:
+- [ ] Test `before_prompt_build` injection end-to-end (agent actually sees pipeline context)
+- [ ] Test agent dispatch via `sessions_spawn` with pipeline context pre-loaded
+- [ ] Verify hook naming conventions (colons for internal, underscores for plugin)
+- [ ] Test `agent_end` hook captures handoff-relevant metadata
+
+Reference: `machinelearning/snn_applied_finance/research/pipeline_builds/research-openclaw-internals_builder_reference.md`
+
 ## Dependencies
-- Codex Engine v1 (done) — coordinate system foundation
-- Codex Engine v2 (in progress) — dense grammar, e0 mode routing
+- Codex Engine v1 (complete) — coordinate system foundation
+- Codex Engine v2 (next) — dense grammar, e0 mode routing
+- research-openclaw-internals pipeline (complete) — hook architecture findings, 3 plugin prototypes
 - `decisions/orchestration-architecture.md` — current architecture decisions
 - `lessons/checkpoint-and-resume-pattern.md` — timeout recovery
 
@@ -109,4 +136,5 @@ Handoffs are script-mediated file operations with manual prompt construction.
 - The orchestration engine is a *consumer* of the codex engine, not part of it
 - `e0` is a codex coordinate that routes to orchestration — same way `e1t12` routes to a task edit
 - Pipeline state transitions should produce F-label diffs visible in the supermap
+- Hook integration prerequisite: build test scripts before wiring production dispatch (folded from research-orchestration-tooling task)
 
