@@ -1,13 +1,14 @@
 {
   "status": "complete",
-  "session": "d274a644-00f3-4cfa-aaa8-868e1af644de",
+  "session": "e563bfbc-506d-456b-9237-e13e792819b9",
   "instance": "main",
   "date": "2026-03-21",
-  "completed_at": "2026-03-21T05:14:00Z",
+  "completed_at": "2026-03-21T06:57:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-21_051420_research-openclaw-internals-pipeline-ran.md",
-    "memory/entries/2026-03-21_051420_deep-architectural-discussion-with-shael.md",
-    "decisions/codex-engine-modes-as-primitives.md",
-    "lessons/plugins-have-presence-commands-are-fire-and-forget.md"
+    "memory/entries/2026-03-21_065733_major-codex-engine-v2-coordinate-grammar.md",
+    "memory/entries/2026-03-21_065733_codex-codecpy-built-and-committed-2525-t.md",
+    "decisions/codex-engine-dense-alphanumeric-coordinate-grammar.md",
+    "decisions/codex-engine-e-namespace-for-modes.md",
+    "lessons/token-ids-affect-attention-quality-not-just-count.md"
   ]
 }
