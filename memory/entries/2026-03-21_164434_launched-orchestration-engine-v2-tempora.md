@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, orchestration, temporal, pipeline, hanging]
 source: "session"
 content: "Launched orchestration-engine-v2-temporal pipeline. Pipeline created and architect pinged via Telegram group. However, pipeline_orchestrate.py was found to use synchronous blocking 'openclaw agent --message' CLI calls (AGENT_WAKE_TIMEOUT=600s) — causes the kickoff script to hang until the agent completes its full design phase. Shael directed to investigate replacing with fire-and-forget hooks instead."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

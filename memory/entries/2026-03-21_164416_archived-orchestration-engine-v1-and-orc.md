@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, orchestration, pipeline, archive]
 source: "session"
 content: "Archived orchestration-engine-v1 and orchestration-engine-v2 pipelines. v2 was at phase1_complete (critic approved, 2327 lines, all FLAGs resolved); v1 was superseded mid-flight by v2. Both tasks (build-orchestration-engine-v2 and build-orchestration-engine-v1-design) also archived. Also archived: build-codex-engine, build-equilibrium-snn, stack-specialist-ensemble tasks."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
