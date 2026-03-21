@@ -26,21 +26,10 @@ Importable AND runnable standalone:
   python3 scripts/orchestration_engine.py block <ref> <stage> --agent <a> --notes "..."    # stage blocked
   python3 scripts/orchestration_engine.py next <ref>         # next action
   python3 scripts/orchestration_engine.py verify-hooks       # hook verification
-  python3 scripts/orchestration_engine.py launch <ver> --desc "..." [--start]  # create pipeline
-  python3 scripts/orchestration_engine.py archive <ref>      # archive completed pipeline
   python3 scripts/orchestration_engine.py --dry-run          # dry run sweep
   python3 scripts/orchestration_engine.py --json <cmd>       # JSON output mode
 
   All commands accept --json for structured output (zero coordinator tokens).
-
-FLAG fixes applied (orchestration-engine-v2 critic review):
-  FLAG-1 (MED): STAGE_TRANSITIONS imported from pipeline_update.py (single source of truth)
-  FLAG-2 (MED): Gate conditions support version strings for stored conditions; coordinate
-                 syntax (p{N}) triggers a warning about archival fragility
-  FLAG-3 (MED): pre/post_actions are metadata-only in DispatchPayload; engine executes
-                 them before returning the payload. Coordinator only relays spawn{}.
-  FLAG-4 (LOW): Lock staleness uses timeout as PRIMARY mechanism, PID as SECONDARY hint.
-                 Handles OpenClaw's short-lived CLI process model correctly.
 """
 
 import json
@@ -170,12 +159,7 @@ class DispatchPayload:
     session_id: str = ''                     # Fresh UUID4
     background: bool = True                  # Always True for pipeline work
 
-    # Lifecycle actions — METADATA ONLY (FLAG-3 clarification)
-    # The engine executes pre/post_actions BEFORE returning the payload.
-    # They appear in the payload for audit/logging purposes only.
-    # The coordinator NEVER executes these — it only relays spawn{}.
-    # In headless mode: engine executes actions + dispatch in one shot.
-    # In interactive mode: engine executes actions, then returns spawn{} for relay.
+    # Lifecycle actions (engine executes, not coordinator)
     pre_actions: list = field(default_factory=list)
     post_actions: list = field(default_factory=list)
 
@@ -189,12 +173,7 @@ class DispatchPayload:
     completion_command: str = ''
 
     def to_dict(self) -> dict:
-        """Serialize for JSON output / tool relay.
-
-        The coordinator only uses the 'spawn' block — everything else is
-        metadata for audit/logging. pre/post_actions are already executed
-        by the engine before this payload is returned (FLAG-3).
-        """
+        """Serialize for JSON output / tool relay."""
         return {
             '_dispatch': True,
             '_version': 'orchestration-engine-v2',
@@ -207,10 +186,8 @@ class DispatchPayload:
                 'session_id': self.session_id,
                 'background': self.background,
             },
-            # These are METADATA — already executed by the engine.
-            # Included for audit trail and handoff records only.
-            'pre_actions_executed': self.pre_actions,
-            'post_actions_executed': self.post_actions,
+            'pre_actions': self.pre_actions,
+            'post_actions': self.post_actions,
             'context': {
                 'pipeline_version': self.pipeline_version,
                 'pipeline_coord': self.pipeline_coord,
@@ -271,16 +248,14 @@ def _get_pipeline_coord(version: str) -> str:
 
 def _build_completion_command(version: str, stage: str, agent: str) -> str:
     """Build the CLI completion command agents use when done."""
-    return (f'python3 scripts/pipeline_orchestrate.py {version} complete {stage} '
-            f'--agent {agent} --notes "your summary" '
-            f'--learnings "key decisions, patterns discovered, insights worth keeping"')
+    return (f'python3 scripts/orchestration_engine.py complete {version} {stage} '
+            f'--agent {agent} --notes "summary"')
 
 
 def _build_block_command(version: str, stage: str, agent: str) -> str:
     """Build the CLI block command agents use to report issues."""
-    return (f'python3 scripts/pipeline_orchestrate.py {version} block {stage} '
-            f'--agent {agent} --notes "BLOCK reason" --artifact your_review_file.md '
-            f'--learnings "what I found, why it\'s blocked, what the fix should look like"')
+    return (f'python3 scripts/orchestration_engine.py block {version} {stage} '
+            f'--agent {agent} --notes "reason"')
 
 
 def _build_task_prompt(version: str, stage: str, agent: str,
@@ -321,64 +296,32 @@ If you need to BLOCK:
 ```
 """
 
-    # Determine reasoning flag for analysis stages
-    is_local_analysis = 'local_analysis' in stage
-    reasoning_block = ""
-    if is_local_analysis:
-        reasoning_block = """
-⚠️ **REASONING REQUIRED** — Use extended thinking for this task. Think deeply about
-the statistical patterns, architecture implications, and what additional analysis
-would reveal. Quality of insight matters more than speed.
-"""
-
     return f"""🔄 Pipeline Handoff — {version}
 
 **Stage completed:** {_previous_stage(stage) or 'initial'}
 **Your task:** {stage}
 **Summary:** {notes or '(no notes from previous stage)'}
-{reasoning_block}
+
 ⚠️ **IMPORTANT — Session Protocol:**
 This is a FRESH session. You have no prior context except your memory files.
 1. Read your memory files first: `memory/` directory in your workspace
 2. Read the files listed below for pipeline context
 3. Do your work for THIS pipeline only (one pipeline per session)
-4. **Before calling the orchestrator to complete/block**, crystallize what you learned:
-   - Write key decisions, patterns, and lessons to your `memory/$(date -u +%Y-%m-%d).md`
-   - Include: what worked, what didn't, architectural insights, things to remember
-   - This is your continuity — next session starts fresh, your memory files are all you keep
-   - **Create memory primitives in the MAIN workspace** for significant work:
-     ```bash
-     # Log a memory entry into the main workspace index (you have full context — use it)
-     python3 /home/ubuntu/.openclaw/workspace/scripts/log_memory.py \\
-       --workspace /home/ubuntu/.openclaw/workspace \\
-       --importance 3 \\
-       --tags "instance:{agent},pipeline:{version},stage:{stage}" \\
-       "Brief description of what was accomplished"
-
-     # If you discovered a reusable lesson (slug = short-hyphenated-name):
-     python3 /home/ubuntu/.openclaw/workspace/scripts/create_primitive.py lesson <slug> \\
-       --tags "instance:{agent},<relevant_tags>" \\
-       --set "status=active"
-     ```
+4. Before completing, crystallize what you learned to memory.
 
 **Read these files before starting:**
 {files_list}
 
-**Pipeline state:** `python3 scripts/pipeline_update.py {version} show`
-
-**When you finish, call the orchestrator (it auto-saves your memory):**
+**When you finish:**
 ```
 {comp_cmd}
 ```
 
-The `--learnings` flag is written directly to your memory files before the handoff — this is your continuity across sessions. Be specific about what you'd want to know next time you wake up fresh.
-
-If you need to BLOCK, use:
+If you need to BLOCK:
 ```
 {block_cmd}
 ```
-
-Post your status update to the group chat (Telegram group -5243763228) when done."""
+"""
 
 
 def _previous_stage(stage: str) -> str | None:
@@ -391,72 +334,31 @@ def _previous_stage(stage: str) -> str | None:
 
 
 def _files_for_stage(version: str, stage: str, agent: str) -> list[str]:
-    """Determine which files an agent should read for a given stage.
-
-    Includes agent-specific knowledge files and pipeline artifacts.
-    """
-    AGENT_KNOWLEDGE = {
-        'architect': 'research/ARCHITECT_KNOWLEDGE.md',
-        'critic': 'research/CRITIC_KNOWLEDGE.md',
-        'builder': 'research/BUILDER_KNOWLEDGE.md',
-    }
-
-    base_files = ['research/AGENT_SOUL.md']
-
-    # Agent knowledge file
-    knowledge = AGENT_KNOWLEDGE.get(agent)
-    if knowledge:
-        knowledge_path = ML_DIR / knowledge.replace('research/', 'research/')
-        if not knowledge_path.exists():
-            knowledge_path = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / knowledge
-        if knowledge_path.exists():
-            base_files.append(knowledge)
-
-    # Analysis pipelines get analysis roles
-    is_analysis = 'analysis' in version or 'analysis' in stage
-    if is_analysis:
-        base_files.append('research/ANALYSIS_AGENT_ROLES.md')
+    """Determine which files an agent should read for a given stage."""
+    base_files = []
 
     # Task file (if exists)
     task_candidates = list(WORKSPACE.glob(f'tasks/*{version}*'))
     for tc in task_candidates:
         base_files.append(str(tc.relative_to(WORKSPACE)))
 
-    # Determine phase prefix for artifact lookup
-    is_phase2 = 'phase2' in stage
-    phase_prefix = 'phase2_' if is_phase2 else ''
-
     # Previous stage artifacts
-    if 'critic' in stage and ('design' in stage or 'review' in stage):
-        # Critics review the architect's design
-        if is_analysis:
-            design_file = BUILDS_DIR / f'{version}_{phase_prefix}architect_analysis_design.md'
-        else:
-            design_file = BUILDS_DIR / f'{version}_{phase_prefix}architect_design.md'
+    if 'critic' in stage:
+        # Critics read the architect's design
+        design_file = BUILDS_DIR / f'{version}_architect_design.md'
         if design_file.exists():
             base_files.append(str(design_file.relative_to(WORKSPACE)))
-
-    if 'builder' in stage or 'implementation' in stage:
+    if 'builder' in stage:
         # Builders read design + critic review
-        for suffix in [f'{phase_prefix}architect_design.md', f'{phase_prefix}critic_design_review.md']:
-            f = BUILDS_DIR / f'{version}_{suffix}'
+        for suffix in ['_architect_design.md', '_critic_design_review.md']:
+            f = BUILDS_DIR / f'{version}{suffix}'
             if f.exists():
                 base_files.append(str(f.relative_to(WORKSPACE)))
-
     if 'code_review' in stage:
-        # Code reviewers read the notebook/implementation
-        # Try to find the actual notebook
-        notebooks_dir = ML_DIR / 'notebooks'
-        notebook_patterns = [
-            f'crypto_{version}_predictor.ipynb',
-            f'crypto_{version.replace("-", "_")}_predictor.ipynb',
-            f'crypto_{version}_analysis.ipynb',
-        ]
-        for pattern in notebook_patterns:
-            nb_file = notebooks_dir / pattern
-            if nb_file.exists():
-                base_files.append(str(nb_file.relative_to(WORKSPACE)))
-                break
+        # Code reviewers read the implementation
+        impl_file = BUILDS_DIR / f'{version}_builder_implementation.md'
+        if impl_file.exists():
+            base_files.append(str(impl_file.relative_to(WORKSPACE)))
 
     return base_files
 
@@ -536,15 +438,6 @@ def atomic_lock_acquire(pipeline: str, agent: str, pid: int = None,
     see "no lock" and both write. The kernel guarantees only one O_EXCL
     open succeeds.
 
-    Staleness detection (FLAG-4 fix):
-    - PRIMARY: timeout_at — if past timeout, lock is stale regardless of PID
-    - SECONDARY: PID liveness — if PID is dead, lock is stale even before timeout
-    - Rationale: In OpenClaw's architecture, agent sessions run within the
-      gateway's Node.js process. When orchestration_engine.py is called as a
-      CLI script, the PID is the short-lived Python process that exits
-      immediately. Timeout-based staleness is the only reliable mechanism
-      for the agent dispatch → agent complete lifecycle.
-
     Returns True if lock acquired, False if already locked by live process.
     """
     if pid is None:
@@ -553,45 +446,17 @@ def atomic_lock_acquire(pipeline: str, agent: str, pid: int = None,
     LOCKS_DIR.mkdir(parents=True, exist_ok=True)
     lock_file = LOCKS_DIR / f'{pipeline}.lock.json'
 
-    # Check if existing lock is stale
+    # Check if existing lock is stale (different from acquire — read-only check)
     if lock_file.exists():
         try:
             existing = json.loads(lock_file.read_text())
-            stale = False
-            stale_reason = ''
-
-            # PRIMARY: timeout-based staleness (most reliable)
-            timeout_at = existing.get('timeout_at')
-            if timeout_at:
-                try:
-                    dt = datetime.fromisoformat(timeout_at)
-                    if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
-                    if datetime.now(timezone.utc) > dt:
-                        stale = True
-                        stale_reason = 'past_timeout'
-                except ValueError:
-                    pass
-
-            # SECONDARY: PID liveness hint (catches early exits)
-            if not stale:
-                existing_pid = existing.get('pid')
-                if existing_pid and not _pid_alive(existing_pid):
-                    stale = True
-                    stale_reason = 'pid_dead'
-                elif existing_pid and _pid_alive(existing_pid):
-                    # PID alive and not past timeout — genuinely locked
-                    return False
-
-            if stale:
-                lock_file.unlink(missing_ok=True)
-                fl = generate_f_label('lock_change', {
-                    'pipeline': pipeline,
-                    'action': f'stale_cleared ({stale_reason})'
-                })
-                print(f'  {fl}')
-            else:
-                return False  # Lock exists, not clearly stale
+            existing_pid = existing.get('pid')
+            if existing_pid and _pid_alive(existing_pid):
+                return False  # Genuinely locked by live process
+            # Stale lock — remove it, then try atomic acquire
+            lock_file.unlink(missing_ok=True)
+            fl = generate_f_label('lock_change', {'pipeline': pipeline, 'action': 'stale_cleared'})
+            print(f'  {fl}')
         except (json.JSONDecodeError, OSError):
             lock_file.unlink(missing_ok=True)
 
@@ -661,13 +526,7 @@ def list_central_locks() -> list[dict]:
                     data['past_timeout'] = datetime.now(timezone.utc) > dt
                 except ValueError:
                     data['past_timeout'] = False
-            # FLAG-4: timeout is PRIMARY staleness signal, PID is SECONDARY hint
-            data['stale'] = data.get('past_timeout', False) or (not data['pid_alive'])
-            data['stale_reason'] = (
-                'past_timeout' if data.get('past_timeout') else
-                'pid_dead' if not data['pid_alive'] else
-                None
-            )
+            data['stale'] = (not data['pid_alive']) or data.get('past_timeout', False)
             data['_path'] = str(f)
             locks.append(data)
         except (json.JSONDecodeError, OSError):
@@ -1069,38 +928,12 @@ def _get_locks_for(version: str) -> list[dict]:
 
 
 def _gate_status_for(version: str, fm: dict, state: dict) -> dict:
-    """Determine gate status for a pipeline.
-
-    Supports two gate definition sources:
-    1. Declarative gates in frontmatter (FLAG-2: preferred for stored conditions):
-       gates:
-         phase2_start: "self.status == phase1_complete"
-         analysis_gate: "v4-deep-analysis.status == phase2_complete"
-       Version strings (e.g., "v4-deep-analysis.status") are preferred over
-       coordinate references (e.g., "p2.status") because coordinates shift
-       when pipelines are archived.
-
-    2. Heuristic gates (fallback when no gates: in frontmatter):
-       Checks direction files, status strings, etc.
-    """
+    """Determine gate status for a pipeline."""
     pending = state.get('pending_action', 'none')
     status = fm.get('status', '')
+
     gates = {}
 
-    # Check for declarative gates in frontmatter (FLAG-2)
-    declared_gates = fm.get('gates', {})
-    if isinstance(declared_gates, dict) and declared_gates:
-        for gate_name, condition in declared_gates.items():
-            if isinstance(condition, str):
-                is_open, detail = _resolve_gate_condition(condition, fm, version)
-                gates[gate_name] = {
-                    'status': 'open' if is_open else 'closed',
-                    'condition': condition,
-                    'resolved': detail,
-                }
-        return gates
-
-    # Fallback: heuristic gates (backward compat with existing pipelines)
     # Phase 2 gate
     if 'phase1_complete' in pending or 'phase1_complete' in status:
         gates['phase2'] = 'open' if BUILDS_DIR.joinpath(
@@ -1111,78 +944,6 @@ def _gate_status_for(version: str, fm: dict, state: dict) -> dict:
     gates['phase3'] = 'open' if 'complete' in phase2_status else 'locked'
 
     return gates
-
-
-def _resolve_gate_condition(condition: str, self_fm: dict, self_version: str) -> tuple:
-    """Resolve a gate condition string against current primitive state.
-
-    Supports:
-      "true"                                    — always open
-      "self.status == phase1_complete"           — self-referential
-      "v4-deep-analysis.status == phase2_complete"  — cross-pipeline by version (PREFERRED)
-      "p2.status == phase2_complete"             — cross-pipeline by coordinate (FRAGILE)
-      "tags contains infrastructure"             — tag-based
-
-    Returns (is_open: bool, detail: str).
-
-    FLAG-2 note: Coordinate references (p{N}) are fragile under archival —
-    the index shifts when pipelines are archived. Use version strings for
-    stored gate conditions. Coordinate syntax triggers a warning.
-    """
-    condition = condition.strip()
-
-    # Always open
-    if condition.lower() == 'true':
-        return True, 'always open'
-
-    # Self-referential: self.field == value
-    if condition.startswith('self.'):
-        field, _, expected = condition[5:].partition(' == ')
-        actual = self_fm.get(field.strip(), '')
-        return str(actual).strip() == expected.strip(), f'self.{field.strip()} = {actual}'
-
-    # Cross-reference: <ref>.field == value
-    match = re.match(r'([\w.-]+)\.(\w+)\s*==\s*(.+)', condition)
-    if match:
-        ref, field, expected = match.group(1), match.group(2), match.group(3).strip()
-
-        # Check if ref is a coordinate (p{N}) — warn about fragility
-        coord_match = re.match(r'^p(\d+)$', ref, re.IGNORECASE)
-        if coord_match:
-            print(f'  ⚠️  Gate uses coordinate "{ref}" which is fragile under archival. '
-                  f'Consider using version string instead.', file=sys.stderr)
-            resolved_version = resolve_pipeline(ref)
-        else:
-            # Treat ref as a version string (preferred, stable)
-            resolved_version = ref
-            # Verify the pipeline file exists
-            pipeline_file = PIPELINES_DIR / f'{resolved_version}.md'
-            if not pipeline_file.exists():
-                return False, f'pipeline "{resolved_version}" not found'
-
-        if resolved_version:
-            ref_state = load_state_json(resolved_version)
-            ref_fm = {}
-            ref_pipeline = PIPELINES_DIR / f'{resolved_version}.md'
-            if ref_pipeline.exists():
-                ref_fm = load_pipeline_frontmatter(ref_pipeline)
-
-            # Check the field in both frontmatter and state
-            actual = ref_fm.get(field, ref_state.get(field, ''))
-            return str(actual).strip() == expected, f'{resolved_version}.{field} = {actual}'
-        else:
-            return False, f'could not resolve "{ref}"'
-
-    # Tag-based: tags contains <value>
-    if 'tags contains' in condition.lower():
-        parts = condition.lower().split('contains', 1)
-        tag = parts[1].strip() if len(parts) > 1 else ''
-        tags = self_fm.get('tags', [])
-        if isinstance(tags, str):
-            tags = [t.strip() for t in tags.split(',')]
-        return tag in tags, f'tags = {tags}'
-
-    return False, f'unparseable condition: {condition}'
 
 
 # ─── Dispatch & Handoff ────────────────────────────────────────────────────────
@@ -1806,10 +1567,10 @@ def handle_complete(version: str, stage: str, agent: str,
     })
     print(f'  {fl}')
 
-    # Use legacy orchestrate_complete if available (passes learnings for memory)
+    # Use legacy orchestrate_complete if available
     if _HAS_ORCHESTRATE:
         try:
-            result = orchestrate_complete(version, stage, agent, notes, learnings)
+            result = orchestrate_complete(version, stage, agent, notes)
             return {'status': 'completed', 'dispatched': bool(result), 'f_label': fl}
         except Exception as e:
             return {'status': 'error', 'error': str(e), 'f_label': fl}
@@ -1848,7 +1609,7 @@ def handle_block(version: str, stage: str, agent: str,
 
     if _HAS_ORCHESTRATE:
         try:
-            result = orchestrate_block(version, stage, agent, notes, learnings=learnings)
+            result = orchestrate_block(version, stage, agent, notes)
             return {'status': 'blocked', 'dispatched': bool(result), 'f_label': fl}
         except Exception as e:
             return {'status': 'error', 'error': str(e), 'f_label': fl}
@@ -2218,51 +1979,6 @@ def main():
         payload = build_dispatch_payload(version, stage, agent)
         print(json.dumps(payload.to_dict(), indent=2, default=str))
 
-    elif cmd == 'launch':
-        # Create a new pipeline (delegating to launch_pipeline.py)
-        if len(args) < 2:
-            print('Usage: orchestration_engine.py launch <version> --desc "description" [--priority high] [--tags a,b] [--start]')
-            sys.exit(1)
-        version = args[1]
-        desc = _extract_flag(args, '--desc') or _extract_flag(args, '-d') or ''
-        priority = _extract_flag(args, '--priority') or 'high'
-        tags_str = _extract_flag(args, '--tags')
-        tags = [t.strip() for t in tags_str.split(',')] if tags_str else None
-        start = '--start' in args or '--kickoff' in args
-
-        if not desc:
-            print('ERROR: --desc required')
-            sys.exit(1)
-
-        if _HAS_LAUNCH:
-            pf = _create_pipeline(version, desc, priority, tags)
-            if start and _HAS_ORCHESTRATE:
-                print(f'\n🚀 Kicking off via orchestrator...')
-                orchestrate_complete(version, 'pipeline_created', 'belam-main',
-                                     f'Pipeline created: {desc}')
-        else:
-            # Fallback: call launch_pipeline.py as subprocess
-            import subprocess as _sp
-            launch_args = [sys.executable, str(SCRIPTS / 'launch_pipeline.py'), version,
-                          '--desc', desc, '--priority', priority]
-            if tags_str:
-                launch_args.extend(['--tags', tags_str])
-            if start:
-                launch_args.append('--kickoff')
-            _sp.run(launch_args, cwd=str(WORKSPACE))
-
-    elif cmd == 'archive':
-        if len(args) < 2:
-            print('Usage: orchestration_engine.py archive <version>')
-            sys.exit(1)
-        version = resolve_pipeline(args[1]) or args[1]
-        if _HAS_LAUNCH:
-            archive_pipeline(version)
-        else:
-            import subprocess as _sp
-            _sp.run([sys.executable, str(SCRIPTS / 'launch_pipeline.py'), version, '--archive'],
-                    cwd=str(WORKSPACE))
-
     elif cmd == 'help' or cmd == '--help' or cmd == '-h':
         print(__doc__)
 
@@ -2274,7 +1990,7 @@ def main():
         else:
             print(f'Unknown command: {cmd}')
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
-            print('          complete, block, release-lock, list, resolve, sweep, launch, archive,')
+            print('          complete, block, release-lock, list, resolve, sweep,')
             print('          dispatch-payload, verify-hooks, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)

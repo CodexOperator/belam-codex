@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-engine-v2",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-21T10:33:05.256630+00:00",
+  "pipeline_session_id": "2a5070cd-f873-4f77-97b9-73c8d74eca44",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "b4367249-8171-4358-a693-1709957671e2",
+    "response_preview": "Now let me check the existing V1 design review I did earlier today, and the codex engine stubs to ve"
+  },
+  "verified": true
+}
