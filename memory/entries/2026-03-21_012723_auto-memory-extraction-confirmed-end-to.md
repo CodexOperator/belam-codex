@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, memory-extract, hooks, milestone, sage]
 source: "session:1b804d67"
 content: "Auto-memory extraction confirmed end-to-end for the first time. Hook fired at session bootstrap, spawned sage subagent (extract-a6677470), which ran for ~3min and created 4 primitives from the previous session. pending_extraction.json showed status=complete. Full pipeline: hook → marker file → boot detection → sage subagent → primitives → git push."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
