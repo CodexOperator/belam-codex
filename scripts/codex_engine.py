@@ -3317,22 +3317,22 @@ def _parse_e0_args(op_args):
     # Check first token for dense sub-commands or pipeline coordinates
     first = remaining[0].lower()
 
-    # Single-letter sub-commands (dense, no space after e0)
-    if first == 'h':
-        result['op'] = 'handoffs'
+    # Single-letter sub-commands (dense form: e0g, e0h, e0k, etc.)
+    # Full index:  (bare)=sweep  g=gates  h=handoffs  s=stalls
+    #              k=locks  u=unlock  l=list  d=dispatch  r=resume
+    SINGLE_OPS = {
+        'g': 'gates', 'h': 'handoffs', 's': 'stalls',
+        'k': 'locks', 'l': 'list', 'r': 'resume',
+    }
+    if first in SINGLE_OPS:
+        result['op'] = SINGLE_OPS[first]
         remaining = remaining[1:]
-    elif first == 'g':
-        result['op'] = 'gates'
-        remaining = remaining[1:]
-        # Check for optional pipeline filter: e0g p3
-        if remaining:
+        # gates + stalls accept optional pipeline filter: e0g p3
+        if result['op'] in ('gates',) and remaining:
             pm = re.match(r'^p(\d+)$', remaining[0], re.IGNORECASE)
             if pm:
                 result['pipeline'] = remaining[0].lower()
                 remaining = remaining[1:]
-    elif first == 's':
-        result['op'] = 'stalls'
-        remaining = remaining[1:]
 
     # Pipeline coordinate: p3, p12, etc.
     elif re.match(r'^p(\d+)$', first, re.IGNORECASE):
