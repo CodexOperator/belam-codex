@@ -24,12 +24,14 @@ After v2 settles (dense grammar + coordinate modes), extend the addressing/forma
 - codex_codec.py handles boundary translation
 - External MCP clients (Cursor, Claude Desktop) get codex-native representations
 
-## 2. Live Mode-Switch (e0x)
+## 2. Live Mode-Switch (e0x) + View Research
 
 - Live-swap coordinate grammar mid-session
 - Forces supermap re-render in new format
 - Creates novel attention interference from forced re-mapping
 - Research: quantify which token sequences produce most information-dense embeddings
+- `--shuffle` view modifier: randomized supermap ordering as research tool for attention pattern analysis
+- Note: `--shuffle` is a camera angle (view modifier flag), NOT a mode operation — same convention as `--as`, `--depth`
 
 ## 3. Reactive .codex Materialization
 

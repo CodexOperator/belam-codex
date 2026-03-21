@@ -65,8 +65,8 @@ if echo "${RAW_INPUT}" | grep -qP '[;|&$\\><`\n\r]|\$\('; then
     exit 1
 fi
 
-# Allow only: alphanumeric, hyphens, underscores, dots, spaces, =, commas, single/double quotes
-if echo "${RAW_INPUT}" | grep -qP "[^a-zA-Z0-9 _.=,'\"\-]"; then
+# Allow only: alphanumeric, hyphens, underscores, dots, spaces, =, commas, single/double quotes, arrows
+if echo "${RAW_INPUT}" | grep -qP "[^a-zA-Z0-9 _.=,'\"\-→>]"; then
     echo "ERROR: Rejected — input contains disallowed characters" >&2
     exit 1
 fi
@@ -85,8 +85,14 @@ if [[ "${FIRST_TOKEN}" == -* ]]; then
     route_to_codex=true
 fi
 
-# Single token that matches coord pattern: optional letters + optional digits (e.g. t1, d6, p, m, md2, a3b)
-if [[ $# -eq 1 ]] && echo "${FIRST_TOKEN}" | grep -qP '^[a-zA-Z]{1,4}[0-9]{0,4}$'; then
+# Coordinate pattern: letters + optional digits (e.g. t1, d6, p, m, md2)
+# Single token OR multi-token starting with a coordinate
+if echo "${FIRST_TOKEN}" | grep -qP '^[a-zA-Z]{1,4}[0-9]{0,4}$'; then
+    route_to_codex=true
+fi
+
+# V2 dense grammar: e0, e1, e2, e3 mode prefixes (with or without target)
+if echo "${FIRST_TOKEN}" | grep -qP '^e[0-3]'; then
     route_to_codex=true
 fi
 
