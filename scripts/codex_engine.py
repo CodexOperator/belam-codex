@@ -43,6 +43,7 @@ NAMESPACE = {
     'm':  ('memory',      'memory/entries',  None),
     'md': ('daily',       'memory',          'daily'),
     'mw': ('weekly',      'memory/weekly',   None),
+    'e':  ('modes',       'modes',           None),
 }
 
 # Sorted prefixes: longer ones first (md/mw before m)
@@ -61,6 +62,7 @@ TYPE_WORD_TO_PREFIX = {
     'memory': 'm', 'memory_log': 'm',
     'daily': 'md',
     'weekly': 'mw',
+    'mode': 'e', 'modes': 'e',
 }
 
 # Regex for coordinate args: e.g. t3, t1-t3, md2, mw1, p, m
@@ -689,7 +691,7 @@ PERSONA_CONFIGS = {
     },
 }
 
-SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's']
+SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's', 'e']
 
 
 def render_supermap(persona=None, tag_filter=None, since_days=None):
@@ -749,7 +751,17 @@ def render_supermap(persona=None, tag_filter=None, since_days=None):
 
         lines.append(f"╶─ {prefix:<3} {type_label} ({count})")
         for i, (slug, fp) in enumerate(primitives[:MAX_SHOW], 1):
-            coord = f"{prefix}{i}"
+            # For modes, use the coordinate field from frontmatter (e0, e1, etc.)
+            if prefix == 'e':
+                try:
+                    text = fp.read_text(encoding='utf-8', errors='replace')
+                    fm_raw, _ = parse_frontmatter(text)
+                    fm = dict(fm_raw)
+                    coord = str(fm.get('coordinate', f"{prefix}{i}"))
+                except Exception:
+                    coord = f"{prefix}{i}"
+            else:
+                coord = f"{prefix}{i}"
             summary = _supermap_summary(prefix, slug, fp, slug_index)
             lines.append(f"│  ╶─ {coord:<5} {summary}")
 
@@ -2783,8 +2795,12 @@ def _resolve_alias(word):
 
 def is_coordinate(arg):
     """Return True if arg looks like a primitive coordinate (e.g. t1, p5, md2, t, md, t1-t3).
-    Does NOT match action words or flags."""
+    Does NOT match action words or flags.
+    Excludes e0-e3 (V2 mode tokens) — those are handled by the V2 parser."""
     if not arg or arg.startswith('-'):
+        return False
+    # Exclude V2 mode tokens: e0, e1, e2, e3 (bare mode indicators)
+    if re.match(r'^e[0-3]$', arg, re.IGNORECASE):
         return False
     # Must start with known prefix letters only: single letters or md/mw
     # Pattern: (md|mw|[a-z])(\d+)?(-\d+)?  — must not contain other non-digit chars after prefix
@@ -3014,6 +3030,280 @@ def _print_action_help():
         print()
 
 
+# ─── V2 Dense Parser + Mode Routing ────────────────────────────────────────────
+
+# V2 mode tokens: e0 orchestrate | e1 edit | e2 create | e3 extend
+_V2_MODE_RE = re.compile(r'^(e[0-3])(.*)?$', re.IGNORECASE)
+_V2_OP_START_RE = re.compile(r'^e[0-3]([a-z]|$)', re.IGNORECASE)
+
+# Session-scoped extend registry (in-memory only, V3 will persist)
+_SESSION_EXTENSIONS = {}  # prefix -> (type_label, directory, special_mode)
+
+
+def _is_v2_op_start(token):
+    """Return True if token begins a V2 operation (e0-e3 mode prefix)."""
+    return bool(_V2_OP_START_RE.match(token))
+
+
+def _parse_dense_target(token):
+    """Parse dense target token like 't1', 'p3', 't12' into (namespace, index, embedded_field).
+
+    For edit mode, 't12' is ambiguous (task 12 vs task 1 field 2). Strategy:
+    - Try the full index as a coordinate. If it resolves, embedded_field=None.
+    - If it doesn't resolve (index out of range) and last digit can be split off as field,
+      try (index[:-1], field=last_digit).
+    Returns (prefix, index_int_or_None, embedded_field_int_or_None).
+    """
+    m = re.match(r'^(md|mw|[a-z]+)(\d+)?$', token, re.IGNORECASE)
+    if not m:
+        return None, None, None
+    prefix_raw = m.group(1).lower()
+    idx_str = m.group(2)
+    prefix = _normalize_prefix(prefix_raw)
+    if not prefix:
+        return None, None, None
+    if idx_str is None:
+        return prefix, None, None
+    idx = int(idx_str)
+    # Check if index resolves
+    try:
+        primitives = get_primitives(prefix)
+    except Exception:
+        return prefix, idx, None
+    if 1 <= idx <= len(primitives):
+        return prefix, idx, None
+    # Try splitting: last digit(s) as field
+    if len(idx_str) >= 2:
+        for split in range(1, len(idx_str)):
+            base_idx = int(idx_str[:split])
+            field_val = int(idx_str[split:])
+            if 1 <= base_idx <= len(primitives):
+                return prefix, base_idx, field_val
+    return prefix, idx, None
+
+
+def _parse_v2_operations(clean_args):
+    """Split args into V2 operations at eN boundaries.
+
+    Returns list of (mode_num, op_args) tuples, or None if not V2 input.
+    'e' bare (namespace view) returns [('namespace', remaining_args)].
+    """
+    if not clean_args:
+        return None
+    first = clean_args[0].lower()
+    # Bare 'e' namespace
+    if first == 'e':
+        return [('namespace', clean_args[1:])]
+    # Must start with e0-e3
+    if not _is_v2_op_start(first):
+        return None
+
+    # Split into segments at eN boundaries
+    segments = []
+    current = []
+    for arg in clean_args:
+        if _is_v2_op_start(arg) and current:
+            segments.append(current)
+            current = [arg]
+        else:
+            current.append(arg)
+    if current:
+        segments.append(current)
+
+    operations = []
+    for seg in segments:
+        m = _V2_MODE_RE.match(seg[0])
+        if not m:
+            return None
+        mode_num = int(m.group(1)[1])  # e0→0, e1→1 etc.
+        dense_rest = m.group(2) or ''  # chars after eN in same token
+        remaining = seg[1:]
+        if dense_rest:
+            op_args = [dense_rest] + remaining
+        else:
+            op_args = remaining
+        operations.append((mode_num, op_args))
+    return operations
+
+
+def execute_extend(args):
+    """Handle e3 mode: extend the engine namespace at runtime (session-scoped).
+
+    Usage:
+      e3                              — list all session extensions
+      e3 category <name>              — create dir + register namespace (runtime)
+      e3 namespace <prefix> <dir>     — register a namespace mapping (runtime)
+    """
+    tracker = get_render_tracker()
+
+    if not args:
+        # List all session extensions
+        if not _SESSION_EXTENSIONS:
+            print("e3: no session extensions registered.")
+            print("Usage: e3 category <name> | e3 namespace <prefix> <dir>")
+            return 0
+        print("e3 session extensions:")
+        for pfx, (type_label, directory, special) in _SESSION_EXTENSIONS.items():
+            print(f"  {pfx:<6} -> {directory}/  [{type_label}]")
+        return 0
+
+    subcmd = args[0].lower()
+
+    if subcmd == 'category' and len(args) >= 2:
+        name = args[1].lower()
+        # Derive prefix from first two chars (or first char if unique)
+        prefix_candidate = name[:2] if len(name) >= 2 else name[0]
+        prefix_candidate = re.sub(r'[^a-z]', '', prefix_candidate)
+        # Avoid collisions
+        all_ns = dict(NAMESPACE)
+        all_ns.update(_SESSION_EXTENSIONS)
+        if prefix_candidate in all_ns:
+            prefix_candidate = name[0]
+        if prefix_candidate in all_ns:
+            print(f"e3 category: prefix '{prefix_candidate}' already in use. Use 'e3 namespace' to specify one.")
+            return 1
+        # Create directory
+        new_dir = WORKSPACE / name
+        created = not new_dir.exists()
+        if created:
+            new_dir.mkdir(parents=True, exist_ok=True)
+        # Register in session
+        _SESSION_EXTENSIONS[prefix_candidate] = (name, name, None)
+        NAMESPACE[prefix_candidate] = (name, name, None)
+        f_label = tracker.next_f_label()
+        action = 'created' if created else 'registered (dir exists)'
+        print(f"{f_label} + namespace '{prefix_candidate}' -> {name}/  [{action}, session-scoped]")
+        print(f"   ╶─ prefix    {prefix_candidate}")
+        print(f"   ╶─ directory {name}/")
+        print(f"   ╶─ scope     session (persistent registration: edit NAMESPACE in codex_engine.py)")
+        return 0
+
+    elif subcmd == 'namespace' and len(args) >= 3:
+        prefix = args[1].lower()
+        directory = args[2]
+        all_ns = dict(NAMESPACE)
+        all_ns.update(_SESSION_EXTENSIONS)
+        if prefix in all_ns:
+            print(f"e3 namespace: prefix '{prefix}' already registered. Current: {all_ns[prefix]}")
+            return 1
+        if re.search(r'[^a-z]', prefix):
+            print(f"e3 namespace: prefix must be lowercase letters only, got '{prefix}'")
+            return 1
+        type_label = directory.rstrip('/').rsplit('/', 1)[-1]
+        _SESSION_EXTENSIONS[prefix] = (type_label, directory, None)
+        NAMESPACE[prefix] = (type_label, directory, None)
+        f_label = tracker.next_f_label()
+        print(f"{f_label} + namespace '{prefix}' -> {directory}/  [session-scoped]")
+        print(f"   ╶─ prefix    {prefix}")
+        print(f"   ╶─ directory {directory}/")
+        print(f"   ╶─ type      {type_label}")
+        print(f"   ╶─ scope     session (persistent registration: edit NAMESPACE in codex_engine.py)")
+        return 0
+
+    else:
+        print("e3 — extend mode")
+        print("  e3                              list session extensions")
+        print("  e3 category <name>              create dir + register namespace")
+        print("  e3 namespace <prefix> <dir>     register a namespace mapping")
+        return 1
+
+
+def _show_mode_help(mode_num):
+    """Display help for a V2 mode by reading its primitive file."""
+    mode_names = {0: 'orchestrate', 1: 'edit', 2: 'create', 3: 'extend'}
+    name = mode_names.get(mode_num)
+    if name is None:
+        print(f"Unknown mode: e{mode_num}")
+        return
+    fp = WORKSPACE / 'modes' / f'{name}.md'
+    if fp.exists():
+        try:
+            text = fp.read_text(encoding='utf-8', errors='replace')
+            _, body = parse_frontmatter(text)
+            print(body.strip())
+            return
+        except Exception:
+            pass
+    # Fallback compact help
+    usage = {
+        0: "e0 [coord] <action> [args...]  — orchestrate via action dispatch",
+        1: "e1 <coord> <field> <value>     — edit primitive fields/body",
+        2: "e2 <type_prefix> <title>       — create a new primitive",
+        3: "e3 [category|namespace] [args] — extend engine namespace",
+    }
+    print(f"e{mode_num} ({name}) — {usage.get(mode_num, '')}")
+
+
+def _list_mode_primitives():
+    """List all mode primitives (e namespace view)."""
+    primitives = get_primitives('e')
+    if not primitives:
+        print("e: no mode primitives found in modes/")
+        return
+    lines = [f"╶─ e  modes ({len(primitives)} total)"]
+    for i, (slug, fp) in enumerate(primitives, 1):
+        coord = f"e{i}"
+        # Read coordinate from frontmatter
+        try:
+            text = fp.read_text(encoding='utf-8', errors='replace')
+            fm, _ = parse_frontmatter(text)
+            coord_fm = fm.get('coordinate', coord)
+            func = fm.get('function', '')
+            desc = fm.get('description', '')
+            lines.append(f"   ╶─ {coord_fm:<4} {func:<12} {desc}")
+        except Exception:
+            lines.append(f"   ╶─ {coord:<4} {slug}")
+    print('\n'.join(lines))
+
+
+def _dispatch_v2_operation(mode_num, op_args, view_flags, tracker):
+    """Dispatch a single V2 operation.
+
+    mode_num: 0=orchestrate, 1=edit, 2=create, 3=extend
+    op_args: args for the operation (coord + field/value or action)
+    view_flags: any remaining -g/--depth style flags (passed through)
+    tracker: RenderTracker instance
+    """
+    if mode_num == 0:
+        # e0 → orchestrate
+        if not op_args:
+            _show_mode_help(0)
+            return 0
+        execute_action(op_args)
+        return 0
+
+    elif mode_num == 1:
+        # e1 → edit
+        if not op_args:
+            _show_mode_help(1)
+            return 0
+        # Handle dense target with possible embedded field
+        first_tok = op_args[0]
+        prefix, idx, embedded_field = _parse_dense_target(first_tok)
+        if prefix and idx and embedded_field is not None:
+            # Reconstruct args with split coord + field
+            coord_str = f"{prefix}{idx}"
+            new_args = [coord_str, str(embedded_field)] + op_args[1:]
+        else:
+            new_args = op_args
+        return execute_edit(new_args)
+
+    elif mode_num == 2:
+        # e2 → create
+        if not op_args:
+            _show_mode_help(2)
+            return 0
+        return execute_create(op_args)
+
+    elif mode_num == 3:
+        # e3 → extend
+        return execute_extend(op_args)
+
+    else:
+        print(f"Unknown mode: e{mode_num}")
+        return 1
+
+
 # ─── Main Entry Point ───────────────────────────────────────────────────────────
 
 def _parse_since(since_str):
@@ -3127,16 +3417,50 @@ def main(args=None):
 
     first = clean_args[0]
 
-    # 1. -e flag → edit mode
+    # ── V2 dense grammar detection (runs before V1 flags) ─────────────────────
+    # Check for: 'e' (namespace view), 'e0'-'e3' (bare modes), or eN<target> chains
+    first_lower = first.lower()
+    if first_lower == 'e' or _is_v2_op_start(first_lower) or re.match(r'^e[0-3]$', first_lower):
+        if first_lower == 'e':
+            # Bare 'e' → list all mode primitives
+            _list_mode_primitives()
+            return
+        if re.match(r'^e[0-3]$', first_lower) and len(clean_args) == 1:
+            # Bare eN with no additional args → mode help
+            mode_num = int(first_lower[1])
+            if mode_num == 3:
+                execute_extend([])
+            else:
+                _show_mode_help(mode_num)
+            return
+        # Parse into V2 operations (handles chaining)
+        ops = _parse_v2_operations(clean_args)
+        if ops is not None:
+            rc = 0
+            for mode_or_tag, op_args in ops:
+                if mode_or_tag == 'namespace':
+                    _list_mode_primitives()
+                else:
+                    rc = _dispatch_v2_operation(mode_or_tag, op_args, [], tracker)
+                    if rc and rc != 0:
+                        sys.exit(rc)
+            return
+
+    # ── V1 flag dispatch (legacy, with deprecation notices) ───────────────────
+
+    # 1. -e flag → edit mode (DEPRECATED → use e1)
     if first == '-e':
+        print("Warning: -e is deprecated -> use e1 (e.g., e1t3 2 'value')")
         sys.exit(execute_edit(clean_args[1:]))
 
-    # 2. -n flag → create mode
+    # 2. -n flag → create mode (DEPRECATED → use e2)
     if first == '-n':
+        print("Warning: -n is deprecated -> use e2 (e.g., e2 t 'My task')")
         sys.exit(execute_create(clean_args[1:]))
 
-    # 3. -z flag → undo mode
+    # 3. -z flag → undo mode (DEPRECATED → use e-z or -z)
     if first == '-z':
+        print("Warning: -z is deprecated -> use e-z for undo")
         sys.exit(execute_undo(clean_args[1:]))
 
     # 4. -g flag → graph mode
@@ -3146,8 +3470,9 @@ def main(args=None):
         print(output)
         return
 
-    # 5. -x flag → explicit execute mode
+    # 5. -x flag → explicit execute mode (DEPRECATED → use e0)
     if first == '-x':
+        print("Warning: -x is deprecated -> use e0 (e.g., e0 p3 run)")
         execute_action(clean_args[1:])
         return
 
