@@ -6,7 +6,7 @@ importance: 3
 tags: [agent:main, pipeline:codex-engine-v2-modes, stage:pipeline_created]
 source: "pipeline_update:codex-engine-v2-modes:pipeline_created"
 content: "Pipeline created: Dense-alphanumeric-parser-e0-e3-modes-extend-mode-retire-legacy-flags-dulwich-RAM | Pipeline: codex-engine-v2-modes | Stage: pipeline_created"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

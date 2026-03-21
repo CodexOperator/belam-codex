@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:critic, pipeline:codex-engine-v2-modes, stage:critic_design_review]
 source: "session"
 content: "codex-engine-v2-modes design review APPROVED: 0 BLOCKs, 5 FLAGs (2 med, 3 low). FLAG-1: spaced collapse regex over-matches (MED). FLAG-3: dot-connector ambiguity with output format suffix (MED). All 9 acceptance criteria covered. Builder can proceed."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

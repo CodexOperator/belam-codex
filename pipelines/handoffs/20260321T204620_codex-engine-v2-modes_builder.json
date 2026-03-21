@@ -1,0 +1,15 @@
+{
+  "version": "codex-engine-v2-modes",
+  "completed_stage": "critic_design_review",
+  "next_stage": "builder_implementation",
+  "next_agent": "builder",
+  "timestamp": "2026-03-21T20:46:20.173630+00:00",
+  "pipeline_session_id": "bc4864bc-9575-4b79-a5f0-41b288f72c8f",
+  "wake_result": {
+    "success": false,
+    "status": "exit_error",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": false
+}

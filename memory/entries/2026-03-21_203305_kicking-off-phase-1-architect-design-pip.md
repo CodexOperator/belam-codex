@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:codex-engine-v2-modes, stage:pipeline_created]
 source: "pipeline_update:codex-engine-v2-modes:pipeline_created"
 content: "Kicking off Phase 1 architect design | Pipeline: codex-engine-v2-modes | Stage: pipeline_created"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

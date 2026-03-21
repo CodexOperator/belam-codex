@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:belam-main, pipeline:codex-engine-v2-modes, stage:pipeline_created]
 source: "session"
 content: "Pipeline codex-engine-v2-modes: completed pipeline_created. Pipeline created: Dense-alphanumeric-parser-e0-e3-modes-extend-mode-retire-legacy-flags-dulwich-RAM"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

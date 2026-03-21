@@ -75,115 +75,6 @@ FIELD_RE = re.compile(r'^(\d+|[Bb]\d*(?:-[Bb]?\d+)?)$')
 # Regex for body coordinate in edit mode: B, B+, B5, B5-10, B5-B10, B.SectionName
 BODY_COORD_RE = re.compile(r'^[Bb](\+|\d+(?:-[Bb]?\d+)?|\.[A-Za-z0-9_]+)?$')
 
-# ─── Enum Field Indexing (d10 consequence) ──────────────────────────────────────
-# Maps numeric indices to field values for status/priority fields.
-# Allows: `e1 d8 2 1` = set decision 8, field 2 (status), to option 1 (proposed)
-# F-label output always resolves to human-readable.
-
-ENUM_FIELD_INDEX = {
-    'status': {
-        'decision': {1: 'proposed', 2: 'accepted', 3: 'rejected', 4: 'superseded'},
-        'task': {1: 'open', 2: 'active', 3: 'in_pipeline', 4: 'complete', 5: 'blocked'},
-        'pipeline': {1: 'created', 2: 'phase1_build', 3: 'phase1_complete',
-                     4: 'phase2_build', 5: 'phase2_complete', 6: 'archived'},
-        'lesson': {1: 'active', 2: 'archived'},
-    },
-    'priority': {
-        '_default': {1: 'critical', 2: 'high', 3: 'medium', 4: 'low'},
-    },
-    'enabled': {
-        '_default': {0: 'false', 1: 'true'},
-    },
-}
-
-# Reverse maps for display
-ENUM_FIELD_REVERSE = {}
-for _field_name, _type_map in ENUM_FIELD_INDEX.items():
-    ENUM_FIELD_REVERSE[_field_name] = {}
-    for _type_key, _idx_map in _type_map.items():
-        ENUM_FIELD_REVERSE[_field_name][_type_key] = {v: k for k, v in _idx_map.items()}
-
-
-def _resolve_enum_value(field_key, value_str, primitive_type):
-    """Resolve a numeric enum index to its string value.
-
-    If value_str is a digit and field_key has an enum map, returns the
-    resolved string. Otherwise returns value_str unchanged.
-    """
-    if not value_str or not value_str.isdigit():
-        return value_str
-    idx = int(value_str)
-    if field_key in ENUM_FIELD_INDEX:
-        type_map = ENUM_FIELD_INDEX[field_key]
-        # Try type-specific map first, then _default
-        enum_map = type_map.get(primitive_type, type_map.get('_default'))
-        if enum_map and idx in enum_map:
-            return enum_map[idx]
-    return value_str
-
-
-# ─── E0 Operation Numbering (d10 consequence) ──────────────────────────────────
-# Operations are numbered for dense input: e0p1 1.i1 = dispatch architect for p1
-# Coexists with letter shortcuts (g=gates etc.) for backward compat.
-
-E0_OP_INDEX = {
-    1: 'dispatch',     # e0p1 1.i1 — dispatch architect for pipeline 1
-    2: 'pipeline_status',  # e0p1 2 — pipeline 1 status
-    3: 'gates',        # e0p1 3 — pipeline 1 gate check
-    4: 'locks',        # e0p1 4 — pipeline 1 lock status
-    5: 'complete',     # e0p1 5.i1 — complete as architect
-    6: 'handoffs',     # e0 6 — list handoffs
-    7: 'stalls',       # e0 7 — list stalls
-    8: 'sweep',        # e0 8 — full sweep
-    9: 'unlock',       # e0p1 9 — unlock pipeline 1
-    10: 'resume',      # e0p1 10 — resume pipeline 1
-}
-
-
-# ─── Dot-Connector (d10 consequence) ───────────────────────────────────────────
-# The dot (.) in coordinate chains means "as" or "via":
-#   e0p1 1.i1    = dispatch pipeline 1 as architect (persona i1)
-#   e0p1 5.i1.i3 = complete as architect, handoff to critic
-#   e0p1 2.1     = pipeline 1 status, output format 1 (JSON)
-# Parsed by _parse_dot_connector() into (base, qualifiers) pairs.
-
-DOT_OUTPUT_FORMAT = {
-    1: 'json',   # .1 = JSON output
-}
-
-
-def _parse_dot_connector(token):
-    """Parse a dot-connected token into (base, qualifiers).
-
-    '1.i1' → ('1', ['i1'])
-    '5.i1.i3' → ('5', ['i1', 'i3'])
-    'p3' → ('p3', [])
-    '2.1' → ('2', ['1'])
-    """
-    if '.' not in token:
-        return token, []
-    parts = token.split('.')
-    return parts[0], parts[1:]
-
-
-# ─── RAM State (lazy, opt-in) ──────────────────────────────────────────────────
-
-_RAM_STATE = None
-
-
-def _get_ram():
-    """Lazy import and init of RAM state. Returns RamState or None."""
-    global _RAM_STATE
-    if _RAM_STATE is not None:
-        return _RAM_STATE if _RAM_STATE.available and _RAM_STATE._initialized else None
-    try:
-        from codex_ram import get_ram
-        _RAM_STATE = get_ram()
-        return _RAM_STATE if _RAM_STATE.available and _RAM_STATE._initialized else None
-    except ImportError:
-        return None
-
-
 # ─── Primitive Discovery ────────────────────────────────────────────────────────
 
 def _quick_has_primitive_key(filepath):
@@ -3385,38 +3276,21 @@ def execute_extend(args):
     """Handle e3 mode: extend the engine namespace at runtime (session-scoped).
 
     Usage:
-      e3                              — list all session extensions + trail
+      e3                              — list all session extensions
       e3 category <name>              — create dir + register namespace (runtime)
       e3 namespace <prefix> <dir>     — register a namespace mapping (runtime)
-      e3 template <type_prefix>       — scaffold frontmatter template from existing primitives
-      e3 integrate <script_path>      — register script as engine-callable (session)
-      e3 run <name> [args...]         — invoke an integrated script
     """
     tracker = get_render_tracker()
 
     if not args:
-        # List all session extensions + trail
-        has_content = False
-        if _SESSION_EXTENSIONS:
-            has_content = True
-            print("e3 session extensions:")
-            for pfx, (type_label, directory, special) in _SESSION_EXTENSIONS.items():
-                print(f"  {pfx:<6} -> {directory}/  [{type_label}]")
-        if _SESSION_INTEGRATIONS:
-            has_content = True
-            print("e3 integrated scripts:")
-            for name, spath in _SESSION_INTEGRATIONS.items():
-                print(f"  {name:<20} -> {spath}")
-        if _EXTENSION_TRAIL:
-            has_content = True
-            print("e3 extension trail:")
-            for ts, op, detail in _EXTENSION_TRAIL:
-                t = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
-                print(f"  [{t}] {op}: {detail}")
-        if not has_content:
+        # List all session extensions
+        if not _SESSION_EXTENSIONS:
             print("e3: no session extensions registered.")
             print("Usage: e3 category <name> | e3 namespace <prefix> <dir>")
-            print("       e3 template <type> | e3 integrate <script>")
+            return 0
+        print("e3 session extensions:")
+        for pfx, (type_label, directory, special) in _SESSION_EXTENSIONS.items():
+            print(f"  {pfx:<6} -> {directory}/  [{type_label}]")
         return 0
 
     subcmd = args[0].lower()
@@ -4028,9 +3902,6 @@ def main(args=None):
         _, output = tracker.track_render(content)
         print(output)
         return
-
-    # ── Spaced V2 collapse: 'e0 p3' → 'e0p3' (must run before V2 detection) ──
-    clean_args = _collapse_spaced_v2(clean_args)
 
     first = clean_args[0]
 

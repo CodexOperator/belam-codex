@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:critic, pipeline:codex-engine-v2-modes, stage:critic_design_review]
 source: "session"
 content: "codex-engine-v2-modes design review APPROVED 0 blocks 4 flags. codex_codec API is to_codex/from_codex not parse/serialize — builder spec had wrong names. ram_branch/merge deferred to V1.1 (no consumer). Explicit opt-in (BELAM_RAM=1) for optional deps. extensions.json should commit to git."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
