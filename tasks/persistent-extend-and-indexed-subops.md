@@ -98,6 +98,7 @@ Replace all letter-based and word-based sub-ops with numbered indices. Letters r
 3. Generates completion report: gathers task metadata + linked primitives + related memory → MD → LaTeX → PDF via `build_report.py --template completion`
 4. Outputs report to `reports/completed/{task-slug}/` (NOT a primitive directory)
 5. Emits F-label per archive + R-label showing coordinate reindex
+6. **Cascading dependency resolution:** scans all tasks whose `depends_on` references the archived slug, marks that dep as satisfied. If all deps now met → task becomes eligible for pipeline launch (logged as gate-open event)
 
 Examples:
 ```
