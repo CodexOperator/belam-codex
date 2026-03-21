@@ -35,8 +35,8 @@ Built `codex-cockpit` as an OpenClaw workspace plugin using the `before_prompt_b
 5. **Post-compaction:** Resets to full render (conversation history may have lost the original)
 
 **Two-tier label separation:**
-- **R-labels** (this plugin): Supermap landscape — coordinates appearing, disappearing, status/priority shifting. Soul instance's natural view.
-- **F-labels** (orchestration layer): Field-level primitive mutations. Injected by `pipeline_orchestrate.py` when handing context to builder/architect/critic pipeline agents. Not the cockpit's concern.
+- **R-labels** (this plugin): Supermap landscape — coordinates appearing, disappearing, status/priority shifting. Soul instance's natural view. Pipeline agents also receive R-labels.
+- **F-labels** (orchestration layer): Field-level primitive mutations. Injected by the orchestration engine when handing context between pipeline agents. Pipeline agents send both R-labels and F-labels to each other across handoffs. The cockpit (soul instance) receives F-labels only when absolutely necessary.
 
 **Harness awareness:** `ctx.agentId` is available for future per-agent injection depth. The soul instance gets R-labels. Pipeline sub-agents could get F-labels via a future extension point.
 

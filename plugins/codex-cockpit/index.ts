@@ -103,10 +103,13 @@ export default function register(api: any) {
     const cwd = ctx?.workspaceDir || workspaceDir;
     if (!cwd) return;
 
-    // ── Harness awareness (future extension point) ──
+    // ── Harness awareness ──
+    // Cockpit (main/coordinator): R-labels only — landscape view
+    // Pipeline agents (architect/critic/builder): receive both R-labels
+    // (from this plugin) AND F-labels (from orchestration engine via
+    // dispatch payloads and handoff context). F-labels flow between
+    // pipeline agents through the orchestration engine, not this plugin.
     // const agentId = ctx?.agentId ?? "main";
-    // Pipeline sub-agents could get F-labels here in the future.
-    // For now, all agents get R-labels only.
 
     try {
       const output = execSync("python3 scripts/codex_engine.py --supermap", {
