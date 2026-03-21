@@ -134,6 +134,23 @@ def get_primitives(prefix, active_only=True):
                     if st and st in EXCLUDED_STATUSES:
                         continue
                 items.append((f.stem, f))
+
+        # Modes: sort by coordinate field (e0, e1, e2, e3) instead of alphabetically
+        if prefix == 'e' and items:
+            def _coord_sort_key(item):
+                slug, fp = item
+                try:
+                    text = fp.read_text(encoding='utf-8', errors='replace')
+                    fm_raw, _ = parse_frontmatter(text)
+                    fm = dict(fm_raw)
+                    coord = str(fm.get('coordinate', ''))
+                    # Extract numeric part: e0 → 0, e1 → 1, etc.
+                    m = re.match(r'e(\d+)', coord)
+                    return int(m.group(1)) if m else 999
+                except Exception:
+                    return 999
+            items.sort(key=_coord_sort_key)
+
         return items
 
 
