@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:belam-main, pipeline:orchestration-engine-v2-temporal, stage:pipeline_created]
 source: "session"
 content: "Pipeline orchestration-engine-v2-temporal: completed pipeline_created. Pipeline created: Orchestration Engine v2 temporal state, persistent agents, autoclave view"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

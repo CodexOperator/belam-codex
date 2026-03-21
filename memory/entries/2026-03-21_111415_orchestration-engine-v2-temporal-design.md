@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:critic, pipeline:orchestration-engine-v2-temporal, stage:critic_design_review]
 source: "session"
 content: "orchestration-engine-v2-temporal design review APPROVED 0 blocks 6 flags. Temporal overlay pattern validated: filesystem source of truth + SpacetimeDB enhanced view with graceful degradation. Key findings: SQL injection in subprocess CLI queries, reducer-client signature mismatch, agent_context has no filesystem backup violating stated source-of-truth principle. SpacetimeDB justified only if real-time subscriptions needed soon, otherwise SQLite simpler. Overlay pattern is the correct architecture for extending battle-tested systems."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

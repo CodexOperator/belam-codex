@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:architect, pipeline:orchestration-engine-v2-temporal, stage:architect_design]
 source: "session"
 content: "Designed temporal overlay for V2 orchestration engine: SpacetimeDB for temporal state (5 tables: pipeline_state, state_transition, handoff, agent_context, agent_presence), persistent agent context (structured cross-session memory scoped to pipeline lifecycle), autoclave shared dashboard (real-time subscriptions + time-travel queries). Key design decisions: overlay not replacement (filesystem remains source of truth, graceful degradation if SpacetimeDB unavailable), minimal V2 diff (~30 lines), Rust module for schema+reducers (~300 lines), Python client (~250 lines). New e0a coordinates for autoclave access. 5 open questions for critic including SpacetimeDB vs SQLite tradeoff."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

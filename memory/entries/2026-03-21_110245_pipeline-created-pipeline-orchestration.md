@@ -6,7 +6,7 @@ importance: 3
 tags: [agent:main, pipeline:orchestration-engine-v2-temporal, stage:pipeline_created]
 source: "pipeline_update:orchestration-engine-v2-temporal:pipeline_created"
 content: "Pipeline created | Pipeline: orchestration-engine-v2-temporal | Stage: pipeline_created"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

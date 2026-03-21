@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:critic, pipeline:orchestration-engine-v2, stage:critic_code_review]
 source: "session"
 content: "orchestration-engine-v2 code review APPROVED: 0 blocks, 4 flags (2 med, 2 low). All 4 design FLAGs verified fixed. New findings: STAGE_SEQUENCE incomplete secondary source (11/37+ stages), atomic_lock_acquire dead code (never called), completion cmds reference legacy script. Infrastructure wrapping pattern: verify new code is called, not just defined."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

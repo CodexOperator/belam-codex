@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, codex-cockpit, before_prompt_build, openclaw-plugin, supermap]
 source: "session"
 content: "Began implementing codex-cockpit plugin (before_prompt_build hook) to inject supermap on every agent turn. Prior supermap-boot hook only fires on agent:bootstrap, leaving the agent blind to state changes mid-session. New plugin scaffolded at /home/ubuntu/.openclaw/extensions/codex-cockpit/ with openclaw.plugin.json + index.ts. First load attempt failed: TypeError: (0, _core.definePluginEntry) is not a function. Investigation of stock plugin imports revealed correct SDK import path pattern. Session transcript truncated — work likely continued past this point."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
