@@ -5,7 +5,7 @@ date: 2026-03-21
 context: "Codex Engine V1 used CLI flags (-e, -g, -n, -x) for modes. These are invisible to the coordinate system — you can't address, compose, or extend them through primitives. Modes should be first-class citizens in the same addressing scheme as everything else."
 alternatives: [flags-with-aliases, mode-as-namespace-prefix, mode-as-primitive]
 rationale: "If everything is a primitive, modes must be too. Primitives are addressable, documentable, extensible. Flags are none of those things. Making modes primitives means e3 (extend) can create new modes — the lathe builds the lathe."
-consequences: [modes-directory-created, mo-namespace-registered, e0-e3-replace-flags, extend-mode-creates-primitive-trail]
+consequences: [modes-directory-created, e-namespace-for-modes, e0-e3-replace-flags, extend-mode-creates-primitive-trail]
 upstream: [decision/codex-engine-v1-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar]
 downstream: [task/codex-engine-v2-modes-mcp-temporal, task/build-orchestration-engine-v1]
 tags: [codex-engine, v2, modes, primitives, architecture]
@@ -21,7 +21,7 @@ V1 used CLI flags for modes: `-e` edit, `-g` graph, `-n` create, `-x` execute. T
 
 - **Option A: Flags with aliases** — Keep `-e`/`-g`/`-n`/`-x`, add short aliases. Simple but modes stay invisible to the primitive graph.
 - **Option B: Mode as namespace prefix** — `edit/t1`, `graph/d2`. Modes become path segments. Addressable but creates a parallel hierarchy.
-- **Option C: Modes as primitives** — Store mode specs in `modes/*.md` with `mo` namespace prefix. Modes are coordinates (`e0`–`e3`), stored as primitives with frontmatter defining behavior, applicable namespaces, and composability rules. Extend mode (`e3`) can create new modes.
+- **Option C: Modes as primitives** — Store mode specs in `modes/*.md` with `e` namespace prefix (same as the mode coordinates themselves). Modes are coordinates (`e0`–`e3`), stored as primitives with frontmatter defining behavior, applicable namespaces, and composability rules. `e` is the most common letter in English — natural entry point in the embedding space. Extend mode (`e3`) can create new modes.
 
 ## Decision
 
@@ -40,6 +40,11 @@ Each mode lives in `modes/` with frontmatter defining:
 | `e1` | Edit | Primitive mutation, status transitions | `modes/edit.md` |
 | `e2` | Create | New primitive scaffolding | `modes/create.md` |
 | `e3` | Extend | Meta-mode — modify the engine itself | `modes/extend.md` |
+
+### Supermap Integration
+- `R0.e` — zoomed view of engine modes section in supermap
+- `e` bare — list all mode primitives with their specs
+- `e0` without a target — view the orchestrate mode definition itself
 
 ### Key Distinctions
 
@@ -65,7 +70,7 @@ Every `e3` operation creates a primitive trail — the engine's evolution is sel
 
 ## Consequences
 
-- `modes/` directory created with `mo` namespace prefix
+- `modes/` directory created with `e` namespace prefix — `e` chosen for embedding-space entry point (most common English letter, natural meaning-mapping anchor)
 - CLI flags `-o`, `-e`, `-c`, `-x` retired in favor of `e0`–`e3`
 - View modifiers (`-g`, `--depth`, `--as`) preserved — they compose with modes
 - `e3` enables the engine to extend itself through primitives

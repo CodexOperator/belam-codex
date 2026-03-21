@@ -65,8 +65,10 @@ Rewrite the engine parser to support dense alphanumeric grammar (d10) and coordi
 
 ### Mode Primitives
 - Modes stored in `modes/*.md` with frontmatter defining behavior spec
-- New namespace prefix: `mo` → resolves to `modes/` directory
+- Namespace prefix: `e` → resolves to `modes/` directory (same prefix as mode coordinates)
+- `e` chosen as natural embedding-space entry point — most common English letter, anchors meaning-mapping
 - Each mode primitive declares: applicable namespaces, transformations, composability
+- `R0.e` views engine modes section in supermap; `e` bare lists all modes
 - Composable: `e0p3 -g` = orchestrate pipeline 3, show result as graph
 
 ---
@@ -118,7 +120,7 @@ Each extend operation creates a primitive trail — `e3` to see all extensions a
 - [ ] Dense parser handles chained operations (`e0p3 e1t12 e2l e0h`)
 - [ ] Spaced input collapsed correctly (`e0 p3` → `e0p3`)
 - [ ] Modes e0–e3 functional, replacing flags
-- [ ] Mode primitives in `modes/` directory with namespace `mo`
+- [ ] Mode primitives in `modes/` directory with namespace `e`
 - [ ] e3 extend creates primitive trail
 - [ ] Legacy flags emit deprecation warning
 - [ ] View modifiers compose with mode coordinates
