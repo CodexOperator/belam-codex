@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["CONNECTION_ID_TAG","IDENTITY_TAG","TIMESTAMP_TAG","TIME_DURATION_TAG","UUID_TAG"],"struct":["ElementValuesWithType","ProductType"],"type":["ElementsWithTypespace"]};

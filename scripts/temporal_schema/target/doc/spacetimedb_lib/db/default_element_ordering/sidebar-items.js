@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ElementLabel"],"fn":["product_type_has_default_ordering","sum_type_has_default_ordering"]};

@@ -1,0 +1,9 @@
+/home/ubuntu/.openclaw/workspace/scripts/temporal_schema/target/debug/deps/spacetimedb_primitives-55d8e3acb5b6f4b8.d: /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/lib.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/attr.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/col_list.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/errno.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/ids.rs
+
+/home/ubuntu/.openclaw/workspace/scripts/temporal_schema/target/debug/deps/libspacetimedb_primitives-55d8e3acb5b6f4b8.rmeta: /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/lib.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/attr.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/col_list.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/errno.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/ids.rs
+
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/lib.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/attr.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/col_list.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/errno.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-primitives-1.12.0/src/ids.rs:

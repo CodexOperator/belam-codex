@@ -1,0 +1,69 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Finds all rows in the index identified by `index_id`, according to the:"><title>datastore_index_scan_range_bsatn in spacetimedb_bindings_sys::raw - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-77263533.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="spacetimedb_bindings_sys" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.0 (4a4ef493e 2026-03-02)" data-channel="1.94.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-7bab91a1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc fn"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">datastore_index_scan_range_bsatn</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../spacetimedb_bindings_sys/index.html">spacetimedb_<wbr>bindings_<wbr>sys</a><span class="version">1.12.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">datastore_<wbr>index_<wbr>scan_<wbr>range_<wbr>bsatn</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#non-obvious-queries" title="Non-obvious queries">Non-obvious queries</a></li><li><a href="#traps" title="Traps">Traps</a></li><li><a href="#errors" title="Errors">Errors</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In spacetimedb_<wbr>bindings_<wbr>sys::<wbr>raw</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">spacetimedb_bindings_sys</a>::<wbr><a href="index.html">raw</a></div><h1>Function <span class="fn">datastore_<wbr>index_<wbr>scan_<wbr>range_<wbr>bsatn</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/spacetimedb_bindings_sys/lib.rs.html#169-179">Source</a> </span></div><pre class="rust item-decl"><code>pub unsafe extern &quot;C&quot; fn datastore_index_scan_range_bsatn(
+    index_id: <a class="struct" href="../../spacetimedb_primitives/ids/struct.IndexId.html" title="struct spacetimedb_primitives::ids::IndexId">IndexId</a>,
+    prefix_ptr: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.pointer.html">*const </a><a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.u8.html">u8</a>,
+    prefix_len: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.usize.html">usize</a>,
+    prefix_elems: <a class="struct" href="../../spacetimedb_primitives/ids/struct.ColId.html" title="struct spacetimedb_primitives::ids::ColId">ColId</a>,
+    rstart_ptr: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.pointer.html">*const </a><a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.u8.html">u8</a>,
+    rstart_len: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.usize.html">usize</a>,
+    rend_ptr: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.pointer.html">*const </a><a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.u8.html">u8</a>,
+    rend_len: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.usize.html">usize</a>,
+    out: <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.pointer.html">*mut </a><a class="struct" href="struct.RowIter.html" title="struct spacetimedb_bindings_sys::raw::RowIter">RowIter</a>,
+) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.94.0/std/primitive.u16.html">u16</a></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Finds all rows in the index identified by <code>index_id</code>,
+according to the:</p>
+<ul>
+<li><code>prefix = prefix_ptr[..prefix_len]</code>,</li>
+<li><code>rstart = rstart_ptr[..rstart_len]</code>,</li>
+<li><code>rend = rend_ptr[..rend_len]</code>,</li>
+</ul>
+<p>in WASM memory.</p>
+<p>The index itself has a schema/type.
+The <code>prefix</code> is decoded to the initial <code>prefix_elems</code> <code>AlgebraicType</code>s
+whereas <code>rstart</code> and <code>rend</code> are decoded to the <code>prefix_elems + 1</code> <code>AlgebraicType</code>
+where the <code>AlgebraicValue</code>s are wrapped in <code>Bound</code>.
+That is, <code>rstart, rend</code> are BSATN-encoded <code>Bound&lt;AlgebraicValue&gt;</code>s.</p>
+<p>Matching is then defined by equating <code>prefix</code>
+to the initial <code>prefix_elems</code> columns of the index
+and then imposing <code>rstart</code> as the starting bound
+and <code>rend</code> as the ending bound on the <code>prefix_elems + 1</code> column of the index.
+Remaining columns of the index are then unbounded.
+Note that the <code>prefix</code> in this case can be empty (<code>prefix_elems = 0</code>),
+in which case this becomes a ranged index scan on a single-col index
+or even a full table scan if <code>rstart</code> and <code>rend</code> are both unbounded.</p>
+<p>The relevant table for the index is found implicitly via the <code>index_id</code>,
+which is unique for the module.</p>
+<p>On success, the iterator handle is written to the <code>out</code> pointer.
+This handle can be advanced by <a href="fn.row_iter_bsatn_advance.html" title="fn spacetimedb_bindings_sys::raw::row_iter_bsatn_advance"><code>row_iter_bsatn_advance</code></a>.</p>
+<h2 id="non-obvious-queries"><a class="doc-anchor" href="#non-obvious-queries">§</a>Non-obvious queries</h2>
+<p>For an index on columns <code>[a, b, c]</code>:</p>
+<ul>
+<li><code>a = x, b = y</code> is encoded as a prefix <code>[x, y]</code>
+and a range <code>Range::Unbounded</code>,
+or as a  prefix <code>[x]</code> and a range <code>rstart = rend = Range::Inclusive(y)</code>.</li>
+<li><code>a = x, b = y, c = z</code> is encoded as a prefix <code>[x, y]</code>
+and a  range <code>rstart = rend = Range::Inclusive(z)</code>.</li>
+<li>A sorted full scan is encoded as an empty prefix
+and a range <code>Range::Unbounded</code>.</li>
+</ul>
+<h2 id="traps"><a class="doc-anchor" href="#traps">§</a>Traps</h2>
+<p>Traps if:</p>
+<ul>
+<li><code>prefix_elems &gt; 0</code>
+and (<code>prefix_ptr</code> is NULL or <code>prefix</code> is not in bounds of WASM memory).</li>
+<li><code>rstart</code> is NULL or <code>rstart</code> is not in bounds of WASM memory.</li>
+<li><code>rend</code> is NULL or <code>rend</code> is not in bounds of WASM memory.</li>
+<li><code>out</code> is NULL or <code>out[..size_of::&lt;RowIter&gt;()]</code> is not in bounds of WASM memory.</li>
+</ul>
+<h2 id="errors"><a class="doc-anchor" href="#errors">§</a>Errors</h2>
+<p>Returns an error:</p>
+<ul>
+<li><code>NOT_IN_TRANSACTION</code>, when called outside of a transaction.</li>
+<li><code>NO_SUCH_INDEX</code>, when <code>index_id</code> is not a known ID of an index.</li>
+<li><code>WRONG_INDEX_ALGO</code> if the index is not a range-compatible index.</li>
+<li><code>BSATN_DECODE_ERROR</code>, when <code>prefix</code> cannot be decoded to
+a <code>prefix_elems</code> number of <code>AlgebraicValue</code>
+typed at the initial <code>prefix_elems</code> <code>AlgebraicType</code>s of the index’s key type.
+Or when <code>rstart</code> or <code>rend</code> cannot be decoded to an <code>Bound&lt;AlgebraicValue&gt;</code>
+where the inner <code>AlgebraicValue</code>s are
+typed at the <code>prefix_elems + 1</code> <code>AlgebraicType</code> of the index’s key type.</li>
+</ul>
+</div></details></section></div></main></body></html>

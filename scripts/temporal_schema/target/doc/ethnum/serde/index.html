@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Serde serialization implementation for 256-bit integer types."><title>ethnum::serde - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-77263533.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ethnum" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.0 (4a4ef493e 2026-03-02)" data-channel="1.94.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-7bab91a1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-ffcac47a.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module serde</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../ethnum/index.html">ethnum</a><span class="version">1.5.2</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module serde</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul><h3><a href="#modules">Module Items</a></h3><ul class="block"><li><a href="#modules" title="Modules">Modules</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate ethnum</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">ethnum</a></div><h1>Module <span>serde</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/ethnum/serde.rs.html#1-1579">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Serde serialization implementation for 256-bit integer types.</p>
+<p>This implementation is very JSON-centric in that it serializes the integer
+types as <code>QUANTITIES</code> as specified in the Ethereum RPC. That is, integers
+are encoded as <code>"0x"</code> prefixed strings without extrenuous leading <code>0</code>s. For
+negative signed integers, the string is prefixed with a <code>"-"</code> sign.</p>
+<p>Note that this module contains alternative serialization schemes that can
+be used with <code>#[serde(with = "...")]</code>.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>Basic usage:</p>
+<div class="example-wrap"><pre class="language-text"><code>#[derive(Deserialize, Serialize)]
+struct Example {
+    a: U256, // &quot;0x2a&quot;
+    #[serde(with = &quot;ethnum::serde::decimal&quot;)]
+    b: I256, // &quot;-42&quot;
+    #[serde(with = &quot;ethnum::serde::prefixed&quot;)]
+    c: U256, // &quot;0x2a&quot; or &quot;42&quot;
+    #[serde(with = &quot;ethnum::serde::permissive&quot;)]
+    d: I256, // &quot;-0x2a&quot; or &quot;-42&quot; or -42
+    #[serde(with = &quot;ethnum::serde::bytes::be&quot;)]
+    e: U256, // [0x2a, 0x00, ..., 0x00]
+    #[serde(with = &quot;ethnum::serde::bytes::le&quot;)]
+    f: I256, // [0xd6, 0xff, ..., 0xff]
+    #[serde(with = &quot;ethnum::serde::compressed_bytes::be&quot;)]
+    g: U256, // [0x2a]
+    #[serde(with = &quot;ethnum::serde::compressed_bytes::le&quot;)]
+    h: I256, // [0xd6]
+}</code></pre></div></div></details><h2 id="modules" class="section-header">Modules<a href="#modules" class="anchor">§</a></h2><dl class="item-table"><dt><a class="mod" href="bytes/index.html" title="mod ethnum::serde::bytes">bytes</a></dt><dd>Serde byte serialization for 256-bit integer types.</dd><dt><a class="mod" href="compressed_bytes/index.html" title="mod ethnum::serde::compressed_bytes">compressed_<wbr>bytes</a></dt><dd>Serde compressed byte serialization for 256-bit integer types.</dd><dt><a class="mod" href="decimal/index.html" title="mod ethnum::serde::decimal">decimal</a></dt><dd>Module for use with <code>#[serde(with = "ethnum::serde::decimal")]</code> to specify
+decimal string serialization for 256-bit integer types.</dd><dt><a class="mod" href="permissive/index.html" title="mod ethnum::serde::permissive">permissive</a></dt><dd>Module for use with <code>#[serde(with = "ethnum::serde::permissive")]</code> to
+specify extremely permissive serialization for 256-bit integer types.</dd><dt><a class="mod" href="prefixed/index.html" title="mod ethnum::serde::prefixed">prefixed</a></dt><dd>Module for use with <code>#[serde(with = "ethnum::serde::prefixed")]</code> to specify
+prefixed string serialization for 256-bit integer types.</dd></dl></section></div></main></body></html>

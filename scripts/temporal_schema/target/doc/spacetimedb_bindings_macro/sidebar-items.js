@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["client_visibility_filter","procedure","reducer","table","view"],"derive":["Deserialize","Serialize","SpacetimeType"],"macro":["duration"]};

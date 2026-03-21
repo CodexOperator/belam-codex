@@ -1,0 +1,9 @@
+(function() {
+    const implementors = Object.fromEntries([["belam_orchestration",[["impl <a class=\"trait\" href=\"spacetimedb_query_builder/table/trait.HasIxCols.html\" title=\"trait spacetimedb_query_builder::table::HasIxCols\">HasIxCols</a> for <a class=\"struct\" href=\"belam_orchestration/struct.AgentContext.html\" title=\"struct belam_orchestration::AgentContext\">AgentContext</a>",0],["impl <a class=\"trait\" href=\"spacetimedb_query_builder/table/trait.HasIxCols.html\" title=\"trait spacetimedb_query_builder::table::HasIxCols\">HasIxCols</a> for <a class=\"struct\" href=\"belam_orchestration/struct.AgentPresence.html\" title=\"struct belam_orchestration::AgentPresence\">AgentPresence</a>",0],["impl <a class=\"trait\" href=\"spacetimedb_query_builder/table/trait.HasIxCols.html\" title=\"trait spacetimedb_query_builder::table::HasIxCols\">HasIxCols</a> for <a class=\"struct\" href=\"belam_orchestration/struct.Handoff.html\" title=\"struct belam_orchestration::Handoff\">Handoff</a>",0],["impl <a class=\"trait\" href=\"spacetimedb_query_builder/table/trait.HasIxCols.html\" title=\"trait spacetimedb_query_builder::table::HasIxCols\">HasIxCols</a> for <a class=\"struct\" href=\"belam_orchestration/struct.PipelineState.html\" title=\"struct belam_orchestration::PipelineState\">PipelineState</a>",0],["impl <a class=\"trait\" href=\"spacetimedb_query_builder/table/trait.HasIxCols.html\" title=\"trait spacetimedb_query_builder::table::HasIxCols\">HasIxCols</a> for <a class=\"struct\" href=\"belam_orchestration/struct.StateTransition.html\" title=\"struct belam_orchestration::StateTransition\">StateTransition</a>",0]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":59,"fragment_lengths":[1585]}

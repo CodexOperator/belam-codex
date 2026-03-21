@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PsqlClient","PsqlPrintFmt"],"struct":["PsqlChars","PsqlType","PsqlWrapper","SatnError","SqlFormatter","TypedArrayFormatter","TypedNamedProductFormatter","TypedSeqFormatter","TypedSerializer","Wrapper"],"trait":["Satn","TypedWriter"]};

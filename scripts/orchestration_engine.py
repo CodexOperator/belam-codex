@@ -103,6 +103,58 @@ HUMAN_ACTIONS = {
 # Max resume attempts before alerting human
 MAX_RESUMES = 3
 
+# ─── Temporal Overlay (V2-temporal integration — lazy loaded) ──────────────────
+
+_temporal_overlay = None  # Lazy-loaded TemporalOverlay instance
+
+
+def _get_temporal():
+    """Get the TemporalOverlay instance (lazy, graceful degradation).
+
+    Returns TemporalOverlay if SpacetimeDB is available, None otherwise.
+    V2 engine continues normally when temporal is unavailable.
+    """
+    global _temporal_overlay
+    if _temporal_overlay is None:
+        try:
+            from temporal_overlay import TemporalOverlay
+            _temporal_overlay = TemporalOverlay(workspace=WORKSPACE)
+            if not _temporal_overlay.available:
+                _temporal_overlay = False  # Disabled — don't retry
+        except ImportError:
+            _temporal_overlay = False  # Module not installed
+    return _temporal_overlay if _temporal_overlay else None
+
+
+def _post_state_change(version: str, from_stage: str, to_stage: str,
+                        agent: str, action: str, notes: str = '',
+                        next_agent: str = '') -> bool:
+    """Post-hook: record state change in temporal layer if available.
+
+    Called after every state mutation in handle_complete/handle_block.
+    Failure is silent — temporal is overlay, not critical path.
+    """
+    temporal = _get_temporal()
+    if not temporal:
+        return False
+    try:
+        # Log the transition
+        temporal.record_transition(
+            version=version, from_stage=from_stage, to_stage=to_stage,
+            agent=agent, action=action, notes=notes,
+        )
+        # If advancing to next stage, also update pipeline state + create handoff
+        if action == 'complete' and to_stage and next_agent:
+            temporal.advance_pipeline(
+                version=version, completed_stage=from_stage,
+                next_stage=to_stage, source_agent=agent,
+                target_agent=next_agent, notes=notes,
+            )
+        return True
+    except Exception:
+        return False  # Temporal failures are non-fatal
+
+
 # ─── F-Label Counter ───────────────────────────────────────────────────────────
 
 _f_counter = 0
@@ -1835,6 +1887,22 @@ def sweep(dry_run: bool = False) -> list[str]:
     if dry_run:
         print('  [DRY RUN -- no actions will be taken]\n')
 
+    # 0a. Temporal sync: reconcile filesystem → SpacetimeDB (if available)
+    temporal = _get_temporal()
+    if temporal:
+        print(f'\n--- Temporal Sync (SpacetimeDB) ---\n')
+        try:
+            sync_stats = temporal.sync_from_filesystem()
+            print(f'  Synced {sync_stats["synced"]} pipelines to SpacetimeDB')
+            if sync_stats['errors']:
+                print(f'  ⚠ {sync_stats["errors"]} sync errors')
+            # Also export agent contexts for backup (FLAG-3)
+            ctx_count = temporal.export_all_contexts()
+            if ctx_count:
+                print(f'  Exported {ctx_count} agent context(s) to filesystem')
+        except Exception as e:
+            print(f'  Temporal sync error (non-fatal): {e}')
+
     # 0. Check telemetry for completed agent turns (event loop)
     print(f'\n--- Completion Check (agent_end telemetry) ---\n')
     completions = check_completions(dry_run=dry_run)
@@ -2054,6 +2122,11 @@ def handle_complete(version: str, stage: str, agent: str,
     if _HAS_ORCHESTRATE:
         try:
             result = orchestrate_complete(version, stage, agent, notes, learnings)
+            # V2-temporal post-hook: record transition in SpacetimeDB
+            next_stg = _next_stage_for(stage)
+            next_ag = _agent_from_action(next_stg) if next_stg else ''
+            _post_state_change(version, stage, next_stg or 'terminal',
+                               agent, 'complete', notes, next_ag)
             return {'status': 'completed', 'dispatched': bool(result), 'f_label': fl}
         except Exception as e:
             return {'status': 'error', 'error': str(e), 'f_label': fl}
@@ -2065,6 +2138,9 @@ def handle_complete(version: str, stage: str, agent: str,
 
     next_agent = _agent_from_action(next_stg)
     payload = build_dispatch_payload(version, next_stg, next_agent, notes=notes)
+
+    # V2-temporal post-hook: record transition in SpacetimeDB
+    _post_state_change(version, stage, next_stg, agent, 'complete', notes, next_agent)
 
     return {
         'status': 'completed',
@@ -2093,6 +2169,10 @@ def handle_block(version: str, stage: str, agent: str,
     if _HAS_ORCHESTRATE:
         try:
             result = orchestrate_block(version, stage, agent, notes, learnings=learnings)
+            # V2-temporal post-hook
+            _post_state_change(version, stage, block_target or 'blocked',
+                               agent, 'block', notes,
+                               _agent_from_action(block_target) if block_target else '')
             return {'status': 'blocked', 'dispatched': bool(result), 'f_label': fl}
         except Exception as e:
             return {'status': 'error', 'error': str(e), 'f_label': fl}
@@ -2102,6 +2182,9 @@ def handle_block(version: str, stage: str, agent: str,
 
     target_agent = _agent_from_action(block_target)
     payload = build_dispatch_payload(version, block_target, target_agent, notes=notes)
+
+    # V2-temporal post-hook
+    _post_state_change(version, stage, block_target, agent, 'block', notes, target_agent)
 
     return {
         'status': 'blocked',
@@ -2519,6 +2602,105 @@ def main():
             _sp.run([sys.executable, str(SCRIPTS / 'launch_pipeline.py'), version, '--archive'],
                     cwd=str(WORKSPACE))
 
+    # ─── V2-Temporal Commands (autoclave/timeline/timetravel/temporal-sync) ────
+
+    elif cmd == 'autoclave':
+        # Autoclave dashboard — shared view of all pipelines + agents
+        temporal = _get_temporal()
+        if not temporal:
+            print('\n⚠ SpacetimeDB unavailable — autoclave requires temporal overlay.\n')
+            print('  Setup: spacetime start && spacetime publish belam-orchestration scripts/temporal_schema/')
+            sys.exit(1)
+        sub = args[1] if len(args) > 1 else None
+        if sub == 'agents':
+            agents = temporal.get_agent_presence() or []
+            print(f'\n--- Agent Presence ---\n')
+            for a in agents:
+                pipeline = a.get('current_pipeline', '-')
+                print(f'  {a["agent"]:<12} {a["status"]:<20} pipeline={pipeline}')
+            if not agents:
+                print('  No agents registered.')
+            print()
+        elif sub and sub.startswith('@'):
+            # Time-travel: autoclave @2h (all pipelines 2h ago)
+            # For now, just show the dashboard at point-in-time
+            print(f'\n  Time-travel queries require a pipeline version:')
+            print(f'  orchestration_engine.py timetravel <version> --at <ISO-timestamp>\n')
+        else:
+            dashboard = temporal.get_dashboard()
+            if dashboard:
+                print(f'\n--- AUTOCLAVE Dashboard ({dashboard.get("generated_at", "")}) ---\n')
+                print(f'  PIPELINES')
+                for p in dashboard.get('pipelines', []):
+                    locked = '🔒' if p.get('locked_by') else '  '
+                    print(f'  {locked} {p.get("version","?"):<35} {p.get("current_stage","?"):<25} {p.get("current_agent","?")}')
+                print(f'\n  AGENTS')
+                for a in dashboard.get('agents', []):
+                    print(f'  {a.get("agent","?"):<12} {a.get("status","?")}')
+                handoffs = dashboard.get('recent_handoffs', [])
+                if handoffs:
+                    print(f'\n  RECENT HANDOFFS')
+                    for h in handoffs[:5]:
+                        print(f'  {h.get("source_agent","?")} → {h.get("target_agent","?")} ({h.get("version","?")}/{h.get("next_stage","?")})')
+                print()
+            else:
+                print('  Dashboard unavailable.')
+
+    elif cmd == 'timeline':
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py timeline <version>')
+            sys.exit(1)
+        temporal = _get_temporal()
+        if not temporal:
+            print('\n⚠ SpacetimeDB unavailable.\n')
+            sys.exit(1)
+        version = resolve_pipeline(args[1]) or args[1]
+        timeline = temporal.get_timeline(version)
+        if timeline:
+            print(f'\n--- Timeline: {version} ---\n')
+            for entry in timeline:
+                ts = entry.get('timestamp', '?')
+                print(f'  {ts} | {entry.get("from_stage","?")} → {entry.get("to_stage","?")} | {entry.get("agent","?")} | {entry.get("action","?")}')
+                if entry.get('notes'):
+                    print(f'            {entry["notes"][:80]}')
+            print()
+        else:
+            print(f'\n  No timeline data for {version}.\n')
+
+    elif cmd == 'timetravel':
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py timetravel <version> --at <ISO-timestamp>')
+            sys.exit(1)
+        temporal = _get_temporal()
+        if not temporal:
+            print('\n⚠ SpacetimeDB unavailable.\n')
+            sys.exit(1)
+        version = resolve_pipeline(args[1]) or args[1]
+        at = _extract_flag(args, '--at') or ''
+        if not at:
+            print('  --at <ISO-timestamp> required')
+            sys.exit(1)
+        state = temporal.time_travel(version, at)
+        if json_mode:
+            print(json.dumps(state, indent=2, default=str))
+        else:
+            if state:
+                print(f'\n  State at {at}: stage={state.get("to_stage","?")} agent={state.get("agent","?")} action={state.get("action","?")}\n')
+            else:
+                print(f'\n  No state found for {version} at {at}.\n')
+
+    elif cmd == 'temporal-sync':
+        temporal = _get_temporal()
+        if not temporal:
+            print('\n⚠ SpacetimeDB unavailable.\n')
+            sys.exit(1)
+        stats = temporal.sync_from_filesystem()
+        export_ctx = '--export-contexts' in args
+        print(f'Sync: {json.dumps(stats)}')
+        if export_ctx:
+            count = temporal.export_all_contexts()
+            print(f'Exported {count} agent contexts')
+
     elif cmd == 'help' or cmd == '--help' or cmd == '-h':
         print(__doc__)
 
@@ -2531,7 +2713,8 @@ def main():
             print(f'Unknown command: {cmd}')
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
             print('          complete, block, release-lock, list, resolve, sweep, launch, archive,')
-            print('          dispatch-payload, completions, verify-hooks, help')
+            print('          dispatch-payload, completions, verify-hooks,')
+            print('          autoclave, timeline, timetravel, temporal-sync, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)
 

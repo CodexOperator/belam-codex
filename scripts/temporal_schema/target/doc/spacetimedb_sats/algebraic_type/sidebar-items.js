@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AlgebraicType"],"mod":["fmt","map_notation"]};

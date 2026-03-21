@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Col","ColumnRef","FromWhere","Table"],"trait":["HasCols","HasIxCols"],"type":["TableNameStr"]};

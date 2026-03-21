@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AlgebraicValue"],"mod":["de","ser"],"struct":["Packed"],"type":["F32","F64","i256","u256"]};

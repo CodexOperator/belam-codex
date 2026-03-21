@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["GIT_HASH"],"fn":["spacetimedb_lib_version"]};

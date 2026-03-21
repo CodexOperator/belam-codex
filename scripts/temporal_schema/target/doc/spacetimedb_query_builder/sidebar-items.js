@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["expr","join","table"],"struct":["Query"]};

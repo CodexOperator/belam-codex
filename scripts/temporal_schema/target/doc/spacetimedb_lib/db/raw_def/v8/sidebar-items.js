@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SEQUENCE_ALLOCATION_STEP"],"enum":["IndexType"],"fn":["generate_cols_name"],"struct":["RawColumnDefV8","RawConstraintDefV8","RawIndexDefV8","RawSequenceDefV8","RawTableDefV8"]};

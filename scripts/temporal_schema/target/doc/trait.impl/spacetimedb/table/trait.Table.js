@@ -1,0 +1,9 @@
+(function() {
+    const implementors = Object.fromEntries([["belam_orchestration",[["impl <a class=\"trait\" href=\"spacetimedb/table/trait.Table.html\" title=\"trait spacetimedb::table::Table\">Table</a> for <a class=\"struct\" href=\"belam_orchestration/struct.agent_context__TableHandle.html\" title=\"struct belam_orchestration::agent_context__TableHandle\">agent_context__TableHandle</a>",0],["impl <a class=\"trait\" href=\"spacetimedb/table/trait.Table.html\" title=\"trait spacetimedb::table::Table\">Table</a> for <a class=\"struct\" href=\"belam_orchestration/struct.agent_presence__TableHandle.html\" title=\"struct belam_orchestration::agent_presence__TableHandle\">agent_presence__TableHandle</a>",0],["impl <a class=\"trait\" href=\"spacetimedb/table/trait.Table.html\" title=\"trait spacetimedb::table::Table\">Table</a> for <a class=\"struct\" href=\"belam_orchestration/struct.handoff__TableHandle.html\" title=\"struct belam_orchestration::handoff__TableHandle\">handoff__TableHandle</a>",0],["impl <a class=\"trait\" href=\"spacetimedb/table/trait.Table.html\" title=\"trait spacetimedb::table::Table\">Table</a> for <a class=\"struct\" href=\"belam_orchestration/struct.pipeline_state__TableHandle.html\" title=\"struct belam_orchestration::pipeline_state__TableHandle\">pipeline_state__TableHandle</a>",0],["impl <a class=\"trait\" href=\"spacetimedb/table/trait.Table.html\" title=\"trait spacetimedb::table::Table\">Table</a> for <a class=\"struct\" href=\"belam_orchestration/struct.state_transition__TableHandle.html\" title=\"struct belam_orchestration::state_transition__TableHandle\">state_transition__TableHandle</a>",0]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":59,"fragment_lengths":[1592]}

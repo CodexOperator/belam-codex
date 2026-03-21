@@ -1,0 +1,11 @@
+/home/ubuntu/.openclaw/workspace/scripts/temporal_schema/target/debug/deps/spacetimedb-7f1ca7dbeccc4876.d: /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/lib.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/log_stopwatch.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/logger.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/rng.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/rt.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/table.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/../README.md
+
+/home/ubuntu/.openclaw/workspace/scripts/temporal_schema/target/debug/deps/libspacetimedb-7f1ca7dbeccc4876.rmeta: /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/lib.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/log_stopwatch.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/logger.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/rng.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/rt.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/table.rs /home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/../README.md
+
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/lib.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/log_stopwatch.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/logger.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/rng.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/rt.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/table.rs:
+/home/ubuntu/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/spacetimedb-1.12.0/src/../README.md:

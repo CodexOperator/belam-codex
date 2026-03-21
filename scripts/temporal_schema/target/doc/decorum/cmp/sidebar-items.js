@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["max_or_undefined","min_or_undefined"],"trait":["FloatEq","FloatOrd","IntrinsicOrd"]};

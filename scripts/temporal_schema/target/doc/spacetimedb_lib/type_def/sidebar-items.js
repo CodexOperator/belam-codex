@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["AlgebraicType"],"struct":["ProductType","ProductTypeElement","SumType"]};

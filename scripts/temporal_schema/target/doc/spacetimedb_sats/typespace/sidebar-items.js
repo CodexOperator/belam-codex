@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["SpacetimeType"],"enum":["TypeRefError"],"struct":["Typespace"],"trait":["GroundSpacetimeType","SpacetimeType","TypespaceBuilder"]};

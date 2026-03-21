@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["fmt_algebraic_type","fmt_product_type"]};

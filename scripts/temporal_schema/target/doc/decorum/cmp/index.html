@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Ordering and comparisons."><title>decorum::cmp - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-77263533.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="decorum" data-themes="" data-resource-suffix="" data-rustdoc-version="1.94.0 (4a4ef493e 2026-03-02)" data-channel="1.94.0" data-search-js="search-9e2438ea.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-7bab91a1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-ffcac47a.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/olson-sean-k/decorum/master/doc/decorum-favicon.ico"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module cmp</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../../decorum/index.html"><img src="https://raw.githubusercontent.com/olson-sean-k/decorum/master/doc/decorum.svg?sanitize=true" alt="logo"></a><h2><a href="../../decorum/index.html">decorum</a><span class="version">0.3.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module cmp</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul><h3><a href="#traits">Module Items</a></h3><ul class="block"><li><a href="#traits" title="Traits">Traits</a></li><li><a href="#functions" title="Functions">Functions</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate decorum</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">decorum</a></div><h1>Module <span>cmp</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/decorum/cmp.rs.html#1-414">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Ordering and comparisons.</p>
+<p>This module provides traits and functions for comparing floating-point and
+other partially ordered values. For primitive floating-point types, a total
+ordering is provided via the <code>FloatEq</code> and <code>FloatOrd</code> traits:</p>
+<p>$$-\infin&lt;\cdots&lt;0&lt;\cdots&lt;\infin&lt;\text{NaN}$$</p>
+<p>Note that both zero and <code>NaN</code> have more than one representation in IEEE-754
+encoding. Given the set of zero representations $Z$ and set of <code>NaN</code>
+representations $N$, this ordering coalesces <code>-0</code>, <code>+0</code>, and <code>NaN</code>s such
+that:</p>
+<p>$$
+\begin{aligned}
+a=b&amp;\mid a\in{Z},~b\in{Z}\cr[1em]
+a=b&amp;\mid a\in{N},~b\in{N}\cr[1em]
+n&gt;x&amp;\mid n\in{N},~x\notin{N}
+\end{aligned}
+$$</p>
+<p>These same semantics are used in the <code>Eq</code> and <code>Ord</code> implementations for
+<code>ContrainedFloat</code>, which includes the <code>Total</code>, <code>NotNan</code>, and <code>Finite</code> type
+definitions.</p>
+<h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
+<p>Comparing <code>f64</code> values using a total ordering:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>core::cmp::Ordering;
+<span class="kw">use </span>decorum::cmp::FloatOrd;
+<span class="kw">use </span>decorum::Nan;
+
+<span class="kw">let </span>x = f64::NAN;
+<span class="kw">let </span>y = <span class="number">1.0f64</span>;
+
+<span class="kw">let </span>(min, max) = <span class="kw">match </span>x.float_cmp(<span class="kw-2">&amp;</span>y) {
+    Ordering::Less | Ordering::Equal =&gt; (x, y),
+    <span class="kw">_ </span>=&gt; (y, x),
+};</code></pre></div>
+<p>Computing a pairwise minimum that propagates <code>NaN</code>s:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>decorum::cmp;
+<span class="kw">use </span>decorum::Nan;
+
+<span class="kw">let </span>x = f64::NAN;
+<span class="kw">let </span>y = <span class="number">1.0f64</span>;
+
+<span class="comment">// `Nan` is incomparable and represents an undefined computation with respect to
+// ordering, so `min` is assigned a `NaN` value in this example.
+</span><span class="kw">let </span>min = cmp::min_or_undefined(x, y);</code></pre></div></div></details><h2 id="traits" class="section-header">Traits<a href="#traits" class="anchor">§</a></h2><dl class="item-table"><dt><a class="trait" href="trait.FloatEq.html" title="trait decorum::cmp::FloatEq">FloatEq</a></dt><dd>Equivalence relation for floating-point primitives.</dd><dt><a class="trait" href="trait.FloatOrd.html" title="trait decorum::cmp::FloatOrd">Float<wbr>Ord</a></dt><dd>Total ordering of primitive floating-point types.</dd><dt><a class="trait" href="trait.IntrinsicOrd.html" title="trait decorum::cmp::IntrinsicOrd">Intrinsic<wbr>Ord</a></dt><dd>Partial ordering of types with intrinsic representations for undefined
+comparisons.</dd></dl><h2 id="functions" class="section-header">Functions<a href="#functions" class="anchor">§</a></h2><dl class="item-table"><dt><a class="fn" href="fn.max_or_undefined.html" title="fn decorum::cmp::max_or_undefined">max_<wbr>or_<wbr>undefined</a></dt><dd>Partial maximum of types with intrinsic representations for undefined.</dd><dt><a class="fn" href="fn.min_or_undefined.html" title="fn decorum::cmp::min_or_undefined">min_<wbr>or_<wbr>undefined</a></dt><dd>Partial minimum of types with intrinsic representations for undefined.</dd></dl></section></div></main></body></html>

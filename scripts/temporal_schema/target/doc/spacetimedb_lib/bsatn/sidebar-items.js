@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DecodeError"],"fn":["assert_is_primitive_type","decode","from_reader","from_slice","to_len","to_vec","to_writer"],"mod":["de","eq","ser"],"struct":["Deserializer","EncodeError","Serializer"],"trait":["BufReservedFill","ToBsatn"]};

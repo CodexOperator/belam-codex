@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"derive":["Serialize"],"struct":["ForwardNamedToSeqProduct","Impossible"],"trait":["Error","Serialize","SerializeArray","SerializeNamedProduct","SerializeSeqProduct","Serializer"]};

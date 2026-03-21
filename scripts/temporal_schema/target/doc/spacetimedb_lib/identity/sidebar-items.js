@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["SqlPermission"],"struct":["AuthCtx","Identity"],"trait":["SqlAuthorization"],"type":["RequestId","SqlPermissions"]};
