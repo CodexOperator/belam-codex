@@ -1,6 +1,7 @@
 ---
 primitive: pipeline
-status: phase1_build
+status: archived
+archived: 2026-03-21
 priority: critical
 version: orchestration-engine-v1
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v1_spec.yaml

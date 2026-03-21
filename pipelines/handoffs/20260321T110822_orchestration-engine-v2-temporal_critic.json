@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-engine-v2-temporal",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-21T11:08:22.029823+00:00",
+  "pipeline_session_id": "0ad71f4b-9c83-4630-be84-4ca8df70180e",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "31eefcf4-8811-4db5-b541-9e14494ed528",
+    "response_preview": "Now let me check current pipeline state and write my review."
+  },
+  "verified": true
+}

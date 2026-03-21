@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-engine-v2-temporal",
+  "completed_stage": "pipeline_created",
+  "next_stage": "architect_design",
+  "next_agent": "architect",
+  "timestamp": "2026-03-21T11:01:44.324903+00:00",
+  "pipeline_session_id": "db4bcabc-f537-446a-85e2-fefedbf43f76",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "9708360b-9aa4-4082-9eb7-4e778493c154",
+    "response_preview": "Now let me read the required context files for this pipeline."
+  },
+  "verified": true
+}

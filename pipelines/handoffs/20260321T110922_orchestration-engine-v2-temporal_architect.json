@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-engine-v2-temporal",
+  "completed_stage": "pipeline_created",
+  "next_stage": "architect_design",
+  "next_agent": "architect",
+  "timestamp": "2026-03-21T11:09:22.708434+00:00",
+  "pipeline_session_id": "e77cebd9-30d4-49a3-9c01-907a25796e39",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "9708360b-9aa4-4082-9eb7-4e778493c154",
+    "response_preview": "Now I have full context. Let me design the architecture."
+  },
+  "verified": true
+}

@@ -46,6 +46,7 @@ FLAG fixes applied (orchestration-engine-v2 critic review):
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 import uuid
@@ -1185,6 +1186,66 @@ def _resolve_gate_condition(condition: str, self_fm: dict, self_version: str) ->
     return False, f'unparseable condition: {condition}'
 
 
+# ─── Fire-and-Forget Dispatch (State Machine Core) ────────────────────────────
+
+def fire_and_forget_dispatch(version: str, stage: str, agent: str,
+                              message: str = '') -> dict:
+    """Dispatch an agent non-blocking via subprocess.Popen.
+
+    Architecture (new state-machine approach):
+      1. Write pending_action / current_agent / last_dispatched to state JSON
+      2. Launch `openclaw agent --message` via Popen (returns immediately)
+      3. The pipeline-context plugin injects state into the agent's prompt
+      4. The agent-end-telemetry plugin logs turn completion for check_completions()
+
+    This replaces the blocking wake_agent() call. The orchestration script exits
+    immediately; the agent runs independently in background.
+
+    Returns: {'success': True/False, 'pid': int|None, 'error': str|None}
+    """
+    # --- Update state JSON first (state machine write) ---
+    state_file = BUILDS_DIR / f'{version}_state.json'
+    try:
+        state = json.loads(state_file.read_text()) if state_file.exists() else {}
+        state['pending_action'] = stage
+        state['current_agent'] = agent
+        state['last_dispatched'] = datetime.now(timezone.utc).isoformat()
+        state_file.write_text(json.dumps(state, indent=2))
+    except Exception as e:
+        return {'success': False, 'pid': None, 'error': f'State write failed: {e}'}
+
+    # --- Build dispatch message ---
+    if not message:
+        message = (
+            f'Pipeline dispatch: {version} / {stage}\n'
+            f'Your task is stage `{stage}` for pipeline `{version}`.\n'
+            f'The pipeline-context plugin has injected the full state above.\n'
+            f'Read your task from `pending_action` in the state JSON, then complete it.'
+        )
+
+    # --- Fire and forget via Popen ---
+    cmd = [
+        'openclaw', 'agent',
+        '--agent', agent,
+        '--message', message,
+        '--timeout', '1',   # We don't wait; --timeout 1 lets openclaw dispatch and return
+    ]
+
+    try:
+        # Popen returns immediately — child process runs in background
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,   # Detach from our process group
+        )
+        return {'success': True, 'pid': proc.pid, 'error': None}
+    except FileNotFoundError:
+        return {'success': False, 'pid': None, 'error': 'openclaw CLI not found on PATH'}
+    except Exception as e:
+        return {'success': False, 'pid': None, 'error': str(e)}
+
+
 # ─── Dispatch & Handoff ────────────────────────────────────────────────────────
 
 def pipeline_dispatch(version: str, agent: str, stage: str = None,
@@ -1218,39 +1279,36 @@ def pipeline_dispatch(version: str, agent: str, stage: str = None,
         print(f'  {fl}', file=sys.stderr)
         return payload.to_dict()
 
-    # Legacy dispatch via orchestrate machinery
-    if not _HAS_ORCHESTRATE:
-        print(f'ERROR: pipeline_orchestrate.py not available for dispatch')
-        return False
-
+    # Fire-and-forget dispatch (new state-machine approach — no blocking wake_agent)
     fl = generate_f_label('dispatch', {
         'agent': agent, 'coord': _get_pipeline_coord(version), 'stage': stage
     })
+    print(f'  {fl}')
 
-    # Use orchestrate_complete to trigger the dispatch chain
-    # For initial kickoff (pipeline_created), use that as the completed stage
-    if stage == 'pipeline_created' or stage == 'architect_design':
-        print(f'  {fl}')
-        return orchestrate_complete(version, 'pipeline_created', 'belam-main',
-                                     f'Dispatched by orchestration_engine')
+    result = fire_and_forget_dispatch(version, stage, agent)
+    if result['success']:
+        print(f'  Dispatched {agent} for {version}/{stage} (pid={result["pid"]})')
+        return True
     else:
-        # Build and send a handoff message directly
-        print(f'  {fl}')
-        reset_agent_session(agent)
-        session_id = generate_session_id(version, agent)
-        handoff_msg = build_handoff_message(version, '', stage, agent,
-                                             f'Dispatched by orchestration engine for {stage}')
-        wake_result = wake_agent(agent, handoff_msg, timeout=600, session_id=session_id)
-
-        if wake_result['success']:
-            write_handoff(version, '', stage, agent, wake_result, session_id)
-            return True
-        elif wake_result['status'] == 'timeout':
-            wake_result = checkpoint_and_resume(agent, version, stage, '', resume_count=0)
-            return wake_result.get('success', False)
-        else:
-            print(f'  FAILED: {wake_result.get("error", "")}')
-            return False
+        print(f'  FAILED: {result.get("error", "")}')
+        # Fallback to legacy orchestrate machinery if available
+        if _HAS_ORCHESTRATE:
+            print(f'  Falling back to legacy orchestrate dispatch...')
+            if stage == 'pipeline_created' or stage == 'architect_design':
+                return orchestrate_complete(version, 'pipeline_created', 'belam-main',
+                                             f'Dispatched by orchestration_engine (fallback)')
+            else:
+                reset_agent_session(agent)
+                session_id = generate_session_id(version, agent)
+                handoff_msg = build_handoff_message(version, '', stage, agent,
+                                                     f'Dispatched by orchestration engine for {stage}')
+                # LEGACY: wake_agent is blocking — only used as fallback when Popen fails
+                wake_result = wake_agent(agent, handoff_msg, timeout=600, session_id=session_id)
+                if wake_result['success']:
+                    write_handoff(version, '', stage, agent, wake_result, session_id)
+                    return True
+                return False
+        return False
 
 
 def pipeline_handoff(version: str, from_agent: str, to_agent: str, notes: str = '') -> bool:
@@ -1319,6 +1377,181 @@ def pipeline_resume(version: str) -> bool:
     notes = f'Resume from stall. Pipeline {version} stage {pending}.'
     wake_result = checkpoint_and_resume(agent, version, pending, notes, resume_count=0)
     return wake_result.get('success', False)
+
+
+# ─── Completion Detection (Event Loop) ────────────────────────────────────────
+
+def check_completions(dry_run: bool = False) -> list[dict]:
+    """Check agent_telemetry.jsonl for completed agent turns that signal handoffs.
+
+    Called periodically by the heartbeat to replace the blocking wake_agent() wait.
+    When a handoff is detected for an active pipeline, advances state and dispatches
+    the next agent via fire_and_forget_dispatch().
+
+    Flow:
+      agent_end hook fires → telemetry logged → check_completions() picks it up
+      → state advanced via pipeline_update.py → next agent dispatched
+
+    Returns: list of processed events [{version, stage, agent, action, ...}]
+    """
+    logs_dir = WORKSPACE / 'logs'
+    telemetry_file = logs_dir / 'agent_telemetry.jsonl'
+
+    if not telemetry_file.exists():
+        return []
+
+    # Read all telemetry entries
+    entries = []
+    try:
+        with open(telemetry_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entries.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+    except Exception as e:
+        print(f'  [check_completions] Failed to read telemetry: {e}')
+        return []
+
+    if not entries:
+        return []
+
+    # Get active pipelines
+    active = {p['version']: p for p in get_active_pipelines()}
+    if not active:
+        return []
+
+    # Track which telemetry entries we've already processed
+    checkpoint_file = logs_dir / '.telemetry_checkpoint'
+    last_processed_ts = ''
+    if checkpoint_file.exists():
+        try:
+            last_processed_ts = checkpoint_file.read_text().strip()
+        except Exception:
+            pass
+
+    # Filter to new entries with handoff_detected
+    new_handoffs = [
+        e for e in entries
+        if e.get('handoff_detected')
+        and e.get('timestamp', '') > last_processed_ts
+    ]
+
+    if not new_handoffs:
+        return []
+
+    processed = []
+    newest_ts = last_processed_ts
+
+    for entry in new_handoffs:
+        ts = entry.get('timestamp', '')
+        agent = entry.get('agent', 'unknown')
+        pipeline = entry.get('pipeline')
+        stage = entry.get('stage')
+        handoff_target = entry.get('handoff_target')
+
+        # Match against active pipelines
+        matched_version = None
+        if pipeline:
+            # Try direct match
+            if pipeline in active:
+                matched_version = pipeline
+            else:
+                # Partial match (telemetry may have a slug, not full version)
+                for ver in active:
+                    if pipeline in ver or ver in pipeline:
+                        matched_version = ver
+                        break
+
+        if not matched_version:
+            # Try to match by agent + stage
+            for ver, p in active.items():
+                pending = p.get('pending_action', '')
+                current_agent = p.get('state', {}).get('current_agent', '')
+                if agent and current_agent and agent in current_agent:
+                    matched_version = ver
+                    break
+
+        if not matched_version:
+            if ts > newest_ts:
+                newest_ts = ts
+            continue
+
+        version = matched_version
+        pipeline_state = active[version]['state']
+        pending = pipeline_state.get('pending_action', 'none')
+
+        print(f'  [check_completions] Handoff detected: {version}/{pending} by {agent}'
+              f' → {handoff_target or "next stage"}')
+
+        if dry_run:
+            processed.append({
+                'version': version, 'stage': pending, 'agent': agent,
+                'action': 'DRY_RUN: would advance and dispatch',
+                'handoff_target': handoff_target,
+            })
+            if ts > newest_ts:
+                newest_ts = ts
+            continue
+
+        # Advance state via pipeline_update.py
+        try:
+            update_result = subprocess.run(
+                ['python3', str(SCRIPTS / 'pipeline_update.py'), version, 'complete', pending,
+                 '--agent', agent, '--notes', f'Handoff detected by check_completions (telemetry)'],
+                capture_output=True, text=True, timeout=30,
+                cwd=str(WORKSPACE),
+            )
+            if update_result.returncode != 0:
+                print(f'  [check_completions] pipeline_update.py failed: {update_result.stderr[:200]}')
+        except Exception as e:
+            print(f'  [check_completions] State advance failed: {e}')
+
+        # Determine next stage and agent
+        try:
+            from pipeline_update import STAGE_TRANSITIONS
+            transition = STAGE_TRANSITIONS.get(pending)
+            if transition:
+                next_stage, next_agent, _ = transition
+            else:
+                next_stage, next_agent = None, handoff_target
+        except ImportError:
+            next_stage = handoff_target
+            next_agent = _agent_from_action(next_stage) if next_stage else None
+
+        if next_stage and next_agent and next_stage not in HUMAN_ACTIONS:
+            dispatch_result = fire_and_forget_dispatch(version, next_stage, next_agent)
+            fl = generate_f_label('handoff', {
+                'src': agent, 'dst': next_agent, 'coord': _get_pipeline_coord(version)
+            })
+            print(f'  {fl}  (pid={dispatch_result.get("pid")})')
+            processed.append({
+                'version': version, 'stage': pending, 'agent': agent,
+                'next_stage': next_stage, 'next_agent': next_agent,
+                'action': 'dispatched', 'pid': dispatch_result.get('pid'),
+            })
+        else:
+            action = 'at_human_gate' if next_stage in HUMAN_ACTIONS else 'no_transition'
+            processed.append({
+                'version': version, 'stage': pending, 'agent': agent,
+                'next_stage': next_stage, 'action': action,
+            })
+
+        if ts > newest_ts:
+            newest_ts = ts
+
+    # Update checkpoint
+    if newest_ts and not dry_run:
+        try:
+            logs_dir.mkdir(parents=True, exist_ok=True)
+            checkpoint_file.write_text(newest_ts)
+        except Exception:
+            pass
+
+    return processed
 
 
 # ─── Gate Operations ────────────────────────────────────────────────────────────
@@ -1601,6 +1834,17 @@ def sweep(dry_run: bool = False) -> list[str]:
 
     if dry_run:
         print('  [DRY RUN -- no actions will be taken]\n')
+
+    # 0. Check telemetry for completed agent turns (event loop)
+    print(f'\n--- Completion Check (agent_end telemetry) ---\n')
+    completions = check_completions(dry_run=dry_run)
+    if completions:
+        for c in completions:
+            act = c.get('action', '?')
+            print(f'  {c["version"]}/{c["stage"]}: {act}')
+            actions.append(f'F1 D {c["version"]}.{c["stage"]} {act}')
+    else:
+        print('  No new completions in telemetry.')
 
     # 1. Check and clear stale locks
     print(f'\n--- Lock Check (>{LOCK_STALE_MINUTES}min threshold) ---\n')
@@ -2149,6 +2393,18 @@ def main():
                 print(f'  {fl}')
             print()
 
+    elif cmd == 'completions':
+        # Check telemetry for agent turn completions, advance pipelines
+        results = check_completions(dry_run=dry_run)
+        if json_mode:
+            print(json.dumps(results, indent=2, default=str))
+        else:
+            if results:
+                for r in results:
+                    print(f'  {r["version"]}/{r.get("stage","?")} -> {r.get("action","?")}')
+            else:
+                print('  No new completions found.')
+
     elif cmd == 'resume':
         if len(args) < 2:
             print('Usage: orchestration_engine.py resume <version>')
@@ -2275,7 +2531,7 @@ def main():
             print(f'Unknown command: {cmd}')
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
             print('          complete, block, release-lock, list, resolve, sweep, launch, archive,')
-            print('          dispatch-payload, verify-hooks, help')
+            print('          dispatch-payload, completions, verify-hooks, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)
 

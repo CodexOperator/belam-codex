@@ -257,7 +257,14 @@ def generate_session_id(version: str, agent: str) -> str:
 def wake_agent(agent: str, message: str, timeout: int = AGENT_WAKE_TIMEOUT,
                session_id: str = None) -> dict:
     """
+    [LEGACY — blocking dispatch. Use fire_and_forget_dispatch() in orchestration_engine.py instead.]
+
     Wake a target agent by injecting a message via `openclaw agent` CLI.
+    Blocks for up to `timeout` seconds waiting for the agent to respond.
+    The new architecture uses subprocess.Popen (non-blocking) and detects
+    completion via agent_end telemetry (check_completions() event loop).
+
+    This function is kept for fallback compatibility only.
     Uses --session-id for isolated per-pipeline sessions when provided.
     Returns {success, response, session_id, error}.
     """

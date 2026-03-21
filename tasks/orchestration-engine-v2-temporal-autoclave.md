@@ -1,11 +1,11 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: medium
 created: 2026-03-21
 owner: belam
 depends_on: [build-orchestration-engine-v1]
-upstream: [decision/orchestration-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar]
+upstream: [decision/orchestration-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar, pipeline/research-openclaw-internals]
 downstream: []
 tags: [orchestration, engine, temporal, spacetimedb, autoclave, v2]
 ---
@@ -82,6 +82,16 @@ When multiple agents work on the same pipeline simultaneously, they need coordin
 - Orchestration Engine v1 must be stable
 - Codex Engine v2 (dense grammar, RAM state)
 - `tasks/temporal-interaction-llm-gaming.md` — shares SpacetimeDB evaluation
+
+## Key Research Inputs
+- **OpenClaw internals research** (`tasks/research-openclaw-internals.md`) — COMPLETE
+  - 27 hooks cataloged, plugin prototypes built, hook naming conventions documented
+  - Plugin prototypes at: `machinelearning/snn_applied_finance/research/pipeline_builds/openclaw-plugins/`
+  - `pipeline-context` (before_prompt_build) — auto-injects state, eliminates manual context loading
+  - `agent-end-telemetry` (agent_end) — completion detection, handoff signals, token usage
+  - `agent-turn-logger` — cross-agent JSONL logging for replay/analysis
+  - `pipeline-commands` — zero-cost /pipelines and /pstatus slash commands
+- **Research report PDF:** `machinelearning/snn_applied_finance/notebooks/local_results/research-openclaw-internals/research-openclaw-internals_report.pdf`
 
 ## Notes
 - This is the bridge between "scripts that run agents" and "agents that coordinate themselves"
