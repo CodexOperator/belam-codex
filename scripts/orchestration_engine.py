@@ -173,6 +173,19 @@ def _post_state_change(version: str, from_stage: str, to_stage: str,
                 target_agent=next_agent, completed_stage=from_stage,
                 next_stage=to_stage, notes=notes,
             )
+        # 4. V3: Cascading dependency resolution on phase completion / archive
+        if to_stage in HUMAN_ACTIONS or action == 'archive':
+            try:
+                from dependency_graph import resolve_downstream_deps
+                resolved = resolve_downstream_deps(version, action=action)
+                for r in resolved:
+                    if r.get('all_deps_met'):
+                        print(f'  🔗 Dep cascade: {r["target"]} now eligible '
+                              f'(all deps met)')
+            except ImportError:
+                pass  # dependency_graph not available
+            except Exception:
+                pass  # Non-fatal
         return True
     except Exception:
         return False  # Temporal failures are non-fatal
@@ -2922,6 +2935,112 @@ def main():
                 print(f'\n  No context for {ag} on {version}.')
         print()
 
+    # ─── V3 Monitoring Commands (view, deps, watcher) ─────────────────────────
+
+    elif cmd == 'view':
+        # V3: .v namespace view resolution
+        if len(args) < 2:
+            # No args = list views
+            try:
+                from monitoring_views import list_views
+                print(list_views())
+            except ImportError:
+                print('\n⚠ monitoring_views.py not found.\n')
+            sys.exit(0)
+
+        coord = args[1]
+        persona = _extract_flag(args, '--persona')
+
+        try:
+            from monitoring_views import resolve_view
+            result = resolve_view(coord, persona=persona)
+            if json_mode:
+                print(json.dumps({
+                    'view_type': result.view_type,
+                    'view_name': result.view_name,
+                    'pipeline': result.pipeline,
+                    'persona': result.persona,
+                    'content': result.content,
+                    'generated_at': result.generated_at,
+                }, indent=2))
+            else:
+                print(result.content)
+        except ImportError:
+            print('\n⚠ monitoring_views.py not found.\n')
+            sys.exit(1)
+
+    elif cmd == 'deps':
+        # V3: Dependency graph management
+        sub = args[1] if len(args) > 1 else 'list'
+        try:
+            from dependency_graph import (render_dependency_graph,
+                                          register_dependency, check_deps_satisfied,
+                                          resolve_downstream_deps)
+            if sub == 'list' or sub == 'graph':
+                if json_mode:
+                    from dependency_graph import get_all_deps
+                    print(json.dumps(get_all_deps(), indent=2))
+                else:
+                    print(render_dependency_graph())
+            elif sub == 'register':
+                if len(args) < 4:
+                    print('Usage: orchestration_engine.py deps register <source> <target> [type]')
+                    sys.exit(1)
+                dep_type = args[4] if len(args) > 4 else 'completion'
+                ok = register_dependency(args[2], args[3], dep_type)
+                print(f"{'✅' if ok else '❌'} {args[2]} → {args[3]} ({dep_type})")
+            elif sub == 'check':
+                if len(args) < 3:
+                    print('Usage: orchestration_engine.py deps check <version>')
+                    sys.exit(1)
+                ver = resolve_pipeline(args[2]) or args[2]
+                result = check_deps_satisfied(ver)
+                if json_mode:
+                    print(json.dumps(result, indent=2))
+                else:
+                    status = '✅ All deps met' if result['all_met'] else '⏳ Deps pending'
+                    print(f"{status} for {ver}")
+                    for d in result.get('deps', []):
+                        icon = '✅' if d['status'] == 'satisfied' else '⏳'
+                        print(f"  {icon} {d['source_version']} ({d['dep_type']})")
+            elif sub == 'resolve':
+                if len(args) < 3:
+                    print('Usage: orchestration_engine.py deps resolve <version>')
+                    sys.exit(1)
+                ver = resolve_pipeline(args[2]) or args[2]
+                results = resolve_downstream_deps(ver)
+                if json_mode:
+                    print(json.dumps(results, indent=2))
+                else:
+                    for r in results:
+                        icon = '✅' if r['all_deps_met'] else '⏳'
+                        print(f"  {icon} {r['target']}: all met={r['all_deps_met']}")
+                    if not results:
+                        print(f"  No downstream deps for {ver}")
+            else:
+                print(f'Unknown deps subcommand: {sub}')
+                print('Subcommands: list, register, check, resolve')
+                sys.exit(1)
+        except ImportError:
+            print('\n⚠ dependency_graph.py not found.\n')
+            sys.exit(1)
+
+    elif cmd == 'watcher':
+        # V3: Start WAL watcher
+        try:
+            from wal_watcher import WALWatcher
+            interval = float(_extract_flag(args, '--interval') or '2')
+            no_canvas = '--no-canvas' in args
+            once = '--once' in args
+            watcher = WALWatcher(interval_seconds=interval, use_canvas=not no_canvas)
+            if once:
+                print(watcher.render_once())
+            else:
+                watcher.run()
+        except ImportError:
+            print('\n⚠ wal_watcher.py not found.\n')
+            sys.exit(1)
+
     elif cmd == 'help' or cmd == '--help' or cmd == '-h':
         print(__doc__)
 
@@ -2935,7 +3054,8 @@ def main():
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
             print('          complete, block, release-lock, list, resolve, sweep, launch, archive,')
             print('          dispatch-payload, completions, verify-hooks,')
-            print('          autoclave, timeline, timetravel, revert, temporal-sync, context, help')
+            print('          autoclave, timeline, timetravel, revert, temporal-sync, context,')
+            print('          view, deps, watcher, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)
 

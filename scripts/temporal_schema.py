@@ -33,7 +33,7 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 DEFAULT_DB_PATH = WORKSPACE / 'data' / 'temporal.db'
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # ─── Schema DDL ──────────────────────────────────────────────────────────────────
 
@@ -131,11 +131,60 @@ CREATE TABLE IF NOT EXISTS agent_presence (
 """
 
 
+# ─── V2 Migration: Monitoring Views + Dependency Graph ──────────────────────────
+
+MIGRATION_V2_SQL = """
+-- Cross-pipeline dependency tracking
+CREATE TABLE IF NOT EXISTS pipeline_dependency (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_version  TEXT NOT NULL,
+    target_version  TEXT NOT NULL,
+    dep_type        TEXT NOT NULL DEFAULT 'completion',
+    status          TEXT NOT NULL DEFAULT 'pending',
+    satisfied_at    TEXT,
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_dep_source ON pipeline_dependency(source_version);
+CREATE INDEX IF NOT EXISTS idx_dep_target ON pipeline_dependency(target_version);
+
+-- View configuration (optional persistence — VIEW_REGISTRY dict is authoritative)
+CREATE TABLE IF NOT EXISTS view_config (
+    view_type       INTEGER PRIMARY KEY,
+    name            TEXT NOT NULL,
+    description     TEXT NOT NULL DEFAULT '',
+    renderer        TEXT NOT NULL,
+    enabled         INTEGER NOT NULL DEFAULT 1,
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+
+-- Seed default views
+INSERT OR IGNORE INTO view_config (view_type, name, description, renderer) VALUES
+  (1, 'turn-by-turn', 'Snapshot dashboard injected per agent turn', 'monitoring_views.render_turn_by_turn'),
+  (2, 'live-diff', 'Continuous diffs between agent turns', 'monitoring_views.render_live_diff'),
+  (3, 'timeline', 'Stage progression with durations and bottlenecks', 'monitoring_views.render_timeline'),
+  (4, 'agent-context', 'Decisions, flags, learnings for pipeline agents', 'monitoring_views.render_agent_context');
+"""
+
+
+def migrate_v1_to_v2(conn: sqlite3.Connection) -> None:
+    """Apply V2 migration: pipeline_dependency + view_config tables.
+
+    Idempotent — uses CREATE IF NOT EXISTS and INSERT OR IGNORE.
+    """
+    conn.executescript(MIGRATION_V2_SQL)
+    conn.execute(
+        "INSERT OR IGNORE INTO schema_version (version, description) VALUES (?, ?)",
+        (2, "V3 monitoring: pipeline_dependency + view_config tables")
+    )
+    conn.commit()
+
+
 def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     """Initialize the temporal database with schema.
 
     Creates parent directories, enables WAL mode, creates all tables.
     Idempotent — safe to call on an existing DB.
+    Auto-migrates from v1 to v2 if needed.
     """
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -148,13 +197,20 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     # Record schema version if not already present
     existing = conn.execute(
         "SELECT version FROM schema_version WHERE version = ?",
-        (SCHEMA_VERSION,)
+        (1,)
     ).fetchone()
     if not existing:
         conn.execute(
             "INSERT INTO schema_version (version, description) VALUES (?, ?)",
-            (SCHEMA_VERSION, "Initial schema: 5 tables + indexes")
+            (1, "Initial schema: 5 tables + indexes")
         )
+        conn.commit()
+
+    # Auto-migrate v1 → v2
+    max_ver = conn.execute("SELECT MAX(version) FROM schema_version").fetchone()[0]
+    if max_ver is not None and max_ver < 2:
+        migrate_v1_to_v2(conn)
+
     conn.commit()
     return conn
 
@@ -173,7 +229,8 @@ def verify_db(db_path: Path = DEFAULT_DB_PATH) -> dict:
     ).fetchall()}
 
     required = {'pipeline_state', 'state_transition', 'handoff',
-                'agent_context', 'agent_presence', 'schema_version'}
+                'agent_context', 'agent_presence', 'schema_version',
+                'pipeline_dependency', 'view_config'}
     missing = required - tables
 
     # Check schema version

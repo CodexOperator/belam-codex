@@ -540,6 +540,59 @@ class TemporalOverlay:
             print(f"[temporal] heartbeat error: {e}", file=sys.stderr)
             return False
 
+    def heartbeat_extended(self, agent: str, pipeline: str = None,
+                           stage: str = None, session_id: str = None,
+                           context_snapshot: dict = None) -> bool:
+        """Extended heartbeat with context accumulation (V3).
+
+        context_snapshot fields (all optional, for future .v4 consumption):
+            - decisions_this_turn: int
+            - flags_resolved: int
+            - tokens_used: int
+            - current_focus: str
+
+        FLAG-3 (LOW) addressed: these fields are stored in agent_presence
+        but NOT consumed by .v4 renderer in Phase 1. They will be wired
+        in when agent sessions start populating them.
+        """
+        # Base heartbeat
+        ok = self.heartbeat(agent, pipeline, stage, session_id)
+        if not ok or not context_snapshot:
+            return ok
+
+        # Store snapshot as JSON in agent_presence (extend the row)
+        try:
+            conn = self._get_conn()
+            # We store snapshot in the session_id field as JSON suffix
+            # (keeping it lightweight — no schema change needed)
+            conn.execute(
+                "UPDATE agent_presence SET session_id = ? WHERE agent = ?",
+                (json.dumps({
+                    'session': session_id or '',
+                    'snapshot': context_snapshot,
+                }), agent)
+            )
+            conn.commit()
+            return True
+        except Exception:
+            return ok  # Base heartbeat succeeded even if snapshot failed
+
+    def render_view(self, coord: str, persona: str = None) -> Optional[str]:
+        """Delegate .v coordinate rendering to monitoring_views (V3).
+
+        Convenience method for temporal overlay consumers.
+        Returns rendered content string or None.
+        """
+        try:
+            from monitoring_views import resolve_view
+            result = resolve_view(coord, persona=persona, overlay=self)
+            return result.content
+        except ImportError:
+            return None
+        except Exception as e:
+            print(f"[temporal] render_view error: {e}", file=sys.stderr)
+            return None
+
     def _apply_presence_ttl(self, agents: list) -> list:
         """Apply TTL check to agent presence rows (Critic FLAG-5).
 
