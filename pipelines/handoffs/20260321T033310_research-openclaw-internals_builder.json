@@ -1,0 +1,15 @@
+{
+  "version": "research-openclaw-internals",
+  "completed_stage": "critic_design_review",
+  "next_stage": "builder_implementation",
+  "next_agent": "builder",
+  "timestamp": "2026-03-21T03:33:10.726854+00:00",
+  "pipeline_session_id": "8e2ec449-55b2-4885-adfc-a1c7fd3ab086",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "a73b4dd5-d9db-4864-8aa1-bb999123cfa6",
+    "response_preview": ""
+  },
+  "verified": true
+}

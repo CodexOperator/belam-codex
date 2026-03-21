@@ -7,17 +7,45 @@ set -euo pipefail
 WORKSPACE="${HOME}/.openclaw/workspace"
 CODEX_ENGINE="${WORKSPACE}/scripts/codex_engine.py"
 BELAM_CLI="${HOME}/.local/bin/belam"
+MOBILE_FMT="${WORKSPACE}/scripts/mobile_format.py"
 TIMEOUT_SECS=30
+
+# ── 0. Mobile mode detection ──────────────────────────────────────────────
+# Explicit --mobile flag OR auto-detect non-TTY (piped / Telegram / agent)
+MOBILE=false
+if [[ ! -t 1 ]]; then
+    MOBILE=true
+fi
+
+# Strip --mobile flag from args before processing
+ARGS=()
+for arg in "$@"; do
+    if [[ "${arg}" == "--mobile" ]]; then
+        MOBILE=true
+    else
+        ARGS+=("${arg}")
+    fi
+done
+set -- "${ARGS[@]+"${ARGS[@]}"}"
+
+# Helper: apply mobile formatting if enabled, otherwise strip ANSI only
+format_output() {
+    if [[ "${MOBILE}" == true ]]; then
+        python3 "${MOBILE_FMT}"
+    else
+        sed 's/\x1b\[[0-9;]*[mGKHF]//g; s/\x1b\[[0-9;]*[A-Za-z]//g'
+    fi
+}
 
 # ── 1. No-arg mode: show supermap ──────────────────────────────────────────
 if [[ $# -eq 0 ]]; then
     output=$(cd "${WORKSPACE}" && timeout "${TIMEOUT_SECS}" python3 "${CODEX_ENGINE}" 2>&1) || {
         exit_code=$?
         [[ $exit_code -eq 124 ]] && exit 2
-        echo "$output"
+        echo "$output" | format_output
         exit $exit_code
     }
-    echo "$output" | sed 's/\x1b\[[0-9;]*[mGKHF]//g; s/\x1b\[[0-9;]*[A-Za-z]//g'
+    echo "$output" | format_output
     exit 0
 fi
 
@@ -72,25 +100,21 @@ for cmd in $BELAM_COMMANDS; do
 done
 
 # ── 5. Execute ────────────────────────────────────────────────────────────
-strip_ansi() {
-    sed 's/\x1b\[[0-9;]*[mGKHF]//g; s/\x1b\[[0-9;]*[A-Za-z]//g'
-}
-
 if [[ "${route_to_codex}" == true ]]; then
     output=$(cd "${WORKSPACE}" && timeout "${TIMEOUT_SECS}" python3 "${CODEX_ENGINE}" ${RAW_INPUT} 2>&1) || {
         exit_code=$?
         [[ $exit_code -eq 124 ]] && { echo "ERROR: Timed out after ${TIMEOUT_SECS}s" >&2; exit 2; }
-        echo "$output" | strip_ansi
+        echo "$output" | format_output
         exit $exit_code
     }
 else
     output=$(cd "${WORKSPACE}" && timeout "${TIMEOUT_SECS}" "${BELAM_CLI}" ${RAW_INPUT} 2>&1) || {
         exit_code=$?
         [[ $exit_code -eq 124 ]] && { echo "ERROR: Timed out after ${TIMEOUT_SECS}s" >&2; exit 2; }
-        echo "$output" | strip_ansi
+        echo "$output" | format_output
         exit $exit_code
     }
 fi
 
-echo "$output" | strip_ansi
+echo "$output" | format_output
 exit 0

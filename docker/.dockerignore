@@ -1,0 +1,35 @@
+# Never bake secrets or large binary blobs into the image
+
+# Secrets
+*.json
+*.key
+*.pem
+*.env
+.env*
+
+# Git
+.git/
+.gitmodules
+
+# Large dirs (mounted as volumes at runtime)
+memory/
+logs/
+archive/
+machinelearning/
+knowledge-repo/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Node deps (installed fresh in image)
+node_modules/

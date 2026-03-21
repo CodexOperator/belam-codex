@@ -1,0 +1,11 @@
+# orchestration.codex — Engine State
+
+## agents
+╶─ a1  architect  dispatched  ctx:75d2  synced:03:32  sync:ready  task:t1
+
+## pending_diffs
+╶─ Δ1  t5  engine→*  [R:status:open priority:critical]  [F1:~body (8 lines)]
+
+## flow
+╶─ p1  research-openclaw-internals  unknown  gate:open
+╶─ p2  validate-scheme-b  unknown  gate:open

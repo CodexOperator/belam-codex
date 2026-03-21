@@ -1,0 +1,143 @@
+# ============================================================
+# Belam / OpenClaw — Docker Compose
+# ============================================================
+# Usage:
+#   docker compose up -d            # start
+#   docker compose logs -f          # watch logs
+#   docker compose down             # stop
+#   docker compose build --no-cache # rebuild image
+# ============================================================
+
+name: belam
+
+services:
+
+  # ── Core: OpenClaw gateway + agent runtime ────────────────
+  belam-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_VERSION: "22"
+        OPENCLAW_VERSION: ""        # "" = latest; pin e.g. "2026.3.12"
+        BUST_CACHE: "1"             # Change to $(date +%s) to force OpenClaw reinstall
+    image: belam-core:latest
+    container_name: belam-core
+    restart: unless-stopped
+    init: true                      # tini for proper PID 1 / signal handling
+
+    # ── Ports ───────────────────────────────────────────────
+    # OpenClaw gateway — loopback only on host (no public exposure)
+    ports:
+      - "127.0.0.1:18789:18789"
+
+    # ── Volumes ─────────────────────────────────────────────
+    volumes:
+      # Workspace (belam-codex repo) — bind mount from host clone
+      - type: bind
+        source: ${BELAM_WORKSPACE:-../}
+        target: /home/ubuntu/.openclaw/workspace
+        read_only: false
+
+      # OpenClaw config (Telegram tokens, channel config) — SECRETS, never in image
+      - type: bind
+        source: ${OPENCLAW_CONFIG:-~/.openclaw/openclaw.json}
+        target: /home/ubuntu/.openclaw/openclaw.json
+        read_only: false
+
+      # OpenClaw runtime state (agents, memory, delivery queue, etc.)
+      - openclaw-state:/home/ubuntu/.openclaw/agents
+      - openclaw-state-extra:/home/ubuntu/.openclaw/memory
+
+      # SSH keys — read-only inside container
+      - type: bind
+        source: ${SSH_DIR:-~/.ssh}
+        target: /home/ubuntu/.ssh
+        read_only: true
+
+      # machinelearning repo (optional — comment out if not needed)
+      - type: bind
+        source: ${ML_WORKSPACE:-~/machinelearning}
+        target: /home/ubuntu/machinelearning
+        read_only: false
+
+    # ── Environment ─────────────────────────────────────────
+    environment:
+      - HOME=/home/ubuntu
+      - OPENCLAW_WORKSPACE=/home/ubuntu/.openclaw/workspace
+      - TMPDIR=/tmp
+      - TZ=UTC
+      # Pass through from host .env if set:
+      - OPENCLAW_GATEWAY_PORT=18789
+
+    # ── Resource limits ──────────────────────────────────────
+    # Core agent runtime is lightweight; adjust if needed
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 256M
+
+    # ── Health check ─────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:18789/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 45s
+      retries: 3
+
+    # ── Logging ──────────────────────────────────────────────
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  # ── ML Layer: Python heavy deps (on-demand) ───────────────
+  # Start only when running ML experiments:
+  #   docker compose run --rm belam-ml python3 scripts/run_experiment.py
+  belam-ml:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+    image: belam-ml:latest
+    container_name: belam-ml
+    profiles: ["ml"]               # Only starts with: docker compose --profile ml up
+    init: true
+
+    volumes:
+      - type: bind
+        source: ${BELAM_WORKSPACE:-../}
+        target: /home/ubuntu/.openclaw/workspace
+        read_only: false
+      - type: bind
+        source: ${ML_WORKSPACE:-~/machinelearning}
+        target: /home/ubuntu/machinelearning
+        read_only: false
+      - type: bind
+        source: ${SSH_DIR:-~/.ssh}
+        target: /home/ubuntu/.ssh
+        read_only: true
+
+    environment:
+      - HOME=/home/ubuntu
+      - OPENCLAW_WORKSPACE=/home/ubuntu/.openclaw/workspace
+      - TZ=UTC
+
+    deploy:
+      resources:
+        limits:
+          memory: 16G          # PyTorch experiments can be memory-hungry
+        reservations:
+          memory: 1G
+
+    working_dir: /home/ubuntu/.openclaw/workspace
+    command: ["bash"]          # Override at runtime: docker compose run belam-ml python3 ...
+
+# ── Named volumes ─────────────────────────────────────────────
+volumes:
+  openclaw-state:
+    driver: local
+  openclaw-state-extra:
+    driver: local

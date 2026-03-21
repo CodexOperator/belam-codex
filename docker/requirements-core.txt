@@ -1,0 +1,13 @@
+# Core Python dependencies for Belam agent runtime
+# NOTE: PyTorch, scipy, snntorch live in the ML layer (belam-ml service)
+# These are the scripts/agent deps only
+
+PyYAML>=6.0
+matplotlib>=3.8
+numpy>=1.26
+pandas>=2.0
+pydub>=0.25
+Pillow>=10.0
+pdfplumber>=0.10
+faster-whisper>=1.0
+requests>=2.31

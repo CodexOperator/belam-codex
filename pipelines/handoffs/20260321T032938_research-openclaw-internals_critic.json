@@ -1,0 +1,15 @@
+{
+  "version": "research-openclaw-internals",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-21T03:29:38.336798+00:00",
+  "pipeline_session_id": "c68090fd-c30b-4163-ad95-633261132c43",
+  "wake_result": {
+    "success": true,
+    "status": "ok",
+    "session_id": "d10675fa-4701-46d9-8551-bc74a6d20568",
+    "response_preview": "Now let me read the required context files:"
+  },
+  "verified": true
+}

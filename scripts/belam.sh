@@ -20,6 +20,7 @@ usage() {
     printf "  ${C}belam pipeline <ver> --watch [sec]${R}      Live auto-refresh\n"
     printf "  ${C}belam pipeline update <ver> <args...>${R}   Update pipeline stage\n"
     printf "  ${C}belam orchestrate <ver> <action> <args>${R}  Orchestrated stage transition (auto-handoff)\n"
+    printf "  ${C}belam orch status|sync|deliver|dispatch|flow${R}  Orchestration Engine V1\n"
     printf "  ${C}belam handoffs${R}                          Check for stuck handoffs\n"
     printf "  ${C}belam kickoff <ver>${R}                     Kick off a created pipeline (wake architect)\n"
     printf "  ${C}belam revise <ver> --context \"...\"${R}     Trigger Phase 1 revision cycle (coordinator-initiated)\n"
@@ -211,8 +212,59 @@ case "${1:-help}" in
         python3 "$SCRIPTS/pipeline_dashboard.py" "${@:2}"
         ;;
 
-    orchestrate|orch|o)
+    orchestrate|o)
         python3 "$SCRIPTS/pipeline_orchestrate.py" "${@:2}"
+        ;;
+
+    # orch: routes to orchestration_engine.py for engine commands,
+    #        or pipeline_orchestrate.py for pipeline handoff commands.
+    orch)
+        _orch_sub="${2:-}"
+        case "$_orch_sub" in
+            status)
+                python3 "$SCRIPTS/orchestration_engine.py" status
+                ;;
+            sync)
+                # belam orch sync              → --generate
+                # belam orch sync --deliver X  → --deliver X
+                # belam orch sync --ready X    → --ready X
+                _sync_flag="${3:---generate}"
+                if [ "$_sync_flag" = "--deliver" ] || [ "$_sync_flag" = "--ready" ]; then
+                    python3 "$SCRIPTS/orchestration_engine.py" sync "$_sync_flag" "${4:-}"
+                else
+                    python3 "$SCRIPTS/orchestration_engine.py" sync --generate
+                fi
+                ;;
+            deliver)
+                python3 "$SCRIPTS/orchestration_engine.py" sync --deliver "${3:-}"
+                ;;
+            ready)
+                python3 "$SCRIPTS/orchestration_engine.py" sync --ready "${3:-}"
+                ;;
+            dispatch)
+                python3 "$SCRIPTS/orchestration_engine.py" dispatch "${3:-}" "${4:-}"
+                ;;
+            flow)
+                python3 "$SCRIPTS/orchestration_engine.py" flow --check
+                ;;
+            "")
+                echo "Usage: belam orch <subcommand>"
+                echo ""
+                echo "  belam orch status                    Show engine state"
+                echo "  belam orch sync                      Compute diffs (--generate)"
+                echo "  belam orch sync --deliver <agent>    Deliver pending diffs"
+                echo "  belam orch sync --ready <agent>      Mark agent sync ready"
+                echo "  belam orch deliver <agent>           Deliver pending diffs (shorthand)"
+                echo "  belam orch ready <agent>             Mark agent sync ready (shorthand)"
+                echo "  belam orch dispatch <persona> <coord>  Register dispatch intent"
+                echo "  belam orch flow                      Evaluate pipeline gates"
+                ;;
+            *)
+                # Fall through to pipeline_orchestrate.py for anything else
+                # (e.g. belam orch <version> complete <stage> ...)
+                python3 "$SCRIPTS/pipeline_orchestrate.py" "${@:2}"
+                ;;
+        esac
         ;;
 
     kickoff|kick|ko)
