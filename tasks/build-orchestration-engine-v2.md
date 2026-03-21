@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: active
 priority: critical
 created: 2026-03-21
 owner: belam
@@ -11,7 +11,7 @@ downstream: [spiking-transformer-integration-research, codex-engine-v3-temporal-
 tags: [orchestration, engine, infrastructure, v1]
 ---
 
-# Orchestration Engine v1: Codex-Native Pipeline Automation
+# Orchestration Engine v2: Codex-Native Pipeline Automation
 
 ## Overview
 
@@ -101,7 +101,7 @@ Handoffs are script-mediated file operations with manual prompt construction.
 
 ## 6. Hook Integration (from research-openclaw-internals)
 
-Research pipeline delivered 3 plugin prototypes and cataloged 27 hooks. Orch V1 should wire these in:
+Research pipeline delivered 3 plugin prototypes and cataloged 27 hooks. Orch V2 should wire these in:
 
 ### Available Hooks for Orchestration
 - **`before_prompt_build`** — inject active pipeline state into agent context automatically
@@ -137,4 +137,3 @@ Reference: `machinelearning/snn_applied_finance/research/pipeline_builds/researc
 - `e0` is a codex coordinate that routes to orchestration — same way `e1t12` routes to a task edit
 - Pipeline state transitions should produce F-label diffs visible in the supermap
 - Hook integration prerequisite: build test scripts before wiring production dispatch (folded from research-orchestration-tooling task)
-
