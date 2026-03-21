@@ -711,7 +711,7 @@ PERSONA_CONFIGS = {
 SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's', 'e']
 
 
-def render_supermap(persona=None, tag_filter=None, since_days=None):
+def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixes=None):
     """Render the full supermap ASCII tree. Returns string (without R-label).
 
     persona: None | 'architect' | 'builder' | 'critic'
@@ -734,6 +734,10 @@ def render_supermap(persona=None, tag_filter=None, since_days=None):
     persona_cfg = PERSONA_CONFIGS.get(persona) if persona else None
 
     for prefix in SHOW_ORDER:
+        # Filter to specific prefixes if requested (multi-prefix view: "t d")
+        if only_prefixes is not None and prefix not in only_prefixes:
+            continue
+
         # Determine render mode for this prefix
         if persona_cfg is not None:
             if prefix not in persona_cfg:
@@ -786,6 +790,8 @@ def render_supermap(persona=None, tag_filter=None, since_days=None):
             lines.append(f"│  ... (+{count - MAX_SHOW} more)")
 
     # ── Memory section ──────────────────────────────────────────────────────────
+    if only_prefixes is not None and 'm' not in only_prefixes and 'md' not in only_prefixes:
+        return '\n'.join(lines)
     lines.append("╶─ m   memory")
 
     now_dt = datetime.datetime.now(datetime.timezone.utc)
@@ -3793,6 +3799,21 @@ def main(args=None):
 
     # 6. First arg is a coordinate → zoom/view mode
     if is_coordinate(first):
+        # Multi-prefix bare namespace view: "t d" → supermap filtered to tasks + decisions
+        # Detect: all args are bare prefixes (no indices, no field selectors)
+        all_bare = all(
+            _normalize_prefix(a.lower()) is not None and not re.search(r'\d', a)
+            for a in clean_args
+        )
+        if all_bare and len(clean_args) > 1:
+            # Render filtered supermap showing only these namespaces
+            prefixes = [_normalize_prefix(a.lower()) for a in clean_args]
+            content = render_supermap(persona=persona, tag_filter=tag_filter,
+                                      since_days=since_days, only_prefixes=prefixes)
+            _, output = tracker.track_render(content)
+            print(output)
+            return
+
         content = render_zoom(clean_args)
         _, output = tracker.track_render(content)
         print(output)
