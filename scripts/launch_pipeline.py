@@ -112,7 +112,8 @@ def check_archivable(version):
         print(f"⏳ {version} has pending/approved Phase 3 proposals — cannot archive yet")
         return False
     
-    if status and 'phase2_complete' in status or 'phase3_complete' in status:
+    archivable_statuses = ('phase1_complete', 'phase2_complete', 'phase3_complete')
+    if status and any(s in status for s in archivable_statuses):
         print(f"✅ {version} is eligible for archival (status: {status}, no pending iterations)")
         return True
     
@@ -120,7 +121,7 @@ def check_archivable(version):
     return False
 
 
-def archive_pipeline(version):
+def archive_pipeline(version, force=False):
     """Archive a completed pipeline."""
     pf = PIPELINES_DIR / f'{version}.md'
     if not pf.exists():
@@ -128,8 +129,10 @@ def archive_pipeline(version):
         sys.exit(1)
     
     if not check_archivable(version):
-        print("Use --force to archive anyway.")
-        sys.exit(1)
+        if not force:
+            print("Use --force to archive anyway.")
+            sys.exit(1)
+        print(f"⚠️  Force-archiving {version}")
     
     content = pf.read_text()
     # Update status to archived
@@ -250,6 +253,7 @@ def main():
     parser.add_argument('--project', default='snn-applied-finance')
     parser.add_argument('--list', '-l', action='store_true', help='List all pipelines')
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
+    parser.add_argument('--force', action='store_true', help='Force archive even if gate check fails')
     parser.add_argument('--check-archive', action='store_true', help='Check if a pipeline can be archived')
     parser.add_argument('--start', action='store_true', help='Start Phase 1 immediately (prints agent task)')
     parser.add_argument('--kickoff', '-k', action='store_true',
@@ -269,7 +273,7 @@ def main():
         return
     
     if args.archive:
-        archive_pipeline(args.version)
+        archive_pipeline(args.version, force=args.force)
         return
     
     if not args.desc:
