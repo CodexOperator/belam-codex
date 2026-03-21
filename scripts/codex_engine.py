@@ -3380,8 +3380,22 @@ def _parse_e0_args(op_args):
             result['op'] = 'pipeline_status'
 
     # Standalone words
-    elif first == 'locks':
+    elif first in ('locks',):
         result['op'] = 'locks'
+        remaining = remaining[1:]
+    elif first in ('gates',):
+        result['op'] = 'gates'
+        remaining = remaining[1:]
+        if remaining:
+            pm = re.match(r'^p(\d+)$', remaining[0], re.IGNORECASE)
+            if pm:
+                result['pipeline'] = remaining[0].lower()
+                remaining = remaining[1:]
+    elif first in ('stalls',):
+        result['op'] = 'stalls'
+        remaining = remaining[1:]
+    elif first in ('handoffs',):
+        result['op'] = 'handoffs'
         remaining = remaining[1:]
     elif first == 'unlock':
         result['op'] = 'unlock'
@@ -3391,8 +3405,11 @@ def _parse_e0_args(op_args):
             if pm:
                 result['pipeline'] = remaining[0].lower()
                 remaining = remaining[1:]
-    elif first == 'sweep':
+    elif first in ('sweep', 'status'):
         result['op'] = 'sweep'
+        remaining = remaining[1:]
+    elif first == 'list':
+        result['op'] = 'list'
         remaining = remaining[1:]
     else:
         # Unknown → fall through to legacy action dispatch
@@ -3445,36 +3462,33 @@ def _dispatch_e0(op_args, tracker):
                     print(result)
 
         elif spec['op'] == 'pipeline_status':
-            result = orch.pipeline_status(spec['pipeline'])
-            if result:
-                _, output = tracker.track_render(str(result))
-                print(output)
-
-        elif spec['op'] == 'handoffs':
-            result = orch.check_handoffs()
-            if result:
-                _, output = tracker.track_render(str(result))
-                print(output)
-
-        elif spec['op'] == 'gates':
-            if spec['pipeline']:
-                result = orch.check_gates(spec['pipeline'])
+            # Use CLI for formatted output instead of raw dict
+            import subprocess as _sp
+            pipeline_ref = spec['pipeline']
+            resolved = orch.resolve_pipeline(pipeline_ref) if hasattr(orch, 'resolve_pipeline') else pipeline_ref
+            if resolved:
+                out = _sp.run(
+                    ['python3', str(Path(__file__).parent / 'orchestration_engine.py'), 'status', resolved],
+                    capture_output=True, text=True, cwd=str(WORKSPACE)
+                )
+                if out.stdout.strip():
+                    _, output = tracker.track_render(out.stdout.strip())
+                    print(output)
             else:
-                result = orch.check_gates()
-            if result:
-                _, output = tracker.track_render(str(result))
-                print(output)
+                print(f"e0: pipeline '{pipeline_ref}' not found")
 
-        elif spec['op'] == 'stalls':
-            result = orch.check_stalls()
-            if result:
-                _, output = tracker.track_render(str(result))
-                print(output)
-
-        elif spec['op'] == 'locks':
-            result = orch.list_locks()
-            if result:
-                _, output = tracker.track_render(str(result))
+        elif spec['op'] in ('gates', 'stalls', 'locks', 'handoffs'):
+            # Route to CLI for formatted output
+            import subprocess as _sp
+            cmd_map = {'gates': 'gates', 'stalls': 'stalls', 'locks': 'locks', 'handoffs': 'handoffs'}
+            cli_args = ['python3', str(Path(__file__).parent / 'orchestration_engine.py'), cmd_map[spec['op']]]
+            if spec['pipeline']:
+                resolved = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+                if resolved:
+                    cli_args.append(resolved)
+            out = _sp.run(cli_args, capture_output=True, text=True, cwd=str(WORKSPACE))
+            if out.stdout.strip():
+                _, output = tracker.track_render(out.stdout.strip())
                 print(output)
 
         elif spec['op'] == 'unlock':
@@ -3510,6 +3524,17 @@ def _dispatch_e0(op_args, tracker):
                 print(f"{f_label} Δ {spec['pipeline']}.handoff {spec['agent']}{arrow}")
             elif result:
                 print(result)
+
+        elif spec['op'] == 'list':
+            # Use the CLI interface for formatted output
+            import subprocess as _sp
+            out = _sp.run(
+                ['python3', str(Path(__file__).parent / 'orchestration_engine.py'), 'list'],
+                capture_output=True, text=True, cwd=str(WORKSPACE)
+            )
+            if out.stdout.strip():
+                _, output = tracker.track_render(out.stdout.strip())
+                print(output)
 
         elif spec['op'] == 'resume':
             if not spec['pipeline']:
