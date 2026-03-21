@@ -4,7 +4,7 @@ status: open
 priority: critical
 created: 2026-03-21
 owner: belam
-depends_on: [codex-engine-v2-modes-mcp-temporal, build-orchestration-engine-v1]
+depends_on: [codex-engine-v2-modes-mcp-temporal]
 upstream: []
 downstream: []
 tags: [engine, extend, persistence, indexed-subops, v2]
@@ -249,7 +249,8 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 ## Dependencies
 
 - Codex Engine V2 (dense parser) — complete
-- Orchestration Engine V1 (e0 routing) — complete
+- Orchestration Engine V1 (e0 routing) — complete ✅ (archived)
+- Orchestration Engine V2 — complete ✅ (archived)
 - `decisions/codex-engine-modes-as-primitives` — mode architecture
 
 ## Design Conversation
