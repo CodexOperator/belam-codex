@@ -75,114 +75,6 @@ FIELD_RE = re.compile(r'^(\d+|[Bb]\d*(?:-[Bb]?\d+)?)$')
 # Regex for body coordinate in edit mode: B, B+, B5, B5-10, B5-B10, B.SectionName
 BODY_COORD_RE = re.compile(r'^[Bb](\+|\d+(?:-[Bb]?\d+)?|\.[A-Za-z0-9_]+)?$')
 
-# ─── Enum Field Indexing (d10 consequence) ──────────────────────────────────────
-# Maps numeric indices to field values for status/priority fields.
-# Allows: `e1 d8 2 1` = set decision 8, field 2 (status), to option 1 (proposed)
-# F-label output always resolves to human-readable.
-
-ENUM_FIELD_INDEX = {
-    'status': {
-        'decision': {1: 'proposed', 2: 'accepted', 3: 'rejected', 4: 'superseded'},
-        'task': {1: 'open', 2: 'active', 3: 'in_pipeline', 4: 'complete', 5: 'blocked'},
-        'pipeline': {1: 'created', 2: 'phase1_build', 3: 'phase1_complete',
-                     4: 'phase2_build', 5: 'phase2_complete', 6: 'archived'},
-        'lesson': {1: 'active', 2: 'archived'},
-    },
-    'priority': {
-        '_default': {1: 'critical', 2: 'high', 3: 'medium', 4: 'low'},
-    },
-    'enabled': {
-        '_default': {0: 'false', 1: 'true'},
-    },
-}
-
-# Reverse maps for display
-ENUM_FIELD_REVERSE = {}
-for _field_name, _type_map in ENUM_FIELD_INDEX.items():
-    ENUM_FIELD_REVERSE[_field_name] = {}
-    for _type_key, _idx_map in _type_map.items():
-        ENUM_FIELD_REVERSE[_field_name][_type_key] = {v: k for k, v in _idx_map.items()}
-
-
-def _resolve_enum_value(field_key, value_str, primitive_type):
-    """Resolve a numeric enum index to its string value.
-
-    If value_str is a digit and field_key has an enum map, returns the
-    resolved string. Otherwise returns value_str unchanged.
-    """
-    if not value_str or not value_str.isdigit():
-        return value_str
-    idx = int(value_str)
-    if field_key in ENUM_FIELD_INDEX:
-        type_map = ENUM_FIELD_INDEX[field_key]
-        # Try type-specific map first, then _default
-        enum_map = type_map.get(primitive_type, type_map.get('_default'))
-        if enum_map and idx in enum_map:
-            return enum_map[idx]
-    return value_str
-
-
-# ─── E0 Operation Numbering (d10 consequence) ──────────────────────────────────
-# Operations are numbered for dense input: e0p1 1.i1 = dispatch architect for p1
-# Coexists with letter shortcuts (g=gates etc.) for backward compat.
-
-E0_OP_INDEX = {
-    1: 'dispatch',     # e0p1 1.i1 — dispatch architect for pipeline 1
-    2: 'pipeline_status',  # e0p1 2 — pipeline 1 status
-    3: 'gates',        # e0p1 3 — pipeline 1 gate check
-    4: 'locks',        # e0p1 4 — pipeline 1 lock status
-    5: 'complete',     # e0p1 5.i1 — complete as architect
-    6: 'handoffs',     # e0 6 — list handoffs
-    7: 'stalls',       # e0 7 — list stalls
-    8: 'sweep',        # e0 8 — full sweep
-    9: 'unlock',       # e0p1 9 — unlock pipeline 1
-    10: 'resume',      # e0p1 10 — resume pipeline 1
-}
-
-
-# ─── Dot-Connector (d10 consequence) ───────────────────────────────────────────
-# The dot (.) in coordinate chains means "as" or "via":
-#   e0p1 1.i1    = dispatch pipeline 1 as architect (persona i1)
-#   e0p1 5.i1.i3 = complete as architect, handoff to critic
-#   e0p1 2.1     = pipeline 1 status, output format 1 (JSON)
-# Parsed by _parse_dot_connector() into (base, qualifiers) pairs.
-
-DOT_OUTPUT_FORMAT = {
-    1: 'json',   # .1 = JSON output
-}
-
-
-def _parse_dot_connector(token):
-    """Parse a dot-connected token into (base, qualifiers).
-
-    '1.i1' → ('1', ['i1'])
-    '5.i1.i3' → ('5', ['i1', 'i3'])
-    'p3' → ('p3', [])
-    '2.1' → ('2', ['1'])
-    """
-    if '.' not in token:
-        return token, []
-    parts = token.split('.')
-    return parts[0], parts[1:]
-
-
-# ─── RAM State (lazy, opt-in) ──────────────────────────────────────────────────
-
-_RAM_STATE = None
-
-
-def _get_ram():
-    """Lazy import and init of RAM state. Returns RamState or None."""
-    global _RAM_STATE
-    if _RAM_STATE is not None:
-        return _RAM_STATE if _RAM_STATE.available and _RAM_STATE._initialized else None
-    try:
-        from codex_ram import get_ram
-        _RAM_STATE = get_ram()
-        return _RAM_STATE if _RAM_STATE.available and _RAM_STATE._initialized else None
-    except ImportError:
-        return None
-
 
 # ─── Primitive Discovery ────────────────────────────────────────────────────────
 
@@ -1957,7 +1849,9 @@ def execute_edit(args):
             print(f"Error: field {field_num} not found in {coord} (fields 1\u2013{max(prim['fields'].keys())})")
             return 1
         field_info = prim['fields'][field_num]
-        new_val = _coerce_value(new_val_str, field_info['value'])
+        # Resolve enum values before validation (e.g., '2' → 'active' for task status)
+        resolved_val_str = _resolve_enum_value(item['prefix'], field_info['key'], new_val_str)
+        new_val = _coerce_value(resolved_val_str, field_info['value'])
         ok, err = _validate_field(item['prefix'], field_info['key'], new_val)
         if not ok:
             print(f"Error: {err}")
@@ -3171,7 +3065,7 @@ def _print_action_help():
 _V2_MODE_RE = re.compile(r'^(e[0-3])(.*)?$', re.IGNORECASE)
 _V2_OP_START_RE = re.compile(r'^e[0-3]([a-z]|$)', re.IGNORECASE)
 
-# Session-scoped extend registry (in-memory only, V3 will persist)
+# Session-scoped extend registry (in-memory only for this session)
 _SESSION_EXTENSIONS = {}  # prefix -> (type_label, directory, special_mode)
 
 # Session-scoped integration registry (e3 integrate)
@@ -3179,6 +3073,86 @@ _SESSION_INTEGRATIONS = {}  # name -> script_path_str
 
 # Extension trail for e3 audit
 _EXTENSION_TRAIL = []  # list of (timestamp, operation, details)
+
+# ─── Persistent Extensions (modes/extensions.json) ─────────────────────────────
+# Extensions persist across sessions via modes/extensions.json.
+# This file is DATA, not a mode primitive — it lives alongside mode primitives
+# but is structurally different (FLAG-4: documented distinction).
+# Should be committed to git (Critic Q2: workspace configuration, not ephemeral state).
+
+_EXTENSIONS_FILE = WORKSPACE / 'modes' / 'extensions.json'
+
+
+def _load_persistent_extensions():
+    """Load persistent extensions from modes/extensions.json into NAMESPACE.
+
+    Called on module load. Merges persistent extensions into the global
+    NAMESPACE dict so they're available for all operations.
+    """
+    if not _EXTENSIONS_FILE.exists():
+        return
+    try:
+        data = json.loads(_EXTENSIONS_FILE.read_text(encoding='utf-8'))
+        namespaces = data.get('namespaces', {})
+        for prefix, info in namespaces.items():
+            if prefix not in NAMESPACE:  # don't override builtins
+                type_label = info.get('type_label', prefix)
+                directory = info.get('directory', prefix)
+                special_mode = info.get('special_mode')
+                NAMESPACE[prefix] = (type_label, directory, special_mode)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"Warning: could not load {_EXTENSIONS_FILE}: {e}", file=sys.stderr)
+
+
+def _save_persistent_extension(prefix, type_label, directory, special_mode=None):
+    """Save a new persistent extension to modes/extensions.json.
+
+    Merges with existing data (doesn't overwrite other extensions).
+    """
+    try:
+        data = {}
+        if _EXTENSIONS_FILE.exists():
+            data = json.loads(_EXTENSIONS_FILE.read_text(encoding='utf-8'))
+        if 'namespaces' not in data:
+            data['namespaces'] = {}
+        data['namespaces'][prefix] = {
+            'type_label': type_label,
+            'directory': directory,
+            'special_mode': special_mode,
+            'registered_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+        data['updated_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        _EXTENSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _EXTENSIONS_FILE.write_text(
+            json.dumps(data, indent=2) + '\n', encoding='utf-8'
+        )
+        return True
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"Warning: could not save extension to {_EXTENSIONS_FILE}: {e}", file=sys.stderr)
+        return False
+
+
+def _remove_persistent_extension(prefix):
+    """Remove a persistent extension from modes/extensions.json."""
+    try:
+        if not _EXTENSIONS_FILE.exists():
+            return False
+        data = json.loads(_EXTENSIONS_FILE.read_text(encoding='utf-8'))
+        namespaces = data.get('namespaces', {})
+        if prefix not in namespaces:
+            return False
+        del namespaces[prefix]
+        data['updated_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        _EXTENSIONS_FILE.write_text(
+            json.dumps(data, indent=2) + '\n', encoding='utf-8'
+        )
+        return True
+    except (OSError, json.JSONDecodeError):
+        return False
+
+
+# Load persistent extensions on module import
+_load_persistent_extensions()
 
 # Deprecation usage telemetry (session-scoped counters)
 _DEPRECATION_HITS = {}  # flag → count this session
@@ -3201,23 +3175,32 @@ ENUM_FIELDS = {
     'priority': {
         '_default': {1: 'critical', 2: 'high', 3: 'medium', 4: 'low'},
     },
+    'enabled': {
+        '_default': {0: 'false', 1: 'true'},
+    },
 }
 
-# RAM state layer (lazily initialized)
+# RAM state layer (lazily initialized, opt-in via BELAM_RAM=1)
 _RAM = None
 
 
 def _get_ram():
-    """Lazy-init the RAM state layer. Returns CodexRAM or None on import error."""
+    """Lazy-init the RAM state layer. Returns RamState or None.
+
+    Only activates if BELAM_RAM=1 env var is set (explicit opt-in per Critic Q3).
+    If dulwich is not installed, returns None (graceful degradation).
+    """
     global _RAM
-    if _RAM is None:
-        try:
-            from codex_ram import CodexRAM
-            _RAM = CodexRAM(WORKSPACE)
-            _RAM.snapshot()
-        except Exception:
-            return None
-    return _RAM
+    if _RAM is not None:
+        return _RAM if _RAM.available and _RAM._initialized else None
+    if os.environ.get('BELAM_RAM', '').strip() != '1':
+        return None
+    try:
+        from codex_ram import get_ram
+        _RAM = get_ram()
+        return _RAM if _RAM.available and _RAM._initialized else None
+    except ImportError:
+        return None
 
 
 def _is_v2_op_start(token):
@@ -3294,10 +3277,23 @@ def _parse_dot_connector(token):
     return result
 
 
-def _deprecation_warn(old_flag, new_coord, example):
-    """Print deprecation warning and track usage."""
+def _deprecation_warn(old_flag, new_coord, example, remaining_args=None):
+    """Print deprecation warning and track usage.
+
+    If BELAM_STRICT_V2=1 is set, hard-error instead of continuing.
+    When remaining_args provided, generates the exact V2 equivalent command.
+    """
     _DEPRECATION_HITS[old_flag] = _DEPRECATION_HITS.get(old_flag, 0) + 1
-    print(f"⚠ {old_flag} is deprecated → use {new_coord} (e.g., {example})")
+    # Build exact V2 equivalent if we have the remaining args
+    if remaining_args:
+        v2_equiv = f"{new_coord}{' '.join(remaining_args)}" if remaining_args else new_coord
+        print(f"⚠ {old_flag} {' '.join(remaining_args)} → {v2_equiv}")
+    else:
+        print(f"⚠ {old_flag} is deprecated → use {new_coord} (e.g., {example})")
+    # Strict mode: hard-error on legacy flag usage
+    if os.environ.get('BELAM_STRICT_V2', '').strip() == '1':
+        print(f"  BELAM_STRICT_V2=1: legacy flag '{old_flag}' is not allowed. Use V2 grammar.")
+        sys.exit(1)
 
 
 def _parse_dense_target(token):
@@ -3448,6 +3444,7 @@ def execute_extend(args):
         print(f"   ╶─ prefix    {prefix_candidate}")
         print(f"   ╶─ directory {name}/")
         print(f"   ╶─ scope     session (persistent registration: edit NAMESPACE in codex_engine.py)")
+        _EXTENSION_TRAIL.append((datetime.datetime.now().timestamp(), 'category', f"prefix={prefix_candidate}, dir={name}/"))
         return 0
 
     elif subcmd == 'namespace' and len(args) >= 3:
@@ -3470,13 +3467,96 @@ def execute_extend(args):
         print(f"   ╶─ directory {directory}/")
         print(f"   ╶─ type      {type_label}")
         print(f"   ╶─ scope     session (persistent registration: edit NAMESPACE in codex_engine.py)")
+        _EXTENSION_TRAIL.append((datetime.datetime.now().timestamp(), 'namespace', f"prefix={prefix}, dir={directory}/"))
         return 0
+
+    elif subcmd == 'template' and len(args) >= 2:
+        # e3 template <type_prefix> — scaffold a YAML frontmatter template
+        prefix_raw = args[1].lower()
+        prefix = _normalize_prefix(prefix_raw)
+        if not prefix:
+            print(f"e3 template: unknown prefix '{args[1]}'")
+            return 1
+        # Introspect existing primitives to discover common fields
+        primitives = get_primitives(prefix, active_only=False)
+        field_census = {}
+        for slug, fp in primitives:
+            try:
+                text = fp.read_text(encoding='utf-8', errors='replace')
+                fm, _ = parse_frontmatter(text)
+                for key in fm:
+                    field_census[key] = field_census.get(key, 0) + 1
+            except Exception:
+                pass
+        template_fields = sorted(field_census.keys(), key=lambda k: -field_census[k])
+        template_path = WORKSPACE / 'templates' / f'{prefix}_template.yaml'
+        template_path.parent.mkdir(exist_ok=True)
+        lines = ['---']
+        for f in template_fields:
+            lines.append(f'{f}: ')
+        lines.append('---')
+        lines.append('')
+        lines.append('# [Title]')
+        lines.append('')
+        template_path.write_text('\n'.join(lines), encoding='utf-8')
+        f_label = tracker.next_f_label()
+        print(f"{f_label} + template {prefix} -> templates/{prefix}_template.yaml")
+        print(f"   Fields discovered: {len(template_fields)} from {len(primitives)} primitives")
+        _EXTENSION_TRAIL.append((
+            datetime.datetime.now().timestamp(), 'template',
+            f"prefix={prefix}, fields={len(template_fields)}, from={len(primitives)} primitives"
+        ))
+        return 0
+
+    elif subcmd == 'integrate' and len(args) >= 2:
+        # e3 integrate <script_path> — register a script as engine-callable (session)
+        script_path = Path(args[1])
+        if not script_path.exists():
+            script_path = WORKSPACE / 'scripts' / args[1]
+        if not script_path.exists():
+            print(f"e3 integrate: file not found: {args[1]}")
+            return 1
+        name = script_path.stem
+        _SESSION_INTEGRATIONS[name] = str(script_path.resolve())
+        f_label = tracker.next_f_label()
+        print(f"{f_label} + integration '{name}' -> {script_path} [session-scoped]")
+        _EXTENSION_TRAIL.append((
+            datetime.datetime.now().timestamp(), 'integrate',
+            f"name={name}, path={script_path}"
+        ))
+        return 0
+
+    elif subcmd == 'run' and len(args) >= 2:
+        # e3 run <name> [args...] — invoke an integrated script (FLAG-5)
+        name = args[1]
+        if name not in _SESSION_INTEGRATIONS:
+            print(f"e3 run: '{name}' not integrated. Use 'e3 integrate <path>' first.")
+            print(f"   Integrated: {', '.join(_SESSION_INTEGRATIONS.keys()) or '(none)'}")
+            return 1
+        script_path = _SESSION_INTEGRATIONS[name]
+        run_args = args[2:]
+        try:
+            result = subprocess.run(
+                ['python3', script_path] + run_args,
+                capture_output=True, text=True, cwd=str(WORKSPACE),
+            )
+            if result.stdout.strip():
+                print(result.stdout.strip())
+            if result.stderr.strip():
+                print(result.stderr.strip(), file=sys.stderr)
+            return result.returncode
+        except Exception as exc:
+            print(f"e3 run: error running '{name}': {exc}")
+            return 1
 
     else:
         print("e3 — extend mode")
-        print("  e3                              list session extensions")
+        print("  e3                              list session extensions + trail")
         print("  e3 category <name>              create dir + register namespace")
         print("  e3 namespace <prefix> <dir>     register a namespace mapping")
+        print("  e3 template <type>              scaffold frontmatter template")
+        print("  e3 integrate <script>           register script as callable")
+        print("  e3 run <name> [args...]         invoke an integrated script")
         return 1
 
 
@@ -3878,6 +3958,47 @@ def _dispatch_v2_operation(mode_num, op_args, view_flags, tracker):
     view_flags: any remaining -g/--depth style flags (passed through)
     tracker: RenderTracker instance
     """
+    # Output format detection: trailing .N on last arg (FLAG-3: bare digit = format)
+    output_format = 'text'
+    if op_args:
+        last = op_args[-1]
+        # Check for .1 suffix on the last token (but only bare .digit, not .i1 connector)
+        if '.' in last:
+            parts = last.rsplit('.', 1)
+            if parts[1].isdigit() and parts[0] and not parts[0].endswith('.'):
+                fmt_idx = int(parts[1])
+                if fmt_idx == 1:
+                    output_format = 'json'
+                # Remove the .N suffix from the arg
+                op_args = list(op_args[:-1]) + [parts[0]]
+
+    # For JSON output, capture stdout
+    if output_format == 'json':
+        import io
+        old_stdout = sys.stdout
+        sys.stdout = captured = io.StringIO()
+        try:
+            rc = _dispatch_v2_operation_inner(mode_num, op_args, view_flags, tracker)
+        finally:
+            sys.stdout = old_stdout
+        text_output = captured.getvalue().strip()
+        if text_output:
+            # Try to serialize as JSON via codec
+            try:
+                sys.path.insert(0, str(Path(__file__).parent))
+                from codex_codec import from_codex
+                result_dict = from_codex(text_output)
+                print(json.dumps(result_dict, indent=2))
+            except Exception:
+                # Fallback: wrap raw text in JSON
+                print(json.dumps({'output': text_output}, indent=2))
+        return rc
+
+    return _dispatch_v2_operation_inner(mode_num, op_args, view_flags, tracker)
+
+
+def _dispatch_v2_operation_inner(mode_num, op_args, view_flags, tracker):
+    """Inner dispatch — actual mode routing."""
     if mode_num == 0:
         # e0 → orchestrate via orchestration engine
         if not op_args:
@@ -4070,17 +4191,17 @@ def main(args=None):
 
     # 1. -e flag → edit mode (DEPRECATED → use e1)
     if first == '-e':
-        print("Warning: -e is deprecated -> use e1 (e.g., e1t3 2 'value')")
+        _deprecation_warn('-e', 'e1 ', "e1t3 2 'value'", clean_args[1:])
         sys.exit(execute_edit(clean_args[1:]))
 
     # 2. -n flag → create mode (DEPRECATED → use e2)
     if first == '-n':
-        print("Warning: -n is deprecated -> use e2 (e.g., e2 t 'My task')")
+        _deprecation_warn('-n', 'e2 ', "e2 t 'My task'", clean_args[1:])
         sys.exit(execute_create(clean_args[1:]))
 
     # 3. -z flag → undo mode (DEPRECATED → use e-z or -z)
     if first == '-z':
-        print("Warning: -z is deprecated -> use e-z for undo")
+        _deprecation_warn('-z', 'e-z ', 'e-z', clean_args[1:])
         sys.exit(execute_undo(clean_args[1:]))
 
     # 4. -g flag → graph mode
@@ -4092,11 +4213,22 @@ def main(args=None):
 
     # 5. -x flag → explicit execute mode (DEPRECATED → use e0)
     if first == '-x':
-        print("Warning: -x is deprecated -> use e0 (e.g., e0 p3 run)")
+        _deprecation_warn('-x', 'e0 ', 'e0 p3 run', clean_args[1:])
         execute_action(clean_args[1:])
         return
 
     # 6. First arg is a coordinate → zoom/view mode
+    # Output format detection: coord.1 → JSON output (e.g., t1.1, d3.1)
+    view_output_format = 'text'
+    if '.' in first and not is_coordinate(first):
+        dot_parts = first.rsplit('.', 1)
+        if dot_parts[1].isdigit() and dot_parts[0] and is_coordinate(dot_parts[0]):
+            fmt_idx = int(dot_parts[1])
+            if fmt_idx == 1:
+                view_output_format = 'json'
+            first = dot_parts[0]
+            clean_args = [first] + clean_args[1:]
+
     if is_coordinate(first):
         # Multi-prefix bare namespace view: "t d" → supermap filtered to tasks + decisions
         # Detect: all args are bare prefixes (no indices, no field selectors)
@@ -4115,7 +4247,16 @@ def main(args=None):
 
         content = render_zoom(clean_args)
         _, output = tracker.track_render(content)
-        print(output)
+        if view_output_format == 'json':
+            try:
+                sys.path.insert(0, str(Path(__file__).parent))
+                from codex_codec import from_codex
+                result_dict = from_codex(output)
+                print(json.dumps(result_dict, indent=2))
+            except Exception:
+                print(json.dumps({'output': output}, indent=2))
+        else:
+            print(output)
         return
 
     # 7. First arg is a known action word → implicit execute / action dispatch

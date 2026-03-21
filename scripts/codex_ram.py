@@ -321,22 +321,49 @@ class RamState:
     def branch(self, name):
         """Create a speculative branch for 'what if' edits.
 
-        DEFERRED to V1.1 — no consumer exists yet (Critic FLAG-2).
+        Creates a shallow copy of current entries on a named branch,
+        switches to it. All subsequent read/write ops target this branch.
+        Merge back with merge(). Discard with rollback().
         """
-        raise NotImplementedError(
-            "Speculative branching deferred to V1.1. "
-            "Use snapshot()/diff()/discard() for basic state management."
-        )
+        if not self._initialized:
+            return False
+        # Deep-copy entries to isolate branch
+        import copy
+        self._branches = getattr(self, '_branches', {'main': self._entries})
+        self._branches['main'] = self._entries  # ensure main is tracked
+        self._branches[name] = copy.deepcopy(self._entries)
+        self._current_branch = name
+        self._entries = self._branches[name]
+        return True
 
-    def merge(self, branch_name):
-        """Merge a speculative branch back.
+    def merge(self, target='main'):
+        """Merge current branch into target. Returns count of entries merged."""
+        if not self._initialized:
+            return None
+        branches = getattr(self, '_branches', {})
+        if target not in branches:
+            return None
+        current = self._entries
+        target_entries = branches[target]
+        merged = 0
+        for key, entry in current.items():
+            if entry['dirty']:
+                target_entries[key] = entry
+                merged += 1
+        # Switch back to target
+        self._entries = target_entries
+        self._current_branch = target
+        return merged
 
-        DEFERRED to V1.1 — no consumer exists yet (Critic FLAG-2).
-        """
-        raise NotImplementedError(
-            "Speculative branch merging deferred to V1.1. "
-            "Use snapshot()/diff()/discard() for basic state management."
-        )
+    def rollback(self):
+        """Discard current branch and switch back to main."""
+        branches = getattr(self, '_branches', {})
+        current = getattr(self, '_current_branch', 'main')
+        if current != 'main' and current in branches:
+            del branches[current]
+        if 'main' in branches:
+            self._entries = branches['main']
+        self._current_branch = 'main'
 
     def flush(self):
         """Write all dirty entries back to disk via codex_codec.
