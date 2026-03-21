@@ -89,6 +89,25 @@ def parse_pipeline_frontmatter(pipeline_md: Path) -> dict:
     return {}
 
 
+def _infer_agent(stage: str) -> str:
+    """Infer current agent from stage name (FLAG-3 fix).
+
+    Maps pending_action/current_stage to the agent who owns it.
+    """
+    if not stage:
+        return ''
+    stage_lower = stage.lower()
+    if 'architect' in stage_lower:
+        return 'architect'
+    elif 'critic' in stage_lower:
+        return 'critic'
+    elif 'builder' in stage_lower:
+        return 'builder'
+    elif stage_lower in ('phase1_complete', 'phase2_complete'):
+        return 'architect'  # Architect owns completion stages
+    return ''
+
+
 def sync_pipeline_state(state_data: dict, overlay, dry_run: bool = False) -> dict:
     """Sync a single pipeline's state to the temporal DB.
 
@@ -99,8 +118,10 @@ def sync_pipeline_state(state_data: dict, overlay, dry_run: bool = False) -> dic
         return {'version': '?', 'action': 'error', 'reason': 'No version field'}
 
     # Extract current state from JSON
-    current_stage = state_data.get('current_stage', '')
-    current_agent = state_data.get('current_agent', '')
+    # FLAG-3 fix: pending_action → current_stage when current_stage is empty.
+    # State JSON may use pending_action as the canonical "what stage is next" field.
+    current_stage = state_data.get('current_stage', '') or state_data.get('pending_action', '')
+    current_agent = state_data.get('current_agent', '') or _infer_agent(current_stage)
     status = state_data.get('status', 'unknown')
 
     # Also check the pipeline markdown for additional metadata

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: phase2_in_progress
 priority: medium
 version: orchestration-engine-v2-temporal
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v2-temporal_spec.yaml
@@ -40,9 +40,21 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 medium, 3 low). All 6 design review FLAGs verified fixed. SQLite+WAL pivot correct. Parameterized SQL throughout, merge_json deep merge working, separated log/advance/handoff per FLAG-2, TTL at query time per FLAG-5, reconciliation scope documented per FLAG-6. New FLAG-1 (MED): record_transition() atomicity broken by nested commits — dead code, recommend removal. FLAG-2 (LOW): dashboard column truncation cosmetic. FLAG-3 (LOW): sync field mapping incomplete (pending_action vs current_stage). FLAG-4 (LOW): temporal records in legacy orchestrate path may have slight inference errors. Review at: pipeline_builds/orchestration-engine-v2-temporal_critic_code_review.md |
 | phase1_complete | 2026-03-21 | architect | Phase 1 COMPLETE. Critic code review APPROVED: 0 BLOCKs, 4 non-blocking FLAGs (1 med, 3 low). All 6 design review FLAGs verified fixed. SQLite+WAL pivot from SpacetimeDB was correct (no Rust on ARM64, no subscription consumers). Deliverables: temporal_schema.py (262L), temporal_overlay.py (965L), temporal_sync.py (327L) + 68L V2 integration. Overlay pattern works as designed — V2 continues normally, temporal capabilities degrade gracefully. FLAG-1 (MED): record_transition() is dead code with false atomicity claim — recommend removal in Phase 2. FLAGs 2-4 are cosmetic/minor. Ready for Phase 2 human review. |
 | critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 med, 3 low). All 6 design FLAGs fixed. Review at: pipeline_builds/orchestration-engine-v2-temporal_critic_code_review.md |
+| phase1_complete | 2026-03-21 | belam-main | Advancing to Phase 2 with Shael direction file |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-21 | architect | Phase 2 design per Shael direction file |
+| phase2_architect_design | 2026-03-21 | architect | Phase 2 design complete: R1 F-label/R-label causal coupling via time_travel_revert() with ⮌ format and r_label_hint. R2 persona-filtered dashboard views (i1=architect, i2=critic, i3=builder) via get_dashboard(persona=), set by orchestration in dispatch payload. FLAG-1 record_transition() deletion. 10-step builder spec, 17-item test checklist, 5 design decisions, 4 open questions for critic. |
+| phase2_architect_design | 2026-03-21 | architect | Phase 2 design complete |
+| phase2_architect_design | 2026-03-21 | architect | Phase 2 design complete: F-label/R-label causal coupling, persona-filtered dashboard views, FLAG-1 removal |
+| phase2_critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 med, 2 low). R1 causal coupling aligned, R2 persona views all 5 sub-reqs met, FLAG-1 deletion safe. Med FLAG: time_travel() returns transition not state - clarify for builder. |
+| phase2_critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 med, 2 low) |
+| phase2_builder_implementation | 2026-03-21 | builder | In progress |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
@@ -71,3 +83,4 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 - **Review:** `snn_applied_finance/research/pipeline_builds/orchestration-engine-v2-temporal_critic_design_review.md`
 - **State:** `snn_applied_finance/research/pipeline_builds/orchestration-engine-v2-temporal_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_orchestration-engine-v2-temporal.ipynb`
+   ⮌ critic_design_review           2026-03-21   system                    Reverted from 

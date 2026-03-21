@@ -12,7 +12,7 @@ the filesystem-based state management.
 Graceful degradation: if the temporal DB is unavailable or initialization fails,
 all methods return None/False and V2 continues operating normally on filesystem state.
 
-Addresses all Critic FLAGs:
+Phase 1 Critic FLAGs (all resolved):
   FLAG-1 (MED): SQL injection → All queries use parameterized placeholders (?)
   FLAG-2 (MED): Reducer mismatch → Split into log_transition() + advance_pipeline()
   FLAG-3 (MED): agent_context backup → SQLite DB IS on filesystem; auto-backed up
@@ -20,13 +20,27 @@ Addresses all Critic FLAGs:
   FLAG-5 (LOW): Agent presence TTL → Python-side check in get_dashboard()
   FLAG-6 (LOW): Reconciliation scope → Documented as pipeline_state only; others noted
 
+Phase 2 features:
+  R1: F-label/R-label causal coupling via time_travel_revert()
+      - State-level revert with F-labels (⮌ format) and R-label hints
+      - Critic Phase 2 FLAG-1 (MED): time_travel() returns transition not state
+        → handled by using to_stage as target state
+  R2: Persona-filtered dashboard views
+      - get_dashboard(persona=) for filtered views
+      - format_dashboard_for_prompt() for dispatch injection
+      - PERSONA_STAGE_FILTERS config per agent role
+  FLAG-1: record_transition() dead code removed
+  FLAG-2: _format_dashboard() dynamic column widths
+
 Usage (standalone):
-    python3 scripts/temporal_overlay.py dashboard           # Autoclave dashboard
-    python3 scripts/temporal_overlay.py timeline <version>  # Pipeline timeline
-    python3 scripts/temporal_overlay.py timetravel <ver> <iso-timestamp>
-    python3 scripts/temporal_overlay.py agents              # Agent presence
-    python3 scripts/temporal_overlay.py context <ver> <agent>  # Agent context
-    python3 scripts/temporal_overlay.py stats               # Duration analytics
+    python3 scripts/temporal_overlay.py dashboard                  # Full dashboard
+    python3 scripts/temporal_overlay.py dashboard --persona builder # Filtered view
+    python3 scripts/temporal_overlay.py timeline <version>         # Pipeline timeline
+    python3 scripts/temporal_overlay.py timetravel <ver> <iso-ts>  # Read-only query
+    python3 scripts/temporal_overlay.py revert <ver> <iso-ts>      # State-level revert
+    python3 scripts/temporal_overlay.py agents                     # Agent presence
+    python3 scripts/temporal_overlay.py context <ver> <agent>      # Agent context
+    python3 scripts/temporal_overlay.py stats                      # Duration analytics
 """
 
 import json
@@ -45,6 +59,46 @@ DEFAULT_DB_PATH = WORKSPACE / 'data' / 'temporal.db'
 
 # Agent presence TTL: agents not seen for this many seconds are marked stale (FLAG-5)
 HEARTBEAT_TTL_SECONDS = 300  # 5 minutes
+
+
+# ─── Persona Stage Filters (Phase 2 R2) ─────────────────────────────────────────
+
+PERSONA_STAGE_FILTERS = {
+    'architect': {
+        'show_stages': [
+            'architect_design', 'architect_design_revision',
+            'phase1_complete', 'phase2_architect_design', 'phase2_architect_revision',
+            'phase2_complete', 'analysis_architect_design',
+            # Cross-phase visibility (Critic Phase 2 FLAG-2): architect needs to see
+            # builder output when reviewing Phase 2 completeness, plus critic reviews.
+            'critic_design_review', 'critic_code_review',
+            'builder_implementation', 'phase2_builder_implementation',
+        ],
+        'show_sections': ['pipelines', 'agents', 'recent_handoffs', 'stats', 'bottleneck_analysis'],
+        'highlight_fields': ['design_decisions', 'open_questions', 'critic_flags'],
+    },
+    'critic': {
+        'show_stages': [
+            'critic_design_review', 'critic_code_review',
+            'phase2_critic_design_review', 'phase2_critic_code_review',
+            'analysis_critic_review', 'local_analysis_critic_review',
+            # Cross-phase visibility (Critic Phase 2 FLAG-2): critic reviews builder
+            # output and should see what stage is pending review.
+            'builder_implementation', 'phase2_builder_implementation',
+        ],
+        'show_sections': ['pipelines', 'recent_handoffs', 'stats'],
+        'highlight_fields': ['critic_flags', 'checklist', 'flag_resolutions'],
+    },
+    'builder': {
+        'show_stages': [
+            'builder_implementation', 'builder_apply_blocks',
+            'phase2_builder_implementation',
+            'analysis_builder_implementation', 'local_analysis_builder',
+        ],
+        'show_sections': ['pipelines', 'stats'],
+        'highlight_fields': ['files_to_modify', 'partial_work', 'test_checklist'],
+    },
+}
 
 
 # ─── JSON Deep Merge (Critic FLAG-4) ─────────────────────────────────────────────
@@ -230,42 +284,11 @@ class TemporalOverlay:
             print(f"[temporal] advance_pipeline error: {e}", file=sys.stderr)
             return False
 
-    def record_transition(self, version: str, from_stage: str, to_stage: str,
-                          agent: str, action: str, notes: str = '',
-                          next_agent: str = None, artifact: str = None,
-                          session_id: str = '') -> bool:
-        """Combined transition: log + advance + create handoff if needed.
-
-        Convenience method for the V2 engine integration hook.
-        Runs as a single transaction for atomicity.
-        """
-        if not self.available:
-            return False
-        try:
-            conn = self._get_conn()
-            conn.execute("BEGIN IMMEDIATE")
-
-            # 1. Log the transition
-            self.log_transition(version, from_stage, to_stage, agent, action,
-                                notes, artifact, session_id)
-
-            # 2. Advance pipeline state
-            self.advance_pipeline(version, to_stage, next_agent or agent)
-
-            # 3. Create handoff if transitioning to a different agent
-            if next_agent and next_agent != agent:
-                self.create_handoff(version, agent, next_agent,
-                                    from_stage, to_stage, notes)
-
-            conn.commit()
-            return True
-        except Exception as e:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
-            print(f"[temporal] record_transition error: {e}", file=sys.stderr)
-            return False
+    # record_transition() REMOVED — Phase 2 FLAG-1 fix.
+    # Was dead code with broken atomicity: sub-methods each called conn.commit(),
+    # breaking the outer BEGIN IMMEDIATE transaction. V2 integration calls
+    # log_transition() + advance_pipeline() + create_handoff() individually
+    # via _post_state_change(). See Critic code review FLAG-1 (MED).
 
     # ─── Handoff Management ──────────────────────────────────────────────────
 
@@ -539,17 +562,25 @@ class TemporalOverlay:
             result.append(agent_dict)
         return result
 
-    # ─── Autoclave Dashboard ─────────────────────────────────────────────────
+    # ─── Autoclave Dashboard (Phase 2 R2: persona-filtered views) ────────────
 
-    def get_dashboard(self) -> Optional[dict]:
-        """Get autoclave dashboard — shared view of all pipeline state.
+    def get_dashboard(self, persona: str = None) -> Optional[dict]:
+        """Get autoclave dashboard — optionally filtered by persona.
+
+        Phase 2 R2: When persona is None, returns full unfiltered dashboard
+        (for Shael / coordinator). When persona is set, returns a filtered
+        view showing only persona-relevant state.
+
+        Global coordinates are NEVER remapped — filtering only hides
+        irrelevant rows (design decision D4).
 
         Returns:
           {
             "pipelines": [...],
             "agents": [...],          # With TTL applied (FLAG-5)
             "recent_handoffs": [...],
-            "stats": { "total_pipelines": N, "active_agents": N, ... }
+            "stats": { ... },
+            "persona": str|None,      # Active persona filter
           }
         """
         if not self.available:
@@ -570,11 +601,11 @@ class TemporalOverlay:
                 "SELECT * FROM handoff ORDER BY dispatched_at DESC LIMIT 20"
             ).fetchall()]
 
-            # Compute stats
+            # Compute stats (always full, unfiltered)
             active_agents = sum(1 for a in agents
                                 if a.get('status') not in ('idle', 'offline (stale)'))
 
-            return {
+            dashboard = {
                 'pipelines': pipelines,
                 'agents': agents,
                 'recent_handoffs': handoffs,
@@ -586,10 +617,134 @@ class TemporalOverlay:
                                            if h.get('status') == 'dispatched'),
                 },
                 'generated_at': datetime.now(timezone.utc).isoformat(),
+                'persona': persona,
             }
+
+            # Apply persona filter if specified (R2)
+            if persona and persona in PERSONA_STAGE_FILTERS:
+                dashboard = self._apply_persona_filter(dashboard, persona)
+
+            return dashboard
         except Exception as e:
             print(f"[temporal] get_dashboard error: {e}", file=sys.stderr)
             return None
+
+    def _apply_persona_filter(self, dashboard: dict, persona: str) -> dict:
+        """Apply persona-based filtering to dashboard data.
+
+        Filtering is ADDITIVE HIDING, not coordinate remapping (D4).
+        Pipelines are all shown but marked as active_for_persona or not.
+        Handoffs are filtered to those involving this persona's agent.
+        Sections are filtered per persona config.
+        """
+        pf = PERSONA_STAGE_FILTERS.get(persona, {})
+        show_stages = set(pf.get('show_stages', []))
+        show_sections = set(pf.get('show_sections', []))
+
+        # Mark pipelines as active for this persona
+        for p in dashboard['pipelines']:
+            stage = p.get('current_stage', '')
+            p['active_for_persona'] = stage in show_stages
+
+        # Filter handoffs to those involving this persona
+        dashboard['recent_handoffs'] = [
+            h for h in dashboard['recent_handoffs']
+            if h.get('source_agent') == persona or h.get('target_agent') == persona
+        ]
+
+        # Filter sections
+        if 'agents' not in show_sections:
+            dashboard['agents'] = []
+        if 'recent_handoffs' not in show_sections:
+            dashboard['recent_handoffs'] = []
+        if 'stats' not in show_sections:
+            dashboard['stats'] = {}
+
+        # Add persona metadata
+        dashboard['highlight_fields'] = pf.get('highlight_fields', [])
+
+        return dashboard
+
+    def format_dashboard_for_prompt(self, persona: str = None,
+                                    max_lines: int = 80) -> Optional[str]:
+        """Render dashboard as text for task prompt injection (Phase 2 R2).
+
+        Returns formatted string suitable for inclusion in dispatch payload.
+        Uses persona-specific highlighting when persona is set.
+        Orchestration sets the view, agents don't choose (D5).
+
+        Args:
+            persona: Filter by persona ('architect', 'critic', 'builder', or None)
+            max_lines: Cap output at this many lines (Critic Q3: prevent context bloat)
+        """
+        dashboard = self.get_dashboard(persona=persona)
+        if not dashboard:
+            return None
+
+        emoji_map = {'architect': '🏗️', 'critic': '🔍', 'builder': '🔨'}
+        lines = []
+
+        if persona:
+            emoji = emoji_map.get(persona, '👤')
+            lines.append(f"### {emoji} Autoclave Dashboard — {persona.title()} View")
+        else:
+            lines.append("### 🏭 Autoclave Dashboard — Full View")
+
+        # Pipelines
+        lines.append("\n**Pipelines:**")
+        for p in dashboard.get('pipelines', []):
+            ver = p.get('version', '?')
+            stage = p.get('current_stage', '?')
+            agent = p.get('current_agent', '?')
+            locked = '🔒' if p.get('locked_by') else ''
+
+            # Persona-specific highlighting
+            if persona and p.get('active_for_persona'):
+                lines.append(f"  **→ {ver}** | stage: `{stage}` | agent: {agent} {locked}")
+            else:
+                lines.append(f"  · {ver} | stage: `{stage}` | agent: {agent} {locked}")
+
+        # Agents (if shown)
+        if dashboard.get('agents'):
+            lines.append("\n**Agents:**")
+            for a in dashboard['agents']:
+                name = a.get('agent', '?')
+                emoji = emoji_map.get(name, '👤')
+                status = a.get('status', '?')
+                pipeline = a.get('current_pipeline', '')
+                stale = f" (stale {a['stale_seconds']}s)" if a.get('stale_seconds') else ''
+                detail = f" on {pipeline}" if pipeline else ''
+                lines.append(f"  {emoji} {name}: {status}{detail}{stale}")
+
+        # Recent handoffs (if shown)
+        if dashboard.get('recent_handoffs'):
+            lines.append("\n**Recent Handoffs:**")
+            status_emoji = {
+                'dispatched': '📤', 'acknowledged': '👀',
+                'working': '⚙️', 'completed': '✅',
+                'blocked': '🚫', 'timed_out': '⏰',
+            }
+            for h in dashboard['recent_handoffs'][:5]:
+                src = h.get('source_agent', '?')
+                tgt = h.get('target_agent', '?')
+                ver = h.get('version', '?')
+                se = status_emoji.get(h.get('status', ''), '❓')
+                ts = h.get('dispatched_at', '')[:16]
+                lines.append(f"  {ts} {src} → {tgt} ({ver}) {se}")
+
+        # Stats (if shown)
+        stats = dashboard.get('stats', {})
+        if stats:
+            lines.append(f"\n📊 {stats.get('total_pipelines', 0)} pipelines | "
+                         f"{stats.get('active_agents', 0)}/{stats.get('total_agents', 0)} "
+                         f"agents active | {stats.get('pending_handoffs', 0)} pending")
+
+        # Cap at max_lines to prevent context bloat (Critic Q3)
+        if len(lines) > max_lines:
+            lines = lines[:max_lines]
+            lines.append(f"\n... (truncated to {max_lines} lines)")
+
+        return '\n'.join(lines)
 
     # ─── Timeline & Time-Travel ──────────────────────────────────────────────
 
@@ -630,6 +785,196 @@ class TemporalOverlay:
         except Exception as e:
             print(f"[temporal] time_travel error: {e}", file=sys.stderr)
             return None
+
+    # ─── Time-Travel Revert (Phase 2 R1: F-label/R-label causal coupling) ───
+
+    def time_travel_revert(self, version: str, target_timestamp: str) -> Optional[dict]:
+        """Revert pipeline state to a past timestamp.
+
+        This is the WRITE counterpart to time_travel() (which is read-only).
+        Implements Phase 2 R1: F-label/R-label causal coupling.
+
+        1. Queries state at target_timestamp via time_travel()
+           NOTE (Critic Phase 2 FLAG-1 MED): time_travel() returns a TRANSITION
+           record, not a state snapshot. The 'to_stage' field IS the state
+           at that timestamp (the stage the pipeline transitioned INTO).
+        2. Reads current state from pipeline_state table
+        3. Computes diff between current and target state
+        4. Applies filesystem revert (_state.json, pipeline markdown)
+        5. Logs a revert transition (action='revert') in temporal DB
+        6. Returns RevertResult dict with F-labels (⮌) and R-label hints
+
+        Returns None on failure (graceful degradation).
+        State-level revert only — does NOT revert file contents (V3 concern).
+        """
+        if not self.available:
+            return None
+        try:
+            # 1. Get target state via time_travel (returns transition, not state)
+            target_transition = self.time_travel(version, target_timestamp)
+            if not target_transition:
+                print(f"[temporal] revert: no state found for {version} at {target_timestamp}",
+                      file=sys.stderr)
+                return None
+
+            # The state AT the target timestamp is the to_stage of the last transition
+            target_stage = target_transition.get('to_stage', '')
+            target_agent = target_transition.get('agent', '')
+
+            # 2. Get current state from pipeline_state table
+            conn = self._get_conn()
+            current_row = conn.execute(
+                "SELECT current_stage, current_agent, status FROM pipeline_state "
+                "WHERE version = ?",
+                (version,)
+            ).fetchone()
+            if not current_row:
+                print(f"[temporal] revert: no current state for {version}", file=sys.stderr)
+                return None
+
+            current_stage = current_row['current_stage']
+            current_agent = current_row['current_agent']
+
+            # 3. Check for no-op (current == target)
+            if current_stage == target_stage:
+                return {
+                    'success': True,
+                    'version': version,
+                    'reverted_from': current_stage,
+                    'reverted_to': target_stage,
+                    'target_timestamp': target_timestamp,
+                    'f_labels': [],
+                    'affected_coords': [],
+                    'r_label_hint': {},
+                    'transition_id': None,
+                    'noop': True,
+                }
+
+            # 4. Compute F-labels for the revert (using ⮌ not Δ)
+            f_labels = []
+            coord = self._get_pipeline_coord_safe(version)
+            f_labels.append(f"⮌ {coord}.stage {current_stage} → {target_stage}")
+            if current_agent != target_agent:
+                f_labels.append(f"⮌ {coord}.agent {current_agent} → {target_agent}")
+
+            # 5. Apply filesystem revert
+            fs_success = self._apply_filesystem_revert(
+                version, target_stage, target_agent, current_stage
+            )
+
+            # 6. Log the revert transition in temporal DB
+            self.log_transition(
+                version=version,
+                from_stage=current_stage,
+                to_stage=target_stage,
+                agent='system',
+                action='revert',
+                notes=f"Time-travel revert to {target_timestamp}. "
+                      f"Reverted {current_stage} → {target_stage}",
+            )
+
+            # 7. Advance pipeline state back to target
+            self.advance_pipeline(version, target_stage, target_agent)
+
+            # 8. Build R-label hint for cockpit re-render
+            r_label_hint = {
+                'affected_coords': [coord],
+                'sections': ['pipelines'],
+                'reason': 'time_travel_revert',
+                'timestamp': target_timestamp,
+                'reverted_from': current_stage,
+                'reverted_to': target_stage,
+            }
+
+            # Get the transition_id of the revert we just logged
+            last_transition = conn.execute(
+                "SELECT id FROM state_transition WHERE version = ? "
+                "AND action = 'revert' ORDER BY id DESC LIMIT 1",
+                (version,)
+            ).fetchone()
+            transition_id = last_transition['id'] if last_transition else None
+
+            return {
+                'success': True,
+                'version': version,
+                'reverted_from': current_stage,
+                'reverted_to': target_stage,
+                'target_timestamp': target_timestamp,
+                'f_labels': f_labels,
+                'affected_coords': [coord],
+                'r_label_hint': r_label_hint,
+                'transition_id': transition_id,
+                'filesystem_reverted': fs_success,
+            }
+
+        except Exception as e:
+            print(f"[temporal] time_travel_revert error: {e}", file=sys.stderr)
+            return None
+
+    def _get_pipeline_coord_safe(self, version: str) -> str:
+        """Get p-coordinate for a pipeline, with fallback."""
+        try:
+            # Try to use the engine's coord function if available
+            from orchestration_engine import _get_pipeline_coord
+            return _get_pipeline_coord(version)
+        except (ImportError, Exception):
+            return f'p({version[:20]})'
+
+    def _apply_filesystem_revert(self, version: str, target_stage: str,
+                                  target_agent: str, current_stage: str) -> bool:
+        """Apply state-level revert to filesystem artifacts.
+
+        Reverts _state.json and pipeline markdown to reflect the target stage.
+        Does NOT revert file contents (git-level revert is a V3 concern).
+        """
+        try:
+            # Update _state.json
+            builds_dir = self.workspace / 'machinelearning' / 'snn_applied_finance' / \
+                         'research' / 'pipeline_builds'
+            state_file = builds_dir / f'{version}_state.json'
+
+            if state_file.exists():
+                with open(state_file, 'r') as f:
+                    state = json.load(f)
+
+                # Update pending_action to target stage
+                state['pending_action'] = target_stage
+                state['current_agent'] = target_agent
+                state['last_updated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
+
+                # Add revert marker
+                if 'reverts' not in state:
+                    state['reverts'] = []
+                state['reverts'].append({
+                    'from_stage': current_stage,
+                    'to_stage': target_stage,
+                    'timestamp': datetime.now(timezone.utc).isoformat(),
+                })
+
+                with open(state_file, 'w') as f:
+                    json.dump(state, f, indent=4)
+
+            # Update pipeline markdown (add revert entry to stage history)
+            pipelines_dir = self.workspace / 'pipelines'
+            md_file = pipelines_dir / f'{version}.md'
+            if md_file.exists():
+                with open(md_file, 'r') as f:
+                    content = f.read()
+
+                now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+                revert_entry = (
+                    f"   ⮌ {target_stage:<30} {now}   system"
+                    f"{'':>20}Reverted from {current_stage}\n"
+                )
+
+                # Append to the end of the file
+                with open(md_file, 'a') as f:
+                    f.write(revert_entry)
+
+            return True
+        except Exception as e:
+            print(f"[temporal] filesystem revert error: {e}", file=sys.stderr)
+            return False
 
     # ─── Duration Analytics ──────────────────────────────────────────────────
 
@@ -795,55 +1140,94 @@ class TemporalOverlay:
 # ─── CLI Interface ────────────────────────────────────────────────────────────
 
 def _format_dashboard(dashboard: dict) -> str:
-    """Format dashboard for terminal output."""
+    """Format dashboard for terminal output.
+
+    Phase 2 FLAG-2 fix: dynamic column widths based on actual content,
+    with max caps to prevent overflow.
+    """
     lines = []
-    lines.append("┌─────────────────────────────────────────────────┐")
-    lines.append("│  🏭 AUTOCLAVE — Pipeline Orchestration Dashboard │")
-    lines.append("├─────────────────────────────────────────────────┤")
+
+    # Compute dynamic column widths for pipelines (FLAG-2 fix)
+    pipelines = dashboard.get('pipelines', [])
+    MAX_VER_WIDTH = 40
+    MAX_STAGE_WIDTH = 30
+    MAX_AGENT_WIDTH = 12
+    ver_width = min(MAX_VER_WIDTH, max((len(p.get('version', '?')) for p in pipelines), default=10))
+    stage_width = min(MAX_STAGE_WIDTH, max((len(p.get('current_stage', '?')) for p in pipelines), default=10))
+    agent_width = min(MAX_AGENT_WIDTH, max((len(p.get('current_agent', '?')) for p in pipelines), default=8))
+
+    # Header
+    total_width = ver_width + stage_width + agent_width + 12  # padding
+    total_width = max(total_width, 50)
+
+    persona = dashboard.get('persona')
+    emoji_map = {'architect': '🏗️', 'critic': '🔍', 'builder': '🔨'}
+
+    if persona:
+        title = f"  {emoji_map.get(persona, '👤')} AUTOCLAVE — {persona.title()} View"
+    else:
+        title = "  🏭 AUTOCLAVE — Pipeline Orchestration Dashboard"
+
+    lines.append(f"┌{'─' * total_width}┐")
+    lines.append(f"│{title:<{total_width}}│")
+    lines.append(f"├{'─' * total_width}┤")
 
     # Pipelines
-    lines.append("│                                                  │")
-    lines.append("│  ACTIVE PIPELINES                                │")
-    for p in dashboard.get('pipelines', []):
-        ver = p.get('version', '?')[:30]
-        stage = p.get('current_stage', '?')[:10]
-        agent = p.get('current_agent', '?')[:8]
+    lines.append(f"│{'':^{total_width}}│")
+    lines.append(f"│{'  ACTIVE PIPELINES':<{total_width}}│")
+    for p in pipelines:
+        ver = p.get('version', '?')[:MAX_VER_WIDTH]
+        stage = p.get('current_stage', '?')[:MAX_STAGE_WIDTH]
+        agent = p.get('current_agent', '?')[:MAX_AGENT_WIDTH]
         locked = '🔒' if p.get('locked_by') else '  '
-        lines.append(f"│  {locked} {ver:<30} {stage:<10} {agent:<8}│")
+        active_marker = '→' if p.get('active_for_persona') else ' '
+        row = f"  {locked}{active_marker}{ver:<{ver_width}} {stage:<{stage_width}} {agent:<{agent_width}}"
+        lines.append(f"│{row:<{total_width}}│")
 
     # Agents
-    lines.append("│                                                  │")
-    lines.append("│  AGENTS                                          │")
-    emoji_map = {'architect': '🏗️', 'critic': '🔍', 'builder': '🔨'}
-    for a in dashboard.get('agents', []):
-        name = a.get('agent', '?')
-        emoji = emoji_map.get(name, '👤')
-        status = a.get('status', '?')
-        pipeline = a.get('current_pipeline', '')
-        detail = f" ({pipeline})" if pipeline else ''
-        lines.append(f"│  {emoji} {name}: {status}{detail}")
+    agents = dashboard.get('agents', [])
+    if agents:
+        lines.append(f"│{'':^{total_width}}│")
+        lines.append(f"│{'  AGENTS':<{total_width}}│")
+        for a in agents:
+            name = a.get('agent', '?')
+            emoji = emoji_map.get(name, '👤')
+            status = a.get('status', '?')
+            pipeline = a.get('current_pipeline', '')
+            stale = f" (stale {a['stale_seconds']}s)" if a.get('stale_seconds') else ''
+            detail = f" ({pipeline})" if pipeline else ''
+            row = f"  {emoji} {name}: {status}{detail}{stale}"
+            lines.append(f"│{row:<{total_width}}│")
 
     # Recent handoffs
-    lines.append("│                                                  │")
-    lines.append("│  RECENT HANDOFFS                                 │")
-    for h in dashboard.get('recent_handoffs', [])[:5]:
-        src = h.get('source_agent', '?')[:8]
-        tgt = h.get('target_agent', '?')[:8]
-        ver = h.get('version', '?')[:15]
-        status_emoji = {'dispatched': '📤', 'acknowledged': '👀',
-                        'working': '⚙️', 'completed': '✅',
-                        'blocked': '🚫', 'timed_out': '⏰'
-                        }.get(h.get('status', ''), '❓')
-        ts = h.get('dispatched_at', '')[:16]
-        lines.append(f"│  {ts} {src}→{tgt} ({ver}) {status_emoji}")
+    handoffs = dashboard.get('recent_handoffs', [])
+    if handoffs:
+        lines.append(f"│{'':^{total_width}}│")
+        lines.append(f"│{'  RECENT HANDOFFS':<{total_width}}│")
+        status_emoji_map = {
+            'dispatched': '📤', 'acknowledged': '👀',
+            'working': '⚙️', 'completed': '✅',
+            'blocked': '🚫', 'timed_out': '⏰',
+        }
+        for h in handoffs[:5]:
+            src = h.get('source_agent', '?')
+            tgt = h.get('target_agent', '?')
+            ver = h.get('version', '?')
+            se = status_emoji_map.get(h.get('status', ''), '❓')
+            ts = h.get('dispatched_at', '')[:16]
+            row = f"  {ts} {src}→{tgt} ({ver}) {se}"
+            lines.append(f"│{row:<{total_width}}│")
 
     # Stats
     stats = dashboard.get('stats', {})
-    lines.append("│                                                  │")
-    lines.append(f"│  📊 {stats.get('total_pipelines', 0)} pipelines | "
-                 f"{stats.get('active_agents', 0)}/{stats.get('total_agents', 0)} agents active | "
-                 f"{stats.get('pending_handoffs', 0)} pending")
-    lines.append("└─────────────────────────────────────────────────┘")
+    if stats:
+        lines.append(f"│{'':^{total_width}}│")
+        stat_line = (f"  📊 {stats.get('total_pipelines', 0)} pipelines | "
+                     f"{stats.get('active_agents', 0)}/{stats.get('total_agents', 0)} agents active | "
+                     f"{stats.get('pending_handoffs', 0)} pending")
+        lines.append(f"│{stat_line:<{total_width}}│")
+
+    lines.append(f"└{'─' * total_width}┘")
     return '\n'.join(lines)
 
 
@@ -851,10 +1235,13 @@ if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Temporal overlay CLI')
     parser.add_argument('command', choices=['dashboard', 'timeline', 'timetravel',
-                                           'agents', 'context', 'stats', 'status'],
+                                           'revert', 'agents', 'context', 'stats',
+                                           'status'],
                         help='Command to run')
     parser.add_argument('args', nargs='*', help='Command arguments')
     parser.add_argument('--json', action='store_true', help='JSON output')
+    parser.add_argument('--persona', choices=['architect', 'critic', 'builder'],
+                        help='Persona filter for dashboard (Phase 2 R2)')
     parser.add_argument('--db', type=Path, default=DEFAULT_DB_PATH,
                         help='Database file path')
     args = parser.parse_args()
@@ -878,11 +1265,21 @@ if __name__ == '__main__':
             print(f"  Tables: {len(result.get('tables', []))}")
 
     elif args.command == 'dashboard':
-        dashboard = overlay.get_dashboard()
+        # Phase 2 R2: persona-filtered dashboard
+        persona = args.persona
+        dashboard = overlay.get_dashboard(persona=persona)
         if args.json:
             print(json.dumps(dashboard, indent=2))
         else:
-            print(_format_dashboard(dashboard))
+            # Use prompt format if persona, terminal format otherwise
+            if persona:
+                prompt_view = overlay.format_dashboard_for_prompt(persona=persona)
+                if prompt_view:
+                    print(prompt_view)
+                else:
+                    print(_format_dashboard(dashboard))
+            else:
+                print(_format_dashboard(dashboard))
 
     elif args.command == 'timeline':
         if not args.args:
@@ -898,8 +1295,9 @@ if __name__ == '__main__':
                 print(f"Timeline for {args.args[0]} ({len(timeline)} transitions):")
                 for t in timeline:
                     duration = f" ({t['duration_seconds']}s)" if t.get('duration_seconds') else ''
-                    print(f"  {t['timestamp'][:19]} | {t['from_stage']} → {t['to_stage']} "
-                          f"| {t['agent']} | {t['action']}{duration}")
+                    action_marker = '⮌' if t.get('action') == 'revert' else '→'
+                    print(f"  {t['timestamp'][:19]} | {t['from_stage']} {action_marker} "
+                          f"{t['to_stage']} | {t['agent']} | {t['action']}{duration}")
 
     elif args.command == 'timetravel':
         if len(args.args) < 2:
@@ -916,6 +1314,32 @@ if __name__ == '__main__':
                     print(f"  {k}: {v}")
             else:
                 print(f"No state found for {args.args[0]} at {args.args[1]}")
+
+    elif args.command == 'revert':
+        # Phase 2 R1: time-travel revert
+        if len(args.args) < 2:
+            print("Usage: temporal_overlay.py revert <version> <iso-timestamp>",
+                  file=sys.stderr)
+            sys.exit(1)
+        result = overlay.time_travel_revert(args.args[0], args.args[1])
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            if result:
+                if result.get('noop'):
+                    print(f"⚪ No-op: {args.args[0]} already at target state "
+                          f"({result['reverted_to']})")
+                else:
+                    print(f"⮌ Reverted {args.args[0]}: "
+                          f"{result['reverted_from']} → {result['reverted_to']}")
+                    for fl in result.get('f_labels', []):
+                        print(f"  {fl}")
+                    if result.get('r_label_hint'):
+                        print(f"  R-label hint: re-render {result['r_label_hint'].get('affected_coords', [])}")
+                    if not result.get('filesystem_reverted'):
+                        print("  ⚠️ Filesystem revert failed (temporal DB updated only)")
+            else:
+                print(f"❌ Revert failed for {args.args[0]} at {args.args[1]}")
 
     elif args.command == 'agents':
         dashboard = overlay.get_dashboard()

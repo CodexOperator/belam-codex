@@ -28,6 +28,7 @@ Importable AND runnable standalone:
   python3 scripts/orchestration_engine.py verify-hooks       # hook verification
   python3 scripts/orchestration_engine.py launch <ver> --desc "..." [--start]  # create pipeline
   python3 scripts/orchestration_engine.py archive <ref>      # archive completed pipeline
+  python3 scripts/orchestration_engine.py revert <ref> --at <ISO-ts> [--force]  # time-travel revert
   python3 scripts/orchestration_engine.py --dry-run          # dry run sweep
   python3 scripts/orchestration_engine.py --json <cmd>       # JSON output mode
 
@@ -224,6 +225,99 @@ def generate_f_label(operation: str, details: dict) -> str:
     return f"{label} Δ {operation}"
 
 
+def generate_f_label_revert(details: dict) -> list[str]:
+    """Generate F-labels for a revert operation (Phase 2 R1).
+
+    Uses ⮌ (U+2B8C return arrow) instead of Δ to distinguish reverts
+    from forward mutations. Any system processing F-labels can differentiate
+    forward mutations from backward reverts without extra metadata.
+
+    Returns a list of F-label strings (stage change + optional agent change).
+    """
+    labels = []
+    coord = details.get('coord', '?')
+    old_stage = details.get('old_stage', '?')
+    new_stage = details.get('new_stage', '?')
+    labels.append(f"{_next_f_label()} ⮌ {coord}.stage {old_stage} → {new_stage}")
+
+    old_agent = details.get('old_agent')
+    new_agent = details.get('new_agent')
+    if old_agent and new_agent and old_agent != new_agent:
+        labels.append(f"{_next_f_label()} ⮌ {coord}.agent {old_agent} → {new_agent}")
+
+    return labels
+
+
+def handle_revert(version: str, timestamp: str, force: bool = False) -> dict:
+    """Handle time-travel revert via CLI (Phase 2 R1).
+
+    Calls temporal overlay's time_travel_revert() to revert pipeline state
+    to the specified timestamp. Generates F-labels with ⮌ format.
+
+    Args:
+        version: Pipeline version string (or coordinate like p1)
+        timestamp: ISO-8601 timestamp to revert to
+        force: If True, allow cross-phase reverts (with warning)
+
+    Returns:
+        Result dict with success, f_labels, r_label_hint, etc.
+    """
+    version = resolve_pipeline(version) or version
+    temporal = _get_temporal()
+    if not temporal:
+        return {'status': 'error', 'error': 'Temporal DB unavailable'}
+
+    # Phase boundary guard (Critic Q1): warn but allow with --force
+    if not force:
+        state = load_state_json(version)
+        current_stage = state.get('pending_action', '')
+        # Check if revert would cross phase boundary
+        target_state = temporal.time_travel(version, timestamp)
+        if target_state:
+            target_stage = target_state.get('to_stage', '')
+            current_phase = _get_phase(current_stage)
+            target_phase = _get_phase(target_stage)
+            if current_phase != target_phase and current_phase and target_phase:
+                return {
+                    'status': 'blocked',
+                    'error': f'Cross-phase revert ({current_phase} → {target_phase}). '
+                             f'Use --force to override.',
+                    'current_phase': current_phase,
+                    'target_phase': target_phase,
+                }
+
+    result = temporal.time_travel_revert(version, timestamp)
+    if not result:
+        return {'status': 'error', 'error': f'Revert failed for {version} at {timestamp}'}
+
+    if result.get('noop'):
+        return {'status': 'noop', 'message': 'Current state matches target — no revert needed.'}
+
+    # Generate engine-level F-labels
+    coord = _get_pipeline_coord(version)
+    f_labels = generate_f_label_revert({
+        'coord': coord,
+        'old_stage': result['reverted_from'],
+        'new_stage': result['reverted_to'],
+    })
+
+    result['engine_f_labels'] = f_labels
+    result['status'] = 'reverted'
+    return result
+
+
+def _get_phase(stage: str) -> str:
+    """Extract phase from a stage name. Returns 'phase1', 'phase2', etc."""
+    if stage.startswith('phase2_'):
+        return 'phase2'
+    elif stage.startswith('analysis_') or stage.startswith('local_analysis_'):
+        return 'analysis'
+    elif stage in ('phase1_complete', 'phase2_complete'):
+        return stage.replace('_complete', '')
+    else:
+        return 'phase1'
+
+
 # ─── Dispatch Payload (Structured, Zero Coordinator Tokens) ────────────────────
 
 @dataclass
@@ -263,6 +357,10 @@ class DispatchPayload:
     files_to_read: list = field(default_factory=list)
     completion_command: str = ''
 
+    # Phase 2 R2: Persona-based view filter metadata.
+    # Orchestration sets the view when dispatching — agents don't choose (D5).
+    view_filter: Optional[dict] = None
+
     def to_dict(self) -> dict:
         """Serialize for JSON output / tool relay.
 
@@ -294,6 +392,7 @@ class DispatchPayload:
                 'stage_index': self.stage_index,
                 'files_to_read': self.files_to_read,
                 'completion_command': self.completion_command,
+                'view_filter': self.view_filter,  # Phase 2 R2: persona view metadata
             },
         }
 
@@ -574,10 +673,32 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
 
     # V2-temporal: inject persistent agent context into task prompt
     temporal = _get_temporal()
+    view_filter = None
     if temporal:
         lineage = temporal.get_design_lineage(version, agent)
         if lineage:
             task += f"\n\n## Your Persistent Context (Pipeline Memory)\n{lineage}\n"
+
+        # Phase 2 R2: Inject persona-filtered dashboard into task prompt.
+        # Orchestration sets the view filter when dispatching — agents don't choose (D5).
+        persona = agent  # Agent name maps to persona
+        filtered_dashboard = temporal.format_dashboard_for_prompt(persona=persona)
+        if filtered_dashboard:
+            task += f"\n\n## Autoclave Dashboard (filtered for {persona})\n{filtered_dashboard}\n"
+
+        # Build view_filter metadata for dispatch payload
+        try:
+            from temporal_overlay import PERSONA_STAGE_FILTERS
+            pf = PERSONA_STAGE_FILTERS.get(persona, {})
+            view_filter = {
+                'persona': persona,
+                'persona_coord': f'i{agent_info.get("index", 0)}',
+                'show_stages': pf.get('show_stages', []),
+                'show_sections': pf.get('show_sections', []),
+                'highlight_fields': pf.get('highlight_fields', []),
+            }
+        except ImportError:
+            pass
 
     return DispatchPayload(
         agent=agent,
@@ -602,6 +723,7 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
         stage_index=STAGE_SEQUENCE.index(stage) if stage in STAGE_SEQUENCE else -1,
         files_to_read=files,
         completion_command=_build_completion_command(version, stage, agent),
+        view_filter=view_filter,
     )
 
 
@@ -2729,6 +2851,37 @@ def main():
             else:
                 print(f'\n  No state found for {version} at {at}.\n')
 
+    elif cmd == 'revert':
+        # Phase 2 R1: Time-travel revert with F-label/R-label causal coupling
+        if len(args) < 2:
+            print('Usage: orchestration_engine.py revert <version> --at <ISO-timestamp> [--force]')
+            sys.exit(1)
+        version = args[1]
+        at = _extract_flag(args, '--at') or ''
+        if not at:
+            print('  --at <ISO-timestamp> required')
+            sys.exit(1)
+        force = '--force' in args
+        result = handle_revert(version, at, force=force)
+        if json_mode:
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            status = result.get('status', 'unknown')
+            if status == 'reverted':
+                print(f'\n  ⮌ Reverted {version}: {result.get("reverted_from","?")} → {result.get("reverted_to","?")}')
+                for fl in result.get('engine_f_labels', []):
+                    print(f'  {fl}')
+                hint = result.get('r_label_hint', {})
+                if hint.get('affected_coords'):
+                    print(f'  R-label hint: re-render {", ".join(hint["affected_coords"])}')
+                print()
+            elif status == 'noop':
+                print(f'\n  {result.get("message", "No-op.")}\n')
+            elif status == 'blocked':
+                print(f'\n  ⚠ {result.get("error", "Blocked.")}\n')
+            else:
+                print(f'\n  ❌ {result.get("error", "Revert failed.")}\n')
+
     elif cmd == 'temporal-sync':
         # Delegate to temporal_sync.py for filesystem → temporal DB reconciliation
         try:
@@ -2782,7 +2935,7 @@ def main():
             print('Commands: status, gates, handoffs, locks, stalls, next, dispatch, resume,')
             print('          complete, block, release-lock, list, resolve, sweep, launch, archive,')
             print('          dispatch-payload, completions, verify-hooks,')
-            print('          autoclave, timeline, timetravel, temporal-sync, context, help')
+            print('          autoclave, timeline, timetravel, revert, temporal-sync, context, help')
             print('Or pass a pipeline version/coordinate for quick status.')
             sys.exit(1)
 
