@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_in_progress
+status: phase2_code_review
 priority: medium
 version: orchestration-engine-v2-temporal
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v2-temporal_spec.yaml
@@ -55,6 +55,11 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 med, 2 low). R1 causal coupling aligned, R2 persona views all 5 sub-reqs met, FLAG-1 deletion safe. Med FLAG: time_travel() returns transition not state - clarify for builder. |
 | phase2_critic_design_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 med, 2 low) |
 | phase2_builder_implementation | 2026-03-21 | builder | In progress |
+| phase2_builder_implementation | 2026-03-21 | builder | Phase 2 implementation complete: R1 time_travel_revert() with F-label ⮌ format and R-label hints for causal coupling. R2 persona-filtered dashboards (get_dashboard(persona=), format_dashboard_for_prompt(), PERSONA_STAGE_FILTERS, dispatch payload integration). FLAG-1 record_transition() deleted. FLAG-2 dynamic column widths. FLAG-3 sync field mapping. All 3 Critic Phase 2 FLAGs addressed. 17/17 test checklist passed. temporal_overlay.py +424L, orchestration_engine.py +153L, temporal_sync.py +21L. Commit 911870b0. |
+| phase2_builder_implementation | 2026-03-21 | builder | Phase 2 implementation complete: time_travel_revert() with F/R label causal coupling (⮌ format F-labels + r_label_hint for cockpit re-render), persona-filtered dashboard views (get_dashboard(persona=), format_dashboard_for_prompt(), PERSONA_STAGE_FILTERS), handle_revert() CLI with cross-phase guard, DispatchPayload view_filter injection. Dead code removed, cross-phase visibility fixed, dynamic column widths. 21/21 tests pass. |
+| phase2_builder_implementation | 2026-03-21 | builder | Phase 2 complete: F/R coupling, persona views, dead code removal. 21/21 tests pass. |
+| phase2_builder_implementation | 2026-03-21 | builder | Phase 2 complete: F/R coupling, persona views, dead code removal |
+| phase2_builder_implementation | 2026-03-21 | builder | Phase 2 complete: F/R coupling, persona views, dead code removal. 21/21 tests pass. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
