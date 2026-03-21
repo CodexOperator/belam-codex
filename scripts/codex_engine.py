@@ -44,6 +44,7 @@ NAMESPACE = {
     'md': ('daily',       'memory',          'daily'),
     'mw': ('weekly',      'memory/weekly',   None),
     'e':  ('modes',       'modes',           None),
+    'i':  ('personas',    'personas',        None),
 }
 
 # Sorted prefixes: longer ones first (md/mw before m)
@@ -708,7 +709,7 @@ PERSONA_CONFIGS = {
     },
 }
 
-SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's', 'e']
+SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's', 'e', 'i']
 
 
 def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixes=None):
