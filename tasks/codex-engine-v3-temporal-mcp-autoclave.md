@@ -57,6 +57,7 @@ After v2 settles (dense grammar + coordinate modes), extend the addressing/forma
 ## Dependencies
 - Codex Engine v2 must be settled first
 - `research-openclaw-internals` pipeline — hook architecture findings
+- Cross-ref: `tasks/orchestration-v3-monitoring-suite.md` — real-time dashboard may integrate here via MCP + multi-pane rendering
 
 ## Notes
 - Vector-direct encoding research (pre-tokenized representations → encoder) is v4+ territory

@@ -41,11 +41,12 @@ namespaces:
 ### e3 Workflow
 ```
 e31 i.personas       → F1 + config/engine_registry.yaml namespace i→personas/
-                      → R1.i (new supermap section preview)
-                      → e2 now knows how to scaffold 'i' primitives
+                      → mkdir personas/ (if needed)
+                      → auto-chains e2 i "skeleton" → creates personas/skeleton.md
+                      → R1 shows diff: new namespace + first primitive
 ```
 
-One command: registers namespace, creates directory if needed, teaches e2 the new type, persists across sessions.
+One command: registers namespace, creates directory, scaffolds a skeleton primitive via e2, persists across sessions. The skeleton proves the namespace works immediately and gives the user something to `e1` edit. No separate "teach e2" step needed — e3 chains e2 at the end, reusing existing scaffolding infrastructure.
 
 ## 2. Numbered e3 Sub-Operations
 
@@ -91,12 +92,15 @@ Replace all letter-based and word-based sub-ops with numbered indices. Letters r
 ### Deprecation
 Letter shortcuts (`g`, `h`, `s`, `k`, `l`, `r`, `d`, `u`) and full words (`gates`, `locks`, etc.) emit deprecation warning suggesting numbered equivalent, then execute normally. Remove after 2 sessions.
 
-## 4. e2 Type Learning from e3
+## 4. e2 Type Learning from e3 (via chaining)
 
-When e3 registers a namespace, it also registers:
-- The primitive type name (from the namespace type label)
-- Default frontmatter fields for that type (from template if e33 was used, otherwise minimal: primitive, status, tags)
-- e2 can then scaffold primitives of that type: `e2 i "new persona"` just works
+e3 doesn't need a separate "teach e2" mechanism. Instead:
+- e3 registers the namespace in `config/engine_registry.yaml` (letter → directory + type)
+- e2 already reads the registry at startup, so it inherits new namespaces automatically
+- e3 chains a single `e2` call at the end to scaffold a skeleton primitive, proving the namespace works
+- If `e33` registered a custom template, e2 uses that template; otherwise minimal defaults (primitive, status, tags)
+- Result: `e31 i.personas` → namespace registered → `e2 i "skeleton"` auto-runs → `personas/skeleton.md` exists → done
+- Subsequent `e2 i "architect"` calls just work because the registry is already there
 
 ## 5. Legacy Command Audit + Migration
 
@@ -145,11 +149,11 @@ All remaining word-based commands, flags, and references must be migrated to the
 The soul instance (coordinator) should be able to do everything through engine commands:
 
 ```
-# Extend the engine
-e31 i.personas                    # register namespace
+# Extend the engine (auto-chains e2 → skeleton primitive created)
+e31 i.personas                    # register namespace + scaffold skeleton
 
-# Create primitives  
-e2 i "architect"                  # scaffold persona
+# Create more primitives  
+e2 i "architect"                  # scaffold persona (namespace already known)
 
 # Edit primitives
 e1 i1 4 architect                 # set role field
@@ -183,9 +187,12 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 - [ ] Letter shortcuts (g, h, s, k, l, r, d, u) emit deprecation warnings
 - [ ] Word forms (gates, locks, stalls, etc.) emit deprecation warnings
 
-### Type Learning
-- [ ] e2 can scaffold new primitive types registered via e3
-- [ ] `e2 i "new persona"` works after `e31 i.personas`
+### Type Learning (via e3→e2 chain)
+- [ ] `e31 i.personas` auto-chains `e2 i "skeleton"` at the end
+- [ ] Skeleton primitive exists in `personas/skeleton.md` after e31 completes
+- [ ] Engine diffs show both new namespace and skeleton primitive
+- [ ] Subsequent `e2 i "architect"` works because registry is already loaded
+- [ ] Custom templates from `e33` are used by the chained e2 call when available
 
 ### Legacy Audit
 - [ ] All 55+ action words in `_ALL_ACTION_WORDS` mapped to numbered equivalents
@@ -206,3 +213,5 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 
 ## Design Conversation
 Shael + Belam, 2026-03-21 08:26–09:12 UTC. Key insight from Shael: everything should be indexed, e3 should write to YAML not Python source, dot binds, space separates.
+
+**Update 2026-03-21 17:47 UTC:** Shael feedback — e3 should auto-chain e2 at the end of namespace creation. No separate "type learning" mechanism needed. e3 registers namespace → chains `e2 <letter> "skeleton"` → skeleton primitive proves the namespace works. Reuses existing e2 infrastructure entirely.
