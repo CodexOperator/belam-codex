@@ -120,9 +120,35 @@ Do NOT write to \`memory/$TODAY.md\` or any normal primitive directories.
 "
 fi
 
+# Step 4b: Gather existing entries for dedup context
+EXISTING_ENTRIES=""
+EXISTING_COUNT=0
+if ls "$WORKSPACE/memory/entries/${TODAY}"_*.md >/dev/null 2>&1; then
+  EXISTING_COUNT=$(ls "$WORKSPACE/memory/entries/${TODAY}"_*.md 2>/dev/null | wc -l)
+  # Extract slug + first line of content from each entry (compact dedup context)
+  EXISTING_ENTRIES=$(for f in "$WORKSPACE/memory/entries/${TODAY}"_*.md; do
+    slug=$(basename "$f" .md | sed "s/^${TODAY}_[0-9]*_//")
+    firstline=$(grep -m1 "^[^-#]" "$f" 2>/dev/null | head -c 120 || true)
+    echo "  - $slug: $firstline"
+  done)
+fi
+echo "   Existing entries today: $EXISTING_COUNT"
+
+DEDUP_BLOCK=""
+if [[ $EXISTING_COUNT -gt 0 ]]; then
+  DEDUP_BLOCK="
+## Already Logged Today ($EXISTING_COUNT entries)
+The following memories/primitives already exist for today. **Do NOT create duplicates.**
+If the session covers the same topic as an existing entry, skip it or only add genuinely new information.
+
+$EXISTING_ENTRIES
+"
+fi
+
 cat > "$PROMPT_FILE" <<PROMPT
 You are a memory extraction agent. Read the session transcript below and create structured primitives.
 ${TEST_MODE_BLOCK}
+${DEDUP_BLOCK}
 ## Context
 - **Instance:** $INSTANCE
 - **Persona:** ${PERSONA:-none}
@@ -140,6 +166,7 @@ ${TEST_MODE_BLOCK}
    - Add tags: \`instance:$INSTANCE\` on everything
 $PERSONA_TAG
    - Add upstream/downstream edges if relationships to existing primitives are obvious
+   - **Check the "Already Logged Today" section above** — skip entries that duplicate existing ones
 
 3. For trivial sessions (quick checks, no real work), create ONE memory with importance 1
 
