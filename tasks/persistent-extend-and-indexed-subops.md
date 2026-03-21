@@ -83,11 +83,38 @@ Replace all letter-based and word-based sub-ops with numbered indices. Letters r
 | `e0 6` | dispatch | `e0 p1 6 i1` | `e0 p1 d i1` |
 | `e0 7` | resume | `e0 p1 7` | `e0 p1 r` |
 | `e0 8` | unlock | `e0 8 p1` | `e0 u p1` |
+| `e0 9` | archive | `e0 9 t10 t11` | new — first-class archive |
 
 ### Dense Form
 - `e01` = gates
 - `e0 p1 6 i1` = dispatch architect to pipeline 1
 - `e0 p1 7` = resume pipeline 1
+- `e0 9 t10 t11` = archive tasks 10 and 11 (smart-ordered, highest-index-first)
+
+### Archive (e0 9) Details
+`archive` is a semantic operation, not a raw field edit. It:
+1. Smart-orders targets: highest-index-first to prevent coordinate shift corruption
+2. Sets `status: archived` on each target
+3. Generates completion report: gathers task metadata + linked primitives + related memory → MD → LaTeX → PDF via `build_report.py --template completion`
+4. Outputs report to `reports/completed/{task-slug}/` (NOT a primitive directory)
+5. Emits F-label per archive + R-label showing coordinate reindex
+
+Examples:
+```
+e0 9 t10           → archive t10, generate completion report PDF
+e0 9 t10 t11       → archives t11 first (higher index), then t10, two reports
+e0 9 p3            → archive pipeline p3
+```
+
+Fallback: `e1 tN 2 archived` still works as raw field edit (no report, no smart ordering).
+
+### Batch Coordinate Resolution (Smart Ordering)
+When multiple coordinates from the same namespace appear in one operation:
+- Engine snapshots the coordinate→slug mapping at invocation time
+- Resolves ALL coordinates against the original mapping before any mutations
+- Applies mutations highest-index-first to prevent shift corruption
+- Atomic: either all succeed or none apply
+- This pattern applies to ALL batch operations, not just archive
 
 ### Deprecation
 Letter shortcuts (`g`, `h`, `s`, `k`, `l`, `r`, `d`, `u`) and full words (`gates`, `locks`, etc.) emit deprecation warning suggesting numbered equivalent, then execute normally. Remove after 2 sessions.
@@ -180,12 +207,26 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 - [ ] Engine reads registry at startup, merges with hardcoded NAMESPACE
 
 ### Numbered Sub-Ops
-- [ ] `e0 1` through `e0 8` replace letter/word sub-ops
+- [ ] `e0 1` through `e0 9` replace letter/word sub-ops (9 = archive)
 - [ ] `e3 1` through `e3 4` replace word sub-ops
 - [ ] `e0 p1 6 i1` dispatches architect persona to pipeline 1
 - [ ] Dense forms work: `e01`, `e31`, `e0p16i1`
 - [ ] Letter shortcuts (g, h, s, k, l, r, d, u) emit deprecation warnings
 - [ ] Word forms (gates, locks, stalls, etc.) emit deprecation warnings
+
+### Archive (e0 9)
+- [ ] `e0 9 t10` archives task, generates completion report PDF
+- [ ] `e0 9 t10 t11` smart-orders (t11 first), both archived + reports
+- [ ] Completion report: `build_report.py --template completion` integration
+- [ ] Report output: `reports/completed/{slug}/` (not a primitive dir)
+- [ ] F-label per mutation + R-label showing coordinate reindex
+
+### Batch Coordinate Resolution
+- [ ] Coordinate→slug snapshot taken before any mutations
+- [ ] All coordinates resolved against original mapping
+- [ ] Highest-index-first ordering for same-namespace batches
+- [ ] Atomic: all succeed or none apply
+- [ ] Pattern works for any batch operation, not just archive
 
 ### Type Learning (via e3→e2 chain)
 - [ ] `e31 i.personas` auto-chains `e2 i "skeleton"` at the end
@@ -215,3 +256,8 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 Shael + Belam, 2026-03-21 08:26–09:12 UTC. Key insight from Shael: everything should be indexed, e3 should write to YAML not Python source, dot binds, space separates.
 
 **Update 2026-03-21 17:47 UTC:** Shael feedback — e3 should auto-chain e2 at the end of namespace creation. No separate "type learning" mechanism needed. e3 registers namespace → chains `e2 <letter> "skeleton"` → skeleton primitive proves the namespace works. Reuses existing e2 infrastructure entirely.
+
+**Update 2026-03-21 19:23 UTC:** Shael confirmed three design decisions:
+1. **Completion report on archive:** Add `--template completion` flag to existing `build_report.py`. Gathers task metadata + linked primitives + memory entries → MD → LaTeX → PDF. Output to `reports/completed/{slug}/` (NOT a primitive dir). Integrated as post-action of `e0 9` archive operation.
+2. **Batch coordinate resolution:** Atomic with smart ordering (highest-index-first). Engine snapshots coordinate→slug mapping before mutations, resolves all against original. Slugs available as fallback but not primary — coordinates are the interface.
+3. **Archive as e0 sub-op 9:** First-class operation, not raw `e1` field edit. Semantic action with side effects (report, reindex, notify). `e0 9 t10 t11` is the canonical form.
