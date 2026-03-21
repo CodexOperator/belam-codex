@@ -1,13 +1,12 @@
 {
   "status": "complete",
-  "session": "b9b39122-7f16-4097-b9f0-62911c229de9",
+  "session": "c7bf31ab-a312-4af5-bf55-6526f1a8d2d9",
   "instance": "main",
   "date": "2026-03-21",
-  "completed_at": "2026-03-21T09:22:00Z",
+  "completed_at": "2026-03-21T10:48:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-21_092223_task-doc-cleanup-session-closed-v1-codex.md",
-    "memory/entries/2026-03-21_092223_codex-engine-v2-and-hook-verification-su.md",
-    "lessons/memory-extraction-misses-design-convergence-in-conversation.md",
-    "lessons/agent-reconstruction-errors-from-fragments-vs-actual-conclusions.md"
+    "memory/entries/2026-03-21_104828_began-implementing-codex-cockpit-plugin.md",
+    "lessons/openclaw-plugin-definepluginentry-import-path.md",
+    "decisions/codex-cockpit-before-prompt-build-per-turn-injection.md"
   ]
 }
