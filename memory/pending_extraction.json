@@ -1,16 +1,15 @@
 {
   "status": "complete",
-  "session": "a430d303-2202-4c00-820e-c66782e9bb2a",
+  "session": "f0cfcc6e-b391-49ca-8eb5-31e947c0a30d",
   "instance": "main",
   "date": "2026-03-22",
-  "completed_at": "2026-03-22T02:31:00Z",
+  "completed_at": "2026-03-22T05:24:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-22_023127_fixed-pipeline-context-plugin-state-sync.md",
-    "memory/entries/2026-03-22_023131_retired-pipeline-context-plugin-renamed.md",
-    "memory/entries/2026-03-22_023136_heartbeat-found-codex-engine-v3-architec.md",
-    "lessons/pipeline-state-json-not-synced-on-archive.md",
-    "lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md",
-    "decisions/pipeline-context-plugin-retired-supermap-sufficient.md"
+    "memory/entries/2026-03-22_052412_heartbeat-sweep-archived-both-completed.md",
+    "memory/entries/2026-03-22_052426_r-cli-created-at-localbinr-as-the-human.md",
+    "decisions/r-command-render-layer-cli.md",
+    "decisions/render-engine-as-default-context-layer.md",
+    "lessons/render-engine-agents-are-in-it-not-calling-it.md"
   ],
-  "last_run": "2026-03-22T04:26:00Z"
+  "last_run": "2026-03-22T05:24:00Z"
 }
