@@ -6,7 +6,7 @@ importance: 3
 tags: []
 source: "session"
 content: "Testing render engine inotify detection"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
