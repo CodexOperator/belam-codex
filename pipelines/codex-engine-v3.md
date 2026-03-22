@@ -42,10 +42,96 @@ _Architect designs → Critic reviews → Builder implements_
 | phase1_complete | 2026-03-22 | architect | Phase 1 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 5 design FLAGs resolved. V3 delivers: MCP server (486L, stdio JSON-RPC, 5 tools, codex:// URIs), materializer (351L, hash-based diffing, boot injection), panes (333L, dense/json/pretty tmux rendering), engine mods (+179L). Clean implementation, no regressions, 52/52 tests pass. |
 
 ## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on Phase 1 completion_
+_Status: Scoped — Shael directed scope 2026-03-22_
 
-### Feedback
-_(Shael's feedback goes here when Phase 1 is complete and reviewed)_
+### Feedback — Shael (2026-03-22 02:42 UTC)
+
+Phase 1 delivered clean V3 modules (MCP server, materializer, panes, engine mods). Phase 2 introduces the **codex render engine** — a persistent foreground process that holds the full primitive tree in RAM and acts as the live diff/codec layer.
+
+### Phase 2 Scope: Codex Render Engine (`codex_render.py`)
+
+#### Core Concept
+A long-lived foreground process (like vim) that:
+- Parses CODEX.codex + all primitives into an **in-memory tree** on startup
+- Detects disk changes (inotify/poll) and diffs against the RAM tree
+- Exposes a **continuous diff-compressed view** — no explicit anchoring needed
+- Acts as the **codec layer** — the thing that compresses the full primitive space into whatever the current context needs
+- Dies when the session dies — no orphaned state, no stale anchors
+
+#### Key Features
+
+1. **RAM Tree as Render Surface**
+   - Full primitive tree loaded into memory (parsed, indexed, coordinate-addressable)
+   - R0/e commands still write to disk via codex_engine.py — render engine is read-side only
+   - Index lookups instead of disk reads for shortened/dense commands
+   - Codec compression runs against live tree — any compression level is instant
+
+2. **Live Diff View**
+   - Every disk mutation automatically diffed against RAM tree
+   - Minimal Δ/+/− output using same visual language as boot delta
+   - Before-context hook starts the process on boot → every command in the session gets automatic diffing
+   - Bare `e` resets the diff anchor mid-session when diffs get noisy
+
+3. **Test Mode (In-Memory Git Branch)**
+   - `codex-vim --test` forks an in-memory git branch via dulwich
+   - All changes persist only in RAM tree, never touch filesystem
+   - Whole session becomes a branch that merges on explicit commit or process exit
+   - Rollback is free — just discard the branch
+   - Experimentation without risk
+
+4. **Shared Agent Sessions**
+   - Multiple agents attach to the same codex-vim process
+   - Agent A finishes → tree reflects changes → Agent B attaches, sees current state instantly
+   - Zero parse time for handoffs — tree is already built
+   - Diff view shows each agent exactly what the previous agent changed
+   - Enables rapid turn-taking between agents
+
+5. **Context Loader**
+   - Replaces manual SOUL.md/IDENTITY.md/AGENTS.md loading
+   - Render engine owns context assembly — knows what to inject and how to compress it
+   - OpenClaw before-context hook just reads the render buffer
+   - No more wrestling with injection docs — this layer handles it
+
+6. **Remote Dashboard**
+   - Expose render buffer to canvas/tmux pane for live human view
+   - Fully shortened dense commands work because decompression context is always live
+   - Shared dashboard view across agents becomes trivial — just read the buffer
+
+#### Non-Blocking FLAGs from Phase 1 (address in this phase)
+- **FLAG-1 (MED):** Fragile `CODEX.codex` parsing in materializer — render engine subsumes this entirely (tree is in RAM, no parsing needed)
+- **FLAG-2 (LOW):** JSON pane silently caps at 20 entries — render engine can expose full tree, panes become views of the RAM tree
+- **FLAG-3 (LOW):** Redundant `global` in shuffle — clean up during engine integration
+
+#### Architecture
+```
+boot hook → starts codex-vim (foreground process)
+         → parses CODEX.codex + primitives → RAM tree
+         → renders initial view into buffer
+         → serves as context source for OpenClaw injection
+
+e1 t12   → codex_engine.py writes to disk (as normal)
+         → codex-vim detects change (inotify/poll)
+         → diffs RAM tree against new disk state
+         → updates RAM tree
+         → re-renders delta into buffer
+         → buffer IS the injected context
+
+--test   → dulwich in-memory branch
+         → all writes go to RAM tree only
+         → merge to disk on explicit commit / process exit
+```
+
+#### Acceptance Criteria
+- [ ] `codex-vim` starts as foreground process, loads full tree into RAM
+- [ ] Disk changes detected and diffed within 500ms
+- [ ] Diff output uses Δ/+/− format consistent with boot delta
+- [ ] Test mode creates in-memory git branch, no disk writes
+- [ ] Test mode merges to disk on explicit commit
+- [ ] Multiple agents can attach to same process (shared tree)
+- [ ] Before-context hook integration — auto-starts on boot
+- [ ] Context assembly (SOUL.md, IDENTITY.md, etc.) handled by render engine
+- [ ] Bare `e` resets diff anchor
+- [ ] Process exits cleanly when session ends
 
 ## Phase 3: Iterative Research (Autonomous or Human-Triggered)
 _Status: LOCKED — requires Phase 2 completion before activation_
