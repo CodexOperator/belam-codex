@@ -1592,6 +1592,28 @@ def _format_yaml_value(v):
     return s
 
 
+def _inject_render_context(context_content):
+    """Inject render engine context into AGENTS.md (V3 Phase 2)."""
+    agents_path = Path(__file__).resolve().parent.parent / 'AGENTS.md'
+    start_marker = '<!-- BEGIN:SUPERMAP -->'
+    end_marker = '<!-- END:SUPERMAP -->'
+    section = f"{start_marker}\n\n{context_content}\n\n{end_marker}"
+    text = agents_path.read_text(encoding='utf-8')
+    if start_marker in text and end_marker in text:
+        text = re.sub(
+            f'{re.escape(start_marker)}.*?{re.escape(end_marker)}',
+            section, text, flags=re.DOTALL,
+        )
+    else:
+        text = text.rstrip() + f"\n\n{section}\n"
+    agents_path.write_text(text, encoding='utf-8')
+
+
+def _check_render_test_mode():
+    """Check if render engine is in test mode via flag file (no UDS round-trip)."""
+    return Path.home().joinpath('.belam_render_test_mode').exists()
+
+
 def _write_frontmatter_file(filepath, fields, body_lines):
     """Rewrite a primitive file preserving field order. Lists written inline."""
     fp = Path(filepath)
@@ -1603,7 +1625,16 @@ def _write_frontmatter_file(filepath, fields, body_lines):
     if body_lines:
         out_lines.append('')
         out_lines.extend(body_lines)
-    fp.write_text('\n'.join(out_lines) + '\n', encoding='utf-8')
+    content = '\n'.join(out_lines) + '\n'
+    # V3 Phase 2: test mode intercept — writes go to render engine overlay
+    if _check_render_test_mode():
+        try:
+            from codex_render import intercept_write
+            if intercept_write(str(fp.relative_to(WORKSPACE)), content):
+                return
+        except (ImportError, ValueError):
+            pass
+    fp.write_text(content, encoding='utf-8')
 
 
 def _write_body_only(filepath, new_body_lines):
@@ -4277,8 +4308,18 @@ def main(args=None):
         _restore_shuffle()
         return
 
-    # --boot: inject supermap into AGENTS.md via materializer (V3) or inline fallback
+    # --boot: inject supermap into AGENTS.md via render engine → materializer → inline fallback
     if '--boot' in args:
+        # Try render engine first (instant context from RAM tree)
+        try:
+            from codex_render import _signal_render_engine
+            resp = _signal_render_engine('context')
+            if resp and resp.get('ok'):
+                _inject_render_context(resp['content'])
+                _restore_shuffle()
+                return
+        except ImportError:
+            pass
         try:
             sys.path.insert(0, str(Path(__file__).parent))
             from codex_materialize import CodexMaterializer
@@ -4339,8 +4380,13 @@ def main(args=None):
     first_lower = first.lower()
     if first_lower == 'e' or _is_v2_op_start(first_lower) or re.match(r'^e[0-3]$', first_lower):
         if first_lower == 'e':
-            # Bare 'e' → list all mode primitives
+            # Bare 'e' → list all mode primitives + reset render engine diff anchor
             _list_mode_primitives()
+            try:
+                from codex_render import _signal_render_engine
+                _signal_render_engine('anchor_reset')
+            except ImportError:
+                pass
             return
         if re.match(r'^e[0-3]$', first_lower) and len(clean_args) == 1:
             # Bare eN with no additional args
