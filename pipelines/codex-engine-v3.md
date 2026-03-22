@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: phase2_complete
 priority: medium
 version: codex-engine-v3
 spec_file: machinelearning/snn_applied_finance/specs/codex-engine-v3_spec.yaml
@@ -40,9 +40,34 @@ _Architect designs → Critic reviews → Builder implements_
 | builder_implementation | 2026-03-22 | builder | V3 implementation complete: 4 modules (MCP server 486L, materializer 351L, panes 333L, engine +179L). 3 new files + CODEX.codex + state/materialize_hashes.json. All 5 Critic FLAGs addressed: FLAG-1 SINGLE_OPS dispatch, FLAG-2 sync MCP, FLAG-3 sort mode persistence, FLAG-4 batch frontmatter reads, FLAG-5 materialize_affected insertion points. Commit b893ddd2. |
 | critic_code_review | 2026-03-22 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 5 design FLAGs resolved. MCP server, materializer, panes, engine mods all clean. No regressions. |
 | phase1_complete | 2026-03-22 | architect | Phase 1 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 5 design FLAGs resolved. V3 delivers: MCP server (486L, stdio JSON-RPC, 5 tools, codex:// URIs), materializer (351L, hash-based diffing, boot injection), panes (333L, dense/json/pretty tmux rendering), engine mods (+179L). Clean implementation, no regressions, 52/52 tests pass. |
+| architect_design | 2026-03-22 | unknown | In progress |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Scoped — Shael directed scope 2026-03-22_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-22 | architect | In progress |
+| phase2_architect_design | 2026-03-22 | architect | Design complete: codex_render.py — persistent foreground process holding full primitive tree in RAM. Key components: CodexTree (coordinate-indexed dataclass nodes), InotifyWatcher (ctypes, poll fallback), DiffEngine (anchor-based Δ/+/− tracking, bare e resets), SessionManager (UDS multi-agent), TestMode (dulwich overlay — dict overlay with read-through, commit merges to disk), ContextAssembler (replaces manual SOUL/AGENTS loading), DashboardServer (buffer for canvas/tmux). Single file, ~800-1000L est. 15 lines engine integration. All 3 Phase 1 FLAGs addressed. |
+| phase2_architect_design | 2026-03-22 | architect | Design complete |
+| phase2_architect_design | 2026-03-22 | ubuntu | Phase 2 architect design complete |
+| phase2_critic_design_review | 2026-03-22 | critic | In progress |
+| phase2_critic_design_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs (1 MED, 2 LOW). All Shael requirements met, all Phase 1 FLAGs resolved, all API refs verified. Builder can proceed. |
+| phase2_critic_design_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs |
+| phase2_critic_design_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs (1 MED, 2 LOW). All Shael requirements met, all Phase 1 FLAGs resolved, all API refs verified. |
+| phase2_builder_implementation | 2026-03-22 | builder | In progress |
+| phase2_builder_implementation | 2026-03-22 | builder | codex_render.py implemented (1573L single file). 6 subsystems: CodexTree (triple-indexed, 361 nodes in 0.35s), InotifyWatcher (ctypes inotify, 14 dirs, 100ms coalesce, StatPoller fallback), DiffEngine (anchor-based Δ/+/− tracking), SessionManager (UDS at ~/.belam_render.sock, JSON-line protocol, all commands verified), TestMode (dulwich overlay with flag file), ContextAssembler (replaces manual SOUL/AGENTS loading). Engine integration: 49 lines in codex_engine.py — boot hook tries render engine first, bare e resets anchor, test mode write intercept via flag file. All 3 critic FLAGs addressed. Commit 4b99ce87. |
+| phase2_builder_implementation | 2026-03-22 | builder | Implementation complete |
+| phase2_builder_implementation | 2026-03-22 | builder | codex_render.py implemented (1573L). All 3 critic FLAGs addressed. Commit 4b99ce87. |
+| phase2_critic_code_review | 2026-03-22 | critic | In progress |
+| phase2_critic_code_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs (1 MED, 2 LOW). All 6 Shael requirements met, all 3 design FLAGs resolved. FLAG-1 MED: _write_body_only missing test mode intercept (6-line fix). FLAG-2 LOW: reindex_namespace returns empty diffs. FLAG-3 LOW: R{n} placeholder in get_delta. |
+| phase2_critic_code_review | 2026-03-22 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 MED, 3 LOW). All 3 Phase 2 design FLAGs resolved (flag file test mode, context invalidation, reindex dispatch). All 3 Phase 1 code FLAGs resolved. 362 nodes in 0.35s, 14 inotify watches, all 11 UDS commands verified, context assembly 32K tokens. FLAG-1 MED: _write_body_only() missing test mode intercept. FLAG-2 LOW: reindex_namespace() returns empty diffs. FLAG-3 LOW: render_supermap() delegates to disk. FLAG-4 LOW: signal.signal() requires main thread. Review at: pipeline_builds/codex-engine-v3_phase2_critic_code_review.md |
+| phase2_critic_code_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs |
+| phase2_critic_code_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs (1 MED, 2 LOW) |
+| phase2_complete | 2026-03-22 | architect | Phase 2 COMPLETE. codex_render.py (1573L) delivers all 6 subsystems: CodexTree (362 nodes/0.35s), InotifyWatcher (ctypes+StatPoller fallback), DiffEngine (anchor-based Δ tracking), SessionManager (UDS, 11 commands), TestMode (dulwich overlay+flag file), ContextAssembler (~32K tokens). Engine integration +49L with graceful degradation chain. All 3 Phase 2 design FLAGs and all 3 Phase 1 code FLAGs resolved. Critic code review APPROVED 0 BLOCKs, 4 FLAGs (1 MED, 3 LOW) — all non-blocking. |
+| phase2_critic_code_review | 2026-03-22 | critic | APPROVED 0 BLOCKs 3 FLAGs (1 MED 2 LOW). Phase 2 complete. |
+| phase2_complete | 2026-03-22 | main | Phase 2 complete. Render engine built and approved. |
 
 ### Feedback — Shael (2026-03-22 02:42 UTC)
 

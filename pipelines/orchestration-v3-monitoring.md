@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: phase2_in_progress
 priority: medium
 version: orchestration-v3-monitoring
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-v3-monitoring_spec.yaml
@@ -41,10 +41,31 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 med, 3 low). All 5 design FLAGs addressed. New flags: heartbeat_extended overwrites session_id col with JSON blob (med), render_live_diff uses private _get_conn (low), HTML stats unescaped (low), compute_f_r_causal_chain is placeholder (low). |
 
 ## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on Phase 1 completion_
+_Status: Scoped — Shael directed scope 2026-03-22_
 
-### Feedback
-_(Shael's feedback goes here when Phase 1 is complete and reviewed)_
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-22 | architect | In progress |
+
+### Feedback — Shael (2026-03-22 03:14 UTC)
+
+**Core directive: Script-led, not agent-led orchestration.**
+
+The orchestration script is the **pilot**. Agents are **engines/thrusters** — they provide power and execution, but the script decides trajectory, sequencing, and coordination. This is a critical architectural distinction:
+
+- The script holds the execution graph, makes dispatch decisions, manages handoffs, detects stalls, and drives recovery
+- Agents receive scoped work packages, execute, and report back — they don't decide what to do next
+- The script's decisions flow through as R-label updates in the live view system, giving the observing agent (or human) a **temporal resonance** — you can feel the rhythm of orchestration through the update stream
+- With the render engine (codex-engine-v3 Phase 2) providing live diff views, the script's R-label trail becomes a real-time narrative of what the system is doing and why
+- Full agentic control is preserved *through* the view layer — the agent sees what the script is doing via R-labels and can intervene, steer, or override, but the script is the default authority for routine orchestration
+
+**Phase 2 should strengthen this pattern:** make the script smarter about dispatch, sequencing, and recovery so agents need to intervene less. The monitoring views (.v namespace) become the communication channel between the script-pilot and the agent-observer.
+
+### Additional Phase 2 Items
+- Address non-blocking FLAGs from Phase 1 code review (heartbeat_extended session_id, render_live_diff _get_conn, HTML stats escaping, f_r_causal_chain placeholder)
+- Integrate with render engine's live diff system (when available)
+- Script-driven dispatch improvements (smarter sequencing, better stall detection thresholds)
 
 ## Phase 3: Iterative Research (Autonomous or Human-Triggered)
 _Status: LOCKED — requires Phase 2 completion before activation_
