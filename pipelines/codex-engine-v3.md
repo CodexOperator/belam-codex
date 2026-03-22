@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: medium
 version: codex-engine-v3
 spec_file: machinelearning/snn_applied_finance/specs/codex-engine-v3_spec.yaml
@@ -9,6 +9,7 @@ agents: [architect, critic, builder]
 tags: [engine, codex, mcp, v3]
 project: multi-agent-infrastructure
 started: 2026-03-22
+archived: 2026-03-22
 ---
 
 # Implementation Pipeline: CODEX-ENGINE-V3
