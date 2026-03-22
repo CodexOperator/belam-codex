@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, pipeline:codex-layer-context-injection, stage:pipeline_created, codex-layer]
 source: "session"
 content: "Codex layer context injection pipeline launched — Option C: 0 tokens from workspace files until codex layer pipes compressed data. 3 deliverables: dense legend (~430B), bootstrap hook stub replacement, before_prompt_build plugin. Architect dispatched. Two follow-on tasks created: output-codec and symbolic-dispatch."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

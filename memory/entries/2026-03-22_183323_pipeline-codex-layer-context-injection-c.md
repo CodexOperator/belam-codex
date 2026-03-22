@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:belam-main, pipeline:codex-layer-context-injection, stage:pipeline_created]
 source: "session"
 content: "Pipeline codex-layer-context-injection: completed pipeline_created. Pipeline created: Dense legend + bootstrap hook stub replacement + before_prompt_build plugin — Option C codex layer context injection"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
