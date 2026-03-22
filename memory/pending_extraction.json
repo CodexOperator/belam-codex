@@ -1,12 +1,15 @@
 {
   "status": "complete",
-  "session": "b8a4b4a1-9450-400c-843f-40352a3a8eea",
+  "session": "461ae97d-cc61-4e1c-a5ca-a113215661da",
   "instance": "main",
   "date": "2026-03-22",
-  "completed_at": "2026-03-22T02:18:00Z",
+  "completed_at": "2026-03-22T02:31:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-22_021729_engine-v2-temporal-overlay-phase-2-compl.md",
-    "memory/entries/2026-03-22_021737_orch-v3-monitoring-suite-phase-1-complet.md",
-    "lessons/orchestration-dispatch-payload-spawn-relay.md"
+    "memory/entries/2026-03-22_023127_fixed-pipeline-context-plugin-state-sync.md",
+    "memory/entries/2026-03-22_023131_retired-pipeline-context-plugin-renamed.md",
+    "memory/entries/2026-03-22_023136_heartbeat-found-codex-engine-v3-architec.md",
+    "lessons/pipeline-state-json-not-synced-on-archive.md",
+    "lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md",
+    "decisions/pipeline-context-plugin-retired-supermap-sufficient.md"
   ]
 }
