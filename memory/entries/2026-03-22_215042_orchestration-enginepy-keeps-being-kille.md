@@ -6,7 +6,7 @@ importance: 2
 tags: [instance:main, orchestration, heartbeat, sigterm]
 source: "session"
 content: "orchestration_engine.py keeps being killed by SIGTERM before completing — happened at both 21:02 UTC and 21:20 UTC heartbeats. Also handoff parse_errors on codex-layer-context-injection with builder and architect agents needing re-dispatch. Underlying script timeout/resource issue needs investigation."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

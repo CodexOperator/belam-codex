@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, codex-engine, tasks, legendary-map]
 source: "session"
 content: "Created two new tasks: (1) codex-engine-v3-legendary-map.md — Phase 3 of codex-engine-v3 pipeline to implement LM namespace on supermap; (2) build-codex-layer-v1.md — unified task rolling in codex-layer-output-codec + codex-layer-symbolic-dispatch + new interceptor/guardrails component. Output-codec and symbolic-dispatch tasks marked superseded."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
