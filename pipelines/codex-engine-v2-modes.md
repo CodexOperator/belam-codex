@@ -2,6 +2,7 @@
 primitive: pipeline
 status: phase1_complete
 priority: high
+type: infrastructure
 version: codex-engine-v2-modes
 spec_file: machinelearning/snn_applied_finance/specs/codex-engine-v2-modes_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v2-modes.ipynb

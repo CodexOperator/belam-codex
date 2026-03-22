@@ -852,6 +852,11 @@ def check_analysis_eligible(dry_run: bool = False) -> list[str]:
         version = p['version']
         status = p['status']
         pending = p['pending_action']
+        pipeline_type = p['frontmatter'].get('type', 'research')
+
+        # Skip infrastructure pipelines — they don't have experiment/analysis phases
+        if pipeline_type == 'infrastructure':
+            continue
 
         # Must be at experiment_complete
         if status != 'experiment_complete' and pending != 'local_experiment_complete':
@@ -951,6 +956,11 @@ def check_experiment_eligible(dry_run: bool = False) -> list[str]:
         version = p['version']
         pending = p['pending_action']
         status = p['status']
+        pipeline_type = p['frontmatter'].get('type', 'research')
+
+        # Skip infrastructure pipelines — they don't have experiments
+        if pipeline_type == 'infrastructure':
+            continue
 
         # Must be at phase1_complete
         if pending != 'phase1_complete' and status != 'phase1_complete':

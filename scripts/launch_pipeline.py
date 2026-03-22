@@ -112,7 +112,8 @@ def check_archivable(version):
         print(f"⏳ {version} has pending/approved Phase 3 proposals — cannot archive yet")
         return False
     
-    archivable_statuses = ('phase1_complete', 'phase2_complete', 'phase3_complete')
+    archivable_statuses = ('phase1_complete', 'phase2_complete', 'phase3_complete',
+                            'local_analysis_complete')
     if status and any(s in status for s in archivable_statuses):
         print(f"✅ {version} is eligible for archival (status: {status}, no pending iterations)")
         return True
@@ -348,7 +349,8 @@ def link_tasks_to_pipeline(pipeline_version):
     return linked
 
 
-def create_pipeline(version, description, priority='high', tags=None, project='snn-applied-finance'):
+def create_pipeline(version, description, priority='high', tags=None, project='snn-applied-finance',
+                    pipeline_type='research'):
     """Create a new pipeline instance."""
     pf = PIPELINES_DIR / f'{version}.md'
     if pf.exists():
@@ -358,27 +360,46 @@ def create_pipeline(version, description, priority='high', tags=None, project='s
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     tags_str = f"[{', '.join(tags)}]" if tags else '[snn, finance]'
     
+    is_infra = pipeline_type == 'infrastructure'
+    
+    # Build frontmatter
+    fm_lines = [
+        '---',
+        'primitive: pipeline',
+        'status: phase1_design',
+        f'priority: {priority}',
+        f'type: {pipeline_type}',
+        f'version: {version}',
+    ]
+    if not is_infra:
+        fm_lines.append(f'spec_file: machinelearning/snn_applied_finance/specs/{version}_spec.yaml')
+        fm_lines.append(f'output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb')
+    fm_lines.extend([
+        'agents: [architect, critic, builder]',
+        f'tags: {tags_str}',
+        f'project: {project}',
+        f'started: {now}',
+        '---',
+    ])
+    
+    # Build body
+    if is_infra:
+        notebook_section = """## Type
+Infrastructure pipeline — no notebook, no experiment. Deliverables are code, hooks, plugins, and config files.
+At phase1_complete, this pipeline is ready for human review and archival (no experiment/analysis phases)."""
+    else:
+        notebook_section = f"""## Notebook Convention
+**All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis."""
+    
     # Create pipeline instance
-    content = f"""---
-primitive: pipeline
-status: phase1_design
-priority: {priority}
-version: {version}
-spec_file: machinelearning/snn_applied_finance/specs/{version}_spec.yaml
-output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb
-agents: [architect, critic, builder]
-tags: {tags_str}
-project: {project}
-started: {now}
----
+    content = '\n'.join(fm_lines) + f"""
 
 # Implementation Pipeline: {version.upper()}
 
 ## Description
 {description}
 
-## Notebook Convention
-**All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
+{notebook_section}
 
 ## Phase 1: Autonomous Build
 _Architect designs → Critic reviews → Builder implements_
@@ -460,6 +481,8 @@ def main():
     parser.add_argument('--desc', '-d', help='Pipeline description')
     parser.add_argument('--priority', '-p', default='high', choices=['critical', 'high', 'medium', 'low'])
     parser.add_argument('--tags', '-t', help='Comma-separated tags')
+    parser.add_argument('--type', choices=['research', 'infrastructure'], default='research',
+                        help='Pipeline type: research (has experiments/analysis) or infrastructure (code-only)')
     parser.add_argument('--project', default='snn-applied-finance')
     parser.add_argument('--list', '-l', action='store_true', help='List all pipelines')
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
@@ -491,7 +514,8 @@ def main():
         sys.exit(1)
     
     tags = [t.strip() for t in args.tags.split(',')] if args.tags else None
-    pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project)
+    pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project,
+                         pipeline_type=args.type)
     
     if args.kickoff or args.start:
         print(f"\n🚀 Kicking off via orchestrator...")

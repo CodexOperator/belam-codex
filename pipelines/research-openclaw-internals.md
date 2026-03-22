@@ -1,7 +1,8 @@
 ---
 primitive: pipeline
-status: local_analysis_complete
+status: archived
 priority: high
+type: infrastructure
 version: research-openclaw-internals
 spec_file: machinelearning/snn_applied_finance/specs/research-openclaw-internals_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_research-openclaw-internals.ipynb
@@ -9,6 +10,7 @@ agents: [architect, critic, builder]
 tags: [research, openclaw]
 project: multi-agent-infrastructure
 started: 2026-03-21
+archived: 2026-03-22
 ---
 
 # Implementation Pipeline: RESEARCH-OPENCLAW-INTERNALS

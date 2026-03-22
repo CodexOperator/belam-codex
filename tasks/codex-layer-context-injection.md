@@ -1,8 +1,10 @@
 ---
 primitive: task
-status: in_pipeline
+status: archived
 priority: critical
 created: 2026-03-22
+archived: 2026-03-22
+archive_reason: pipeline codex-layer-context-injection archived
 owner: belam
 depends_on: []
 upstream: []

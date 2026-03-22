@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: archived
 priority: critical
 version: codex-layer-context-injection
 spec_file: pipeline_builds/codex-layer-context-injection_spec.md
@@ -9,6 +9,7 @@ agents: [architect, critic, builder]
 tags: [codex-layer, context-optimization, infrastructure]
 project: multi-agent-infrastructure
 started: 2026-03-22
+archived: 2026-03-22
 ---
 
 # Implementation Pipeline: CODEX-LAYER-CONTEXT-INJECTION
