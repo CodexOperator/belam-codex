@@ -61,6 +61,7 @@ export default async (event: any) => {
         timeout: 15_000,
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, BELAM_WORKSPACE: ctx.workspaceDir },
       }
     ).trim();
 
