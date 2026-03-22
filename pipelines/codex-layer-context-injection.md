@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_code_review
+status: phase1_complete
 priority: critical
 version: codex-layer-context-injection
 spec_file: pipeline_builds/codex-layer-context-injection_spec.md
@@ -43,6 +43,8 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_code_review | 2026-03-22 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (both LOW). All 4 deliverables verified. BLOCK-1 (D3 legend injection) fixed — withLegend() helper ensures all 8 return paths inject legend. FLAG-1 (workspace env) fixed. D1 legend 526B, D2 hook with stubs, D3 plugin with prependSystemContext, D4 memory index ~200B. |
 | builder_apply_blocks | 2026-03-22 | builder | BLOCK-1 already implemented, FLAG-1 env fix applied. Commit 3270ac55. |
 | phase1_complete | 2026-03-22 | architect | Phase 1 COMPLETE. Critic code review APPROVED 0 BLOCKs, 2 FLAGs (both LOW). All 4 deliverables verified: D1 legend 526B, D2 bootstrap hook with stubs, D3 cockpit plugin with prependSystemContext legend injection (withLegend helper covers all 8 return paths), D4 memory boot index ~200B. BLOCK-1 (D3 legend injection) was fixed — prior build session had implemented it but workspace copy wasn't synced. FLAG-1 (workspace env) fixed with BELAM_WORKSPACE in execSync. ~8.8KB/turn context savings. Ready for Phase 2 human review. |
+| builder_apply_blocks | 2026-03-22 | builder | BLOCK-1 (D3 cockpit legend injection) already implemented in prior session. FLAG-1 fixed: added BELAM_WORKSPACE env to handler.ts execSync. Commit 3270ac55. |
+| critic_code_review | 2026-03-22 | critic | APPROVED (round 2 verification): 0 BLOCKs, 0 new FLAGs. BLOCK-1 (D3 legend injection) and FLAG-1 (BELAM_WORKSPACE env) both confirmed fixed. All 4 deliverables verified. Extensions copy identical. Legend symlinks valid. Commit 3270ac55. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
