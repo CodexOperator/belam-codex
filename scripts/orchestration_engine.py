@@ -533,20 +533,39 @@ This is a FRESH session. You have no prior context except your memory files.
    - Write key decisions, patterns, and lessons to your `memory/$(date -u +%Y-%m-%d).md`
    - Include: what worked, what didn't, architectural insights, things to remember
    - This is your continuity — next session starts fresh, your memory files are all you keep
-   - **Create memory primitives in the MAIN workspace** for significant work:
-     ```bash
-     # Log a memory entry into the main workspace index (you have full context — use it)
-     python3 /home/ubuntu/.openclaw/workspace/scripts/log_memory.py \\
-       --workspace /home/ubuntu/.openclaw/workspace \\
-       --importance 3 \\
-       --tags "instance:{agent},pipeline:{version},stage:{stage}" \\
-       "Brief description of what was accomplished"
+   - **Create primitives in the MAIN workspace** for significant work:
 
-     # If you discovered a reusable lesson (slug = short-hyphenated-name):
-     python3 /home/ubuntu/.openclaw/workspace/scripts/create_primitive.py lesson <slug> \\
-       --tags "instance:{agent},<relevant_tags>" \\
-       --set "status=active"
-     ```
+5. **MANDATORY — Create primitives before completing your stage:**
+
+   **Memory entries** (always — log what happened):
+   ```bash
+   python3 /home/ubuntu/.openclaw/workspace/scripts/log_memory.py \\
+     --workspace /home/ubuntu/.openclaw/workspace \\
+     --importance 3 \\
+     --tags "instance:{agent},pipeline:{version},stage:{stage}" \\
+     "Brief description of what was accomplished"
+   ```
+
+   **Lessons** (when you discover reusable patterns, mistakes to avoid, or surprising findings):
+   ```bash
+   python3 /home/ubuntu/.openclaw/workspace/scripts/create_primitive.py lesson <slug> \\
+     --workspace /home/ubuntu/.openclaw/workspace \\
+     --tags "instance:{agent},pipeline:{version}" \\
+     --set "status=active" \\
+     --set "importance=high"
+   # Then edit the body with the lesson content using Edit tool
+   ```
+
+   **Decisions** (when you make architectural choices, technology selections, or scope boundaries):
+   ```bash
+   python3 /home/ubuntu/.openclaw/workspace/scripts/create_primitive.py decision <slug> \\
+     --workspace /home/ubuntu/.openclaw/workspace \\
+     --tags "instance:{agent},pipeline:{version}" \\
+     --set "status=accepted"
+   # Then edit the body with: context, options considered, rationale, consequences
+   ```
+
+   **Create at least 1 memory entry per stage. Create lessons and decisions whenever your work produces reusable knowledge or makes a choice that future agents should know about.**
 
 **Read these files before starting:**
 {files_list}
