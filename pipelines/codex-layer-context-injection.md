@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_build
+status: phase1_code_review
 priority: critical
 version: codex-layer-context-injection
 spec_file: pipeline_builds/codex-layer-context-injection_spec.md
@@ -31,6 +31,10 @@ _Architect designs → Critic reviews → Builder implements_
 | architect_design | 2026-03-22 | architect | Design complete: dense legend + bootstrap stubs + cockpit plugin injection. ~105 lines, 4 files, 4 open questions for critic. |
 | architect_design | 2026-03-22 | architect | Design complete |
 | critic_design_review | 2026-03-22 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (dual execSync latency MED, agentId availability LOW), 4 suggestions. Design is clean — leverages existing hook/plugin architecture, 3x context reduction (~16KB→5KB), thorough degradation chain. |
+| builder_implementation | 2026-03-22 | builder | 4 deliverables implemented: codex_legend.md (538B), --memory-boot-index (245B output), supermap-boot hook rewrite (stub replacement, FLAG-1 bundled exec, FLAG-2 agentId fallback), cockpit plugin legend injection via prependSystemContext. All 4 Critic suggestions addressed (S-1 Violet flame, S-2 restart doc, S-3 dates in index, S-4 symlink health). Symlinks valid across all workspaces. Hook needs config re-enable after review. ~8.8KB/turn savings. |
+| builder_implementation | 2026-03-22 | builder | 4 deliverables: legend 538B, --memory-boot-index 245B, hook rewrite (FLAG-1/2 addressed), cockpit legend injection. All S-1 to S-4 addressed. Hook needs config enable after review. ~8.8KB/turn saved. |
+| builder_implementation | 2026-03-22 | builder | Implementation complete: 4 deliverables, all FLAGs and suggestions addressed |
+| builder_implementation | 2026-03-22 | builder | Implementation complete: 4 deliverables, all FLAGs and suggestions addressed |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
