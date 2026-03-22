@@ -1,15 +1,18 @@
 {
   "status": "complete",
-  "session": "f0cfcc6e-b391-49ca-8eb5-31e947c0a30d",
+  "session": "c0efb3f1-12eb-454d-9c58-786b68bec6e2",
   "instance": "main",
   "date": "2026-03-22",
-  "completed_at": "2026-03-22T05:24:00Z",
+  "completed_at": "2026-03-22T20:31:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-22_052412_heartbeat-sweep-archived-both-completed.md",
-    "memory/entries/2026-03-22_052426_r-cli-created-at-localbinr-as-the-human.md",
-    "decisions/r-command-render-layer-cli.md",
-    "decisions/render-engine-as-default-context-layer.md",
-    "lessons/render-engine-agents-are-in-it-not-calling-it.md"
+    "memory/entries/2026-03-22_202947_heartbeat-sweep-at-1328-utc-3-active-pip.md",
+    "memory/entries/2026-03-22_202956_shael-raised-deep-architecture-questions.md",
+    "memory/entries/2026-03-22_203008_design-conversation-produced-concrete-pl.md",
+    "lessons/three-context-path-redundancy.md",
+    "lessons/soul-condensation-preserves-latent-nuance.md",
+    "lessons/coordinate-dispatch-without-r-prefix.md",
+    "decisions/output-codec-coordinate-compression.md",
+    "decisions/symbolic-dispatch-architecture.md"
   ],
-  "last_run": "2026-03-22T05:24:00Z"
+  "last_run": "2026-03-22T20:31:00Z"
 }
