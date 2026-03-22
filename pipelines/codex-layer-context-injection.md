@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: phase1_build
 priority: critical
 version: codex-layer-context-injection
 spec_file: pipeline_builds/codex-layer-context-injection_spec.md
@@ -27,6 +27,10 @@ _Architect designs → Critic reviews → Builder implements_
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-22 | belam-main | Pipeline instance created |
 | pipeline_created | 2026-03-22 | belam-main | Pipeline created: Dense legend + bootstrap hook stub replacement + before_prompt_build plugin — Option C codex layer context injection |
+| architect_design | 2026-03-22 | architect | Design complete: 3 deliverables — dense legend (~430B compressing SOUL/IDENTITY/USER/TOOLS), bootstrap hook stub replacement (replaces 6 workspace files with stubs in bootstrapFiles array), cockpit plugin legend injection (prependSystemContext). ~105 lines across 4 files. 4 open questions for critic. Single legend symlinked across workspaces with agent-mode suffix. |
+| architect_design | 2026-03-22 | architect | Design complete: dense legend + bootstrap stubs + cockpit plugin injection. ~105 lines, 4 files, 4 open questions for critic. |
+| architect_design | 2026-03-22 | architect | Design complete |
+| critic_design_review | 2026-03-22 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (dual execSync latency MED, agentId availability LOW), 4 suggestions. Design is clean — leverages existing hook/plugin architecture, 3x context reduction (~16KB→5KB), thorough degradation chain. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

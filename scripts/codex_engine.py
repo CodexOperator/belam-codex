@@ -4238,6 +4238,60 @@ def _parse_since(since_str):
     return n * 7 if unit == 'w' else n
 
 
+def _print_memory_boot_index():
+    """Print a compressed memory boot index (~150-300B) for bootstrap context.
+
+    Reads today and yesterday's daily memory files, counts entries,
+    extracts the last 2-3 event summaries from ## headers.
+    Includes dates in output (S-3: eliminates ambiguity about "today").
+    """
+    now = datetime.datetime.now(datetime.timezone.utc)
+    today_str = now.strftime('%Y-%m-%d')
+    yesterday_str = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+    memory_dir = WORKSPACE / 'memory'
+
+    def _count_and_recent(date_str, max_recent=3):
+        """Count ## entries and extract recent summary lines from a daily file."""
+        fp = memory_dir / f'{date_str}.md'
+        if not fp.exists():
+            return 0, []
+        try:
+            text = fp.read_text(encoding='utf-8', errors='replace')
+        except Exception:
+            return 0, []
+        lines = text.split('\n')
+        # Find all ## header positions (each is a memory entry)
+        header_positions = []
+        for idx, line in enumerate(lines):
+            if line.startswith('## ') and re.match(r'^## \d{4}-\d{2}-\d{2}', line):
+                header_positions.append(idx)
+        count = len(header_positions)
+        # Extract first non-empty content line after the last N headers
+        recent = []
+        for pos in header_positions[-max_recent:]:
+            for j in range(pos + 1, min(pos + 6, len(lines))):
+                content_line = lines[j].strip()
+                # Skip empty lines, horizontal rules, metadata lines
+                if not content_line or content_line.startswith('---') or content_line.startswith('*'):
+                    continue
+                if len(content_line) > 60:
+                    content_line = content_line[:57] + '...'
+                recent.append(content_line)
+                break
+        return count, recent
+
+    today_count, today_recent = _count_and_recent(today_str, 3)
+    yesterday_count, _ = _count_and_recent(yesterday_str, 0)
+
+    # Build compact output
+    parts = [f'Memory: {today_str} ({today_count} entries), {yesterday_str} ({yesterday_count}).']
+    if today_recent:
+        parts.append('Recent: ' + '; '.join(today_recent))
+
+    print(' '.join(parts))
+
+
 def main(args=None):
     """Main entry point. Parses args, renders, tracks, prints."""
     if args is None:
@@ -4306,6 +4360,11 @@ def main(args=None):
     if '--supermap' in args:
         print(_render_sm())
         _restore_shuffle()
+        return
+
+    # --memory-boot-index: compressed memory summary for bootstrap context (~150-300B)
+    if '--memory-boot-index' in args:
+        _print_memory_boot_index()
         return
 
     # --boot: inject supermap into AGENTS.md via render engine → materializer → inline fallback
