@@ -1,14 +1,12 @@
 {
   "status": "complete",
-  "session": "4724ea9b-9439-4994-a30f-c1fd65161578",
+  "session": "b8a4b4a1-9450-400c-843f-40352a3a8eea",
   "instance": "main",
-  "date": "2026-03-21",
-  "completed_at": "2026-03-21T20:29:00Z",
+  "date": "2026-03-22",
+  "completed_at": "2026-03-22T02:18:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-21_202822_e3-namespace-registration-design-updated.md",
-    "memory/entries/2026-03-21_202828_2-stuck-handoffs-discovered-in-orchestra.md",
-    "lessons/e3-chains-e2-after-namespace-registration.md",
-    "lessons/boot-context-pipeline-status-can-be-stale.md",
-    "decisions/e3-e2-namespace-chain-architecture.md"
+    "memory/entries/2026-03-22_021729_engine-v2-temporal-overlay-phase-2-compl.md",
+    "memory/entries/2026-03-22_021737_orch-v3-monitoring-suite-phase-1-complet.md",
+    "lessons/orchestration-dispatch-payload-spawn-relay.md"
   ]
 }
