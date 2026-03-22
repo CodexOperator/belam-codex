@@ -1,6 +1,7 @@
 ---
 primitive: task
-status: open
+status: superseded
+superseded_by: build-codex-layer-v1
 priority: high
 created: 2026-03-22
 owner: belam

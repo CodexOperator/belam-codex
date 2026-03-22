@@ -1,0 +1,15 @@
+{
+  "version": "codex-layer-context-injection",
+  "completed_stage": "critic_code_review",
+  "next_stage": "builder_apply_blocks",
+  "next_agent": "builder",
+  "timestamp": "2026-03-22T21:10:15.055882+00:00",
+  "pipeline_session_id": "8723924f-c4eb-43e2-851a-7e0e95d3721f",
+  "wake_result": {
+    "success": false,
+    "status": "parse_error",
+    "session_id": "",
+    "response_preview": "[plugins] [agent-end-telemetry] Registered agent_end telemetry hook\n[plugins] [agent-turn-logger] Re"
+  },
+  "verified": false
+}

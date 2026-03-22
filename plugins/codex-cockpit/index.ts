@@ -1,176 +1,280 @@
 /**
- * Codex Cockpit Plugin
+ * Codex Cockpit Plugin — Render Engine Edition
  *
- * Diff-aware supermap injection via before_prompt_build.
+ * Connects to the Codex Render Engine daemon via UDS for zero-latency
+ * context injection on every agent turn via before_prompt_build.
  *
- * Injection strategy — R-labels only:
- *   - First turn (or post-compaction): Full supermap render (R1, R2, ...)
- *   - Subsequent turns, nothing changed: Nothing injected
- *   - Subsequent turns, coordinates shifted: R-label diff (added/removed/changed coords)
+ * Strategy:
+ *   - Render engine running → UDS query for assembled context + diff
+ *   - Render engine down → fallback to codex_engine.py --supermap (cold exec)
+ *   - Graceful degradation at every layer
  *
- * R-labels track the supermap landscape — coordinates appearing, disappearing,
- * status/priority shifting. This is the soul instance's natural view.
+ * What agents see:
+ *   - First turn: Full assembled context (supermap + orientation)
+ *   - Subsequent turns: R-label diff only (what coordinates shifted)
+ *   - Post-compaction: Full re-render (history may be gone)
  *
- * F-labels (field-level primitive mutations) are NOT injected here. Those belong
- * to the orchestration layer and get injected by pipeline_orchestrate.py when
- * handing context to builder/architect/critic agents.
- *
- * The plugin is harness-aware: ctx.agentId determines injection depth.
- * Currently all agents get R-labels. F-label injection is a future extension
- * point for pipeline sub-agents.
+ * R-labels = coordinate landscape changes (add/remove/shift).
+ * F-labels = field-level mutations, injected by orchestration engine
+ * in pipeline dispatch payloads — NOT this plugin's responsibility.
  */
 
 import { execSync } from "child_process";
+import { createConnection } from "net";
+import { readFileSync } from "fs";
+import { basename } from "path";
+import { homedir } from "os";
+import { join } from "path";
 
-// ── Session state (persists across turns within gateway lifecycle) ──
+const SOCKET_PATH = join(homedir(), ".belam_render.sock");
+
+// ── Session state ──
 let lastCoords: Map<string, string> | null = null;
 let renderCount = 0;
+let lastAnchorTime = 0;
 
 /**
- * Parse the supermap into a coordinate → display-text map.
- * Keys are coordinate ids (t1, d5, p1, m103, mw1, md2, etc.)
- * and section headers (_s:p, _s:t, _s:m).
- * Values are the trimmed display text after the coordinate.
+ * Send a JSON command to the render engine via UDS.
+ * Returns parsed response or null on failure.
+ */
+function renderQuery(cmd: Record<string, any>, timeoutMs = 5000): Promise<Record<string, any> | null> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      sock.destroy();
+      resolve(null);
+    }, timeoutMs);
+
+    const sock = createConnection(SOCKET_PATH);
+    let buf = "";
+
+    sock.on("connect", () => {
+      sock.write(JSON.stringify(cmd) + "\n");
+    });
+
+    sock.on("data", (data) => {
+      buf += data.toString();
+      const nl = buf.indexOf("\n");
+      if (nl >= 0) {
+        clearTimeout(timer);
+        try {
+          resolve(JSON.parse(buf.slice(0, nl)));
+        } catch {
+          resolve(null);
+        }
+        sock.destroy();
+      }
+    });
+
+    sock.on("error", () => {
+      clearTimeout(timer);
+      resolve(null);
+    });
+  });
+}
+
+/**
+ * Parse supermap text into coordinate → display-text map.
  */
 function parseCoords(raw: string): Map<string, string> {
   const map = new Map<string, string>();
   for (const line of raw.split("\n")) {
-    // Coordinate lines: "│  ╶─ t1    build-codex-engine  complete/critical  ←d26"
     const cm = line.match(/╶─\s+([a-z]+\d+)\s+(.*)/);
-    if (cm) {
-      map.set(cm[1], cm[2].trim());
-      continue;
-    }
-    // Section headers: "╶─ t   tasks (19)"
+    if (cm) { map.set(cm[1], cm[2].trim()); continue; }
     const sm = line.match(/╶─\s+([a-z])\s+(.*)/);
-    if (sm) {
-      map.set(`_s:${sm[1]}`, sm[2].trim());
-    }
+    if (sm) { map.set(`_s:${sm[1]}`, sm[2].trim()); }
   }
   return map;
 }
 
 /**
  * Compute R-label diff between two coordinate maps.
- * Returns formatted diff string or null if nothing changed.
  */
-function rDiff(
-  prev: Map<string, string>,
-  curr: Map<string, string>
-): string | null {
+function rDiff(prev: Map<string, string>, curr: Map<string, string>): string | null {
   const lines: string[] = [];
-
-  // Changed or added
   for (const [coord, text] of curr) {
-    if (coord.startsWith("_s:")) continue; // section headers tracked separately
+    if (coord.startsWith("_s:")) continue;
     const old = prev.get(coord);
-    if (!old) {
-      lines.push(`  + ${coord}  ${text}`);
-    } else if (old !== text) {
-      lines.push(`  Δ ${coord}  ${text}`);
-    }
+    if (!old) lines.push(`  + ${coord}  ${text}`);
+    else if (old !== text) lines.push(`  Δ ${coord}  ${text}`);
   }
-
-  // Removed
   for (const [coord] of prev) {
     if (coord.startsWith("_s:")) continue;
-    if (!curr.has(coord)) {
-      lines.push(`  − ${coord}`);
-    }
+    if (!curr.has(coord)) lines.push(`  − ${coord}`);
   }
-
-  // Section count changes (e.g. "tasks (19)" → "tasks (20)")
   for (const [key, text] of curr) {
     if (!key.startsWith("_s:")) continue;
     const old = prev.get(key);
-    if (old && old !== text) {
-      lines.push(`  § ${key.slice(3)}  ${text}`);
-    }
+    if (old && old !== text) lines.push(`  § ${key.slice(3)}  ${text}`);
   }
-
   return lines.length > 0 ? lines.join("\n") : null;
+}
+
+/**
+ * Fallback: exec codex_engine.py --supermap (cold path).
+ */
+function fallbackSupermap(cwd: string): string | null {
+  try {
+    return execSync("python3 scripts/codex_engine.py --supermap", {
+      cwd, timeout: 10_000, encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    }).trim() || null;
+  } catch { return null; }
 }
 
 export default function register(api: any) {
   const workspaceDir = api.config?.workspace?.dir;
 
-  // After compaction the full supermap in history may be gone — force full re-render
+  // ── Legend injection: read dense legend once at plugin load ──
+  // Legend changes require gateway restart to take effect (S-2 documented).
+  let legend: string | null = null;
+  if (workspaceDir) {
+    const legendPath = join(workspaceDir, "codex_legend.md");
+    try {
+      legend = readFileSync(legendPath, "utf-8").trim();
+    } catch {
+      // Legend file missing — degrade gracefully, raw workspace files still work
+    }
+  }
+
   api.on("after_compaction", () => {
     lastCoords = null;
+    lastAnchorTime = 0;
   });
 
   api.on("before_prompt_build", async (_event: any, ctx: any) => {
     const cwd = ctx?.workspaceDir || workspaceDir;
     if (!cwd) return;
 
-    // ── Harness awareness ──
-    // Cockpit (main/coordinator): R-labels only — landscape view
-    // Pipeline agents (architect/critic/builder): receive both R-labels
-    // (from this plugin) AND F-labels (from orchestration engine via
-    // dispatch payloads and handoff context). F-labels flow between
-    // pipeline agents through the orchestration engine, not this plugin.
-    // const agentId = ctx?.agentId ?? "main";
-
-    try {
-      const output = execSync("python3 scripts/codex_engine.py --supermap", {
-        cwd,
-        timeout: 10_000,
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-      }).trim();
-
-      if (!output) return;
-
-      const coords = parseCoords(output);
-
-      // ── First turn or post-compaction: full R-label render ──
-      if (!lastCoords) {
-        lastCoords = coords;
-        renderCount++;
-
-        return {
-          appendSystemContext: [
-            `# CODEX.codex — Live Supermap R${renderCount} (auto-injected by codex-cockpit)`,
-            "",
-            "Navigate with coordinates: `t1` (view task), `d5` (view decision), `m103` (view memory entry).",
-            "Edit with: `e1 t1 status active` (set field), `e2 l \"new lesson\"` (create).",
-            "Modes: `e0` (orchestrate), `e1` (edit), `e2` (create), `e3` (extend).",
-            "",
-            "```",
-            output,
-            "```",
-          ].join("\n"),
-        };
+    // ── Build legend prepend context ──
+    let prependCtx: string | undefined;
+    if (legend) {
+      // Add agent mode suffix if not main workspace
+      const agentId = ctx?.agentId ?? "";
+      let resolvedAgent = agentId;
+      if (!resolvedAgent && cwd) {
+        const dirName = basename(cwd);
+        const m = dirName.match(/^workspace-(.+)$/);
+        resolvedAgent = m ? m[1] : "";
       }
-
-      // ── Subsequent turns: R-label diff ──
-      const diff = rDiff(lastCoords, coords);
-      lastCoords = coords;
-
-      if (!diff) return; // Nothing changed — inject nothing
-
-      // If diff is huge (>60% of coords changed), full re-render is cheaper
-      const changedCount = diff.split("\n").length;
-      if (changedCount > coords.size * 0.6) {
-        renderCount++;
-        return {
-          appendSystemContext: [
-            `# CODEX.codex R${renderCount} (full re-render — large delta)`,
-            "",
-            "```",
-            output,
-            "```",
-          ].join("\n"),
-        };
-      }
-
-      // Small delta — R-label diff only
-      renderCount++;
-      return {
-        appendSystemContext: `CODEX.codex R${renderCount}Δ (${changedCount} coord${changedCount !== 1 ? "s" : ""} shifted)\n${diff}`,
-      };
-    } catch {
-      return;
+      const modeSuffix = resolvedAgent && resolvedAgent !== "main"
+        ? `\nMode: ${resolvedAgent}`
+        : "";
+      prependCtx = legend + modeSuffix;
     }
+
+    // Helper: merge legend into result
+    const withLegend = (result?: Record<string, any>) => {
+      const out: Record<string, any> = {};
+      if (prependCtx) out.prependSystemContext = prependCtx;
+      if (result?.appendSystemContext) out.appendSystemContext = result.appendSystemContext;
+      return Object.keys(out).length > 0 ? out : undefined;
+    };
+
+    // ── Try render engine first (hot path: ~5ms UDS round-trip) ──
+    // Use 'supermap' command (not 'context' — that includes SOUL/IDENTITY/memory,
+    // which are already injected by OpenClaw's own context system)
+    const resp = await renderQuery({ cmd: "supermap" });
+
+    if (resp?.ok && resp.content) {
+      const supermap = resp.content as string;
+
+      // Also grab diff since our last anchor for primitive-level changes
+      let diffText: string | null = null;
+      if (lastAnchorTime > 0) {
+        const diffResp = await renderQuery({ cmd: "diff_since", timestamp: lastAnchorTime });
+        if (diffResp?.ok && diffResp.delta) {
+          diffText = diffResp.delta as string;
+        }
+      }
+      lastAnchorTime = Date.now() / 1000;
+
+      // First turn or post-compaction: full supermap
+      if (!lastCoords) {
+        lastCoords = parseCoords(supermap);
+        renderCount++;
+        return withLegend({
+          appendSystemContext: [
+            `<!-- CODEX R${renderCount} — live render engine (${lastCoords.size} coords) -->`,
+            "",
+            "Navigate: `t1` `d5` `m103`. Edit: `e1 t1 status active`. Create: `e2 l \"title\"`.",
+            "Modes: `e0` orchestrate, `e1` edit, `e2` create, `e3` extend.",
+            "",
+            "```",
+            supermap,
+            "```",
+          ].join("\n"),
+        });
+      }
+
+      // Subsequent turns: R-label diff
+      const currCoords = parseCoords(supermap);
+      const rDiffText = rDiff(lastCoords, currCoords);
+      lastCoords = currCoords;
+
+      if (!rDiffText && !diffText) return withLegend(); // Nothing changed — still inject legend
+
+      renderCount++;
+      const parts: string[] = [];
+      if (rDiffText) parts.push(rDiffText);
+      if (diffText && diffText !== "(no changes)") parts.push(diffText);
+
+      const changedCount = (rDiffText?.split("\n").length ?? 0);
+
+      // Large delta → full re-render
+      if (changedCount > currCoords.size * 0.6) {
+        return withLegend({
+          appendSystemContext: [
+            `<!-- CODEX R${renderCount} — full re-render (large delta) -->`,
+            "```",
+            supermap,
+            "```",
+          ].join("\n"),
+        });
+      }
+
+      return withLegend({
+        appendSystemContext: `<!-- CODEX R${renderCount}Δ (${changedCount} shifted) -->\n${parts.join("\n")}`,
+      });
+    }
+
+    // ── Fallback: cold exec path (render engine not running) ──
+    const output = fallbackSupermap(cwd);
+    if (!output) return withLegend(); // No supermap — still inject legend if available
+
+    const coords = parseCoords(output);
+
+    if (!lastCoords) {
+      lastCoords = coords;
+      renderCount++;
+      return withLegend({
+        appendSystemContext: [
+          `# CODEX.codex — Supermap R${renderCount} (fallback — render engine not running)`,
+          "",
+          "Navigate: `t1` `d5` `m103`. Edit: `e1 t1 status active`. Create: `e2 l \"title\"`.",
+          "Modes: `e0` orchestrate, `e1` edit, `e2` create, `e3` extend.",
+          "",
+          "```",
+          output,
+          "```",
+        ].join("\n"),
+      });
+    }
+
+    const diff = rDiff(lastCoords, coords);
+    lastCoords = coords;
+    if (!diff) return withLegend(); // No diff — still inject legend
+
+    const changedCount = diff.split("\n").length;
+    if (changedCount > coords.size * 0.6) {
+      renderCount++;
+      return withLegend({
+        appendSystemContext: `# CODEX.codex R${renderCount} (full re-render)\n\`\`\`\n${output}\n\`\`\``,
+      });
+    }
+
+    renderCount++;
+    return withLegend({
+      appendSystemContext: `CODEX.codex R${renderCount}Δ (${changedCount} shifted)\n${diff}`,
+    });
   });
 }
