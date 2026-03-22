@@ -141,6 +141,17 @@ def archive_pipeline(version, force=False):
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     content = re.sub(r'^(started:.+)$', f'\\1\narchived: {now}', content, count=1, flags=re.MULTILINE)
     pf.write_text(content)
+    
+    # Also update state JSON so plugins (pipeline-context) see the archive
+    state_file = BUILDS_DIR / f'{version}_state.json'
+    if state_file.exists():
+        try:
+            state = json.loads(state_file.read_text())
+            state['status'] = 'archived'
+            state_file.write_text(json.dumps(state, indent=2))
+        except Exception:
+            pass  # Don't fail archive on state JSON issues
+    
     print(f"📦 {version} archived")
 
 
