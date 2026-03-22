@@ -1,0 +1,15 @@
+{
+  "version": "orchestration-v3-monitoring",
+  "completed_stage": "critic_code_review",
+  "next_stage": "phase1_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-21T21:56:03.006779+00:00",
+  "pipeline_session_id": "33f2528b-798c-4544-9237-3beb65be1af2",
+  "wake_result": {
+    "success": false,
+    "status": "parse_error",
+    "session_id": "",
+    "response_preview": "[plugins] [agent-end-telemetry] Registered agent_end telemetry hook\n[plugins] [agent-turn-logger] Re"
+  },
+  "verified": false
+}

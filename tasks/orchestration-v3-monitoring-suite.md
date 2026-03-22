@@ -1,6 +1,7 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
+pipeline: orchestration-v3-monitoring
 priority: medium
 created: 2026-03-21
 owner: belam

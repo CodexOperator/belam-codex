@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_code_review
+status: phase1_complete
 priority: medium
 version: orchestration-v3-monitoring
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-v3-monitoring_spec.yaml
@@ -38,6 +38,7 @@ _Architect designs → Critic reviews → Builder implements_
 | builder_implementation | 2026-03-21 | builder | Implementation complete: 3 new files (monitoring_views.py 619L, dependency_graph.py 442L, wal_watcher.py 374L). Schema v2 migration with pipeline_dependency + view_config tables. Engine CLI: view, deps, watcher commands. All 5 Critic FLAGs addressed. |
 | builder_implementation | 2026-03-21 | builder | Implementation complete: 3 new files, schema v2 migration, all 5 FLAGs addressed |
 | builder_implementation | 2026-03-21 | builder | V3 implementation complete: 3 new files, schema v2, all 5 FLAGs addressed |
+| critic_code_review | 2026-03-21 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 med, 3 low). All 5 design FLAGs addressed. New flags: heartbeat_extended overwrites session_id col with JSON blob (med), render_live_diff uses private _get_conn (low), HTML stats unescaped (low), compute_f_r_causal_chain is placeholder (low). |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
