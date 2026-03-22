@@ -934,7 +934,8 @@ class SessionManager:
 
         elif cmd == 'context':
             if self.context:
-                return {'ok': True, 'content': self.context.assemble()}
+                mode = msg.get('mode', 'codex')
+                return {'ok': True, 'content': self.context.assemble(mode=mode)}
             return {'ok': False, 'error': 'context assembler not available'}
 
         elif cmd == 'buffer':
@@ -1175,11 +1176,76 @@ class ContextAssembler:
 
     def assemble(self, agent: str = 'main',
                  include_memory: bool = True,
-                 budget_tokens: int | None = None) -> str:
-        """Assemble full context for an agent."""
+                 budget_tokens: int | None = None,
+                 mode: str = 'codex') -> str:
+        """Assemble context for an agent.
+
+        mode='codex'  — mirrors the new codex layer injection protocol:
+                        legend (prependSystemContext) + stubs + supermap + diffs
+        mode='legacy' — full raw workspace file injection (old behavior)
+        """
+        if mode == 'legacy':
+            return self._assemble_legacy(agent, include_memory, budget_tokens)
+
+        # ── Codex layer mode: mirrors what the agent actually sees ──
         sections = []
 
-        # 1. Context files
+        # 1. Dense legend (prependSystemContext)
+        legend = self._load_context_file('codex_legend.md')
+        if legend:
+            sections.append(f"## prependSystemContext (legend)\n\n{legend}")
+        else:
+            sections.append("<!-- codex_legend.md not found — legend not injected -->")
+
+        # 2. Project Context section (what bootstrapFiles array produces)
+        stubs = []
+        stubs.append("## Project Context (bootstrapFiles)\n")
+        stubs.append(f"### AGENTS.md (stub)\n# Codex Layer Active\nRead your role primitive: agents/{agent}.md")
+
+        # CODEX.codex — supermap from RAM tree
+        supermap = self.tree.render_supermap()
+        stubs.append(f"### CODEX.codex\n```\n{supermap}\n```")
+
+        # HEARTBEAT.md — stays as-is
+        heartbeat = self._load_context_file('HEARTBEAT.md')
+        if heartbeat:
+            stubs.append(f"### HEARTBEAT.md\n{heartbeat}")
+
+        # MEMORY.md — compressed boot index
+        try:
+            import subprocess
+            mem_index = subprocess.check_output(
+                ['python3', 'scripts/codex_engine.py', '--memory-boot-index'],
+                cwd=str(self.workspace), timeout=10, encoding='utf-8'
+            ).strip()
+            stubs.append(f"### MEMORY.md (boot index)\n{mem_index}")
+        except Exception:
+            stubs.append("### MEMORY.md (stub)\nMemory: check memory/ directory for today + yesterday.")
+
+        # Stubs for replaced files
+        for fname in ('SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md'):
+            stubs.append(f"### {fname}\n[Legend active — injected via before_prompt_build]")
+
+        sections.append('\n\n'.join(stubs))
+
+        # 3. appendSystemContext — diffs
+        delta = self.diff_engine.get_delta()
+        if delta:
+            sections.append(f"## appendSystemContext (diffs)\n\n```\n{delta}\n```")
+
+        full = '\n\n---\n\n'.join(sections)
+
+        if budget_tokens and self._estimate_tokens(full) > budget_tokens:
+            full = self._compress_to_budget(sections, budget_tokens)
+
+        return full
+
+    def _assemble_legacy(self, agent: str = 'main',
+                         include_memory: bool = True,
+                         budget_tokens: int | None = None) -> str:
+        """Legacy assembly — full raw workspace files (old behavior)."""
+        sections = []
+
         for filename, key, required in self.CONTEXT_FILES:
             content = self._load_context_file(filename)
             if content:
@@ -1187,24 +1253,20 @@ class ContextAssembler:
             elif required:
                 sections.append(f"<!-- {filename} not found -->")
 
-        # 2. Supermap from RAM tree
         supermap = self.tree.render_supermap()
         sections.append(f"## Codex Engine Supermap\n\n```\n{supermap}\n```")
 
-        # 3. Memory (today + yesterday)
         if include_memory:
             mem = self._assemble_memory()
             if mem:
                 sections.append(mem)
 
-        # 4. Delta since last assembly
         delta = self.diff_engine.get_delta()
         if delta:
             sections.append(f"## Changes Since Last Context\n\n```\n{delta}\n```")
 
         full = '\n\n---\n\n'.join(sections)
 
-        # 5. Compress if budget set
         if budget_tokens and self._estimate_tokens(full) > budget_tokens:
             full = self._compress_to_budget(sections, budget_tokens)
 
@@ -1529,6 +1591,7 @@ def main():
     parser.add_argument('--status', action='store_true', help='Query running engine')
     parser.add_argument('--diff', action='store_true', help='Get current delta')
     parser.add_argument('--context', action='store_true', help='Get assembled context')
+    parser.add_argument('--legacy', action='store_true', help='Use legacy (full file) context mode')
     parser.add_argument('--anchor-reset', action='store_true', help='Reset diff anchor')
     parser.add_argument('--commit', nargs='?', const='test commit', help='Commit test changes')
     parser.add_argument('--discard', action='store_true', help='Discard test changes')
@@ -1556,7 +1619,8 @@ def main():
         return
 
     if args.context:
-        resp = _signal_render_engine('context')
+        mode = 'legacy' if args.legacy else 'codex'
+        resp = _signal_render_engine('context', mode=mode)
         if resp and resp.get('ok'):
             print(resp.get('content', ''))
         else:
