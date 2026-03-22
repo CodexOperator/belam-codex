@@ -1138,6 +1138,7 @@ try:
         check_archivable,
         archive_pipeline,
         auto_archive_downstream_tasks,
+        link_tasks_to_pipeline,
     )
     _HAS_LAUNCH = True
 except ImportError as e:
@@ -2834,6 +2835,37 @@ def main():
                     print(f"  • {t}")
             else:
                 print("\n✅ No tasks eligible for auto-archive.")
+        else:
+            print("⚠ launch_pipeline not available")
+
+    elif cmd == 'link-tasks':
+        # Auto-set pipeline field on tasks matching a pipeline version
+        if _HAS_LAUNCH:
+            if len(args) < 2:
+                # Link all: iterate active pipelines
+                all_linked = []
+                for pf in sorted(PIPELINES_DIR.glob('*.md')):
+                    pc = pf.read_text()
+                    from launch_pipeline import _extract_field as _ef
+                    if _ef(pc, 'status') == 'archived':
+                        continue
+                    linked = link_tasks_to_pipeline(pf.stem)
+                    all_linked.extend(linked)
+                if all_linked:
+                    print(f"\n📋 Linked {len(all_linked)} task(s):")
+                    for slug, reason in all_linked:
+                        print(f"  • {slug} ({reason})")
+                else:
+                    print("\n✅ All tasks already linked.")
+            else:
+                version = resolve_pipeline(args[1]) or args[1]
+                linked = link_tasks_to_pipeline(version)
+                if linked:
+                    print(f"\n📋 Linked {len(linked)} task(s) to {version}:")
+                    for slug, reason in linked:
+                        print(f"  • {slug} ({reason})")
+                else:
+                    print(f"\n✅ No unlinked tasks for {version}.")
         else:
             print("⚠ launch_pipeline not available")
 

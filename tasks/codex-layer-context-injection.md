@@ -8,6 +8,7 @@ depends_on: []
 upstream: []
 downstream: [codex-layer-output-codec, codex-layer-symbolic-dispatch]
 tags: [codex-layer, context-optimization, infrastructure]
+pipeline: codex-layer-context-injection
 ---
 
 # Codex Layer Context Injection

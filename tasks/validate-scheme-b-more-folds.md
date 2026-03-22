@@ -4,6 +4,7 @@ status: in_pipeline
 priority: high
 owner: builder
 tags: [validation, statistics, snn]
+pipeline: validate-scheme-b
 project: snn-applied-finance
 estimate: 4h
 depends_on: []

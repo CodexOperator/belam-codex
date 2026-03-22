@@ -288,6 +288,66 @@ def _parse_list_field(content, field):
     return [item.strip().strip('"').strip("'") for item in raw.split(',')]
 
 
+def link_tasks_to_pipeline(pipeline_version):
+    """Auto-set the pipeline field on tasks associated with a pipeline.
+    
+    Matching strategy (in order):
+    1. Task already has pipeline: <version> → skip (already linked)
+    2. Task slug matches the pipeline version exactly → link
+    3. Task slug is a prefix/suffix match (e.g., task 'codex-engine-v3-foo'
+       matches pipeline 'codex-engine-v3') → link
+    4. Task's depends_on references a task that's linked to this pipeline → link
+    
+    Only links tasks that don't already have a pipeline field set.
+    Returns list of (task_slug, match_reason) tuples.
+    """
+    tasks_dir = WORKSPACE / 'tasks'
+    if not tasks_dir.exists():
+        return []
+    
+    linked = []
+    
+    for tf in sorted(tasks_dir.glob('*.md')):
+        content = tf.read_text()
+        status = _extract_field(content, 'status')
+        if status in ('archived', 'superseded'):
+            continue
+        
+        existing_pipeline = _extract_field(content, 'pipeline')
+        if existing_pipeline:
+            continue  # Already linked
+        
+        slug = tf.stem
+        reason = ''
+        
+        # Strategy 2: Exact slug match (task slug == pipeline version)
+        if slug == pipeline_version:
+            reason = 'exact slug match'
+        
+        # Strategy 3: Task slug starts with pipeline version
+        # (e.g., codex-engine-v3-legendary-map starts with codex-engine-v3)
+        elif slug.startswith(pipeline_version + '-'):
+            reason = f'slug prefix: {pipeline_version}'
+        
+        # Strategy 3b: Pipeline version starts with task slug
+        # (e.g., pipeline codex-engine-v2-modes matches task codex-engine-v2-modes-mcp-temporal)
+        # Only if the task slug is long enough to be meaningful (>10 chars)
+        elif len(slug) > 10 and pipeline_version.startswith(slug):
+            reason = f'pipeline prefix: {slug}'
+        
+        if reason:
+            # Insert pipeline field into frontmatter
+            content = re.sub(
+                r'^(tags:\s*.+)$',
+                f'\\1\npipeline: {pipeline_version}',
+                content, count=1, flags=re.MULTILINE
+            )
+            tf.write_text(content)
+            linked.append((slug, reason))
+    
+    return linked
+
+
 def create_pipeline(version, description, priority='high', tags=None, project='snn-applied-finance'):
     """Create a new pipeline instance."""
     pf = PIPELINES_DIR / f'{version}.md'
@@ -384,6 +444,12 @@ _Status: LOCKED — requires Phase 2 completion before activation_
     print(f"   State: {state_file}")
     print(f"   Status: phase1_design")
     print(f"   Next: Create spec at specs/{version}_spec.yaml, then spawn architect agent")
+    
+    # Auto-link tasks to this pipeline
+    linked = link_tasks_to_pipeline(version)
+    if linked:
+        for task_slug, reason in linked:
+            print(f"   📋 Linked task: {task_slug} ({reason})")
     
     return pf
 
