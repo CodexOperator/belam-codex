@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:architect, pipeline:codex-engine-v3, stage:architect_design]
 source: "session"
 content: "Engine V3 design complete: 4 modules — MCP server (stdio JSON-RPC, codex:// URIs), live mode-switch (e0x with 6 sort modes + --shuffle), reactive .codex materialization (hash-based diff, replaces --boot), multi-pane tmux rendering (dense|JSON|pretty). 3 new files (~800-950 lines), ~80 lines added to codex_engine.py. No codex_codec.py or codex_ram.py changes needed."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

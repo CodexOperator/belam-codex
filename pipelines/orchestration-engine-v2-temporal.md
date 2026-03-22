@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: medium
 version: orchestration-engine-v2-temporal
 spec_file: machinelearning/snn_applied_finance/specs/orchestration-engine-v2-temporal_spec.yaml
@@ -9,6 +9,7 @@ agents: [architect, critic, builder]
 tags: [orchestration, temporal, spacetimedb, autoclave, persistent-agents]
 project: multi-agent-infrastructure
 started: 2026-03-21
+archived: 2026-03-22
 ---
 
 # Implementation Pipeline: ORCHESTRATION-ENGINE-V2-TEMPORAL

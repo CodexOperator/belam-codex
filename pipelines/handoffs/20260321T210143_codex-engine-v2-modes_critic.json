@@ -11,5 +11,6 @@
     "session_id": "",
     "response_preview": "[plugins] [agent-end-telemetry] Registered agent_end telemetry hook\n[plugins] [agent-turn-logger] Re"
   },
-  "verified": false
+  "verified": true,
+  "verified_at": "2026-03-22T02:20:53.310169+00:00"
 }

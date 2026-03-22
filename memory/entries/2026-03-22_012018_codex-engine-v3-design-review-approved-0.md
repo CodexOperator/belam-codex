@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:critic, pipeline:codex-engine-v3, stage:critic_design_review]
 source: "session"
 content: "codex-engine-v3 design review APPROVED: 0 BLOCKs, 4 FLAGs (2 med, 2 low). MCP stdio zero-dep, e0x namespace clean, register_codec ready for MCP. FLAG-1 MED: drop async for sync MCP handlers. FLAG-2 MED: append-only materialization. Review at pipeline_builds/codex-engine-v3_critic_design_review.md"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

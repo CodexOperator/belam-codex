@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:codex-engine-v3, stage:pipeline_created]
 source: "pipeline_update:codex-engine-v3:pipeline_created"
 content: "Launching Phase 1 — final item in queue | Pipeline: codex-engine-v3 | Stage: pipeline_created"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
