@@ -230,10 +230,10 @@ class WALWatcher:
 <body>
   <h1>🏭 Orchestration Dashboard</h1>
   <div class="stats">
-    {stats.get('total_pipelines', 0)} pipelines ·
-    {stats.get('active_agents', 0)}/{stats.get('total_agents', 0)} agents active ·
-    {stats.get('pending_handoffs', 0)} pending handoffs ·
-    Render #{self._render_count}
+    {html_escape(str(stats.get('total_pipelines', 0)))} pipelines ·
+    {html_escape(str(stats.get('active_agents', 0)))}/{html_escape(str(stats.get('total_agents', 0)))} agents active ·
+    {html_escape(str(stats.get('pending_handoffs', 0)))} pending handoffs ·
+    Render #{html_escape(str(self._render_count))}
   </div>
 
   <h2>Pipelines</h2>

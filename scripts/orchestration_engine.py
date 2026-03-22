@@ -186,6 +186,18 @@ def _post_state_change(version: str, from_stage: str, to_stage: str,
                 pass  # dependency_graph not available
             except Exception:
                 pass  # Non-fatal
+
+        # 5. Phase 2: Signal render engine for immediate pickup
+        # Uses 'refresh' command (NOT anchor_reset which wipes the diff buffer
+        # that .v5 R-label trail reads from — Critic FLAG-1).
+        try:
+            pipeline_md = PIPELINES_DIR / f'{version}.md'
+            if pipeline_md.exists():
+                from codex_render import _signal_render_engine
+                _signal_render_engine('refresh', filepath=str(pipeline_md))
+        except (ImportError, Exception):
+            pass  # Non-fatal — inotify is the primary mechanism
+
         return True
     except Exception:
         return False  # Temporal failures are non-fatal
@@ -374,6 +386,10 @@ class DispatchPayload:
     # Orchestration sets the view when dispatching — agents don't choose (D5).
     view_filter: Optional[dict] = None
 
+    # Phase 2: Pre-rendered .v5 R-label trail for agent situational awareness.
+    # The engine renders the trail and embeds it — agents don't need UDS access (D5).
+    view_context: str = ''
+
     def to_dict(self) -> dict:
         """Serialize for JSON output / tool relay.
 
@@ -406,6 +422,7 @@ class DispatchPayload:
                 'files_to_read': self.files_to_read,
                 'completion_command': self.completion_command,
                 'view_filter': self.view_filter,  # Phase 2 R2: persona view metadata
+                'view_context': self.view_context,  # Phase 2: pre-rendered .v5 trail
             },
         }
 
@@ -732,6 +749,15 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
         except ImportError:
             pass
 
+    # Phase 2: Generate pre-rendered .v5 R-label trail for agent situational awareness.
+    # Agents receive a rendered snapshot, not query capabilities (D5).
+    trail_context = ''
+    try:
+        from monitoring_views import render_r_label_trail
+        trail_context = render_r_label_trail(pipeline=version, window_minutes=10)
+    except (ImportError, Exception):
+        pass  # Non-fatal
+
     return DispatchPayload(
         agent=agent,
         task=task,
@@ -756,6 +782,7 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
         files_to_read=files,
         completion_command=_build_completion_command(version, stage, agent),
         view_filter=view_filter,
+        view_context=trail_context,
     )
 
 

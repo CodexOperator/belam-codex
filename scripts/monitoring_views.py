@@ -12,7 +12,9 @@ Provides:
   - render_live_diff() (.v2): diffs between agent turns
   - render_timeline() (.v3): stage progression with durations and bottlenecks
   - render_agent_context() (.v4): decisions, flags, learnings
+  - render_r_label_trail() (.v5): real-time R-label narrative (Phase 2)
   - list_views(): list available view types
+  - RenderClient: thin UDS client for render engine queries (Phase 2)
   - compute_f_r_causal_chain(): F-label → R-label mapping for revert preview
 
 FLAG-2 (MED) addressed: VIEW_REGISTRY dict is the single authoritative source of
@@ -37,8 +39,114 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional, Callable, Any
 
+import socket as _socket
+
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 DEFAULT_DB_PATH = WORKSPACE / 'data' / 'temporal.db'
+
+
+# ─── RenderClient (Phase 2: thin UDS client for render engine queries) ────────
+
+class RenderClient:
+    """Thin UDS client for monitoring views to query the render engine.
+
+    Single-shot queries: connect → send JSON-line → read JSON-line → close.
+    Graceful: returns None if engine not running. All methods are safe to
+    call regardless of render engine availability.
+    """
+
+    SOCKET = Path.home() / '.belam_render.sock'
+
+    def __init__(self, timeout: float = 2.0):
+        self._timeout = timeout
+
+    def query(self, cmd: str, **kwargs) -> dict | None:
+        """Single-shot UDS query. Returns response dict or None."""
+        if not self.SOCKET.exists():
+            return None
+        try:
+            s = _socket.socket(_socket.AF_UNIX, _socket.SOCK_STREAM)
+            s.settimeout(self._timeout)
+            s.connect(str(self.SOCKET))
+            msg = json.dumps({"cmd": cmd, **kwargs}) + '\n'
+            s.sendall(msg.encode('utf-8'))
+            resp = b''
+            while b'\n' not in resp:
+                chunk = s.recv(65536)
+                if not chunk:
+                    break
+                resp += chunk
+            s.close()
+            if resp:
+                return json.loads(resp.split(b'\n', 1)[0])
+        except Exception:
+            pass
+        return None
+
+    def get_tree_node(self, coord: str) -> dict | None:
+        """Get a single primitive node from RAM tree."""
+        resp = self.query('tree', coord=coord)
+        if resp and resp.get('ok'):
+            return resp.get('node')
+        return None
+
+    def get_namespace(self, prefix: str) -> list[dict]:
+        """Get all nodes in a namespace from RAM tree."""
+        resp = self.query('tree', prefix=prefix)
+        return resp.get('nodes', []) if resp and resp.get('ok') else []
+
+    def get_diff_since(self, timestamp: float) -> str:
+        """Get render diffs since timestamp as Δ/+/− formatted text."""
+        resp = self.query('diff_since', timestamp=timestamp)
+        return resp.get('delta', '') if resp and resp.get('ok') else ''
+
+    def get_diffs_structured(self, timestamp: float) -> list[dict]:
+        """Get render diffs since timestamp as structured data.
+
+        Falls back to parsing the delta text if structured endpoint not available.
+        Used by compute_f_r_causal_chain for structured diff analysis (FLAG-3).
+        """
+        # Try structured query first (future render engine enhancement)
+        resp = self.query('diff_since_structured', timestamp=timestamp)
+        if resp and resp.get('ok') and 'entries' in resp:
+            return resp['entries']
+        # Fallback: parse the Δ/+/− text format
+        delta_text = self.get_diff_since(timestamp)
+        return self._parse_delta_text(delta_text) if delta_text else []
+
+    def _parse_delta_text(self, text: str) -> list[dict]:
+        """Parse Δ/+/− formatted diff text into structured entries."""
+        entries = []
+        for line in text.strip().split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            entry = {'raw': line}
+            if line.startswith('Δ '):
+                entry['type'] = 'change'
+                parts = line[2:].split(None, 1)
+                if parts:
+                    entry['coord'] = parts[0]
+                    entry['detail'] = parts[1] if len(parts) > 1 else ''
+            elif line.startswith('+ '):
+                entry['type'] = 'add'
+                entry['coord'] = line[2:].split(None, 1)[0] if len(line) > 2 else ''
+            elif line.startswith('− ') or line.startswith('- '):
+                entry['type'] = 'remove'
+                entry['coord'] = line[2:].split(None, 1)[0] if len(line) > 2 else ''
+            else:
+                entry['type'] = 'unknown'
+            entries.append(entry)
+        return entries
+
+    def get_supermap(self) -> str:
+        """Get current supermap from RAM."""
+        resp = self.query('supermap')
+        return resp.get('content', '') if resp and resp.get('ok') else ''
+
+    def is_available(self) -> bool:
+        """Check if render engine is running."""
+        return self.SOCKET.exists()
 
 
 # ─── Types ───────────────────────────────────────────────────────────────────────
@@ -224,12 +332,13 @@ def render_turn_by_turn(pipeline: str = None, persona: str = None,
 
 
 def render_live_diff(pipeline: str = None, persona: str = None,
-                     overlay=None, since: str = None) -> str:
+                     overlay=None, since: str = None,
+                     render_client: RenderClient = None) -> str:
     """v2: Diffs since last agent turn (or since timestamp).
 
-    Queries state_transition for changes since `since`.
-    Groups by pipeline, shows F-labels for each transition.
-    Includes dep resolution events (action='dep_resolved').
+    Phase 2 FLAG-2 fix: uses overlay.get_transitions_since() public API
+    instead of private overlay._get_conn(). When render_client is available,
+    enriches output with render engine diffs.
     """
     if overlay is None:
         overlay = _get_overlay()
@@ -242,21 +351,7 @@ def render_live_diff(pipeline: str = None, persona: str = None,
         since = cutoff.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
     try:
-        conn = overlay._get_conn()
-        if pipeline:
-            rows = conn.execute(
-                "SELECT * FROM state_transition "
-                "WHERE version = ? AND timestamp > ? ORDER BY timestamp ASC",
-                (pipeline, since)
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                "SELECT * FROM state_transition "
-                "WHERE timestamp > ? ORDER BY timestamp ASC",
-                (since,)
-            ).fetchall()
-
-        transitions = [dict(row) for row in rows]
+        transitions = overlay.get_transitions_since(since, version=pipeline)
     except Exception as e:
         return f"(Error querying transitions: {e})"
 
@@ -421,6 +516,91 @@ def render_agent_context(pipeline: str = None, persona: str = None,
     return '\n'.join(lines)
 
 
+def render_r_label_trail(pipeline: str = None, persona: str = None,
+                         overlay=None, render_client: RenderClient = None,
+                         window_minutes: int = 30) -> str:
+    """v5: R-label trail — real-time narrative of script-pilot decisions.
+
+    Shows the render engine's diff stream as a temporal narrative:
+    - Each DiffEntry becomes an R-label line
+    - Grouped by time window (default 30 min)
+    - Pipeline-filterable
+    - Shows what changed, when, and (via F-label correlation) why
+
+    When render engine is not available, falls back to DB state transitions
+    rendered as an R-label-style narrative.
+    """
+    lines = []
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+    cutoff_ts = cutoff.timestamp()
+
+    # Primary: render engine diffs (R-labels from RAM tree changes)
+    if render_client is None:
+        render_client = RenderClient()
+
+    r_labels = []
+    if render_client.is_available():
+        delta_text = render_client.get_diff_since(cutoff_ts)
+        if delta_text and delta_text.strip():
+            for line in delta_text.strip().split('\n'):
+                line = line.strip()
+                if not line:
+                    continue
+                # Filter by pipeline if specified
+                if pipeline and pipeline not in line:
+                    continue
+                r_labels.append(line)
+
+    # Secondary: DB state transitions (F-labels as complementary context)
+    f_labels = []
+    if overlay is None:
+        overlay = _get_overlay()
+    if overlay:
+        since_iso = cutoff.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        try:
+            transitions = overlay.get_transitions_since(since_iso, version=pipeline)
+            for t in transitions:
+                ts = t.get('timestamp', '?')[:19]
+                action = t.get('action', '?')
+                from_s = t.get('from_stage', '?')
+                to_s = t.get('to_stage', '?')
+                agent = t.get('agent', '?')
+                notes = t.get('notes', '')
+
+                if action == 'dep_resolved':
+                    f_labels.append(f"  F {ts} 🔗 {notes[:60]}")
+                elif action == 'revert':
+                    f_labels.append(f"  F {ts} ⮌ {from_s} → {to_s}")
+                else:
+                    marker = '→' if action == 'complete' else '⚠' if action == 'block' else '·'
+                    f_labels.append(f"  F {ts} {marker} {from_s} → {to_s} ({agent})")
+        except Exception:
+            pass
+
+    # Compose trail
+    scope = f" [{pipeline}]" if pipeline else ""
+    lines.append(f"R-Label Trail{scope} (last {window_minutes}min)")
+    lines.append("─" * 55)
+
+    if r_labels:
+        lines.append("\n  ── Render Engine (R-labels) ──")
+        for rl in r_labels:
+            lines.append(f"  R {rl}")
+
+    if f_labels:
+        lines.append("\n  ── Orchestration (F-labels) ──")
+        lines.extend(f_labels)
+
+    if not r_labels and not f_labels:
+        lines.append(f"\n  (No activity in last {window_minutes} minutes)")
+
+    # Interleaving summary
+    if r_labels and f_labels:
+        lines.append(f"\n  Summary: {len(r_labels)} R-labels, {len(f_labels)} F-labels")
+
+    return '\n'.join(lines)
+
+
 def _format_duration(seconds: int) -> str:
     """Format seconds as human-readable duration."""
     if seconds < 60:
@@ -463,6 +643,12 @@ VIEW_REGISTRY: dict[int, ViewEntry] = {
         name='agent-context',
         description='Decisions, flags, learnings for pipeline agents',
         renderer=render_agent_context,
+    ),
+    5: ViewEntry(
+        number=5,
+        name='r-label-trail',
+        description='Real-time R-label narrative of script-pilot decisions',
+        renderer=render_r_label_trail,
     ),
 }
 

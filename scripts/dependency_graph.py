@@ -23,6 +23,7 @@ Usage:
 
 import json
 import os
+import re
 import sqlite3
 import sys
 from datetime import datetime, timezone
@@ -289,45 +290,163 @@ def render_dependency_graph(db_path: Path = DEFAULT_DB_PATH) -> str:
 
 def compute_f_r_causal_chain(f_labels: list[str],
                              db_path: Path = DEFAULT_DB_PATH) -> dict:
-    """Given F-labels from a revert, compute which R-labels would change.
+    """Given F-labels from a revert, compute full causal chain.
 
-    Returns dict with f_labels, r_labels, and cascading effects.
+    Phase 2: Full implementation replacing Phase 1 stub.
+    1. Parses F-labels into structured (coord, field, old_value, new_value)
+    2. Queries render engine for corresponding R-labels
+    3. Walks dependency graph for cascading effects
+    4. Checks handoff table for orphaned handoffs
+
+    Returns:
+        f_labels: original F-labels
+        r_labels: corresponding render-side changes
+        cascading_deps: [{target, was_satisfied_by, now_suspect}]
+        orphaned_handoffs: [{handoff_id, target_agent, completed_stage}]
+        impact_summary: human-readable one-liner
     """
-    r_labels = []
-    cascading = []
-
+    # 1. Parse F-labels into structured changes
+    parsed_changes = []
     for fl in f_labels:
-        # Parse F-label to extract coordinate and field
-        if '.stage' in fl:
-            # Stage change affects supermap pipeline row
+        change = {'raw': fl, 'coord': None, 'field': None,
+                  'old_value': None, 'new_value': None}
+        # Parse "F{N} Δ {coord}.{field} {old} → {new}"
+        match = re.match(r'F\d+\s+Δ\s+(\S+)\.(\S+)\s+(\S+)\s+→\s+(\S+)', fl)
+        if match:
+            change['coord'] = match.group(1)
+            change['field'] = match.group(2)
+            change['old_value'] = match.group(3)
+            change['new_value'] = match.group(4)
+        elif '.stage' in fl:
             parts = fl.split('.stage')
-            coord = parts[0].split()[-1] if parts else '?'
-            r_labels.append(f"R Δ supermap.{coord} stage field")
-            r_labels.append(f"R Δ dashboard.pipelines row {coord}")
-
-        if '.agent' in fl:
+            change['coord'] = parts[0].split()[-1] if parts else None
+            change['field'] = 'stage'
+        elif '.agent' in fl:
             parts = fl.split('.agent')
-            coord = parts[0].split()[-1] if parts else '?'
-            r_labels.append(f"R Δ supermap.{coord} agent field")
+            change['coord'] = parts[0].split()[-1] if parts else None
+            change['field'] = 'agent'
+        elif '.lock' in fl:
+            parts = fl.split('.lock')
+            change['coord'] = parts[0].split()[-1] if parts else None
+            change['field'] = 'lock'
+        parsed_changes.append(change)
 
-    # Check for dep cascading effects
+    # 2. Query render engine for R-labels
+    r_labels = []
+    try:
+        from monitoring_views import RenderClient
+        rc = RenderClient()
+        if rc.is_available():
+            # Get recent diffs (last 5 min window for correlation)
+            import time
+            diffs = rc.get_diffs_structured(time.time() - 300)
+            for d in diffs:
+                d_coord = d.get('coord', '')
+                # Correlate: R-label matches if same coordinate appears in F-labels
+                for pc in parsed_changes:
+                    if pc.get('coord') and pc['coord'] in d_coord:
+                        r_labels.append(f"R {d.get('raw', d_coord)}")
+                        break
+        else:
+            # Fallback: generate predicted R-labels from F-label structure
+            for pc in parsed_changes:
+                coord = pc.get('coord', '?')
+                field = pc.get('field', '?')
+                if field == 'stage':
+                    r_labels.append(f"R Δ supermap.{coord} stage field")
+                    r_labels.append(f"R Δ dashboard.pipelines row {coord}")
+                elif field == 'agent':
+                    r_labels.append(f"R Δ supermap.{coord} agent field")
+                elif field == 'lock':
+                    r_labels.append(f"R Δ supermap.{coord} lock indicator")
+    except ImportError:
+        # Fallback without RenderClient
+        for pc in parsed_changes:
+            coord = pc.get('coord', '?')
+            field = pc.get('field', '?')
+            if coord and field:
+                r_labels.append(f"R Δ supermap.{coord} {field} field")
+
+    # 3. Walk dependency graph for cascading effects
+    cascading_deps = []
+    orphaned_handoffs = []
     conn = _get_conn(db_path)
     if conn:
         try:
-            for fl in f_labels:
-                if '⮌' in fl and '.stage' in fl:
-                    # A stage revert might invalidate downstream deps
-                    cascading.append("⚠ Stage revert may invalidate downstream dependency resolutions")
-                    break
+            # Extract affected versions from parsed changes
+            affected_versions = set()
+            for pc in parsed_changes:
+                coord = pc.get('coord')
+                if coord and coord.startswith('p'):
+                    # Resolve p-coordinate to version
+                    try:
+                        from orchestration_engine import resolve_pipeline
+                        ver = resolve_pipeline(coord)
+                        if ver:
+                            affected_versions.add(ver)
+                    except ImportError:
+                        pass
+
+            for ver in affected_versions:
+                # Check downstream deps that were satisfied by this version
+                satisfied = conn.execute(
+                    "SELECT target_version, dep_type, satisfied_at "
+                    "FROM pipeline_dependency "
+                    "WHERE source_version = ? AND status = 'satisfied'",
+                    (ver,)
+                ).fetchall()
+
+                for dep in satisfied:
+                    # A stage revert may invalidate downstream satisfaction
+                    stage_reverted = any(
+                        pc.get('field') == 'stage' for pc in parsed_changes
+                        if pc.get('coord')
+                    )
+                    if stage_reverted:
+                        cascading_deps.append({
+                            'target': dep['target_version'],
+                            'was_satisfied_by': ver,
+                            'dep_type': dep['dep_type'],
+                            'now_suspect': True,
+                        })
+
+                # 4. Check for orphaned handoffs
+                active_handoffs = conn.execute(
+                    "SELECT id, target_agent, completed_stage, next_stage "
+                    "FROM handoff "
+                    "WHERE version = ? AND status IN ('dispatched', 'acknowledged', 'working')",
+                    (ver,)
+                ).fetchall()
+
+                for h in active_handoffs:
+                    orphaned_handoffs.append({
+                        'handoff_id': h['id'],
+                        'target_agent': h['target_agent'],
+                        'completed_stage': h['completed_stage'],
+                        'next_stage': h['next_stage'],
+                    })
+
         except Exception:
             pass
         finally:
             conn.close()
 
+    # Build impact summary
+    parts = []
+    if r_labels:
+        parts.append(f"{len(r_labels)} R-label(s)")
+    if cascading_deps:
+        parts.append(f"{len(cascading_deps)} suspect dep(s)")
+    if orphaned_handoffs:
+        parts.append(f"{len(orphaned_handoffs)} orphaned handoff(s)")
+    impact_summary = ', '.join(parts) if parts else 'No downstream impact detected'
+
     return {
         'f_labels': f_labels,
         'r_labels': r_labels,
-        'cascading': cascading,
+        'cascading_deps': cascading_deps,
+        'orphaned_handoffs': orphaned_handoffs,
+        'impact_summary': impact_summary,
     }
 
 

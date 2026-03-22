@@ -724,6 +724,7 @@ class AgentSession:
     connected_at: float
     last_active: float
     anchor_time: float
+    subscribe_patterns: list = field(default_factory=list)  # Phase 2: pattern filter
 
 
 class SessionManager:
@@ -892,6 +893,39 @@ class SessionManager:
         elif cmd == 'anchor_reset':
             self.diff_engine.set_anchor()
             return {'ok': True, 'message': 'anchor reset'}
+
+        elif cmd == 'refresh':
+            # Phase 2: Hint to re-scan a specific file or namespace.
+            # Used by orchestration_engine._post_state_change() for sub-100ms
+            # R-label latency after F-label generation (instead of anchor_reset
+            # which would wipe the diff buffer — Critic FLAG-1).
+            filepath = msg.get('filepath')
+            prefix = msg.get('prefix')
+            if filepath:
+                p = Path(filepath)
+                if p.exists():
+                    diff = self.tree.apply_disk_change(p)
+                    if diff:
+                        self.diff_engine.record(diff)
+                        self.notify_all({'event': 'change', 'diff': asdict(diff)})
+                    return {'ok': True, 'refreshed': filepath}
+                return {'ok': False, 'error': f'file not found: {filepath}'}
+            elif prefix:
+                nodes = self.tree.get_namespace(prefix)
+                count = len(nodes) if nodes else 0
+                return {'ok': True, 'reindexed': count}
+            return {'ok': False, 'error': 'specify filepath or prefix'}
+
+        elif cmd == 'subscribe':
+            # Phase 2: Explicit subscription with optional pattern filtering.
+            # Clients already receive push notifications via attach, but this
+            # allows filtering by coordinate prefix patterns.
+            patterns = msg.get('patterns', [])
+            with self._lock:
+                session = self._sessions.get(session_id)
+                if session:
+                    session.subscribe_patterns = patterns
+            return {'ok': True, 'patterns': patterns}
 
         elif cmd == 'codec':
             level = msg.get('level', 'dense')

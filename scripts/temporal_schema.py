@@ -179,6 +179,37 @@ def migrate_v1_to_v2(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+# ─── V2.1 Micro-Migration: context_json column (Phase 2 FLAG-1 fix) ─────────
+
+MIGRATION_V2_1_SQL = """
+-- Add context_json column to agent_presence (FLAG-1 fix)
+-- Stores heartbeat_extended() context snapshots in a dedicated column
+-- instead of overwriting session_id with a JSON blob.
+ALTER TABLE agent_presence ADD COLUMN context_json TEXT DEFAULT NULL;
+"""
+
+
+def migrate_v2_to_v2_1(conn: sqlite3.Connection) -> None:
+    """Micro-migration: add context_json column to agent_presence.
+
+    Idempotent — checks if column already exists before altering.
+    """
+    try:
+        conn.execute("SELECT context_json FROM agent_presence LIMIT 1")
+        return  # Column already exists
+    except Exception:
+        pass
+    try:
+        conn.execute(MIGRATION_V2_1_SQL)
+        conn.execute(
+            "INSERT OR IGNORE INTO schema_version (version, description) VALUES (?, ?)",
+            (3, "V2.1: context_json column on agent_presence (Phase 2 FLAG-1)")
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"[temporal_schema] v2.1 migration warning: {e}", file=sys.stderr)
+
+
 def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     """Initialize the temporal database with schema.
 
@@ -210,6 +241,9 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     max_ver = conn.execute("SELECT MAX(version) FROM schema_version").fetchone()[0]
     if max_ver is not None and max_ver < 2:
         migrate_v1_to_v2(conn)
+
+    # Auto-migrate v2 → v2.1 (context_json column)
+    migrate_v2_to_v2_1(conn)
 
     conn.commit()
     return conn

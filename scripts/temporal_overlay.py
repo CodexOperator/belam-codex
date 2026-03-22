@@ -560,22 +560,52 @@ class TemporalOverlay:
         if not ok or not context_snapshot:
             return ok
 
-        # Store snapshot as JSON in agent_presence (extend the row)
+        # Store snapshot in dedicated context_json column (Phase 2 FLAG-1 fix)
+        # Previously this overwrote session_id with a JSON blob — now uses
+        # the context_json column added by v2.1 migration.
         try:
             conn = self._get_conn()
-            # We store snapshot in the session_id field as JSON suffix
-            # (keeping it lightweight — no schema change needed)
             conn.execute(
-                "UPDATE agent_presence SET session_id = ? WHERE agent = ?",
-                (json.dumps({
-                    'session': session_id or '',
-                    'snapshot': context_snapshot,
-                }), agent)
+                "UPDATE agent_presence SET context_json = ? WHERE agent = ?",
+                (json.dumps(context_snapshot), agent)
             )
             conn.commit()
             return True
         except Exception:
             return ok  # Base heartbeat succeeded even if snapshot failed
+
+    def get_transitions_since(self, since: str, version: str = None,
+                              limit: int = 100) -> list[dict]:
+        """Public API: get state transitions since ISO timestamp.
+
+        Phase 2 FLAG-2 fix: replaces private _get_conn() access from
+        monitoring_views.py render_live_diff().
+
+        Args:
+            since: ISO timestamp string
+            version: optional pipeline filter
+            limit: max rows (default 100)
+
+        Returns list of transition dicts.
+        """
+        conn = self._get_conn()
+        try:
+            if version:
+                rows = conn.execute(
+                    "SELECT * FROM state_transition "
+                    "WHERE version = ? AND timestamp > ? "
+                    "ORDER BY timestamp ASC LIMIT ?",
+                    (version, since, limit)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM state_transition "
+                    "WHERE timestamp > ? ORDER BY timestamp ASC LIMIT ?",
+                    (since, limit)
+                ).fetchall()
+            return [dict(row) for row in rows]
+        except Exception:
+            return []
 
     def render_view(self, coord: str, persona: str = None) -> Optional[str]:
         """Delegate .v coordinate rendering to monitoring_views (V3).
