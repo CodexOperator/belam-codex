@@ -1,9 +1,11 @@
 ---
 primitive: task
-status: in_pipeline
+status: archived
 pipeline: orchestration-v3-monitoring
 priority: medium
 created: 2026-03-21
+archived: 2026-03-22
+archive_reason: pipeline orchestration-v3-monitoring archived
 owner: belam
 depends_on: [orchestration-engine-v2-temporal-autoclave]
 upstream: [task/orchestration-engine-v2-temporal-autoclave, decision/codex-engine-modes-as-primitives]

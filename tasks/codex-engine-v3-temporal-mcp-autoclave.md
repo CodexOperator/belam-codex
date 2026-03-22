@@ -1,13 +1,16 @@
 ---
 primitive: task
-status: open
+status: archived
 priority: medium
 created: 2026-03-21
+archived: 2026-03-22
+archive_reason: continuation task codex-engine-v3-legendary-map (phase 3) supersedes (phase 0)
 owner: belam
 depends_on: [codex-engine-v2-modes-mcp-temporal]
 upstream: [decision/codex-engine-v2-dense-alphanumeric-grammar]
 downstream: []
 tags: [engine, codex, mcp, v3]
+pipeline: codex-engine-v3
 ---
 
 # Codex Engine v3: MCP Native, Live Mode-Switch, Multi-Pane Rendering

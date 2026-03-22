@@ -153,6 +153,139 @@ def archive_pipeline(version, force=False):
             pass  # Don't fail archive on state JSON issues
     
     print(f"📦 {version} archived")
+    
+    # Auto-archive associated tasks whose work has moved downstream
+    archived_tasks = auto_archive_downstream_tasks(version)
+    if archived_tasks:
+        for t in archived_tasks:
+            print(f"  📋 Task auto-archived: {t}")
+
+
+def auto_archive_downstream_tasks(pipeline_version=None):
+    """Auto-archive tasks whose work has provably moved downstream.
+    
+    Rules:
+    1. Task status is 'complete' → work is done, archive it
+    2. Task status is 'in_pipeline' AND its pipeline is archived → archive it
+    3. Task has an open/active continuation task for the same pipeline
+       (phase-continuation) AND the task itself is not the latest continuation
+       → archive it
+    
+    Safety: never archive a task with status 'open' or 'active' unless Rule 3
+    proves a continuation exists AND the task's pipeline is archived.
+    
+    If pipeline_version is given, only check tasks associated with that pipeline.
+    Otherwise check all non-archived tasks.
+    """
+    tasks_dir = WORKSPACE / 'tasks'
+    if not tasks_dir.exists():
+        return []
+    
+    archived = []
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    # Build index of all tasks and pipeline statuses
+    task_index = {}
+    for tf in sorted(tasks_dir.glob('*.md')):
+        content = tf.read_text()
+        task_index[tf.stem] = {
+            'path': tf,
+            'status': _extract_field(content, 'status') or 'unknown',
+            'pipeline': _extract_field(content, 'pipeline') or '',
+            'phase': _extract_field(content, 'phase') or '',
+            'depends_on': _parse_list_field(content, 'depends_on'),
+            'downstream': _parse_list_field(content, 'downstream'),
+            'content': content,
+        }
+    
+    pipeline_statuses = {}
+    if PIPELINES_DIR.exists():
+        for pf in PIPELINES_DIR.glob('*.md'):
+            pc = pf.read_text()
+            pipeline_statuses[pf.stem] = _extract_field(pc, 'status') or 'unknown'
+    
+    for slug, info in task_index.items():
+        if info['status'] in ('archived', 'superseded'):
+            continue
+        
+        # Filter: if pipeline_version given, only process tasks for that pipeline
+        if pipeline_version:
+            if info['pipeline'] != pipeline_version and pipeline_version not in slug:
+                continue
+        
+        should_archive = False
+        reason = ''
+        
+        # Rule 1: Task is complete → work is done
+        if info['status'] == 'complete':
+            should_archive = True
+            reason = 'status: complete'
+        
+        # Rule 2: Task is in_pipeline and its pipeline is archived
+        if not should_archive and info['status'] == 'in_pipeline' and info['pipeline']:
+            pipe_status = pipeline_statuses.get(info['pipeline'], '')
+            if pipe_status == 'archived':
+                should_archive = True
+                reason = f"pipeline {info['pipeline']} archived"
+        
+        # Rule 2b: Task is in_pipeline, no explicit pipeline field, but we can
+        # infer the pipeline from the task slug matching an archived pipeline
+        if not should_archive and info['status'] == 'in_pipeline' and not info['pipeline']:
+            for pipe_ver, pipe_stat in pipeline_statuses.items():
+                if pipe_stat == 'archived' and pipe_ver in slug:
+                    should_archive = True
+                    reason = f"inferred pipeline {pipe_ver} archived"
+                    break
+        
+        # Rule 3: Task references a pipeline that's archived AND a later
+        # phase-continuation task exists (so this task is not the latest).
+        # Only applies to non-complete tasks (open tasks waiting on a reopened pipeline).
+        if not should_archive and info['status'] == 'open' and info['pipeline']:
+            pipe_status = pipeline_statuses.get(info['pipeline'], '')
+            if pipe_status == 'archived':
+                # Check if another non-archived task exists for the same pipeline
+                # with a LATER phase number
+                my_phase = int(info['phase']) if info['phase'].isdigit() else 0
+                for other_slug, other_info in task_index.items():
+                    if other_slug == slug:
+                        continue
+                    if other_info['status'] in ('archived', 'superseded'):
+                        continue
+                    if other_info.get('pipeline') == info['pipeline']:
+                        other_phase = int(other_info['phase']) if other_info.get('phase', '').isdigit() else 0
+                        if other_phase > my_phase:
+                            should_archive = True
+                            reason = f"continuation task {other_slug} (phase {other_phase}) supersedes (phase {my_phase})"
+                            break
+        
+        if should_archive:
+            _archive_task(info['path'], now, reason)
+            archived.append(slug)
+    
+    return archived
+
+
+def _archive_task(task_path, date_str, reason=''):
+    """Archive a single task file."""
+    content = task_path.read_text()
+    content = re.sub(r'^status:\s*.+$', 'status: archived', content, count=1, flags=re.MULTILINE)
+    # Add archived date if not present
+    if not re.search(r'^archived:', content, re.MULTILINE):
+        content = re.sub(r'^(created:.+)$', f'\\1\narchived: {date_str}', content, count=1, flags=re.MULTILINE)
+    if reason:
+        content = re.sub(r'^(archived:.+)$', f'\\1\narchive_reason: {reason}', content, count=1, flags=re.MULTILINE)
+    task_path.write_text(content)
+
+
+def _parse_list_field(content, field):
+    """Parse a YAML list field like 'depends_on: [a, b, c]' into a Python list."""
+    match = re.search(rf'^{field}:\s*\[([^\]]*)\]', content, re.MULTILINE)
+    if not match:
+        return []
+    raw = match.group(1).strip()
+    if not raw:
+        return []
+    return [item.strip().strip('"').strip("'") for item in raw.split(',')]
 
 
 def create_pipeline(version, description, priority='high', tags=None, project='snn-applied-finance'):

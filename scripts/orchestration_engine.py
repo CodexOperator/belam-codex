@@ -1137,6 +1137,7 @@ try:
         list_pipelines as _list_pipelines,
         check_archivable,
         archive_pipeline,
+        auto_archive_downstream_tasks,
     )
     _HAS_LAUNCH = True
 except ImportError as e:
@@ -2821,6 +2822,20 @@ def main():
             import subprocess as _sp
             _sp.run([sys.executable, str(SCRIPTS / 'launch_pipeline.py'), version, '--archive'],
                     cwd=str(WORKSPACE))
+
+    elif cmd == 'archive-tasks':
+        # Standalone: auto-archive tasks whose work has moved downstream
+        if _HAS_LAUNCH:
+            version = resolve_pipeline(args[1]) if len(args) > 1 else None
+            archived = auto_archive_downstream_tasks(version)
+            if archived:
+                print(f"\n📋 Auto-archived {len(archived)} task(s):")
+                for t in archived:
+                    print(f"  • {t}")
+            else:
+                print("\n✅ No tasks eligible for auto-archive.")
+        else:
+            print("⚠ launch_pipeline not available")
 
     # ─── V2-Temporal Commands (autoclave/timeline/timetravel/temporal-sync) ────
 

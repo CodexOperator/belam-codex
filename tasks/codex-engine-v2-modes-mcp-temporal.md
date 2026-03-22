@@ -1,11 +1,13 @@
 ---
 primitive: task
-status: complete
+status: archived
 priority: high
 project: multi-agent-infrastructure
 depends_on: []
 tags: [engine, codex, modes, grammar, v2]
 created: 2026-03-21
+archived: 2026-03-22
+archive_reason: status: complete
 ---
 
 # Codex Engine v2: Dense Alphanumeric Modes

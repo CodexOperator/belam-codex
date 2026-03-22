@@ -1,8 +1,10 @@
 ---
 primitive: task
-status: complete
+status: archived
 priority: medium
 created: 2026-03-21
+archived: 2026-03-22
+archive_reason: status: complete
 owner: belam
 depends_on: [build-orchestration-engine-v1]
 upstream: [decision/orchestration-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar, pipeline/research-openclaw-internals]
