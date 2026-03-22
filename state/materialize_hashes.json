@@ -1,0 +1,1251 @@
+{
+  "last_materialize": "2026-03-22T01:27:49Z",
+  "supermap_hash": "eaea4eb35330",
+  "primitive_hashes": {
+    "p1": {
+      "hash": "36329d75695f",
+      "slug": "codex-engine-v2-modes"
+    },
+    "p2": {
+      "hash": "4c0957f59fed",
+      "slug": "codex-engine-v3"
+    },
+    "p3": {
+      "hash": "6b18c09e91e8",
+      "slug": "orchestration-engine-v2-temporal"
+    },
+    "p4": {
+      "hash": "290bcfc72928",
+      "slug": "orchestration-v3-monitoring"
+    },
+    "p5": {
+      "hash": "055a4c8eb669",
+      "slug": "research-openclaw-internals"
+    },
+    "p6": {
+      "hash": "1b6185649deb",
+      "slug": "validate-scheme-b"
+    },
+    "w1": {
+      "hash": "92d399c43588",
+      "slug": "agent-roster"
+    },
+    "w2": {
+      "hash": "89a9e78b45ed",
+      "slug": "multi-agent-infrastructure"
+    },
+    "w3": {
+      "hash": "ace5bba1cffa",
+      "slug": "quant-knowledge-skills"
+    },
+    "w4": {
+      "hash": "d68024b6f0ee",
+      "slug": "snn-applied-finance"
+    },
+    "w5": {
+      "hash": "d82460684d7b",
+      "slug": "snn-standard-benchmarks"
+    },
+    "t1": {
+      "hash": "22e104a9e794",
+      "slug": "build-incremental-relationship-mapper"
+    },
+    "t2": {
+      "hash": "968924d64d5f",
+      "slug": "codex-engine-enum-field-indexing"
+    },
+    "t3": {
+      "hash": "4685e4c40abc",
+      "slug": "codex-engine-v2-modes-mcp-temporal"
+    },
+    "t4": {
+      "hash": "d77d39b6bff1",
+      "slug": "codex-engine-v3-temporal-mcp-autoclave"
+    },
+    "t5": {
+      "hash": "f1d95adb2122",
+      "slug": "containerize-openclaw-workspace"
+    },
+    "t6": {
+      "hash": "4715c3b57496",
+      "slug": "limit-soul-read-write"
+    },
+    "t7": {
+      "hash": "e5d891905afb",
+      "slug": "orchestration-engine-v2-temporal-autoclave"
+    },
+    "t8": {
+      "hash": "d628a574d15d",
+      "slug": "orchestration-v3-monitoring-suite"
+    },
+    "t9": {
+      "hash": "d53a62f6804b",
+      "slug": "persistent-extend-and-indexed-subops"
+    },
+    "t10": {
+      "hash": "5e7f3af60321",
+      "slug": "report-to-youtube-pipeline"
+    },
+    "t11": {
+      "hash": "30ca151effbf",
+      "slug": "setup-vectorbt-nautilus-pipeline"
+    },
+    "t12": {
+      "hash": "6b07b566fea3",
+      "slug": "spiking-transformer-integration-research"
+    },
+    "t13": {
+      "hash": "d4f493066fed",
+      "slug": "temporal-interaction-llm-gaming"
+    },
+    "t14": {
+      "hash": "647899770d34",
+      "slug": "test"
+    },
+    "t15": {
+      "hash": "b328032aeb30",
+      "slug": "test2"
+    },
+    "t16": {
+      "hash": "cdb15d928cfb",
+      "slug": "validate-scheme-b-more-folds"
+    },
+    "d1": {
+      "hash": "225bf4994c9b",
+      "slug": "aad-over-finite-differences"
+    },
+    "d2": {
+      "hash": "7c62df6a4c2d",
+      "slug": "agent-session-isolation"
+    },
+    "d3": {
+      "hash": "865bf5b77657",
+      "slug": "agent-trio-architecture"
+    },
+    "d4": {
+      "hash": "659182359b07",
+      "slug": "auto-memory-extraction-architecture"
+    },
+    "d5": {
+      "hash": "bca855236385",
+      "slug": "automated-dependency-resolution-on-completion"
+    },
+    "d6": {
+      "hash": "c15678153607",
+      "slug": "belam-codex-resurrection"
+    },
+    "d7": {
+      "hash": "31708373f83d",
+      "slug": "boot-context-trim-static-indexes"
+    },
+    "d8": {
+      "hash": "336e021f367d",
+      "slug": "clock-cycles-over-tokens"
+    },
+    "d9": {
+      "hash": "ba77c240fd70",
+      "slug": "codex-cockpit-before-prompt-build-per-turn-injection"
+    },
+    "d10": {
+      "hash": "b5552fa4489d",
+      "slug": "codex-cockpit-plugin-architecture"
+    },
+    "d11": {
+      "hash": "ef321090cfad",
+      "slug": "codex-engine-e-namespace-for-modes"
+    },
+    "d12": {
+      "hash": "eb9b7be26bc0",
+      "slug": "codex-engine-modes-as-primitives"
+    },
+    "d13": {
+      "hash": "cd4bc0b7f0ad",
+      "slug": "codex-engine-v1-architecture"
+    },
+    "d14": {
+      "hash": "d93fa2efaa9f",
+      "slug": "codex-engine-v2-dense-alphanumeric-grammar"
+    },
+    "d15": {
+      "hash": "4c8bd87a61dd",
+      "slug": "codex-engine-v2-live-diff-architecture"
+    },
+    "d16": {
+      "hash": "356796f4ef97",
+      "slug": "codex-engine-v2-primitive-first-gate"
+    },
+    "d17": {
+      "hash": "0765976d3bad",
+      "slug": "derivative-specialist-skill"
+    },
+    "d18": {
+      "hash": "5eab1334905c",
+      "slug": "e3-e2-namespace-chain-architecture"
+    },
+    "d19": {
+      "hash": "ff5fb6083cfc",
+      "slug": "hierarchical-memory-system"
+    },
+    "d20": {
+      "hash": "29e950f975bd",
+      "slug": "incremental-relationship-mapping-via-pairwise-opus-comparison"
+    },
+    "d21": {
+      "hash": "73c22e0c47c7",
+      "slug": "live-diff-streaming-architecture"
+    },
+    "d22": {
+      "hash": "bc3c4a77821a",
+      "slug": "memory-as-index-not-store"
+    },
+    "d23": {
+      "hash": "7658b76a0d2c",
+      "slug": "memory-as-primitive-type"
+    },
+    "d24": {
+      "hash": "a9d1cd01ed3b",
+      "slug": "memory-extract-hook-error-handling-fix"
+    },
+    "d25": {
+      "hash": "926daa9b6b72",
+      "slug": "orchestration-architecture"
+    },
+    "d26": {
+      "hash": "4b037f57db31",
+      "slug": "orchestration-fire-and-forget-dispatch"
+    },
+    "d27": {
+      "hash": "aa4923926ab8",
+      "slug": "phase2-human-gate"
+    },
+    "d28": {
+      "hash": "b1af8093ab64",
+      "slug": "population-coding-over-delta"
+    },
+    "d29": {
+      "hash": "b53728b85f58",
+      "slug": "predictionmarket-specialist-skill"
+    },
+    "d30": {
+      "hash": "89b32f8b9d07",
+      "slug": "primitive-relationship-graph"
+    },
+    "d31": {
+      "hash": "3600e2db2af8",
+      "slug": "quant-infrastructure-skill"
+    },
+    "d32": {
+      "hash": "1f8605783d38",
+      "slug": "quant-workflow-skill"
+    },
+    "d33": {
+      "hash": "23bfc2502b2d",
+      "slug": "skill-extraction-from-reports"
+    },
+    "d34": {
+      "hash": "131e50259135",
+      "slug": "skill-primitive-pairing"
+    },
+    "d35": {
+      "hash": "b44509eac780",
+      "slug": "superseded-primitive-lifecycle"
+    },
+    "d36": {
+      "hash": "c2a60a93716e",
+      "slug": "supervised-builder-experiments"
+    },
+    "d37": {
+      "hash": "8e80a273e882",
+      "slug": "two-phase-backtest-workflow"
+    },
+    "l1": {
+      "hash": "8c0460226724",
+      "slug": "agent-reconstruction-errors-from-fragments-vs-actual-conclusions"
+    },
+    "l2": {
+      "hash": "4dcb4b97de5e",
+      "slug": "always-back-up-workspace-to-github"
+    },
+    "l3": {
+      "hash": "b5e43082abb7",
+      "slug": "analysis-phase2-gate-mandatory"
+    },
+    "l4": {
+      "hash": "4f8512b699a8",
+      "slug": "auto-memory-extraction-on-bootstrap"
+    },
+    "l5": {
+      "hash": "9aa2018cf38c",
+      "slug": "beta-convergence-is-market-determined"
+    },
+    "l6": {
+      "hash": "dae678e12525",
+      "slug": "boot-context-pipeline-status-can-be-stale"
+    },
+    "l7": {
+      "hash": "b3ab35d23248",
+      "slug": "breakeven-accuracy-before-building"
+    },
+    "l8": {
+      "hash": "265f0604bceb",
+      "slug": "checkpoint-and-resume-pattern"
+    },
+    "l9": {
+      "hash": "a8943324dcac",
+      "slug": "codex-engine-feels-native-at-v1"
+    },
+    "l10": {
+      "hash": "0491c06ddc0f",
+      "slug": "confident-abstention-is-signal"
+    },
+    "l11": {
+      "hash": "b9ae699a6979",
+      "slug": "continuous-input-beats-spike-mode"
+    },
+    "l12": {
+      "hash": "b3883abf6866",
+      "slug": "control-input-dimensionality-in-encoding-comparisons"
+    },
+    "l13": {
+      "hash": "5d12664123b3",
+      "slug": "e3-chains-e2-after-namespace-registration"
+    },
+    "l14": {
+      "hash": "0011d6dd82c0",
+      "slug": "event-detection-not-state-classification"
+    },
+    "l15": {
+      "hash": "fd86713a1852",
+      "slug": "gpu-parallel-thrashing-t4"
+    },
+    "l16": {
+      "hash": "aa0b9c2ddc9a",
+      "slug": "legacy-view-command-primitives-redundant-after-engine"
+    },
+    "l17": {
+      "hash": "084fbb70bc10",
+      "slug": "memory-extract-hook-session-file-detection-mismatch"
+    },
+    "l18": {
+      "hash": "5cf81f89e761",
+      "slug": "memory-extraction-misses-design-convergence-in-conversation"
+    },
+    "l19": {
+      "hash": "846e1c77d395",
+      "slug": "openclaw-agent-routes-to-active-session"
+    },
+    "l20": {
+      "hash": "bf599def5f2e",
+      "slug": "openclaw-fixed-context-injection-list"
+    },
+    "l21": {
+      "hash": "7f2ccf8d51d2",
+      "slug": "openclaw-plugin-definepluginentry-import-path"
+    },
+    "l22": {
+      "hash": "ff77e7250435",
+      "slug": "orchestration-engine-v1-self-built-through-legacy-pipeline"
+    },
+    "l23": {
+      "hash": "35e86d45cd0f",
+      "slug": "per-fold-significance-tests-required"
+    },
+    "l24": {
+      "hash": "fef5523f5179",
+      "slug": "phasic-only-ablation-wins-equilibrium"
+    },
+    "l25": {
+      "hash": "445bda11c19f",
+      "slug": "pipeline-orchestrate-blocking-agent-wake"
+    },
+    "l26": {
+      "hash": "70e3995d1179",
+      "slug": "pipeline-table-separator-required"
+    },
+    "l27": {
+      "hash": "c60c1f34f891",
+      "slug": "plugins-have-presence-commands-are-fire-and-forget"
+    },
+    "l28": {
+      "hash": "cf70703c549f",
+      "slug": "sage-agent-session-key-stale-after-rename"
+    },
+    "l29": {
+      "hash": "4edc73f56d78",
+      "slug": "scheme-b-validated-10-fold"
+    },
+    "l30": {
+      "hash": "bf72a21d9485",
+      "slug": "session-reset-targets-main-not-group"
+    },
+    "l31": {
+      "hash": "d0788943ff00",
+      "slug": "sessions-send-timeout-filesystem-first"
+    },
+    "l32": {
+      "hash": "1337c098f35e",
+      "slug": "shell-splits-unquoted-list-args"
+    },
+    "l33": {
+      "hash": "7adb08f4eccb",
+      "slug": "snn-treats-like-weird-cnn"
+    },
+    "l34": {
+      "hash": "201f796d905a",
+      "slug": "stacking-specialists-is-dead-end"
+    },
+    "l35": {
+      "hash": "8f8071d1e937",
+      "slug": "subprocess-run-doesnt-raise-on-failure"
+    },
+    "l36": {
+      "hash": "1b6cb74e58c5",
+      "slug": "telegram-bots-cant-see-bots"
+    },
+    "l37": {
+      "hash": "060bfc09bafb",
+      "slug": "token-ids-affect-attention-quality-not-just-count"
+    },
+    "l38": {
+      "hash": "1db4b8c95f73",
+      "slug": "torch-buffer-requires-tensor-assignment"
+    },
+    "l39": {
+      "hash": "bd2cb6f55d13",
+      "slug": "use-scaffold-then-edit-not-overwrite"
+    },
+    "l40": {
+      "hash": "c0b951e9ab91",
+      "slug": "verify-notebook-paths-resolve-before-automation"
+    },
+    "c1": {
+      "hash": "860c59aa2a38",
+      "slug": "analyze-local"
+    },
+    "c2": {
+      "hash": "12097b08c6bc",
+      "slug": "analyze"
+    },
+    "c3": {
+      "hash": "aabbea4192f4",
+      "slug": "audit"
+    },
+    "c4": {
+      "hash": "c490f8e9028e",
+      "slug": "autorun"
+    },
+    "c5": {
+      "hash": "a834c8be4925",
+      "slug": "build"
+    },
+    "c6": {
+      "hash": "b63ac4f9efe4",
+      "slug": "cleanup"
+    },
+    "c7": {
+      "hash": "d211533abdf3",
+      "slug": "consolidate"
+    },
+    "c8": {
+      "hash": "a8bbfabf9371",
+      "slug": "conversations"
+    },
+    "c9": {
+      "hash": "8b72d298b5cd",
+      "slug": "diffs"
+    },
+    "c10": {
+      "hash": "1275b5820f3a",
+      "slug": "edges"
+    },
+    "c11": {
+      "hash": "746c4d394b90",
+      "slug": "extract"
+    },
+    "c12": {
+      "hash": "09c439b2e525",
+      "slug": "handoffs"
+    },
+    "c13": {
+      "hash": "69a3a8598e18",
+      "slug": "help"
+    },
+    "c14": {
+      "hash": "30d62561c316",
+      "slug": "kickoff"
+    },
+    "c15": {
+      "hash": "600a17b06a31",
+      "slug": "knowledge-sync"
+    },
+    "c16": {
+      "hash": "ffeb5d7e501c",
+      "slug": "link"
+    },
+    "c17": {
+      "hash": "2d74c586349d",
+      "slug": "log"
+    },
+    "c18": {
+      "hash": "4feec0c189b6",
+      "slug": "orchestrate"
+    },
+    "c19": {
+      "hash": "062710b96977",
+      "slug": "queue-revision"
+    },
+    "c20": {
+      "hash": "7ccf1cd20414",
+      "slug": "report"
+    },
+    "c21": {
+      "hash": "3dbe92f15369",
+      "slug": "revise"
+    },
+    "c22": {
+      "hash": "06a28e2b8cde",
+      "slug": "run"
+    },
+    "c23": {
+      "hash": "99ba0388848d",
+      "slug": "session"
+    },
+    "c24": {
+      "hash": "0b471ef1a7f4",
+      "slug": "spawn"
+    },
+    "c25": {
+      "hash": "093f629aa6af",
+      "slug": "status"
+    },
+    "c26": {
+      "hash": "029273535106",
+      "slug": "transcribe"
+    },
+    "c27": {
+      "hash": "879a83a1d38c",
+      "slug": "watch"
+    },
+    "k1": {
+      "hash": "28b0c38220f3",
+      "slug": "derivative-specialist"
+    },
+    "k2": {
+      "hash": "3c5cb044a3ec",
+      "slug": "predictionmarket-specialist"
+    },
+    "k3": {
+      "hash": "712b45b3ea78",
+      "slug": "quant-infrastructure"
+    },
+    "k4": {
+      "hash": "acb621548d31",
+      "slug": "quant-workflow"
+    },
+    "s1": {
+      "hash": "5538e5b9b8a3",
+      "slug": "belam"
+    },
+    "s2": {
+      "hash": "2b9d702a3d89",
+      "slug": "launch-pipeline"
+    },
+    "s3": {
+      "hash": "04a2d0e44904",
+      "slug": "orchestration"
+    },
+    "s4": {
+      "hash": "045bc8669d42",
+      "slug": "pipelines"
+    },
+    "m1": {
+      "hash": "fd5fbbc78e64",
+      "slug": "2026-03-17_031637_memory-and-knowledge-management-system-b"
+    },
+    "m2": {
+      "hash": "657d8cf1b11f",
+      "slug": "2026-03-17_031637_spike-count-readout-causes-dead-neurons"
+    },
+    "m3": {
+      "hash": "782eee601f00",
+      "slug": "2026-03-17_031649_t4-optimal-config-2-cuda-streams-batch-s"
+    },
+    "m4": {
+      "hash": "c7996a87415b",
+      "slug": "2026-03-17_033419_built-two-major-systems-tonight-1-analys"
+    },
+    "m5": {
+      "hash": "78e2b9ecf40a",
+      "slug": "2026-03-17_033425_all-three-agents-architect-critic-builde"
+    },
+    "m6": {
+      "hash": "aad30c8c1919",
+      "slug": "2026-03-17_033432_v4-experiment-total-architecture-failure"
+    },
+    "m7": {
+      "hash": "71bad4fb513b",
+      "slug": "2026-03-17_045502_mandatory-gate-never-start-a-fresh-noteb"
+    },
+    "m8": {
+      "hash": "bae52a11d0fc",
+      "slug": "2026-03-17_134119_agent-workspace-structure-discovered-eac"
+    },
+    "m9": {
+      "hash": "7cd996f9ea4a",
+      "slug": "2026-03-17_134119_built-multi-agent-memory-system-each-age"
+    },
+    "m10": {
+      "hash": "4eef4e51ba2d",
+      "slug": "2026-03-17_134119_major-session-built-three-infrastructure"
+    },
+    "m11": {
+      "hash": "dd5e267273a2",
+      "slug": "2026-03-17_134119_phase-2-cold-start-protocol-agent-contex"
+    },
+    "m12": {
+      "hash": "9dda93058905",
+      "slug": "2026-03-17_144639_created-belam-cli-at-localbinbelam-unifi"
+    },
+    "m13": {
+      "hash": "77925baddeac",
+      "slug": "2026-03-17_151007_built-full-workspace-portability-system"
+    },
+    "m14": {
+      "hash": "e04ed0604662",
+      "slug": "2026-03-17_151632_flattened-directory-structure-snn-resear"
+    },
+    "m15": {
+      "hash": "bb5fd654f9ee",
+      "slug": "2026-03-17_152800_full-workspace-portability-now-includes"
+    },
+    "m16": {
+      "hash": "935250f777b9",
+      "slug": "2026-03-17_154428_upgraded-heartbeat-from-flat-checklist-t"
+    },
+    "m17": {
+      "hash": "82bbea3eb11a",
+      "slug": "2026-03-17_160334_phase-3-iteration-chain-protocol-establi"
+    },
+    "m18": {
+      "hash": "2f18e431fe0d",
+      "slug": "2026-03-17_164821_major-heartbeat-upgrade-session-1-upgrad"
+    },
+    "m19": {
+      "hash": "81caf44bc240",
+      "slug": "2026-03-17_171127_phase-2-direction-received-from-shael-fo"
+    },
+    "m20": {
+      "hash": "3507d9a16a8b",
+      "slug": "2026-03-17_221720_analysis-gate-opened-v4-deep-analysis-ph"
+    },
+    "m21": {
+      "hash": "3b6f4e55da11",
+      "slug": "2026-03-17_221720_hierarchical-memory-system-built-and-dep"
+    },
+    "m22": {
+      "hash": "7a3d74cd1d21",
+      "slug": "2026-03-17_223924_built-hierarchical-memory-system-dailywe"
+    },
+    "m23": {
+      "hash": "3c0fb0ed552b",
+      "slug": "2026-03-17_233809_pipeline-kickoff-pipeline-build-equilibr"
+    },
+    "m24": {
+      "hash": "a25fe666f941",
+      "slug": "2026-03-17_233941_pipeline-kickoff-pipeline-stack-speciali"
+    },
+    "m25": {
+      "hash": "b4f5bd176ace",
+      "slug": "2026-03-17_234101_pipeline-kickoff-pipeline-validate-schem"
+    },
+    "m26": {
+      "hash": "0e8824c48627",
+      "slug": "2026-03-17_234248_built-launch-pipeline-skill-belam-kickof"
+    },
+    "m27": {
+      "hash": "d4c5ddd03597",
+      "slug": "2026-03-18_001205_pipeline-kickoff-pipeline-build-equilibr"
+    },
+    "m28": {
+      "hash": "7f25681067db",
+      "slug": "2026-03-18_001335_pipeline-kickoff-pipeline-stack-speciali"
+    },
+    "m29": {
+      "hash": "3f2d69508370",
+      "slug": "2026-03-18_001501_pipeline-kickoff-pipeline-validate-schem"
+    },
+    "m30": {
+      "hash": "3c4919d3aa76",
+      "slug": "2026-03-18_001630_updated-pipeline-orchestratepy-session-r"
+    },
+    "m31": {
+      "hash": "eab7535df3a0",
+      "slug": "2026-03-18_143613_agent-infrastructure-upgrade-architectcr"
+    },
+    "m32": {
+      "hash": "60b073125f97",
+      "slug": "2026-03-18_143808_orchestrator-now-auto-consolidates-agent"
+    },
+    "m33": {
+      "hash": "e6e4384a4809",
+      "slug": "2026-03-18_144431_checkpoint-and-resume-system-built-into"
+    },
+    "m34": {
+      "hash": "a6028b45ac17",
+      "slug": "2026-03-18_145538_built-pipeline-automatepy-event-driven-p"
+    },
+    "m35": {
+      "hash": "860ee8dc76bb",
+      "slug": "2026-03-18_150303_built-pipeline-autorunpy-event-driven-pi"
+    },
+    "m36": {
+      "hash": "a87146aa5ca5",
+      "slug": "2026-03-18_151706_pipeline-build-equilibrium-snn-completed"
+    },
+    "m37": {
+      "hash": "e04f56a76420",
+      "slug": "2026-03-18_151707_auto-kicked-by-pipeline-autorun-gate-ope"
+    },
+    "m38": {
+      "hash": "6cc16746390c",
+      "slug": "2026-03-18_170835_critical-fix-reset-agent-session-was-res"
+    },
+    "m39": {
+      "hash": "64173ba54bf2",
+      "slug": "2026-03-18_173356_major-infrastructure-session-2026-03-18"
+    },
+    "m40": {
+      "hash": "8c073aec79d2",
+      "slug": "2026-03-18_183716_added-stale-session-lock-detection-to-pi"
+    },
+    "m41": {
+      "hash": "f518b789d388",
+      "slug": "2026-03-18_192056_created-orchestration-skill-skillsorches"
+    },
+    "m42": {
+      "hash": "ccc82fb05758",
+      "slug": "2026-03-18_192319_created-decision-primitives-for-all-4-sp"
+    },
+    "m43": {
+      "hash": "e559bcadb2dc",
+      "slug": "2026-03-18_192651_convention-established-every-workspace-s"
+    },
+    "m44": {
+      "hash": "ea05fcf62310",
+      "slug": "2026-03-18_203356_memory-hierarchy-now-indexed-as-primitiv"
+    },
+    "m45": {
+      "hash": "314c8e382f9e",
+      "slug": "2026-03-18_215728_extended-memory-content-embed-to-include"
+    },
+    "m46": {
+      "hash": "3ed4f78162dd",
+      "slug": "2026-03-18_225239_major-workspace-infrastructure-session-1"
+    },
+    "m47": {
+      "hash": "76df0ec6b785",
+      "slug": "2026-03-18_230240_pipelines-added-to-primitive-index-embed"
+    },
+    "m48": {
+      "hash": "734e2d74814b",
+      "slug": "2026-03-18_233943_built-phase-1-revision-system-new-stages"
+    },
+    "m49": {
+      "hash": "841110d32536",
+      "slug": "2026-03-18_235054_commands-and-skills-promoted-to-first-cl"
+    },
+    "m50": {
+      "hash": "cadf9fcca886",
+      "slug": "2026-03-19_005231_primitives-are-the-universal-organizatio"
+    },
+    "m51": {
+      "hash": "561f8042b3b8",
+      "slug": "2026-03-19_030405_session-2026-03-19-0052-0255-utc-v4-deep"
+    },
+    "m52": {
+      "hash": "34c352b39eb3",
+      "slug": "2026-03-19_031427_built-revision-queue-system-for-pipeline"
+    },
+    "m53": {
+      "hash": "69b420289436",
+      "slug": "2026-03-19_033706_completed-workspace-refactor-three-works"
+    },
+    "m54": {
+      "hash": "0454c07fccb9",
+      "slug": "2026-03-19_041328_session-2026-03-19-0301-0410-utc-workspa"
+    },
+    "m55": {
+      "hash": "586ef7fee24a",
+      "slug": "2026-03-19_044734_established-superseded-primitive-lifecyc"
+    },
+    "m56": {
+      "hash": "c16984c361cf",
+      "slug": "2026-03-19_133712_local-cpu-experiment-runner-works-run-lo"
+    },
+    "m57": {
+      "hash": "b2e52c73cc74",
+      "slug": "2026-03-19_150631_built-pipeline-integrated-local-experime"
+    },
+    "m58": {
+      "hash": "46dcf943f7e9",
+      "slug": "2026-03-19_151247_81-experiments-completed-in-139min-27-ex"
+    },
+    "m59": {
+      "hash": "9e90c6146832",
+      "slug": "2026-03-19_152422_notebook-naming-convention-mismatch-caug"
+    },
+    "m60": {
+      "hash": "3ab0121695b6",
+      "slug": "2026-03-19_165124_built-local-analysis-pipeline-experiment"
+    },
+    "m61": {
+      "hash": "796cf278ccb2",
+      "slug": "2026-03-19_171712_local-analysis-cli-wiring-complete-key-c"
+    },
+    "m62": {
+      "hash": "a0b9be4ab160",
+      "slug": "2026-03-19_183648_latex-report-built-pdf-machinelearningsn"
+    },
+    "m63": {
+      "hash": "cb4038cbca52",
+      "slug": "2026-03-19_191339_experiments-complete-results-at-machinel"
+    },
+    "m64": {
+      "hash": "89960a8660b7",
+      "slug": "2026-03-19_191633_supervised-builder-experiment-runner-wor"
+    },
+    "m65": {
+      "hash": "fb3684023fb5",
+      "slug": "2026-03-19_204509_versioning-clarification-from-shael-the"
+    },
+    "m66": {
+      "hash": "e1f366d3ae19",
+      "slug": "2026-03-19_204801_design-principle-from-shael-clock-cycles"
+    },
+    "m67": {
+      "hash": "27e9a4274275",
+      "slug": "2026-03-19_205031_session-2026-03-19-2042-2050-utc-shael-r"
+    },
+    "m68": {
+      "hash": "c99e13b4b1fd",
+      "slug": "2026-03-19_205403_auto-completing-local-analysis-moving-to"
+    },
+    "m69": {
+      "hash": "1c3ff5e278d9",
+      "slug": "2026-03-19_205404_auto-completing-local-analysis-moving-to"
+    },
+    "m70": {
+      "hash": "8d1563baa67e",
+      "slug": "2026-03-19_212142_voice-transcription-capability-establish"
+    },
+    "m71": {
+      "hash": "93970f41f4cd",
+      "slug": "2026-03-20_004035_latex-report-built-pdf-machinelearningsn"
+    },
+    "m72": {
+      "hash": "d8d85e8464e6",
+      "slug": "2026-03-20_005108_pipeline-test-version-completed-local-an"
+    },
+    "m73": {
+      "hash": "cc95c061fa49",
+      "slug": "2026-03-20_013501_lesson-learned-always-use-scaffold-then"
+    },
+    "m74": {
+      "hash": "09577b3a987c",
+      "slug": "2026-03-20_022019_built-indexed-command-interface-for-bela"
+    },
+    "m75": {
+      "hash": "577b9f065cfc",
+      "slug": "2026-03-20_032150_indexed-command-interface-fully-deployed"
+    },
+    "m76": {
+      "hash": "4889d7afa7cf",
+      "slug": "2026-03-20_033917_primitive-relationship-graph-deployed-al"
+    },
+    "m77": {
+      "hash": "62979a859f0c",
+      "slug": "2026-03-20_041755_belam-codex-resurrection-architecture-es"
+    },
+    "m78": {
+      "hash": "f9cdea0fc087",
+      "slug": "2026-03-20_042337_fixed-argparse-bug-in-belam-edit-shell-s"
+    },
+    "m79": {
+      "hash": "8f702e1cd113",
+      "slug": "2026-03-20_050851_decided-on-incremental-pairwise-relation"
+    },
+    "m80": {
+      "hash": "1609d58fb3fc",
+      "slug": "2026-03-20_174427_codex-engine-design-locked-with-shael-un"
+    },
+    "m81": {
+      "hash": "fb1c8273f4e1",
+      "slug": "2026-03-20_181856_embodied-consciousness-architecture-deci"
+    },
+    "m82": {
+      "hash": "125a6d48a21a",
+      "slug": "2026-03-20_185222_codex-engine-v1-live-and-tested-first-fu"
+    },
+    "m83": {
+      "hash": "857524d2d1e0",
+      "slug": "2026-03-20_190459_codex-engine-v1-complete-and-settled-dec"
+    },
+    "m84": {
+      "hash": "81aa52e00825",
+      "slug": "2026-03-20_200721_session-2a293aef-wired-codex-engine-v1-s"
+    },
+    "m85": {
+      "hash": "461a56fc8ad3",
+      "slug": "2026-03-20_215135_built-automated-session-memory-extractio"
+    },
+    "m86": {
+      "hash": "0d351c2e8417",
+      "slug": "2026-03-20_220104_boot-context-cleanup-agentsmd-159kb22kb"
+    },
+    "m87": {
+      "hash": "9704d9c07fac",
+      "slug": "2026-03-20_222815_debugged-memory-extract-hook-not-firing"
+    },
+    "m88": {
+      "hash": "6ad92a1b2117",
+      "slug": "2026-03-21_012723_auto-memory-extraction-confirmed-end-to"
+    },
+    "m89": {
+      "hash": "825a1d3a4d55",
+      "slug": "2026-03-21_012730_codex-engine-v2-features-shipped-in-sess"
+    },
+    "m90": {
+      "hash": "d0dc196f0e6f",
+      "slug": "2026-03-21_032457_pipeline-research-openclaw-internals-com"
+    },
+    "m91": {
+      "hash": "66b5715a1369",
+      "slug": "2026-03-21_032458_pipeline-created-research-openclaw-inter"
+    },
+    "m92": {
+      "hash": "ce375ef34853",
+      "slug": "2026-03-21_033036_completed-openclaw-internals-research-de"
+    },
+    "m93": {
+      "hash": "079ab95f4f55",
+      "slug": "2026-03-21_033159_research-openclaw-internals-design-revie"
+    },
+    "m94": {
+      "hash": "17ca0d060ec2",
+      "slug": "2026-03-21_034318_built-3-openclaw-plugin-prototypes-for-p"
+    },
+    "m95": {
+      "hash": "b26172c4c611",
+      "slug": "2026-03-21_034626_phase-1-complete-for-openclaw-internals"
+    },
+    "m96": {
+      "hash": "bc34a3548008",
+      "slug": "2026-03-21_040634_research-openclaw-internals-experiment-r"
+    },
+    "m97": {
+      "hash": "32b4c6aeb14f",
+      "slug": "2026-03-21_044611_research-openclaw-internals-local-analys"
+    },
+    "m98": {
+      "hash": "73becaf97570",
+      "slug": "2026-03-21_045526_local-analysis-builder-complete-44-criti"
+    },
+    "m99": {
+      "hash": "1e0100f2cfc6",
+      "slug": "2026-03-21_045910_latex-report-built-pdf-machinelearningsn"
+    },
+    "m100": {
+      "hash": "482a1a997034",
+      "slug": "2026-03-21_051420_deep-architectural-discussion-with-shael"
+    },
+    "m101": {
+      "hash": "726e4405c4c3",
+      "slug": "2026-03-21_051420_research-openclaw-internals-pipeline-ran"
+    },
+    "m102": {
+      "hash": "a6914c99d72f",
+      "slug": "2026-03-21_065733_codex-codecpy-built-and-committed-2525-t"
+    },
+    "m103": {
+      "hash": "8133e695f08c",
+      "slug": "2026-03-21_065733_major-codex-engine-v2-coordinate-grammar"
+    },
+    "m104": {
+      "hash": "6f715a75037f",
+      "slug": "2026-03-21_092223_codex-engine-v2-and-hook-verification-su"
+    },
+    "m105": {
+      "hash": "5a6e6401c237",
+      "slug": "2026-03-21_092223_task-doc-cleanup-session-closed-v1-codex"
+    },
+    "m106": {
+      "hash": "7ca8644591a0",
+      "slug": "2026-03-21_095159_pipeline-orchestration-engine-v1-complet"
+    },
+    "m107": {
+      "hash": "365b8aacbc60",
+      "slug": "2026-03-21_095200_pipeline-created-unified-orchestration-e"
+    },
+    "m108": {
+      "hash": "62a126bf106d",
+      "slug": "2026-03-21_100351_orchestration-engine-v1-design-review-ap"
+    },
+    "m109": {
+      "hash": "2e756123b55d",
+      "slug": "2026-03-21_103235_orchestration-engine-v2-design-review-ap"
+    },
+    "m110": {
+      "hash": "8c187cca0da9",
+      "slug": "2026-03-21_103857_updated-orchestration-enginepy-with-all"
+    },
+    "m111": {
+      "hash": "eac310635d79",
+      "slug": "2026-03-21_104449_orchestration-engine-v2-code-review-appr"
+    },
+    "m112": {
+      "hash": "09626158ce30",
+      "slug": "2026-03-21_104828_began-implementing-codex-cockpit-plugin"
+    },
+    "m113": {
+      "hash": "2db54a883f05",
+      "slug": "2026-03-21_105911_pipeline-orchestration-engine-v2-tempora"
+    },
+    "m114": {
+      "hash": "1a88d66be855",
+      "slug": "2026-03-21_105912_pipeline-created-orchestration-engine-v2"
+    },
+    "m115": {
+      "hash": "977c602f7389",
+      "slug": "2026-03-21_110137_pipeline-orchestration-engine-v2-tempora"
+    },
+    "m116": {
+      "hash": "4665184ebc67",
+      "slug": "2026-03-21_110138_pipeline-created-orchestration-engine-v2"
+    },
+    "m117": {
+      "hash": "b40c5afe6348",
+      "slug": "2026-03-21_110245_pipeline-created-pipeline-orchestration"
+    },
+    "m118": {
+      "hash": "2cd1b89a873d",
+      "slug": "2026-03-21_110558_designed-temporal-overlay-for-v2-orchest"
+    },
+    "m119": {
+      "hash": "dc6774106ad4",
+      "slug": "2026-03-21_111241_orchestration-engine-v2-temporal-design"
+    },
+    "m120": {
+      "hash": "249f5250ee91",
+      "slug": "2026-03-21_111415_orchestration-engine-v2-temporal-design"
+    },
+    "m121": {
+      "hash": "9c89f8685509",
+      "slug": "2026-03-21_133825_v2-temporal-overlay-built-3-new-files-te"
+    },
+    "m122": {
+      "hash": "8c8ecd139e60",
+      "slug": "2026-03-21_134521_orchestration-engine-v2-temporal-code-re"
+    },
+    "m123": {
+      "hash": "e35d1fd25340",
+      "slug": "2026-03-21_164416_archived-orchestration-engine-v1-and-orc"
+    },
+    "m124": {
+      "hash": "1dd93cc95ba6",
+      "slug": "2026-03-21_164426_fixed-3-bugs-in-launch-pipelinepy-1-forc"
+    },
+    "m125": {
+      "hash": "068260b8d585",
+      "slug": "2026-03-21_164434_launched-orchestration-engine-v2-tempora"
+    },
+    "m126": {
+      "hash": "e9a4531f3ff1",
+      "slug": "2026-03-21_202822_e3-namespace-registration-design-updated"
+    },
+    "m127": {
+      "hash": "45ec91d3c218",
+      "slug": "2026-03-21_202828_2-stuck-handoffs-discovered-in-orchestra"
+    },
+    "m128": {
+      "hash": "8d23165d828a",
+      "slug": "2026-03-21_203110_pipeline-codex-engine-v2-modes-completed"
+    },
+    "m129": {
+      "hash": "95d5705088d2",
+      "slug": "2026-03-21_203111_pipeline-created-dense-alphanumeric-pars"
+    },
+    "m130": {
+      "hash": "6016c98c2a95",
+      "slug": "2026-03-21_203247_pipeline-codex-engine-v2-modes-completed"
+    },
+    "m131": {
+      "hash": "58e8935e3980",
+      "slug": "2026-03-21_203248_pipeline-created-kicking-off-phase-1-pip"
+    },
+    "m132": {
+      "hash": "d7a844430070",
+      "slug": "2026-03-21_203305_kicking-off-phase-1-architect-design-pip"
+    },
+    "m133": {
+      "hash": "d97f6362c0fd",
+      "slug": "2026-03-21_204129_codex-engine-v2-modes-architect-design-c"
+    },
+    "m134": {
+      "hash": "70596ca7c081",
+      "slug": "2026-03-21_204144_codex-engine-v2-modes-design-review-appr"
+    },
+    "m135": {
+      "hash": "dbae45850691",
+      "slug": "2026-03-21_204213_codex-engine-v2-modes-design-review-appr"
+    },
+    "m136": {
+      "hash": "d7fceff14bc2",
+      "slug": "2026-03-21_204424_codex-engine-v2-modes-design-review-appr"
+    },
+    "m137": {
+      "hash": "68c7068fda15",
+      "slug": "2026-03-21_204535_codex-engine-v2-modes-design-review-appr"
+    },
+    "m138": {
+      "hash": "75c629bebe2b",
+      "slug": "2026-03-21_210022_codex-engine-v2-modes-code-review-approv"
+    },
+    "m139": {
+      "hash": "1f211ff54e81",
+      "slug": "2026-03-21_210200_codex-engine-v2-modes-code-review-approv"
+    },
+    "m140": {
+      "hash": "45befdda0c9a",
+      "slug": "2026-03-21_210436_advancing-to-phase-2-with-shael-directio"
+    },
+    "m141": {
+      "hash": "0fe492976899",
+      "slug": "2026-03-21_210820_phase-2-design-complete-f-labelr-label-c"
+    },
+    "m142": {
+      "hash": "f28de66b0c4c",
+      "slug": "2026-03-21_211311_phase-2-design-review-approved-0-blocks"
+    },
+    "m143": {
+      "hash": "cfbfd884ac5b",
+      "slug": "2026-03-21_212259_phase-2-implementation-complete-time-tra"
+    },
+    "m144": {
+      "hash": "d6e0d36a03f5",
+      "slug": "2026-03-21_212303_phase-2-temporal-overlay-implementation"
+    },
+    "m145": {
+      "hash": "653e4bff88be",
+      "slug": "2026-03-21_212826_phase-2-code-review-approved-0-blocks-3"
+    },
+    "m146": {
+      "hash": "44707ff94b87",
+      "slug": "2026-03-21_212925_phase-2-code-review-approved-0-blocks-3"
+    },
+    "m147": {
+      "hash": "a10144dc8d35",
+      "slug": "2026-03-21_213048_launching-phase-1-pipeline-orchestration"
+    },
+    "m148": {
+      "hash": "248fbd1ccc8e",
+      "slug": "2026-03-21_213458_orch-v3-monitoring-design-complete-optio"
+    },
+    "m149": {
+      "hash": "3152639771fe",
+      "slug": "2026-03-21_213950_orch-v3-monitoring-design-review-approve"
+    },
+    "m150": {
+      "hash": "787329764151",
+      "slug": "2026-03-21_214913_orch-v3-implementation-complete-3-new-fi"
+    },
+    "m151": {
+      "hash": "1103a0699b4c",
+      "slug": "2026-03-21_215438_orch-v3-monitoring-code-review-approved"
+    },
+    "m152": {
+      "hash": "23526a533ba8",
+      "slug": "2026-03-22_011025_launching-phase-1-final-item-in-queue-pi"
+    },
+    "m153": {
+      "hash": "2199070c1ffa",
+      "slug": "2026-03-22_011454_engine-v3-design-complete-4-modules-mcp"
+    },
+    "m154": {
+      "hash": "53b4b9b4708a",
+      "slug": "2026-03-22_011835_engine-v3-design-review-approved-0-block"
+    },
+    "m155": {
+      "hash": "44fabb7ce720",
+      "slug": "2026-03-22_012018_codex-engine-v3-design-review-approved-0"
+    },
+    "md1": {
+      "hash": "6f182b2bf2e7",
+      "slug": "2026-03-23"
+    },
+    "md2": {
+      "hash": "9fb06f8caf60",
+      "slug": "2026-03-22"
+    },
+    "md3": {
+      "hash": "c3db06646d03",
+      "slug": "2026-03-21"
+    },
+    "md4": {
+      "hash": "085b368bcdf7",
+      "slug": "2026-03-20"
+    },
+    "md5": {
+      "hash": "91bf1ab2d82b",
+      "slug": "2026-03-19"
+    },
+    "md6": {
+      "hash": "899043291c10",
+      "slug": "2026-03-18"
+    },
+    "md7": {
+      "hash": "faf39f33f43b",
+      "slug": "2026-03-17"
+    },
+    "md8": {
+      "hash": "f10a58a8ea37",
+      "slug": "2026-03-16"
+    },
+    "md9": {
+      "hash": "e51b7713776d",
+      "slug": "2026-03-15"
+    },
+    "mw1": {
+      "hash": "ac9132cf1164",
+      "slug": "2026-W11"
+    },
+    "e1": {
+      "hash": "f5db77f28c44",
+      "slug": "orchestrate"
+    },
+    "e2": {
+      "hash": "18c2fc6dfdc5",
+      "slug": "edit"
+    },
+    "e3": {
+      "hash": "4d44ea9b2ded",
+      "slug": "create"
+    },
+    "e4": {
+      "hash": "536140b17818",
+      "slug": "extend"
+    },
+    "i1": {
+      "hash": "a8c82889099c",
+      "slug": "architect"
+    },
+    "i2": {
+      "hash": "e67c7d8e5950",
+      "slug": "builder"
+    },
+    "i3": {
+      "hash": "7445b94ce2df",
+      "slug": "critic"
+    }
+  },
+  "sort_mode": "alpha"
+}

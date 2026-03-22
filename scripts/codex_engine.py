@@ -76,6 +76,120 @@ FIELD_RE = re.compile(r'^(\d+|[Bb]\d*(?:-[Bb]?\d+)?)$')
 BODY_COORD_RE = re.compile(r'^[Bb](\+|\d+(?:-[Bb]?\d+)?|\.[A-Za-z0-9_]+)?$')
 
 
+# ─── Sort Mode (V3: Live Mode-Switch) ──────────────────────────────────────────
+
+def _priority_sort_key(fm):
+    """Sort key: critical=0, high=1, medium=2, low=3, unset=4."""
+    p = str(fm.get('priority', '')).lower()
+    return {'critical': 0, 'high': 1, 'medium': 2, 'low': 3}.get(p, 4)
+
+
+def _mtime_sort_key(fp):
+    """Sort key: newest first (negative mtime)."""
+    try:
+        return -fp.stat().st_mtime
+    except Exception:
+        return 0
+
+
+SORT_MODES = {
+    'alpha':    lambda slug, fp, fm: slug,
+    'reverse':  lambda slug, fp, fm: '~' + slug,  # ~ sorts high → reverse alpha
+    'priority': lambda slug, fp, fm: (_priority_sort_key(fm), slug),
+    'recent':   lambda slug, fp, fm: (_mtime_sort_key(fp), slug),
+    'shuffle':  None,  # special: random.shuffle post-sort
+}
+
+_SORT_MODE_CYCLE = ['alpha', 'priority', 'recent', 'reverse']
+
+_current_sort_mode = 'alpha'
+
+
+def _load_persisted_sort_mode():
+    """Read persisted sort mode from state/materialize_hashes.json (FLAG-3 fix)."""
+    global _current_sort_mode
+    hash_file = WORKSPACE / 'state' / 'materialize_hashes.json'
+    if hash_file.exists():
+        try:
+            data = json.loads(hash_file.read_text(encoding='utf-8'))
+            mode = data.get('sort_mode', 'alpha')
+            if mode in SORT_MODES:
+                _current_sort_mode = mode
+        except Exception:
+            pass
+
+
+def _persist_sort_mode(mode):
+    """Write sort mode to state/materialize_hashes.json (FLAG-3 fix)."""
+    hash_file = WORKSPACE / 'state' / 'materialize_hashes.json'
+    try:
+        hash_file.parent.mkdir(parents=True, exist_ok=True)
+        data = {}
+        if hash_file.exists():
+            data = json.loads(hash_file.read_text(encoding='utf-8'))
+        data['sort_mode'] = mode
+        hash_file.write_text(json.dumps(data, indent=2), encoding='utf-8')
+    except Exception:
+        pass
+
+
+def set_sort_mode(mode):
+    """Set sort mode, return confirmation string. Forces supermap re-render."""
+    global _current_sort_mode
+    if mode == 'cycle':
+        idx = _SORT_MODE_CYCLE.index(_current_sort_mode) if _current_sort_mode in _SORT_MODE_CYCLE else -1
+        mode = _SORT_MODE_CYCLE[(idx + 1) % len(_SORT_MODE_CYCLE)]
+    if mode == 'reset':
+        mode = 'alpha'
+    if mode == 'shuffle':
+        _current_sort_mode = 'shuffle'
+    elif mode in SORT_MODES:
+        _current_sort_mode = mode
+    else:
+        return f"Unknown sort mode: {mode}. Valid: {', '.join(SORT_MODES.keys())}, reset, cycle"
+    _persist_sort_mode(_current_sort_mode)
+    _invalidate_primitive_cache()
+    return f"Mode-switch: {_current_sort_mode}. Coordinates re-assigned."
+
+
+def _apply_sort_mode(items):
+    """Apply current sort mode to a primitive list. Called by get_primitives().
+
+    Batch-reads frontmatter once (FLAG-4 fix) then sorts.
+    """
+    if _current_sort_mode == 'alpha':
+        return items  # already sorted by get_primitives
+    if _current_sort_mode == 'shuffle':
+        import random
+        result = list(items)
+        random.shuffle(result)
+        return result
+    key_fn = SORT_MODES.get(_current_sort_mode)
+    if key_fn is None:
+        return items
+    # Batch-read frontmatter once, then sort (FLAG-4: don't read per-comparison)
+    enriched = []
+    for slug, fp in items:
+        try:
+            text = fp.read_text(encoding='utf-8', errors='replace')
+            fm_raw, _ = parse_frontmatter(text)
+            fm = dict(fm_raw)
+        except Exception:
+            fm = {}
+        enriched.append((slug, fp, fm))
+    enriched.sort(key=lambda x: key_fn(x[0], x[1], x[2]))
+    return [(slug, fp) for slug, fp, _ in enriched]
+
+
+def _invalidate_primitive_cache():
+    """Invalidate any cached primitive lists. Currently a no-op — no caching."""
+    pass
+
+
+# Load persisted sort mode on module import
+_load_persisted_sort_mode()
+
+
 # ─── Primitive Discovery ────────────────────────────────────────────────────────
 
 def _quick_has_primitive_key(filepath):
@@ -152,6 +266,10 @@ def get_primitives(prefix, active_only=True):
                 except Exception:
                     return 999
             items.sort(key=_coord_sort_key)
+
+        # V3: Apply live mode-switch sort (skip for modes namespace — always coord-sorted)
+        if prefix != 'e':
+            items = _apply_sort_mode(items)
 
         return items
 
@@ -1989,6 +2107,16 @@ def execute_edit(args):
     })
 
     _run_embed_primitives()
+
+    # V3: Post-mutation materialization (FLAG-5)
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from codex_materialize import CodexMaterializer
+        materializer = CodexMaterializer(WORKSPACE)
+        materializer.materialize_affected(list(coord_edits.keys()))
+    except Exception:
+        pass  # Don't break edits if materialization fails
+
     print('\n'.join(output_lines))
     return 0
 
@@ -2137,6 +2265,15 @@ def execute_create(args):
         'cascades': [],
         'create': {'filepath': str(created_path), 'type': type_name},
     })
+
+    # V3: Post-mutation materialization (FLAG-5)
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from codex_materialize import CodexMaterializer
+        materializer = CodexMaterializer(WORKSPACE)
+        materializer.materialize_affected([coord])
+    except Exception:
+        pass  # Don't break creates if materialization fails
 
     print('\n'.join(output_lines))
     return 0
@@ -3658,6 +3795,7 @@ def _parse_e0_args(op_args):
     SINGLE_OPS = {
         'g': 'gates', 'h': 'handoffs', 's': 'stalls',
         'k': 'locks', 'l': 'list', 'r': 'resume',
+        'x': 'mode_switch',
     }
     if first in SINGLE_OPS:
         result['op'] = SINGLE_OPS[first]
@@ -3820,6 +3958,21 @@ def _dispatch_e0(op_args, tracker):
     to legacy scripts or shows a helpful message.
     """
     spec = _parse_e0_args(op_args)
+
+    # V3: mode_switch doesn't need orchestration engine
+    if spec['op'] == 'mode_switch':
+        mode_arg = spec['extra'][0] if spec['extra'] else 'cycle'
+        old_mode = _current_sort_mode
+        result = set_sort_mode(mode_arg)
+        f_label = tracker.next_f_label()
+        print(f"{f_label} Δ engine.sort_mode {old_mode}→{_current_sort_mode}")
+        print(result)
+        # Auto-render supermap in new order
+        content = render_supermap()
+        _, output = tracker.track_render(content)
+        print(output)
+        return 0
+
     orch = _get_orch_engine()
 
     # If orchestration engine isn't available, try legacy fallback for some ops
@@ -4102,13 +4255,39 @@ def main(args=None):
     def _render_sm():
         return render_supermap(persona=persona, tag_filter=tag_filter, since_days=since_days)
 
+    # --shuffle: one-shot shuffle without persisting sort mode
+    _one_shot_shuffle = False
+    if '--shuffle' in args:
+        _one_shot_shuffle = True
+        args = [a for a in args if a != '--shuffle']
+        # Temporarily set shuffle mode (don't persist)
+        global _current_sort_mode
+        _saved_sort_mode = _current_sort_mode
+        _current_sort_mode = 'shuffle'
+
+    def _restore_shuffle():
+        """Restore sort mode after one-shot shuffle."""
+        if _one_shot_shuffle:
+            global _current_sort_mode
+            _current_sort_mode = _saved_sort_mode
+
     # --supermap: render supermap to stdout (no R-labels, no disk write)
     if '--supermap' in args:
         print(_render_sm())
+        _restore_shuffle()
         return
 
-    # --boot: inject supermap into AGENTS.md for OpenClaw auto-injection, no R-labels
+    # --boot: inject supermap into AGENTS.md via materializer (V3) or inline fallback
     if '--boot' in args:
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            from codex_materialize import CodexMaterializer
+            materializer = CodexMaterializer(WORKSPACE)
+            materializer.boot()
+            _restore_shuffle()
+            return
+        except ImportError:
+            pass  # Fall through to inline boot if materializer not yet available
         content = _render_sm()
         agents_path = Path(__file__).resolve().parent.parent / 'AGENTS.md'
         start_marker = '<!-- BEGIN:SUPERMAP -->'
