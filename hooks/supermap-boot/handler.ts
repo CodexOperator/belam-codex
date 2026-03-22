@@ -1,5 +1,9 @@
 import { execSync } from 'child_process';
 import { basename } from 'path';
+import { existsSync, unlinkSync } from 'fs';
+import { join } from 'path';
+
+const LEGACY_BOOT_FLAG = join(process.env.HOME || '/home/ubuntu', '.belam_legacy_boot');
 
 /**
  * Supermap boot hook — agent:bootstrap handler.
@@ -9,6 +13,9 @@ import { basename } from 'path';
  *    (legend is injected via prependSystemContext by codex-cockpit plugin)
  * 3. Replaces AGENTS.md with minimal startup pointer
  * 4. Replaces MEMORY.md with compressed boot index
+ *
+ * Legacy mode: if ~/.belam_legacy_boot exists, skip stub replacement
+ * (full workspace files injected as-is). Flag is consumed (deleted) after use.
  *
  * FLAG-1 addressed: supermap + memory-boot-index bundled into single exec
  *   with separator, halving Python startup overhead (~1s instead of ~2s).
@@ -78,6 +85,13 @@ export default async (event: any) => {
       content: supermapOutput,
       missing: false,
     });
+  }
+
+  // ── Legacy boot check: skip stub replacement if flag file exists ──
+  if (existsSync(LEGACY_BOOT_FLAG)) {
+    try { unlinkSync(LEGACY_BOOT_FLAG); } catch {}
+    // Supermap still injected (Phase 2), but full workspace files preserved
+    return;
   }
 
   // ── Phase 3: Replace workspace file contents with stubs ──
