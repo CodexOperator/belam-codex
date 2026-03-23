@@ -420,7 +420,7 @@ def link_tasks_to_pipeline(pipeline_version):
 
 
 def create_pipeline(version, description, priority='high', tags=None, project='snn-applied-finance',
-                    pipeline_type='research'):
+                    pipeline_type='research', supersedes=''):
     """Create a new pipeline instance."""
     pf = PIPELINES_DIR / f'{version}.md'
     if pf.exists():
@@ -446,6 +446,7 @@ def create_pipeline(version, description, priority='high', tags=None, project='s
         fm_lines.append(f'output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb')
     fm_lines.extend([
         'agents: [architect, critic, builder]',
+        f'supersedes: {supersedes}' if supersedes else 'supersedes:',
         f'tags: {tags_str}',
         f'project: {project}',
         f'started: {now}',
@@ -554,6 +555,7 @@ def main():
     parser.add_argument('--type', choices=['research', 'infrastructure'], default='research',
                         help='Pipeline type: research (has experiments/analysis) or infrastructure (code-only)')
     parser.add_argument('--project', default='snn-applied-finance')
+    parser.add_argument('--supersedes', default='', help='Pipeline version this one supersedes (auto-archives the old one)')
     parser.add_argument('--list', '-l', action='store_true', help='List all pipelines')
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
     parser.add_argument('--force', action='store_true', help='Force archive even if gate check fails')
@@ -595,7 +597,7 @@ def main():
     
     tags = [t.strip() for t in args.tags.split(',')] if args.tags else None
     pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project,
-                         pipeline_type=args.type)
+                         pipeline_type=args.type, supersedes=args.supersedes)
     
     if args.kickoff or args.start:
         print(f"\n🚀 Kicking off (fire-and-forget)...")
