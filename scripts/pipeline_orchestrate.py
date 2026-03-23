@@ -158,14 +158,14 @@ This is a FRESH session. You have no prior context except your memory files.
    - Write key decisions, patterns, and lessons to your `memory/$(date -u +%Y-%m-%d).md`
    - Include: what worked, what didn't, architectural insights, things to remember
    - This is your continuity — next session starts fresh, your memory files are all you keep
-   - **Create memory primitives in the MAIN workspace** for significant work:
+   - **Create primitives for SIGNIFICANT findings only** (not routine stage completions — pipeline tracking is automatic):
      ```bash
-     # Log a memory entry into the main workspace index (you have full context — use it)
+     # Only for genuine insights, surprising findings, or architectural discoveries:
      python3 /home/ubuntu/.openclaw/workspace/scripts/log_memory.py \
        --workspace /home/ubuntu/.openclaw/workspace \
        --importance 3 \
-       --tags "instance:{next_agent},pipeline:{version},stage:{next_stage}" \
-       "Brief description of what was accomplished"
+       --tags "instance:{next_agent},pipeline:{version}" \
+       "Description of the insight (not just 'completed stage X')"
 
      # If you discovered a reusable lesson (slug = short-hyphenated-name):
      python3 /home/ubuntu/.openclaw/workspace/scripts/create_primitive.py lesson <slug> \
@@ -408,19 +408,10 @@ def consolidate_agent_memory(agent: str, version: str, stage: str, notes: str,
     memory_file.write_text(content)
     print(f"   💾 Memory written: {memory_file.relative_to(workspace)}")
 
-    # Also try log_memory.py for indexed entries
-    log_script = SCRIPTS / 'log_memory.py'
-    if log_script.exists():
-        try:
-            subprocess.run(
-                [sys.executable, str(log_script),
-                 '--workspace', str(workspace),
-                 '--tags', f'instance:{agent},pipeline:{version},stage:{stage}',
-                 f'Pipeline {version}: completed {stage}. {notes}'],
-                capture_output=True, text=True, timeout=10,
-            )
-        except Exception:
-            pass  # Daily file write above is the primary mechanism
+    # NOTE: Removed auto log_memory.py call here. Pipeline stage transitions
+    # are tracked in pipeline .md files and _state.json — no need to also
+    # create indexed memory entries for routine completions. Agents can still
+    # call log_memory.py manually for genuine insights/findings.
 
     return True
 

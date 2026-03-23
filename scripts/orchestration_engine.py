@@ -552,15 +552,16 @@ This is a FRESH session. You have no prior context except your memory files.
    - This is your continuity — next session starts fresh, your memory files are all you keep
    - **Create primitives in the MAIN workspace** for significant work:
 
-5. **MANDATORY — Create primitives before completing your stage:**
+5. **Create primitives for SIGNIFICANT work only:**
 
-   **Memory entries** (always — log what happened):
+   **Memory entries** (only for genuine insights, surprising findings, or architectural discoveries — NOT for routine stage completions. Pipeline stage tracking is automatic):
    ```bash
+   # Only use this when you discovered something worth remembering across sessions
    python3 /home/ubuntu/.openclaw/workspace/scripts/log_memory.py \\
      --workspace /home/ubuntu/.openclaw/workspace \\
      --importance 3 \\
-     --tags "instance:{agent},pipeline:{version},stage:{stage}" \\
-     "Brief description of what was accomplished"
+     --tags "instance:{agent},pipeline:{version}" \\
+     "Description of the insight or finding (not just 'completed stage X')"
    ```
 
    **Lessons** (when you discover reusable patterns, mistakes to avoid, or surprising findings):
