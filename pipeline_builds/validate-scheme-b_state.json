@@ -1,13 +1,13 @@
 {
   "version": "validate-scheme-b",
-  "status": "phase2_build",
+  "status": "phase2_complete",
   "created": "2026-03-17",
   "phase1": {
     "stage": "local_analysis_report_build",
     "started": "2026-03-20"
   },
   "phase2": {
-    "stage": "phase2_critic_design_review"
+    "stage": "phase2_complete"
   },
   "phase3": {
     "gate": "locked",
@@ -133,13 +133,31 @@
       "completed_at": "2026-03-23 09:41",
       "agent": "critic",
       "notes": "APPROVED: 0 BLOCKs, 3 FLAGs (1 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: per-candle predictions NOT saved in Phase 1 pickle \u2014 builder must re-run VSB-02 with prediction saving before post-processing experiments (+1-2h, total ~4-5h vs architect's 3.5h). FLAG-2 MED: TURN-01 (loss modification) must be reported in separate tier from post-processing experiments. FLAG-3 LOW: Kelly sizing \u2014 use training-fold stats only. Experimental design is sound \u2014 directly attacks turnover bottleneck (r=0.82, p=0.004). Review at: pipeline_builds/validate-scheme-b_phase2_critic_design_review.md"
+    },
+    "phase2_builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:20",
+      "agent": "builder",
+      "notes": "Phase 2 notebook complete: 24 new cells (52-75), 35,778 chars. FLAG-1: VSB-02 re-run with prediction saving + Kelly train stats. FLAG-2: tier separation in comparison table (Tier 1 post-processing vs Tier 2 modified training). FLAG-3: Kelly uses training fold stats only. Experiments: TURN-01a/b/c (loss penalty), TURN-02a/b/c (min hold), TURN-03a/b/c (EMA smooth), POS-01a/b (linear sizing), POS-02a/b (Kelly sizing), COMB-01 (auto-select best). Analysis: statistical tests (t-test, bootstrap CI, sign test, paired t-test, DSR), break-even cost analysis, 3 visualizations (turnover-Sharpe scatter, break-even bars, fold stability heatmap), executive verdict."
+    },
+    "phase2_critic_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:32",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved. FLAG-1 MED: TURN-01 prev_preds connects shuffled-batch pairs not temporal sequences \u2014 penalty acts as prediction consistency regularizer, not temporal flip penalty. Results still valid. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant (f cancels in mean/std ratio) \u2014 experiment uninformative for primary metric. FLAG-3 LOW: DSR approximation conservative. 24 cells, 14 experiment variants + analysis pipeline correctly implemented. Review: pipeline_builds/validate-scheme-b_phase2_critic_code_review.md"
+    },
+    "phase2_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:33",
+      "agent": "architect",
+      "notes": "Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved (per-candle predictions saved, TURN-01 tier separation, Kelly lookahead prevented). 24 new cells, 14 experiment variants. FLAG-1 MED: TURN-01 penalty acts as consistency regularizer not temporal flip penalty due to batch shuffling \u2014 results still valid but interpretation changes. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant \u2014 uninformative for primary metric but useful for drawdown/risk analysis. FLAG-3 LOW: DSR approximation conservative. Notebook ready to run: ~3.5h total (30 retrain runs + ~110 post-processing runs)."
     }
   },
-  "last_updated": "2026-03-23 09:41",
-  "pending_action": "phase2_builder_implementation",
-  "status_updated": "2026-03-23 09:41",
+  "last_updated": "2026-03-23 10:33",
+  "pending_action": "phase2_complete",
+  "status_updated": "2026-03-23 10:32",
   "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_code_review.md",
-  "current_agent": "phase2_builder_implementation",
-  "last_dispatched": "2026-03-23T09:41:33.754557+00:00",
+  "current_agent": "phase2_complete",
+  "last_dispatched": "2026-03-23T10:32:50.162502+00:00",
   "dispatch_claimed": false
 }

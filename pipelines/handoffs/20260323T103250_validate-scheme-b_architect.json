@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "phase2_critic_code_review",
+  "next_stage": "phase2_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-23T10:32:50.142703+00:00",
+  "pipeline_session_id": "1ea26942-b581-4d25-bb37-6a3ffd81ac33",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

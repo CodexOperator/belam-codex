@@ -6,16 +6,41 @@
       "completed_at": "2026-03-23 09:39",
       "agent": "architect",
       "notes": "Design v1: LimbicRewardModule \u2014 differentiable reward modulation for equilibrium SNN. Energy pool tracks prediction quality, modulates loss landscape (amplify when confident, dampen when exploring) + LIF thresholds (lower when energy-rich, raise when energy-poor). 9 limbic variants + 3 baselines = 120 runs across 10 folds. Targets the dead-output-neuron problem and signal-starved regime. No RL needed \u2014 shaped loss via differentiable energy dynamics. ~6h CPU, ~1.5h GPU. 4 open questions for critic."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:26",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 4 FLAGs (2 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: torch.sign() has zero gradient \u2014 reward pathway not differentiable, use tanh(k=10). FLAG-2 HIGH: energy batch semantics need specification \u2014 recommend per-batch-mean. FLAG-3 MED: inference behavior unspecified. FLAG-4 LOW: cumulative DSR. Core thesis sound, ablation matrix clean, evaluation rigorous. Review at: pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_critic_design_review.md"
+    },
+    "builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:34",
+      "agent": "builder",
+      "notes": "Notebook built: 52 cells (24 code, 28 markdown, 65K chars). PhasicEquilibriumSNN backbone (EQ-ABL-02 phasic-only, 14 input dims, single output). LimbicRewardModule with differentiable reward (FLAG-1: tanh(k=10)), per-batch-mean energy (FLAG-2), frozen inference energy (FLAG-3). 9 experiments (LR-BASE through LR-08) + 3 baselines (majority, logistic, GRU). TBPTT training with energy-modulated loss + threshold. Full analysis: statistical tests (t-test, bootstrap CI, paired, DSR with both n=12 and n=215), ablation decomposition, break-even costs, 6 diagnostic plots (energy trajectories, final energy boxplot, spike rates, prediction entropy, reward gradient norms, Sharpe comparison). All 4 Critic FLAGs and 4 Suggestions addressed."
+    },
+    "critic_code_review_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-23 10:41",
+      "agent": "critic",
+      "notes": "BLOCK-1: Energy graph accumulation causes RuntimeError on TBPTT chunk 2+. LimbicRewardModule.update_energy_batch() creates energy tensor with grad_fn connecting to batch_preds (from model forward). Next chunk uses this energy in loss via get_modulation(). Backward tries to traverse through freed graph from previous chunk. Fix: add self.energy = self.energy.detach() after clamp in update_energy_batch(). Also add documentation comment that reward_sensitivity/cost_sensitivity are non-learnable with detach. All 4 design FLAGs resolved correctly (tanh k=10, batch-mean energy, frozen inference, cumulative DSR). 2 additional FLAGs (1 MED patience float, 1 LOW DSR pass)."
+    },
+    "builder_apply_blocks": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:43",
+      "agent": "builder",
+      "notes": "BLOCK-1 fix applied (3 changes + 1 documentation fix): (1) Added self.energy = self.energy.detach() after clamp in update_energy_batch() \u2014 prevents graph accumulation across TBPTT chunks. (2) Added comment documenting reward_sensitivity/cost_sensitivity are non-learnable with detach. (3) Updated S2 reward gradient norm plot title to note expected \u22480 values. (4) Updated builder notes in Cell 2 to reflect detach behavior. Also addressed MED FLAG: improved patience_counter += 0.5 comment to document 50-epoch implication."
     }
   },
-  "status": "phase1_review",
-  "status_updated": "2026-03-23 09:39",
-  "current_agent": "critic_design_review",
-  "last_dispatched": "2026-03-23T10:18:26.533046+00:00",
+  "status": "phase1_code_review",
+  "status_updated": "2026-03-23 10:34",
+  "current_agent": "critic_code_review",
+  "last_dispatched": "2026-03-23T10:43:01.508791+00:00",
   "dispatch_claimed": false,
   "phase1": {
-    "stage": "architect_design"
+    "stage": "builder_apply_blocks"
   },
-  "last_updated": "2026-03-23 09:39",
-  "pending_action": "critic_design_review"
+  "last_updated": "2026-03-23 10:43",
+  "pending_action": "critic_code_review",
+  "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_critic_code_review.md"
 }

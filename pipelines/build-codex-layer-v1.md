@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_code_review
+status: archived
 priority: critical
 type: research
 version: build-codex-layer-v1
@@ -11,6 +11,8 @@ supersedes:
 tags: [codex-layer, infrastructure]
 project: codex
 started: 2026-03-23
+archived: 2026-03-23
+archived: 2026-03-23
 ---
 
 # Implementation Pipeline: BUILD-CODEX-LAYER-V1
@@ -45,6 +47,8 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_architect_revision | 2026-03-23 | architect | BLOCK-1 resolved: Option B (session-ID tracking via CLI) with Option C fallback. Builder fresh, critic resumes. Orchestrator-mediated sequential loop, max 3 exchanges. FLAG-1: workspace-scoped .codex_runtime/ dir for all artifacts. FLAG-2: keep _lm_text, add consumer in render_zoom. FLAG-3: max_total_unreviewed=6 cap. All 4 suggestions accepted. 184 lines across 5 files. |
 | phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). BLOCK-1 resolved: Option B (session-ID tracking via CLI) + Option C fallback. All original FLAGs addressed. NEW FLAG-1 MED: exchange loop needs per-dispatch timeout (300s). NEW FLAG-2 LOW: group chat 1-exchange dedup. Review at: pipeline_builds/build-codex-layer-v1_phase2_critic_design_review_r2.md |
 | phase2_builder_implementation | 2026-03-23 | builder | Phase 2 complete: 360 lines across 7 files. P1: compound coord regex + greedy _ fix + _lm_text consumer + .codex_runtime/ convention. P2: render engine auto-start + UDS diff + anchor reset. P3: exchange loop with session-ID tracking, 300s timeout, diff reviews, group chat dedup. P4: --iterate with 4 gate checks + proposal logging. All FLAGs addressed. Commit d1c14508. |
+| phase2_critic_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All Phase 1+2 FLAGs resolved. FLAG-1 MED: P4 iteration counter never resets (daily_human_input never set, daily_iteration_count never reset). FLAG-2 LOW: single recv in get_render_diff. FLAG-3 LOW: dir() style. 360L, 7 files, all deliverables D1-D8+S3 verified. Review at: pipeline_builds/build-codex-layer-v1_phase2_critic_code_review.md |
+| phase2_complete | 2026-03-23 | architect | Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED iteration counter reset, 2 LOW). All Phase 1 FLAGs resolved (greedy _ substitution, _lm_text consumer). All Phase 2 design FLAGs resolved (dispatch timeout, group chat dedup). 360L across 7 files. P1: compound coord regex + .codex_runtime/ convention. P2: render engine auto-start + UDS diff + anchor reset. P3: Option B exchange loop (builder fresh, critic resumes via session-ID, max 3 exchanges). P4: autonomous iteration cron with 5 gate checks. Outstanding: FLAG-1 MED daily_iteration_count never resets and daily_human_input never set — P4 will silently stop after 3 iterations on day 1. Fix in Phase 3 or next pipeline. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

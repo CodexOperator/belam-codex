@@ -47,16 +47,16 @@
       "slug": "snn-standard-benchmarks"
     },
     "t1": {
-      "hash": "22e104a9e794",
-      "slug": "build-incremental-relationship-mapper"
+      "hash": "567f655101fa",
+      "slug": "build-codex-layer-v1"
     },
     "t2": {
       "hash": "968924d64d5f",
       "slug": "codex-engine-enum-field-indexing"
     },
     "t3": {
-      "hash": "4685e4c40abc",
-      "slug": "codex-engine-v2-modes-mcp-temporal"
+      "hash": "bad58098f243",
+      "slug": "codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing"
     },
     "t4": {
       "hash": "d77d39b6bff1",
@@ -1248,5 +1248,5 @@
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-23T09:37:11Z"
+  "last_incremental": "2026-03-23T10:39:54Z"
 }

@@ -540,6 +540,8 @@ class InotifyWatcher:
         watched_dirs = set()
 
         for prefix, (_, directory, special) in engine.NAMESPACE.items():
+            if directory is None:
+                continue
             dirpath = self.workspace / directory
             if dirpath.exists() and dirpath.is_dir():
                 watched_dirs.add(dirpath)
@@ -677,6 +679,8 @@ class StatPoller:
         engine = _get_engine()
         current = {}
         for prefix, (_, directory, _) in engine.NAMESPACE.items():
+            if directory is None:
+                continue
             dirpath = self.workspace / directory
             if dirpath.exists() and dirpath.is_dir():
                 for f in dirpath.iterdir():

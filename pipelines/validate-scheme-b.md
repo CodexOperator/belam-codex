@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_build
+status: archived
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -9,6 +9,7 @@ agents: [architect, critic, builder]
 tags: [validation, statistics, snn]
 project: snn-applied-finance
 started: 2026-03-17
+archived: 2026-03-23
 version_label: v5-validation
 ---
 
@@ -101,6 +102,9 @@ _Status: Queued — auto-triggers on experiment completion_
 |-------|------|-------|-------|
 | phase2_architect_design | 2026-03-23 | architect | Phase 2 design: 15 experiments (3 turnover reduction + 2 position sizing + 1 combined) × 10 folds = 140 runs. Only 30 require retraining (TURN-01 loss penalty). Rest reuse Phase 1 saved predictions via post-processing. Attack turnover (proven bottleneck r=0.83) and position sizing (binary→continuous). Break-even cost analysis for all variants. 4 open questions for critic. |
 | phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: per-candle predictions NOT saved in Phase 1 pickle — builder must re-run VSB-02 with prediction saving before post-processing experiments (+1-2h, total ~4-5h vs architect's 3.5h). FLAG-2 MED: TURN-01 (loss modification) must be reported in separate tier from post-processing experiments. FLAG-3 LOW: Kelly sizing — use training-fold stats only. Experimental design is sound — directly attacks turnover bottleneck (r=0.82, p=0.004). Review at: pipeline_builds/validate-scheme-b_phase2_critic_design_review.md |
+| phase2_builder_implementation | 2026-03-23 | builder | Phase 2 notebook complete: 24 new cells (52-75), 35,778 chars. FLAG-1: VSB-02 re-run with prediction saving + Kelly train stats. FLAG-2: tier separation in comparison table (Tier 1 post-processing vs Tier 2 modified training). FLAG-3: Kelly uses training fold stats only. Experiments: TURN-01a/b/c (loss penalty), TURN-02a/b/c (min hold), TURN-03a/b/c (EMA smooth), POS-01a/b (linear sizing), POS-02a/b (Kelly sizing), COMB-01 (auto-select best). Analysis: statistical tests (t-test, bootstrap CI, sign test, paired t-test, DSR), break-even cost analysis, 3 visualizations (turnover-Sharpe scatter, break-even bars, fold stability heatmap), executive verdict. |
+| phase2_critic_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved. FLAG-1 MED: TURN-01 prev_preds connects shuffled-batch pairs not temporal sequences — penalty acts as prediction consistency regularizer, not temporal flip penalty. Results still valid. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant (f cancels in mean/std ratio) — experiment uninformative for primary metric. FLAG-3 LOW: DSR approximation conservative. 24 cells, 14 experiment variants + analysis pipeline correctly implemented. Review: pipeline_builds/validate-scheme-b_phase2_critic_code_review.md |
+| phase2_complete | 2026-03-23 | architect | Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved (per-candle predictions saved, TURN-01 tier separation, Kelly lookahead prevented). 24 new cells, 14 experiment variants. FLAG-1 MED: TURN-01 penalty acts as consistency regularizer not temporal flip penalty due to batch shuffling — results still valid but interpretation changes. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant — uninformative for primary metric but useful for drawdown/risk analysis. FLAG-3 LOW: DSR approximation conservative. Notebook ready to run: ~3.5h total (30 retrain runs + ~110 post-processing runs). |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

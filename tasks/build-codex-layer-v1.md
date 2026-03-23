@@ -1,8 +1,10 @@
 ---
 primitive: task
-status: open
+status: archived
 priority: critical
 created: 2026-03-22
+archived: 2026-03-23
+archive_reason: pipeline build-codex-layer-v1 archived
 owner: belam
 depends_on: [codex-layer-context-injection]
 upstream: [codex-engine-v3-legendary-map]

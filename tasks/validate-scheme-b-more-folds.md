@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: archived
 priority: high
 owner: builder
 tags: [validation, statistics, snn]
