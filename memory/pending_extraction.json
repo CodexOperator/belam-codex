@@ -1,13 +1,15 @@
 {
   "status": "complete",
-  "session": "d4c5a542-e280-4b7f-9ea0-ef668c3770cb",
+  "session": "37eedb39-56e8-407f-8d97-ef3096486eb2",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T07:06:00Z",
+  "completed_at": "2026-03-23T07:43:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_070628_shael-noticed-r-command-was-missing-the.md",
-    "decisions/supermap-pure-signal-legend-as-orientation-layer.md",
-    "lessons/guidance-prose-belongs-in-legend-not-supermap-tree.md"
+    "memory/entries/2026-03-23_074321_agent-bypassed-coordinate-system-during.md",
+    "memory/entries/2026-03-23_074321_heartbeatmd-and-launch-pipeline-skillmd.md",
+    "lessons/heartbeat-md-contaminates-manual-session-behavior.md",
+    "lessons/lm-entries-must-be-compelling-to-displace-raw-scripts.md",
+    "decisions/heartbeat-md-e0-primary-path.md"
   ],
-  "last_run": "2026-03-23T07:06:00Z"
+  "last_run": "2026-03-23T07:43:00Z"
 }
