@@ -46,8 +46,8 @@
   },
   "status": "phase2_review",
   "status_updated": "2026-03-23 15:30",
-  "current_agent": "phase2_critic_code_review",
-  "last_dispatched": "2026-03-23T16:03:53.711057+00:00",
+  "current_agent": "phase2_critic_design_review",
+  "last_dispatched": "2026-03-23T17:56:00.369413+00:00",
   "dispatch_claimed": false,
   "phase1": {
     "stage": "phase1_complete"
