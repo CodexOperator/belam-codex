@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: archived
 priority: high
 type: infrastructure
 version: codex-engine-v2-modes
@@ -10,6 +10,8 @@ agents: [architect, critic, builder]
 tags: [engine, codex, v2]
 project: multi-agent-infrastructure
 started: 2026-03-21
+archived: 2026-03-23
+archive_reason: superseded by codex-engine-v3-legendary-map
 ---
 
 # Implementation Pipeline: CODEX-ENGINE-V2-MODES

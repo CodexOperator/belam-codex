@@ -155,11 +155,81 @@ def archive_pipeline(version, force=False):
     
     print(f"📦 {version} archived")
     
+    # Auto-archive pipelines that this one supersedes
+    archived_superseded = auto_archive_superseded_pipelines(version)
+    if archived_superseded:
+        for s in archived_superseded:
+            print(f"  📦 Superseded pipeline auto-archived: {s}")
+    
     # Auto-archive associated tasks whose work has moved downstream
     archived_tasks = auto_archive_downstream_tasks(version)
     if archived_tasks:
         for t in archived_tasks:
             print(f"  📋 Task auto-archived: {t}")
+
+
+def auto_archive_superseded_pipelines(active_version=None):
+    """Auto-archive pipelines that are superseded by active ones.
+    
+    Checks the 'supersedes' field in pipeline frontmatter. If pipeline A
+    has 'supersedes: B' and A is active (not archived), then B should be
+    archived — its work has moved forward into A.
+    
+    Can be called standalone (checks all pipelines) or with a specific
+    active_version to only check what that version supersedes.
+    """
+    archived = []
+    
+    for pf in sorted(PIPELINES_DIR.glob('*.md')):
+        content = pf.read_text()
+        status = _extract_field(content, 'status')
+        if status and 'archived' in status:
+            continue  # Skip already-archived pipelines
+        
+        version = pf.stem
+        
+        # If called with a specific version, only check that one
+        if active_version and version != active_version:
+            continue
+        
+        # Check what this pipeline supersedes
+        supersedes = _extract_field(content, 'supersedes')
+        if not supersedes:
+            continue
+        
+        # supersedes can be a single value or comma-separated list
+        superseded_versions = [s.strip() for s in supersedes.split(',')]
+        
+        for sv in superseded_versions:
+            sv_file = PIPELINES_DIR / f'{sv}.md'
+            if not sv_file.exists():
+                continue
+            sv_content = sv_file.read_text()
+            sv_status = _extract_field(sv_content, 'status')
+            if sv_status and 'archived' in sv_status:
+                continue  # Already archived
+            
+            # Archive the superseded pipeline
+            print(f"  🔄 {sv} superseded by {version} — archiving")
+            sv_content = re.sub(r'^status:\s*.+$', 'status: archived', sv_content, count=1, flags=re.MULTILINE)
+            now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+            if 'archived:' not in sv_content:
+                sv_content = re.sub(r'^(started:.+)$', f'\\1\narchived: {now}\narchive_reason: superseded by {version}', sv_content, count=1, flags=re.MULTILINE)
+            sv_file.write_text(sv_content)
+            
+            # Sync state JSON
+            state_file = BUILDS_DIR / f'{sv}_state.json'
+            if state_file.exists():
+                try:
+                    state = json.loads(state_file.read_text())
+                    state['status'] = 'archived'
+                    state_file.write_text(json.dumps(state, indent=2))
+                except Exception:
+                    pass
+            
+            archived.append(sv)
+    
+    return archived
 
 
 def auto_archive_downstream_tasks(pipeline_version=None):
@@ -488,6 +558,7 @@ def main():
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
     parser.add_argument('--force', action='store_true', help='Force archive even if gate check fails')
     parser.add_argument('--check-archive', action='store_true', help='Check if a pipeline can be archived')
+    parser.add_argument('--check-supersedes', action='store_true', help='Auto-archive pipelines superseded by active ones')
     parser.add_argument('--start', action='store_true', help='Start Phase 1 immediately (prints agent task)')
     parser.add_argument('--kickoff', '-k', action='store_true',
                         help='Send task to architect agent via sessions_send after creation')
@@ -495,6 +566,15 @@ def main():
     
     if args.list:
         list_pipelines()
+        return
+    
+    if args.check_supersedes:
+        archived = auto_archive_superseded_pipelines()
+        if archived:
+            for a in archived:
+                print(f"📦 Auto-archived superseded pipeline: {a}")
+        else:
+            print("✅ No superseded pipelines to archive.")
         return
     
     if not args.version:

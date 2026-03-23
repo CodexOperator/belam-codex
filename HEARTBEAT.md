@@ -82,11 +82,12 @@ Manage the interleaved Phase 3 iteration chain between main and analysis pipelin
 
 ## Task 5: Pipeline Archival
 
-1. `python3 scripts/launch_pipeline.py --list`
-2. For any pipeline at `phase2_complete` or `phase3_complete`:
+1. `python3 scripts/launch_pipeline.py --check-supersedes` (auto-archives pipelines superseded by active ones)
+2. `python3 scripts/launch_pipeline.py --list`
+3. For any pipeline at `phase2_complete` or `phase3_complete`:
    - `python3 scripts/launch_pipeline.py <version> --check-archive`
    - If archivable → auto-archive with `--archive`
-3. Skip silently if nothing to archive
+4. Skip silently if nothing to archive
 
 ## Task 6: Git Commits (Both Repos)
 

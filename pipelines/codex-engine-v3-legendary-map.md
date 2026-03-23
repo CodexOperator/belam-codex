@@ -7,6 +7,7 @@ version: codex-engine-v3-legendary-map
 spec_file: machinelearning/snn_applied_finance/specs/codex-engine-v3-legendary-map_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v3-legendary-map.ipynb
 agents: [architect, critic, builder]
+supersedes: codex-engine-v2-modes
 tags: [codex-engine, legendary-map]
 project: codex
 started: 2026-03-23
