@@ -69,11 +69,11 @@ View modifiers (-g, --depth, --as) compose orthogonally with e0 operations.
 ## Workflows
 
 ### .l1 — Full Pipeline Launch
-1. `python3 scripts/launch_pipeline.py {ver} --desc "..." --priority critical --tags {t} --project {proj} --kickoff`
-2. Wait for architect handoff (auto-dispatched)
-3. Monitor via `e0` sweep or `R pipelines`
+1. `e0 t{n}` — launch pipeline from task (auto-creates, dispatches architect)
+2. Wait for architect handoff notification
+3. `e0 l` — list all pipeline states
 
 ### .l2 — Emergency Pipeline Block
-1. `python3 scripts/pipeline_orchestrate.py {ver} block {stage} --agent {role} --notes "reason"`
-2. Post context to group chat
-3. Check `e0g {pipeline}` for gate status
+1. `e0 p{n} block {stage}` — block pipeline stage with reason
+2. Group chat notification is automatic (orchestrator handles it)
+3. `e0g p{n}` — check gate status

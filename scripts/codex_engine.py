@@ -1226,6 +1226,33 @@ def render_zoom(coords_or_args, field_selections=None):
                 if 1 <= i <= len(body):
                     lines.append(f"   │  B{i:<5} {body[i - 1]}")
 
+        # D4: Task-pipeline linking — append pipeline state for in_pipeline tasks
+        if prefix == 't' and fields:
+            task_status = None
+            task_pipeline = None
+            for fnum, info in fields.items():
+                if info['key'] == 'status':
+                    task_status = str(info['value']).lower()
+                elif info['key'] == 'pipeline':
+                    task_pipeline = str(info['value'])
+            if task_status == 'in_pipeline' and task_pipeline:
+                pipelines = get_primitives('p')
+                for pi, (p_slug, p_fp) in enumerate(pipelines, 1):
+                    if p_slug == task_pipeline:
+                        try:
+                            p_text = p_fp.read_text(encoding='utf-8', errors='replace')
+                            p_fm_raw, _ = parse_frontmatter(p_text)
+                            p_fm = dict(p_fm_raw)
+                        except Exception:
+                            p_fm = {}
+                        p_status = p_fm.get('status', '?')
+                        pending = p_fm.get('pending_action', '')
+                        suffix = f"p{pi} {p_status}"
+                        if pending:
+                            suffix += f"/{pending}"
+                        lines.append(f"   📎 Pipeline: → {suffix}")
+                        break
+
     return '\n'.join(lines)
 
 
@@ -4094,6 +4121,11 @@ def _parse_e0_args(op_args):
         else:
             result['op'] = 'pipeline_status'
 
+    # Task coordinate: t3, t12 — pipeline launch from task (D1)
+    elif re.match(r'^t(\d+)$', first, re.IGNORECASE):
+        result['op'] = 'task_launch'
+        # Keep task coord in remaining — it lands in result['extra'] at function end
+
     # Standalone words
     elif first in ('locks',):
         result['op'] = 'locks'
@@ -4275,6 +4307,134 @@ def _dispatch_e0(op_args, tracker):
                 print(f"{f_label} Δ {spec['pipeline']}.resume")
             elif result:
                 print(result)
+
+        elif spec['op'] == 'task_launch':
+            # D1: e0 t{n} — launch pipeline from task coordinate
+            task_coord = spec['extra'][0] if spec['extra'] else None
+            if not task_coord:
+                print("e0 t{n}: specify a task coordinate")
+                return 1
+            task_m = re.match(r't(\d+)', task_coord, re.IGNORECASE)
+            if not task_m:
+                print(f"e0: invalid task coordinate '{task_coord}'")
+                return 1
+            task_idx = int(task_m.group(1))
+            tasks = get_primitives('t')
+            if task_idx < 1 or task_idx > len(tasks):
+                print(f"e0 t{task_idx}: task not found (have {len(tasks)} tasks)")
+                return 1
+            slug, fp = tasks[task_idx - 1]
+            try:
+                _fm_text = fp.read_text(encoding='utf-8', errors='replace')
+                _fm_raw, _ = parse_frontmatter(_fm_text)
+                fm = dict(_fm_raw)
+            except Exception:
+                fm = {}
+            task_status = str(fm.get('status', '')).lower()
+            # Eligibility: not in_pipeline, not archived, not complete (Q1)
+            if task_status == 'in_pipeline':
+                pipeline = fm.get('pipeline', '?')
+                print(f"e0 t{task_idx}: already in pipeline → {pipeline}")
+                return 1
+            if task_status in ('archived', 'complete'):
+                print(f"e0 t{task_idx}: task is {task_status}, cannot launch pipeline")
+                return 1
+            desc = str(fm.get('description', slug.replace('-', ' ')))
+            priority = str(fm.get('priority', 'high'))
+            # FLAG-1: slug IS the pipeline version (documented convention)
+            import subprocess as _sp
+            cmd = [
+                sys.executable, str(Path(__file__).parent / 'launch_pipeline.py'),
+                slug, '--desc', desc, '--priority', priority, '--start',
+            ]
+            out = _sp.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE))
+            if out.stdout.strip():
+                if f_label:
+                    print(f"{f_label} Δ pipeline launched from t{task_idx} → {slug}")
+                print(out.stdout.strip())
+            if out.returncode != 0 and out.stderr.strip():
+                print(out.stderr.strip())
+
+        elif spec['op'] == 'archive':
+            # D3: e0 p{n} archive — archive a pipeline
+            if not spec['pipeline']:
+                print("e0 archive: specify a pipeline (e.g., e0 p3 archive)")
+                return 1
+            resolved = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            if not resolved:
+                print(f"e0: pipeline '{spec['pipeline']}' not found")
+                return 1
+            import subprocess as _sp
+            out = _sp.run(
+                [sys.executable, str(Path(__file__).parent / 'launch_pipeline.py'), resolved, '--archive'],
+                capture_output=True, text=True, cwd=str(WORKSPACE),
+            )
+            if out.stdout.strip():
+                if f_label:
+                    print(f"{f_label} Δ {spec['pipeline']} archived")
+                print(out.stdout.strip())
+            if out.returncode != 0 and out.stderr.strip():
+                print(out.stderr.strip())
+
+        elif spec['op'] == 'complete':
+            # D3/FLAG-2: e0 p{n} complete {stage} — mark pipeline stage complete
+            if not spec['pipeline']:
+                print("e0 complete: specify a pipeline (e.g., e0 p3 complete builder_implementation)")
+                return 1
+            resolved = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            if not resolved:
+                print(f"e0: pipeline '{spec['pipeline']}' not found")
+                return 1
+            # spec['agent'] holds the stage name (parsed from next arg after 'complete')
+            stage = spec['agent'] or ''
+            notes = ' '.join(spec['extra']) if spec['extra'] else 'Completed via e0'
+            import subprocess as _sp
+            cmd = [
+                sys.executable, str(Path(__file__).parent / 'pipeline_orchestrate.py'),
+                resolved, 'complete', stage, '--agent', 'coordinator', '--notes', notes,
+            ]
+            out = _sp.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE))
+            if out.stdout.strip():
+                if f_label:
+                    print(f"{f_label} Δ {spec['pipeline']}.{stage} complete")
+                print(out.stdout.strip())
+            if out.returncode != 0 and out.stderr.strip():
+                print(out.stderr.strip())
+
+        elif spec['op'] == 'block':
+            # D3/FLAG-2: e0 p{n} block {stage} [reason...] — block pipeline stage
+            if not spec['pipeline']:
+                print("e0 block: specify a pipeline (e.g., e0 p3 block builder_implementation reason)")
+                return 1
+            resolved = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            if not resolved:
+                print(f"e0: pipeline '{spec['pipeline']}' not found")
+                return 1
+            stage = spec['agent'] or ''
+            notes = ' '.join(spec['extra']) if spec['extra'] else 'Blocked via e0'
+            import subprocess as _sp
+            cmd = [
+                sys.executable, str(Path(__file__).parent / 'pipeline_orchestrate.py'),
+                resolved, 'block', stage, '--agent', 'coordinator', '--notes', notes,
+            ]
+            out = _sp.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE))
+            if out.stdout.strip():
+                if f_label:
+                    print(f"{f_label} Δ {spec['pipeline']}.{stage} blocked")
+                print(out.stdout.strip())
+            if out.returncode != 0 and out.stderr.strip():
+                print(out.stderr.strip())
+
+        elif spec['op'] == 'next':
+            # Show next action for a pipeline
+            if not spec['pipeline']:
+                print("e0 next: specify a pipeline (e.g., e0 p3 next)")
+                return 1
+            resolved = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            if resolved and hasattr(orch, 'pipeline_next'):
+                result = orch.pipeline_next(resolved)
+                if result:
+                    print(result)
 
         else:
             # Unknown op — shouldn't happen but handle gracefully

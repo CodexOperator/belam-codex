@@ -69,6 +69,10 @@ _MODE_ENTRIES = [
     LMEntry(verb='create',      syntax='e2 {ns} "title"',       description='create in namespace (e.g. e2 t "fix bug")',              source='mode'),
     LMEntry(verb='extend-ns',   syntax='e3 {ns}.{sub}',         description='register new sub-namespace',                             source='mode'),
     LMEntry(verb='orchestrate', syntax='e0',                     description='sweep pipelines, check gates, auto-kick',                source='mode'),
+    # v2 entries: coordinate-native pipeline operations
+    LMEntry(verb='launch',      syntax='e0 t{n}',               description='launch pipeline from task (auto-create + dispatch)',      source='mode'),
+    LMEntry(verb='pipe-status', syntax='e0 p{n}',               description='pipeline state, or e0 p{n} archive/complete/block',      source='mode'),
+    LMEntry(verb='pipe-list',   syntax='e0 l',                   description='list all pipelines with current states',                 source='mode'),
 ]
 
 # Render verbs — the view/diff/sort interaction layer
