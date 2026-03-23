@@ -190,7 +190,7 @@ If you need to BLOCK, use:
 python3 scripts/pipeline_orchestrate.py {version} block {next_stage} --agent {next_agent} --notes "BLOCK reason" --artifact your_review_file.md --learnings "what I found, why it's blocked, what the fix should look like"
 ```
 
-Post your status update to the group chat (Telegram group {PIPELINE_GROUP_CHAT_ID}) when done."""
+The orchestrator script handles group chat notifications automatically — do NOT post to the group chat yourself."""
 
     return msg
 

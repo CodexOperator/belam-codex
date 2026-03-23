@@ -168,7 +168,7 @@ The orchestrator automatically:
 6. Verifies the agent picked up the handoff (retries if needed)
 7. Logs a memory entry for the completing agent
 
-**DO NOT manually call `sessions_send`, `pipeline_update.py`, or post to the group chat for stage transitions.** The orchestrator handles all of it.
+**DO NOT manually call `sessions_send`, `pipeline_update.py`, or post to the group chat for ANY reason.** All notifications are script-driven. Do not burn tokens on chat messages.
 
 **Context model:** The orchestrator wakes agents with a fresh session and a rich context message listing all files to read. All meaningful state lives in the filesystem — agents don't need conversation history to pick up work.
 

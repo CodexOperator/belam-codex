@@ -233,7 +233,7 @@ The orchestrator automatically:
 4. Verifies the agent picked up the handoff (retries if needed)
 5. Logs a memory entry for the completing agent
 
-**DO NOT manually call `sessions_send`, `pipeline_update.py`, or post to the group chat for stage transitions.** The orchestrator handles all of it.
+**DO NOT manually call `sessions_send`, `pipeline_update.py`, or post to the group chat for ANY reason.** All notifications are script-driven. Do not burn tokens on chat messages.
 
 ### Stage Flow
 
