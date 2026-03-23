@@ -1609,6 +1609,76 @@ def _inject_render_context(context_content):
     agents_path.write_text(text, encoding='utf-8')
 
 
+# ── Supermap anchor (for cockpit plugin diffing) ─────────────────────────────
+
+SUPERMAP_ANCHOR_PATH = Path(__file__).resolve().parent.parent / 'state' / 'supermap_anchor.json'
+
+
+def _parse_supermap_coords(raw):
+    """Parse supermap text into {coord: display_text} dict."""
+    coords = {}
+    for line in raw.split('\n'):
+        # Item-level coords: ╶─ p1  codex-engine-v2-modes  phase1_complete/high
+        m = re.match(r'.*╶─\s+([a-z]+\d+)\s+(.*)', line)
+        if m:
+            coords[m.group(1)] = m.group(2).strip()
+            continue
+        # Section-level coords: ╶─ p   pipelines (6)
+        m = re.match(r'.*╶─\s+([a-z])\s+(.*)', line)
+        if m:
+            coords[f'_s:{m.group(1)}'] = m.group(2).strip()
+    return coords
+
+
+def _write_supermap_anchor(supermap_text):
+    """Write supermap anchor to disk for future diffs."""
+    import json as _json
+    coords = _parse_supermap_coords(supermap_text)
+    SUPERMAP_ANCHOR_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SUPERMAP_ANCHOR_PATH.write_text(
+        _json.dumps({'coords': coords, 'raw': supermap_text}, ensure_ascii=False),
+        encoding='utf-8',
+    )
+
+
+def _read_supermap_anchor():
+    """Read previous supermap anchor. Returns coords dict or None."""
+    import json as _json
+    try:
+        data = _json.loads(SUPERMAP_ANCHOR_PATH.read_text(encoding='utf-8'))
+        return data.get('coords')
+    except (FileNotFoundError, ValueError, KeyError):
+        return None
+
+
+def _compute_supermap_diff(prev_coords, current_supermap_text):
+    """Compute R-label diff between anchor coords and current supermap.
+    Returns diff string or None if nothing changed."""
+    curr = _parse_supermap_coords(current_supermap_text)
+    lines = []
+    for coord, text in curr.items():
+        if coord.startswith('_s:'):
+            continue
+        old = prev_coords.get(coord)
+        if not old:
+            lines.append(f'  + {coord}  {text}')
+        elif old != text:
+            lines.append(f'  Δ {coord}  {text}')
+    for coord in prev_coords:
+        if coord.startswith('_s:'):
+            continue
+        if coord not in curr:
+            lines.append(f'  − {coord}')
+    # Section-level changes
+    for key, text in curr.items():
+        if not key.startswith('_s:'):
+            continue
+        old = prev_coords.get(key)
+        if old and old != text:
+            lines.append(f'  § {key[3:]}  {text}')
+    return '\n'.join(lines) if lines else None
+
+
 def _check_render_test_mode():
     """Check if render engine is in test mode via flag file (no UDS round-trip)."""
     return Path.home().joinpath('.belam_render_test_mode').exists()
@@ -4362,53 +4432,44 @@ def main(args=None):
         _restore_shuffle()
         return
 
+    # --supermap-anchor: render fresh supermap AND drop anchor for future diffs
+    if '--supermap-anchor' in args:
+        sm = _render_sm()
+        print(sm)
+        _write_supermap_anchor(sm)
+        _restore_shuffle()
+        return
+
+    # --supermap-diff: render R-label diff against last anchor (full render if no anchor)
+    if '--supermap-diff' in args:
+        sm = _render_sm()
+        anchor = _read_supermap_anchor()
+        if not anchor:
+            # No anchor — full render + set anchor
+            print(sm)
+            _write_supermap_anchor(sm)
+        else:
+            diff = _compute_supermap_diff(anchor, sm)
+            if diff:
+                print(diff)
+            # Always update anchor after diff
+            _write_supermap_anchor(sm)
+        _restore_shuffle()
+        return
+
     # --memory-boot-index: compressed memory summary for bootstrap context (~150-300B)
     if '--memory-boot-index' in args:
         _print_memory_boot_index()
         return
 
-    # --boot: inject supermap into AGENTS.md via render engine → materializer → inline fallback
+    # --boot: DEPRECATED — use codex-cockpit plugin (before_prompt_build) instead.
+    # Supermap is injected per-turn via --supermap-anchor / --supermap-diff.
     if '--boot' in args:
-        # Try render engine first (instant context from RAM tree)
-        try:
-            from codex_render import _signal_render_engine
-            resp = _signal_render_engine('context')
-            if resp and resp.get('ok'):
-                _inject_render_context(resp['content'])
-                _restore_shuffle()
-                return
-        except ImportError:
-            pass
-        try:
-            sys.path.insert(0, str(Path(__file__).parent))
-            from codex_materialize import CodexMaterializer
-            materializer = CodexMaterializer(WORKSPACE)
-            materializer.boot()
-            _restore_shuffle()
-            return
-        except ImportError:
-            pass  # Fall through to inline boot if materializer not yet available
-        content = _render_sm()
-        agents_path = Path(__file__).resolve().parent.parent / 'AGENTS.md'
-        start_marker = '<!-- BEGIN:SUPERMAP -->'
-        end_marker = '<!-- END:SUPERMAP -->'
-        section = f"{start_marker}\n\n## Codex Engine Supermap\n\n```\n{content}\n```\n\n{end_marker}"
-
-        text = agents_path.read_text(encoding='utf-8')
-        if start_marker in text and end_marker in text:
-            import re as _re
-            text = _re.sub(
-                f'{_re.escape(start_marker)}.*?{_re.escape(end_marker)}',
-                section, text, flags=_re.DOTALL,
-            )
-        else:
-            # Append before primitives section or at end
-            prim_marker = '<!-- BEGIN:PRIMITIVES -->'
-            if prim_marker in text:
-                text = text.replace(prim_marker, f"{section}\n{prim_marker}")
-            else:
-                text = text.rstrip() + f"\n\n{section}\n"
-        agents_path.write_text(text, encoding='utf-8')
+        print("⚠ --boot is deprecated. Supermap injection is handled by codex-cockpit plugin.", file=sys.stderr)
+        print("  Use --supermap-anchor (first turn) or --supermap-diff (subsequent turns).", file=sys.stderr)
+        # Still render to stdout as a courtesy fallback
+        print(_render_sm())
+        _restore_shuffle()
         return
 
     tracker = get_render_tracker()
