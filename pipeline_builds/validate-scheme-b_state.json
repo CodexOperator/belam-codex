@@ -3,8 +3,8 @@
   "status": "phase2_complete",
   "created": "2026-03-17",
   "phase1": {
-    "stage": "local_analysis_report_build",
-    "started": "2026-03-20"
+    "stage": "local_experiment_running",
+    "started": "2026-03-23"
   },
   "phase2": {
     "stage": "phase2_complete"
@@ -87,10 +87,10 @@
       "notes": "APPROVED with 1 minor FLAG (0 blocks). All 3 revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence. No existing cells modified. 6 new cells verified: V4 stats loading with pkl dedup, side-by-side comparison, gradient flow diagram, counterfactual verdict, membrane readout discussion, convergent evidence assessment. Variable scope correct. 9/9 checklist pass. Review at: pipeline_builds/validate-scheme-b_critic_revision_code_review.md"
     },
     "local_experiment_running": {
-      "status": "complete",
-      "completed_at": "2026-03-19 19:13",
+      "status": "in_progress",
+      "started_at": "2026-03-23 11:18",
       "agent": "system",
-      "notes": "Experiments complete. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b"
+      "notes": "Experiment run started (PID: 2840437, mode: supervised)"
     },
     "local_analysis_architect": {
       "status": "complete",
@@ -153,9 +153,9 @@
       "notes": "Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved (per-candle predictions saved, TURN-01 tier separation, Kelly lookahead prevented). 24 new cells, 14 experiment variants. FLAG-1 MED: TURN-01 penalty acts as consistency regularizer not temporal flip penalty due to batch shuffling \u2014 results still valid but interpretation changes. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant \u2014 uninformative for primary metric but useful for drawdown/risk analysis. FLAG-3 LOW: DSR approximation conservative. Notebook ready to run: ~3.5h total (30 retrain runs + ~110 post-processing runs)."
     }
   },
-  "last_updated": "2026-03-23 10:33",
+  "last_updated": "2026-03-23 11:25",
   "pending_action": "phase2_complete",
-  "status_updated": "2026-03-23 10:32",
+  "status_updated": "2026-03-23 11:18",
   "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_code_review.md",
   "current_agent": "phase2_complete",
   "last_dispatched": "2026-03-23T10:32:50.162502+00:00",

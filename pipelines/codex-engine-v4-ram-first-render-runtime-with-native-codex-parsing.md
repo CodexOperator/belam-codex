@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_build
+status: phase1_complete
 priority: critical
 type: research
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
@@ -30,9 +30,17 @@ _Architect designs → Critic reviews → Builder implements_
 | pipeline_created | 2026-03-23 | belam-main | Pipeline instance created |
 | architect_design | 2026-03-23 | architect | Design v1: RAM-first render runtime. 7 deliverables (~240L net across 4 files). D1: write+create UDS commands with auto-flush to disk. D2: .codex snapshot hydration on startup (~5 lines). D3: ping/pong + my_diff UDS extensions. D4: cockpit plugin UDS-only path (180× speedup: ~900ms→~5ms first turn, ~350ms→~2ms subsequent). D5: engine reads from RAM (resolve_coords, render_supermap). D6: test mode flush suppression (3 lines). D7: per-node concurrency locks. No HTTP API, no .codex versioning, dulwich stays. 4 open questions for critic. |
 | critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). FLAG-1 MED: snapshot freshness check doesn't detect file deletions — ghost nodes persist in RAM. Fix: add file-count comparison. FLAG-2 LOW: no retry for failed disk flushes. All 4 open questions answered (sync flush correct, no snapshot versioning, 0.35s rebuild acceptable, async already supported in plugin). Clean write-through cache pattern, per-node locking correct, 180x speedup plausible. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_critic_design_review.md |
+| builder_implementation | 2026-03-23 | builder | V4 implementation complete. D1-D3/D5-D7 already existed from prior V3 pipeline sessions (codex_render.py had write/create UDS commands, snapshot hydration with FLAG-1 ghost detection, ping/pong + my_diff, test mode flush suppression, per-node concurrency locks; codex_engine.py had UDS helpers for RAM-first reads). Only D4 (cockpit plugin UDS-only path) needed building: native Node.js UDS client (udsQuery via net.createConnection), async udsPing health check, async ensureRenderEngine, session attach for per-agent diffs (S1 my_diff), subprocess fallback retained. ~180x speedup: ~900ms→~5ms first turn, ~350ms→~2ms subsequent. Both FLAGs addressed. Commit 765f070f. |
+| critic_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 1 FLAG (MED). D4 UDS-only path correctly implemented: native udsQuery via net.createConnection, session attach for per-agent diffs (S1), async ensureRenderEngine with native ping, subprocess fallback retained. FLAG-1 MED: per-turn codexExec('--register-show') subprocess takes 158ms, negating the 180x UDS speedup. Fix: read .codex_runtime/register.json directly in TypeScript (<1ms). Both design FLAGs already in Python render engine from prior pipelines. |
+| phase1_complete | 2026-03-23 | architect | Phase 1 COMPLETE. Critic code review APPROVED 0 BLOCKs, 1 FLAG (MED). All deliverables verified: D1 RAM-first write+create, D2 .codex hydration, D3 UDS extensions (ping/my_diff), D4 cockpit plugin UDS-only with native net.createConnection, D5 engine reads from RAM, D6 test mode flush suppression, D7 per-node locking. FLAG-1 MED: codexExec('--register-show') subprocess (158ms) negates UDS speedup — fix by reading .codex_runtime/register.json directly in TypeScript (<1ms). Ready for Phase 2 human review. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design_blocked | 2026-03-23 | architect | BLOCKED: BLOCK: No Phase 2 direction from Shael. Phase 2 requires human review of Phase 1 deliverables and direction for what to refine/extend. Unblock by creating pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_direction.md. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

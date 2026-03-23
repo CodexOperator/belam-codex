@@ -196,7 +196,7 @@ def wake_builder(message: str, timeout: int = BUILDER_TIMEOUT) -> dict:
 
 def build_supervisor_task(version: str, notebook_path: Path, results_dir: Path,
                           attempt: int = 1, checkpoint: str = None,
-                          dry_run: bool = False) -> str:
+                          dry_run: bool = False, phase: str = None) -> str:
     """
     Build the task message for the supervising builder agent.
     """
@@ -205,6 +205,18 @@ def build_supervisor_task(version: str, notebook_path: Path, results_dir: Path,
     spec_info = ""
     if spec_path.exists():
         spec_info = f"\n\n## Spec File\nRead the full experiment spec at: `{spec_path.relative_to(WORKSPACE)}`"
+
+    # Auto-detect phase from pipeline state if not explicitly set
+    if phase is None:
+        state_file = BUILDS_DIR / f'{version}_state.json'
+        if state_file.exists():
+            try:
+                state = json.load(open(state_file))
+                if state.get('status') in ('phase2_complete', 'experiment_running') and \
+                   state.get('stages', {}).get('phase2_complete', {}).get('status') == 'complete':
+                    phase = '2'
+            except Exception:
+                pass
 
     # Check for prior run logs
     prior_log = ""
@@ -241,6 +253,19 @@ You are supervising the experiment execution for pipeline `{version}`.
 - **Pipeline version:** {version}
 - **Workspace:** {WORKSPACE}{spec_info}{prior_log}{checkpoint_ctx}{dry_run_note}
 
+## Pickle Discipline (CRITICAL)
+- **Save a .pkl file after EVERY experiment run** — not just at the end. Each experiment should produce `{results_dir.relative_to(WORKSPACE)}/<experiment_id>_results.pkl`
+- **Load existing .pkl files** from prior phases/runs before starting. Check `{results_dir.relative_to(WORKSPACE)}/` for any `*.pkl` files and import them into your results dict
+- **Final aggregate pickle** at the end: save all results into `{results_dir.relative_to(WORKSPACE)}/{version}_results.pkl`
+- If the run crashes mid-way, saved pkl files let us resume without re-running completed experiments
+{f"""
+## Phase {phase} Only (IMPORTANT)
+This pipeline has completed Phase {int(phase)-1} experiments already. **DO NOT re-run Phase {int(phase)-1} cells.**
+- Phase {int(phase)-1} results are already saved in `{results_dir.relative_to(WORKSPACE)}/`
+- **Load Phase {int(phase)-1} pkl files** — some Phase {phase} experiments may depend on prior results (e.g., saved predictions, model weights)
+- **Only extract and run cells from the Phase {phase} section** of the notebook
+- Look for the Phase {phase} header/section marker in the notebook to identify the correct cells
+""" if phase else ""}
 ## Creating the Runner Script
 Extract from the notebook:
 - All imports, data loading, model definitions
@@ -285,7 +310,8 @@ The runner will resume you with checkpoint context.
 
 
 def run_supervised(version: str, notebook_path: Path, results_dir: Path,
-                   dry_run: bool = False, max_retries: int = BUILDER_MAX_RESUMES) -> dict:
+                   dry_run: bool = False, max_retries: int = BUILDER_MAX_RESUMES,
+                   phase: str = None) -> dict:
     """
     Run experiments with builder agent supervision.
 
@@ -308,6 +334,7 @@ def run_supervised(version: str, notebook_path: Path, results_dir: Path,
         task = build_supervisor_task(
             version, notebook_path, results_dir,
             attempt=attempt, checkpoint=checkpoint, dry_run=dry_run,
+            phase=phase,
         )
 
         # Wake builder
@@ -561,6 +588,7 @@ def main():
     parser.add_argument('--max-retries', type=int, default=5, help='Max builder resume attempts')
     parser.add_argument('--resume', action='store_true', help='Resume from previous partial run')
     parser.add_argument('--analyze-local', action='store_true', help='Chain analysis after experiments')
+    parser.add_argument('--phase', type=str, default=None, help='Only run experiments from this phase (e.g., "2" for Phase 2 cells only)')
     args = parser.parse_args()
 
     version = args.version
@@ -614,6 +642,7 @@ def main():
             version, notebook_path, results_dir,
             dry_run=args.dry_run,
             max_retries=args.max_retries,
+            phase=args.phase,
         )
 
     # Write results summary

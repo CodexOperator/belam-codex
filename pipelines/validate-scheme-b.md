@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: archived
+status: experiment_running
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -9,7 +9,6 @@ agents: [architect, critic, builder]
 tags: [validation, statistics, snn]
 project: snn-applied-finance
 started: 2026-03-17
-archived: 2026-03-23
 version_label: v5-validation
 ---
 
@@ -80,6 +79,7 @@ _Architect designs → Critic reviews → Builder implements_
 | local_analysis_code_review | 2026-03-20 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 medium, 2 low). All 5 prior FLAGs verified fixed. 120-record analysis (12 exp × 10 folds) correctly analyzed. Code quality high: deterministic seeds, proper scipy APIs, matplotlib standards. FLAG-1 (MED): '100% abstention error' framing is misleading — data changed between GPU/CPU runs, not original error. FLAG-2 (MED): 'signal is feature-based' claim needs paired test (p=0.048, barely significant; delta encoding has execution advantage not captured by accuracy). FLAG-3 (LOW): turnover-Sharpe correlation now p=0.093 (NS), narrative overstates evidence. FLAG-4 (LOW): abstention harms because |prediction magnitude| ≠ confidence (active_accuracy < accuracy in multiple folds). Review at: validate-scheme-b_critic_local_analysis_code_review.md |
 | local_analysis_report_build | 2026-03-20 | system | Building LaTeX report from validate-scheme-b_analysis_report.md |
 | local_analysis_report_build | 2026-03-20 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/validate-scheme-b_report.pdf (512.2 KB) |
+| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2840437, mode: supervised) |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_

@@ -5,7 +5,7 @@ priority: high
 type: research
 version: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
 spec_file: machinelearning/snn_applied_finance/specs/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_spec.yaml
-output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.ipynb
+output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_predictor.ipynb
 agents: [architect, critic, builder]
 supersedes:
 tags: [snn, finance]
