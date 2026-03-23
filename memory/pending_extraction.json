@@ -1,18 +1,14 @@
 {
   "status": "complete",
-  "session": "47ca3340-bb45-4ae5-bab0-4cfe8c21eb23",
+  "session": "5a8f4fa1-ee5e-49df-b364-ed79f0938268",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T06:12:00Z",
+  "completed_at": "2026-03-23T06:56:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_061018_session-2026-03-23-morning-kicked-off-le.md",
-    "memory/entries/2026-03-23_061018_shael-disclosed-2-months-of-runway-remai.md",
-    "memory/entries/2026-03-23_061034_five-long-term-goal-docs-created-in-goal.md",
-    "decisions/r-command-default-shows-legend-plus-supermap.md",
-    "decisions/lm-design-tool-patterns-navigable-runnable.md",
-    "decisions/lm-dot-syntax-workflow-hierarchy.md",
-    "lessons/token-efficiency-stacks-as-runway-multiplier.md",
-    "decisions/inter-agent-diff-comms-turn-by-turn.md"
+    "memory/entries/2026-03-23_065637_memory-pruning-session-206-entries-audit.md",
+    "lessons/memory-entries-capture-events-not-state.md",
+    "lessons/consolidate-agent-memory-was-stage-spam-source.md",
+    "decisions/stop-auto-logging-pipeline-stage-transitions.md"
   ],
-  "last_run": "2026-03-23T06:12:00Z"
+  "last_run": "2026-03-23T06:56:00Z"
 }
