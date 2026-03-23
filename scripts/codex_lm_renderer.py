@@ -47,7 +47,7 @@ class LMEntry:
     coord: str = ''           # assigned during build_lm_tree
     verb: str = ''            # e.g. "navigate", "edit-field"
     syntax: str = ''          # e.g. "{coord}" or "e1{coord} {f} {v}"
-    description: str = ''     # brief, ≤40 chars
+    description: str = ''     # brief, ≤60 chars
     source: str = ''          # 'mode' | 'command' | 'render_verb' | 'tool'
 
 
@@ -63,28 +63,28 @@ class LMWorkflow:
 
 # Hardcoded mode→entry mapping (stable, matches modes/*.md frontmatter)
 _MODE_ENTRIES = [
-    LMEntry(verb='navigate',    syntax='{coord}',               description='render primitive',       source='mode'),
-    LMEntry(verb='edit-field',  syntax='e1{coord} {f} {v}',     description='set field',              source='mode'),
-    LMEntry(verb='edit-body',   syntax='e1{coord} B+ {text}',   description='append to body',         source='mode'),
-    LMEntry(verb='create',      syntax='e2 {ns} "title"',       description='new primitive',          source='mode'),
-    LMEntry(verb='extend-ns',   syntax='e3 {ns}.{sub}',         description='register namespace',     source='mode'),
-    LMEntry(verb='orchestrate', syntax='e0',                     description='pipeline sweep',         source='mode'),
+    LMEntry(verb='navigate',    syntax='{coord}',               description='t1 views task, p3 views pipeline, d5-d8 range',          source='mode'),
+    LMEntry(verb='edit-field',  syntax='e1{coord} {f} {v}',     description='set field by number (e.g. e1t3 status done)',             source='mode'),
+    LMEntry(verb='edit-body',   syntax='e1{coord} B+ {text}',   description='B replaces, B+ appends, B5 line 5, B.Section heading',   source='mode'),
+    LMEntry(verb='create',      syntax='e2 {ns} "title"',       description='create in namespace (e.g. e2 t "fix bug")',              source='mode'),
+    LMEntry(verb='extend-ns',   syntax='e3 {ns}.{sub}',         description='register new sub-namespace',                             source='mode'),
+    LMEntry(verb='orchestrate', syntax='e0',                     description='sweep pipelines, check gates, auto-kick',                source='mode'),
 ]
 
 # Render verbs — the view/diff/sort interaction layer
 _RENDER_VERBS = [
-    LMEntry(verb='diff',        syntax='.d',                     description='diff since anchor',      source='render_verb'),
-    LMEntry(verb='anchor',      syntax='.a',                     description='reset diff anchor',      source='render_verb'),
-    LMEntry(verb='filter-tag',  syntax='--tag {t}',              description='filter by tag',          source='render_verb'),
-    LMEntry(verb='filter-since',syntax='--since {d}',            description='filter by date',         source='render_verb'),
-    LMEntry(verb='persona-view',syntax='--as {role}',            description='persona filter',         source='render_verb'),
+    LMEntry(verb='diff',        syntax='.d',                     description='what changed since last .a anchor',                      source='render_verb'),
+    LMEntry(verb='anchor',      syntax='.a',                     description='reset diff baseline to now',                             source='render_verb'),
+    LMEntry(verb='filter-tag',  syntax='--tag {t}',              description='supermap filtered to tag',                               source='render_verb'),
+    LMEntry(verb='filter-since',syntax='--since {d}',            description='only entries from last {d} days',                        source='render_verb'),
+    LMEntry(verb='persona-view',syntax='--as {role}',            description='architect/builder/critic view',                          source='render_verb'),
 ]
 
 # Tool patterns — session-universal tools agents use constantly
 _TOOL_PATTERNS = [
-    LMEntry(verb='mem-search',  syntax='memory_search("{q}")',   description='search memory',          source='tool'),
-    LMEntry(verb='spawn-agent', syntax='sessions_spawn(...)',     description='spawn sub-agent',        source='tool'),
-    LMEntry(verb='shell',       syntax='exec {cmd}',             description='run command',            source='tool'),
+    LMEntry(verb='mem-search',  syntax='memory_search("{q}")',   description='semantic search over memory',                            source='tool'),
+    LMEntry(verb='spawn-agent', syntax='sessions_spawn(...)',     description='launch sub-agent session',                               source='tool'),
+    LMEntry(verb='shell',       syntax='exec {cmd}',             description='run shell command',                                      source='tool'),
 ]
 
 
@@ -221,9 +221,8 @@ def render_lm_section(workspace: Path) -> List[str]:
     rendered_wf_coords: set = set()
 
     for entry in entries:
-        # Compact format: │  ╶─ {coord:<5} {verb:<12} {syntax}
-        # Descriptions omitted in tree view — available via lm{N} zoom
-        line = f'│  ╶─ {entry.coord:<5} {entry.verb:<12} {entry.syntax}'
+        # Phase 2: descriptions inline after syntax, separated by em-dash
+        line = f'│  ╶─ {entry.coord:<5} {entry.verb:<14} {entry.syntax} — {entry.description}'
         lines.append(line)
 
         # Show workflows only once per parent mode coordinate
