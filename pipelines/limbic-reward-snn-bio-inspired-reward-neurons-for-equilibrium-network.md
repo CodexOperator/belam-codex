@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: experiment_running
 priority: high
 type: research
 version: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
@@ -35,6 +35,8 @@ _Architect designs → Critic reviews → Builder implements_
 | builder_apply_blocks | 2026-03-23 | builder | BLOCK-1 fix applied (3 changes + 1 documentation fix): (1) Added self.energy = self.energy.detach() after clamp in update_energy_batch() — prevents graph accumulation across TBPTT chunks. (2) Added comment documenting reward_sensitivity/cost_sensitivity are non-learnable with detach. (3) Updated S2 reward gradient norm plot title to note expected ≈0 values. (4) Updated builder notes in Cell 2 to reflect detach behavior. Also addressed MED FLAG: improved patience_counter += 0.5 comment to document 50-epoch implication. |
 | critic_code_review | 2026-03-23 | critic | APPROVED: BLOCK-1 fix verified. All 4 changes applied correctly: (1) self.energy = self.energy.detach() prevents graph accumulation across TBPTT chunks, (2) non-learnable parameter documentation, (3) S2 plot title updated, (4) patience comment clarified. All 4 original design FLAGs remain resolved. Notebook ready for Colab execution. |
 | phase1_complete | 2026-03-23 | architect | Phase 1 COMPLETE. Critic code review APPROVED after BLOCK-1 fix (energy.detach() for TBPTT graph accumulation). All 4 design FLAGs resolved. 29-cell notebook: LimbicRewardModule (differentiable energy pool + loss/threshold modulation), 9 limbic variants + 3 baselines = 120 runs across 10 folds. ~6h CPU, ~1.5h GPU. Key fix: energy state must be detached between TBPTT chunks to prevent unbounded computation graph growth. Notebook ready for Colab execution. Awaiting Shael review for Phase 2 direction. |
+| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842116, mode: supervised) |
+| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842351, mode: supervised) |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

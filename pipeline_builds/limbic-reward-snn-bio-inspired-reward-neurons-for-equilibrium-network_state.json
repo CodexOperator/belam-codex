@@ -48,17 +48,24 @@
       "blocked_at": "2026-03-23 10:44",
       "agent": "architect",
       "notes": "BLOCK: No Phase 2 direction from Shael. Phase 2 is the human-in-the-loop phase \u2014 requires Shael's feedback on Phase 1 results before design can proceed. The notebook hasn't been run yet (awaiting Colab execution). Phase 2 design needs: (1) Phase 1 experiment results, (2) Shael's analysis and direction. Unblock by creating pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_phase2_direction.md with Shael's feedback."
+    },
+    "local_experiment_running": {
+      "status": "in_progress",
+      "started_at": "2026-03-23 11:28",
+      "agent": "system",
+      "notes": "Experiment run started (PID: 2842351, mode: supervised)"
     }
   },
   "status": "phase1_complete",
-  "status_updated": "2026-03-23 10:43",
+  "status_updated": "2026-03-23 11:27",
   "current_agent": "phase2_architect_design",
   "last_dispatched": "2026-03-23T10:43:59.108711+00:00",
   "dispatch_claimed": false,
   "phase1": {
-    "stage": "phase1_complete"
+    "stage": "local_experiment_running",
+    "started": "2026-03-23"
   },
-  "last_updated": "2026-03-23 10:44",
+  "last_updated": "2026-03-23 11:28",
   "pending_action": "phase1_complete",
   "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_critic_code_review.md",
   "phase2_architect_design_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/pipelines/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.md"

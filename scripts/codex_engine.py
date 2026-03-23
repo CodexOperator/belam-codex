@@ -3230,9 +3230,9 @@ def is_coordinate(arg):
     # Exclude V2 mode tokens: e0, e1, e2, e3 (bare mode indicators)
     if re.match(r'^e[0-3]$', arg, re.IGNORECASE):
         return False
-    # Must start with known prefix letters only: single letters or md/mw
-    # Pattern: (md|mw|[a-z])(\d+)?(-\d+)?  — must not contain other non-digit chars after prefix
-    m = re.match(r'^(md|mw|[a-z])(\d+)?(?:-(\d+))?$', arg, re.IGNORECASE)
+    # Must start with known prefix letters only: single letters or md/mw/lm
+    # Pattern: (md|mw|lm|[a-z])(\d+)?(-\d+)?  — must not contain other non-digit chars after prefix
+    m = re.match(r'^(md|mw|lm|[a-z])(\d+)?(?:-(\d+))?$', arg, re.IGNORECASE)
     if not m:
         return False
     prefix = m.group(1).lower()
