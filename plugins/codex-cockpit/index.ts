@@ -107,10 +107,10 @@ async function ensureRenderEngine(cwd: string): Promise<string> {
     try { execSync(`rm -f "${sockPath}"`, { cwd, stdio: "ignore" }); } catch {}
   }
 
-  // Start render engine in background
+  // Start render engine in background (nice mode = deferred flush, default)
   try {
     execSync(
-      `nohup python3 scripts/codex_render.py > /dev/null 2>&1 &`,
+      `nohup python3 scripts/codex_render.py --force --mode nice > /dev/null 2>&1 &`,
       { cwd, stdio: "ignore", timeout: 3000 }
     );
     // Brief wait for socket to appear

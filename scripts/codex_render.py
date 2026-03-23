@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import ctypes
 import ctypes.util
+import collections
 import datetime
 import hashlib
 import json
@@ -1082,6 +1083,11 @@ class SessionManager:
         # Engine-level refs (set by CodexRenderEngine after construction)
         self._engine_ref = None
 
+    def _nice_flush(self) -> None:
+        """Flush deferred change queue if engine is in nice mode."""
+        if self._engine_ref and self._engine_ref.mode == CodexRenderEngine.MODE_NICE:
+            self._engine_ref.flush_change_queue()
+
     def start(self, force: bool = False) -> None:
         """Bind UDS, start accept thread.
 
@@ -1338,22 +1344,34 @@ class SessionManager:
             return {'ok': False, 'error': 'specify coord or prefix'}
 
         elif cmd == 'supermap':
+            self._nice_flush()
             return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
 
         elif cmd == 'diff':
+            self._nice_flush()
             include_content = msg.get('include_content', False)
             return {'ok': True, 'delta': self.diff_engine.get_delta(include_content=include_content)}
 
         elif cmd == 'diff_since':
+            self._nice_flush()
             ts = msg.get('timestamp', 0.0)
             include_content = msg.get('include_content', False)
             return {'ok': True, 'delta': self.diff_engine.get_delta_since(ts, include_content=include_content)}
 
         elif cmd == 'anchor_reset':
+            self._nice_flush()
             self.diff_engine.set_anchor()
             return {'ok': True, 'message': 'anchor reset'}
 
+        elif cmd == 'flush':
+            # Nice mode: explicitly flush the deferred change queue
+            if self._engine_ref:
+                flushed = self._engine_ref.flush_change_queue()
+                return {'ok': True, 'flushed': flushed, 'mode': self._engine_ref.mode}
+            return {'ok': False, 'error': 'no engine ref'}
+
         elif cmd == 'refresh':
+            self._nice_flush()
             # Phase 2: Hint to re-scan a specific file or namespace.
             # Used by orchestration_engine._post_state_change() for sub-100ms
             # R-label latency after F-label generation (instead of anchor_reset
@@ -1400,6 +1418,7 @@ class SessionManager:
             return {'ok': False, 'error': 'context assembler not available'}
 
         elif cmd == 'buffer':
+            self._nice_flush()
             fmt = msg.get('format', 'dense')
             if fmt == 'dense':
                 return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
@@ -1416,18 +1435,52 @@ class SessionManager:
         elif cmd == 'status':
             test_mode = False
             test_status = None
-            if self._engine_ref and self._engine_ref.test:
-                test_mode = True
-                test_status = self._engine_ref.test.status()
+            engine_mode = 'unknown'
+            queued = 0
+            if self._engine_ref:
+                engine_mode = self._engine_ref.mode
+                queued = len(self._engine_ref._change_queue)
+                if self._engine_ref.test:
+                    test_mode = True
+                    test_status = self._engine_ref.test.status()
             return {
                 'ok': True,
+                'mode': engine_mode,
                 'sessions': len(self._sessions),
                 'tree_size': len(self.tree.nodes),
                 'uptime_s': time.time() - self.diff_engine.anchor_time,
                 'diffs': len(self.diff_engine._diffs),
+                'queued_changes': queued,
                 'test_mode': test_mode,
                 'test_status': test_status,
             }
+
+        elif cmd == 'set_mode':
+            new_mode = msg.get('mode', '')
+            if new_mode not in (CodexRenderEngine.MODE_NICE, CodexRenderEngine.MODE_GREEDY):
+                return {'ok': False, 'error': f'invalid mode: {new_mode} (nice|greedy)'}
+            if self._engine_ref:
+                old_mode = self._engine_ref.mode
+                self._engine_ref.mode = new_mode
+                # Switching to greedy: flush pending queue + start heartbeat
+                if new_mode == CodexRenderEngine.MODE_GREEDY and old_mode == CodexRenderEngine.MODE_NICE:
+                    flushed = self._engine_ref.flush_change_queue()
+                    if not self._engine_ref.heartbeat_trigger:
+                        hb_token, hb_port = self._engine_ref._load_hook_config()
+                        if hb_token:
+                            self._engine_ref.heartbeat_trigger = HeartbeatTrigger(
+                                self.diff_engine, poll_interval_s=5.0,
+                                threshold=30, gateway_port=hb_port, hook_token=hb_token,
+                            )
+                            self._engine_ref.heartbeat_trigger.start()
+                    return {'ok': True, 'mode': new_mode, 'flushed': flushed}
+                # Switching to nice: stop heartbeat trigger
+                elif new_mode == CodexRenderEngine.MODE_NICE and old_mode == CodexRenderEngine.MODE_GREEDY:
+                    if self._engine_ref.heartbeat_trigger:
+                        self._engine_ref.heartbeat_trigger.stop()
+                        self._engine_ref.heartbeat_trigger = None
+                return {'ok': True, 'mode': new_mode}
+            return {'ok': False, 'error': 'no engine ref'}
 
         elif cmd == 'test_write':
             if self._engine_ref and self._engine_ref.test:
@@ -1473,6 +1526,7 @@ class SessionManager:
 
         # ── D3: per-session diff (uses agent's own anchor) ──────────
         elif cmd == 'my_diff':
+            self._nice_flush()
             include_content = msg.get('include_content', False)
             with self._lock:
                 session = self._sessions.get(session_id)
@@ -1996,9 +2050,19 @@ class HeartbeatTrigger:
 class CodexRenderEngine:
     """Main render engine process. Foreground, session-scoped."""
 
-    def __init__(self, workspace: Path, test_mode: bool = False, force: bool = False):
+    # ── Engine Modes ───────────────────────────────────────────────────────
+    # nice (default): inotify queues (path, event) tuples only — zero processing
+    #   between turns. Flush happens on UDS query (diff/supermap/my_diff).
+    #   Full diff history kept in RAM. HeartbeatTrigger disabled.
+    # greedy: current behavior — immediate inotify processing, heartbeat trigger.
+    MODE_NICE = 'nice'
+    MODE_GREEDY = 'greedy'
+
+    def __init__(self, workspace: Path, test_mode: bool = False, force: bool = False,
+                 mode: str = 'nice'):
         self.workspace = workspace
         self._force = force
+        self.mode = mode if mode in (self.MODE_NICE, self.MODE_GREEDY) else self.MODE_NICE
         self.tree = CodexTree(workspace)
         self.diff_engine = DiffEngine(self.tree)
         self.context = ContextAssembler(workspace, self.tree, self.diff_engine)
@@ -2010,6 +2074,8 @@ class CodexRenderEngine:
         self.heartbeat_trigger: HeartbeatTrigger | None = None
         self._running = False
         self._start_time = 0.0
+        # Nice mode: deferred change queue (thread-safe)
+        self._change_queue: collections.deque[tuple[Path, str]] = collections.deque()
 
         if test_mode:
             self.test = TestMode(workspace)
@@ -2071,23 +2137,25 @@ class CodexRenderEngine:
             branch = self.test.start()
             print(f"Test mode: branch {branch}")
 
-        # 6. Heartbeat trigger (diff-driven)
-        hb_token, hb_port = self._load_hook_config()
-        if hb_token:
-            self.heartbeat_trigger = HeartbeatTrigger(
-                self.diff_engine,
-                poll_interval_s=5.0,
-                threshold=30,
-                gateway_port=hb_port,
-                hook_token=hb_token,
-            )
-            self.heartbeat_trigger.start()
+        # 6. Heartbeat trigger (diff-driven) — greedy mode only
+        if self.mode == self.MODE_GREEDY:
+            hb_token, hb_port = self._load_hook_config()
+            if hb_token:
+                self.heartbeat_trigger = HeartbeatTrigger(
+                    self.diff_engine,
+                    poll_interval_s=5.0,
+                    threshold=30,
+                    gateway_port=hb_port,
+                    hook_token=hb_token,
+                )
+                self.heartbeat_trigger.start()
 
         # 7. Boot status
-        print(f"Codex Render Engine started")
+        print(f"Codex Render Engine started ({self.mode} mode)")
         print(f"  Tree: {len(self.tree.nodes)} primitives loaded in {self.tree.load_time:.2f}s")
         print(f"  Watcher: {watcher_type}")
         print(f"  Socket: {SOCKET_PATH}")
+        print(f"  Mode: {self.mode} {'(deferred flush)' if self.mode == self.MODE_NICE else '(live processing)'}")
         if self.heartbeat_trigger:
             print(f"  Heartbeat trigger: {self.heartbeat_trigger.threshold} F-labels / {self.heartbeat_trigger.poll_interval_s}s poll")
         if self.test:
@@ -2163,6 +2231,9 @@ class CodexRenderEngine:
     def _on_file_change(self, filepath: Path, event_type: str) -> None:
         """Callback from inotify/poller when a file changes.
 
+        Nice mode: queue (filepath, event_type) for deferred processing.
+        Greedy mode: process immediately (original behavior).
+
         FLAG-2: Explicit context file invalidation.
         FLAG-3: CREATE/DELETE → reindex_namespace, MODIFY → apply_disk_change.
         """
@@ -2170,6 +2241,16 @@ class CodexRenderEngine:
         if filepath.suffix not in ('.md', '.codex'):
             return
 
+        # Nice mode: just queue and return — zero processing until flush
+        if self.mode == self.MODE_NICE:
+            self._change_queue.append((filepath, event_type))
+            return
+
+        # Greedy mode: process immediately
+        self._process_file_change(filepath, event_type)
+
+    def _process_file_change(self, filepath: Path, event_type: str) -> None:
+        """Actually process a file change — shared by nice flush and greedy callback."""
         # FLAG-2: Check if this is a context file and invalidate cache
         if filepath.name in CONTEXT_FILENAMES:
             self.context.invalidate_context_file(filepath.name)
@@ -2181,7 +2262,8 @@ class CodexRenderEngine:
             diff = self.tree.apply_disk_change(filepath)
             if diff:
                 self.diff_engine.record(diff, tree=self.tree)
-                self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
+                if self.mode == self.MODE_GREEDY:
+                    self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
 
         elif event_type == 'created':
             fp_str = str(filepath)
@@ -2197,21 +2279,38 @@ class CodexRenderEngine:
                     diff_entries = self.tree._reindex_single_new(filepath, prefix)
                     for diff_entry in diff_entries:
                         self.diff_engine.record(diff_entry)
-                        self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
+                        if self.mode == self.MODE_GREEDY:
+                            self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
 
         elif event_type == 'deleted':
             diff = self.tree.apply_deletion(filepath)
             if diff:
                 self.diff_engine.record(diff, tree=self.tree)
-                self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
+                if self.mode == self.MODE_GREEDY:
+                    self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
+
+    def flush_change_queue(self) -> int:
+        """Process all queued file changes (nice mode). Returns count processed."""
+        count = 0
+        while self._change_queue:
+            filepath, event_type = self._change_queue.popleft()
+            self._process_file_change(filepath, event_type)
+            count += 1
+        # Also check LM changes after flush
+        if count > 0:
+            self.diff_engine.check_lm_change()
+        return count
 
     def _print_status(self) -> None:
         uptime = time.time() - self._start_time
         print(f"\n=== Codex Render Engine Status ===")
+        print(f"  Mode: {self.mode}")
         print(f"  Uptime: {uptime:.0f}s")
         print(f"  Tree: {len(self.tree.nodes)} nodes")
         print(f"  Sessions: {len(self.sessions._sessions)}")
         print(f"  Diffs since anchor: {len(self.diff_engine._diffs)}")
+        if self.mode == self.MODE_NICE:
+            print(f"  Queued changes: {len(self._change_queue)}")
         if self.test:
             s = self.test.status()
             print(f"  Test mode: {s['modified']} modified, {s['deleted']} deleted")
@@ -2280,6 +2379,10 @@ def main():
     parser.add_argument('--stop', action='store_true', help='Shutdown running engine')
     parser.add_argument('--workspace', type=str, default=None)
     parser.add_argument('--force', action='store_true', help='Kill existing engine and take over')
+    parser.add_argument('--mode', choices=['nice', 'greedy'], default='nice',
+                        help='Engine mode: nice (deferred, default) or greedy (live inotify)')
+    parser.add_argument('--set-mode', choices=['nice', 'greedy'], default=None,
+                        help='Switch running engine mode at runtime')
 
     args = parser.parse_args()
 
@@ -2343,10 +2446,19 @@ def main():
         print(resp.get('message', 'done') if resp else "Render engine not running")
         return
 
+    if args.set_mode:
+        resp = _signal_render_engine('set_mode', mode=args.set_mode)
+        if resp and resp.get('ok'):
+            print(f"Mode → {resp.get('mode')}" +
+                  (f" (flushed {resp.get('flushed', 0)} queued changes)" if 'flushed' in resp else ''))
+        else:
+            print(resp.get('error', 'Render engine not running') if resp else "Render engine not running")
+        return
+
     # Server mode
     workspace = Path(args.workspace) if args.workspace else WORKSPACE
     force = getattr(args, 'force', False)
-    engine = CodexRenderEngine(workspace, test_mode=args.test, force=force)
+    engine = CodexRenderEngine(workspace, test_mode=args.test, force=force, mode=args.mode)
     engine.start()
 
 
