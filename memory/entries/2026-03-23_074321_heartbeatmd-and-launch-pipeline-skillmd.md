@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, heartbeat, lm, coordinate-grammar, pipeline]
 source: "session"
 content: "HEARTBEAT.md and launch-pipeline SKILL.md updated 2026-03-23 to use e0 sweep and R commands as primary invocation paths, with raw python3 scripts as fallback only. Previously both documents taught raw scripts as the canonical approach, contaminating manual session behavior."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, lm, coordinate-grammar, heartbeat, pipeline]
 source: "session"
 content: "Agent bypassed coordinate system during manual pipeline launch. Belam used raw script invocations (python3 scripts/pipeline_orchestrate.py) instead of e0/R-kickoff to launch Phase 2 of codex-engine-v3-legendary-map. Shael caught it. Root cause: HEARTBEAT.md and launch-pipeline SKILL.md both teach raw scripts as primary path. Both files updated in this session to use e0 and R commands as primary, scripts as fallback."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
