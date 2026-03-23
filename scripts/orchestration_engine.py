@@ -1493,11 +1493,13 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
         )
 
     # --- Fire and forget via Popen ---
+    # NOTE: Do NOT pass --timeout here. Popen with start_new_session=True
+    # already returns immediately. --timeout N sets the *agent's* runtime
+    # limit (default 600s), so --timeout 1 was killing agents after 1 second.
     cmd = [
         'openclaw', 'agent',
         '--agent', agent,
         '--message', message,
-        '--timeout', '1',   # We don't wait; --timeout 1 lets openclaw dispatch and return
     ]
 
     try:
