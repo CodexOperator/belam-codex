@@ -190,7 +190,7 @@ If you need to BLOCK, use:
 python3 scripts/pipeline_orchestrate.py {version} block {next_stage} --agent {next_agent} --notes "BLOCK reason" --artifact your_review_file.md --learnings "what I found, why it's blocked, what the fix should look like"
 ```
 
-The orchestrator script handles group chat notifications automatically — do NOT post to the group chat yourself."""
+Stage transitions are posted to the group chat automatically by the orchestrator script. You can post additional updates if you have something worth sharing."""
 
     return msg
 
