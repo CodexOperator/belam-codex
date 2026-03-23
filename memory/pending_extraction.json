@@ -1,14 +1,13 @@
 {
   "status": "complete",
-  "session": "5a8f4fa1-ee5e-49df-b364-ed79f0938268",
+  "session": "d4c5a542-e280-4b7f-9ea0-ef668c3770cb",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T06:56:00Z",
+  "completed_at": "2026-03-23T07:06:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_065637_memory-pruning-session-206-entries-audit.md",
-    "lessons/memory-entries-capture-events-not-state.md",
-    "lessons/consolidate-agent-memory-was-stage-spam-source.md",
-    "decisions/stop-auto-logging-pipeline-stage-transitions.md"
+    "memory/entries/2026-03-23_070628_shael-noticed-r-command-was-missing-the.md",
+    "decisions/supermap-pure-signal-legend-as-orientation-layer.md",
+    "lessons/guidance-prose-belongs-in-legend-not-supermap-tree.md"
   ],
-  "last_run": "2026-03-23T06:56:00Z"
+  "last_run": "2026-03-23T07:06:00Z"
 }
