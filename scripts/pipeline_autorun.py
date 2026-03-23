@@ -139,8 +139,69 @@ def minutes_since(ts: str) -> float | None:
     return (now - dt).total_seconds() / 60
 
 
+def _is_pipeline_already_dispatched(version: str) -> bool:
+    """Check if a pipeline already has an active orchestration dispatch.
+
+    Returns True if the state JSON shows:
+    - A pending_action in an agent stage, AND
+    - last_dispatched is within the ACTIVE_WINDOW (not stale)
+
+    This prevents duplicate orchestration flows for the same pipeline
+    (e.g. two heartbeats firing close together, or manual e0 while
+    an agent is already working).
+    """
+    state_file = BUILDS_DIR / f'{version}_state.json'
+    if not state_file.exists():
+        return False
+
+    try:
+        state = json.loads(state_file.read_text())
+    except (json.JSONDecodeError, OSError):
+        return False
+
+    pending = state.get('pending_action', '')
+    last_dispatched = state.get('last_dispatched', '')
+
+    if not pending or not last_dispatched:
+        return False
+
+    # Agent stages that indicate an agent has been dispatched
+    agent_stages = {
+        'architect_design', 'critic_design_review', 'builder_implementation',
+        'critic_code_review', 'architect_design_revision', 'builder_apply_blocks',
+        'phase2_architect_design', 'phase2_critic_design_review',
+        'phase2_builder_implementation', 'phase2_critic_code_review',
+        'phase2_architect_revision',
+        'analysis_architect_design', 'analysis_critic_review',
+        'analysis_builder_implementation', 'analysis_critic_code_review',
+        'local_analysis_architect', 'local_analysis_critic_review',
+        'local_analysis_builder', 'local_analysis_code_review',
+        'local_analysis_report_build',
+        'local_experiment_running', 'report_building',
+    }
+
+    if pending not in agent_stages:
+        return False
+
+    # Check if the dispatch is recent (not stale)
+    try:
+        dispatched_dt = datetime.fromisoformat(last_dispatched)
+        elapsed = (datetime.now(timezone.utc) - dispatched_dt).total_seconds() / 60
+        if elapsed < ACTIVE_WINDOW_MINUTES:
+            return True
+    except (ValueError, TypeError):
+        pass
+
+    return False
+
+
 def kick_pipeline(version: str, dry_run: bool = False) -> bool:
     """Kick off a pipeline via the orchestrator."""
+    # Guard: don't spawn a duplicate orchestration flow
+    if _is_pipeline_already_dispatched(version):
+        print(f"  ⏭️  Skipping {version} — already has an active dispatch (use --check-stalled for stale recovery)")
+        return False
+
     print(f"  🚀 Kicking off {version}...")
     if dry_run:
         print(f"     [DRY RUN] Would call: R kickoff {version}")
