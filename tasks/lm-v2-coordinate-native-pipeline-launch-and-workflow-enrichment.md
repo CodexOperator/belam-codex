@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-23
 owner: belam
@@ -8,6 +8,7 @@ depends_on: [codex-engine-v3-legendary-map]
 upstream: []
 downstream: []
 tags: [codex-engine, legendary-map, lm, infrastructure]
+pipeline: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
 ---
 
 # LM v2: Coordinate-Native Pipeline Launch and Workflow Enrichment

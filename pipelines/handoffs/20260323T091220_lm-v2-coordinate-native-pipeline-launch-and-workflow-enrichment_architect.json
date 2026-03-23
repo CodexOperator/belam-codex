@@ -1,0 +1,15 @@
+{
+  "version": "lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment",
+  "completed_stage": "critic_code_review",
+  "next_stage": "phase1_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-23T09:12:20.381959+00:00",
+  "pipeline_session_id": "f295b44a-3644-42a6-b0b0-50407e9e5549",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

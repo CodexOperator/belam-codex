@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: phase2_review
 priority: critical
 type: research
 version: build-codex-layer-v1
@@ -36,6 +36,11 @@ _Architect designs → Critic reviews → Builder implements_
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-23 | architect | Phase 2 design: 4 priorities, ~158 lines across 4 files. P1: compound coord fix + FLAG fixes. P2: render engine auto-start + UDS diff injection + anchor reset. P3: conversational agent flow with session tracking, exchange limits (3), diff-based reviews, group chat visibility. P4: autonomous iteration cron every 35min with gate checks. 4 open questions for critic. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
