@@ -1,15 +1,14 @@
 {
   "status": "complete",
-  "session": "2af6d993-ec43-45c8-9257-13fd723ad84d",
+  "session": "e9ecf3bb-c122-4c1c-bd20-4e7a1f96bce5",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T11:36:00Z",
+  "completed_at": "2026-03-23T17:13:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_113551_validate-scheme-b-phase-2-turnover-mgmt.md",
-    "memory/entries/2026-03-23_113551_shael-directed-run-validate-scheme-b-exp.md",
-    "lessons/notebook-runs-need-phase-aware-cell-targeting.md",
-    "lessons/builder-supervisor-task-needs-explicit-pkl-discipline.md",
-    "decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md"
+    "memory/entries/2026-03-23_171245_p1-deliverable-verification-codex-engine.md",
+    "lessons/is-coordinate-single-char-prefix-limitation.md",
+    "lessons/dot-syntax-ln-workflow-dispatch-unreachable.md",
+    "decisions/zoom-replaces-supermap-injection-option.md"
   ],
-  "last_run": "2026-03-23T11:36:00Z"
+  "last_run": "2026-03-23T17:13:00Z"
 }
