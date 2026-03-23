@@ -1,6 +1,6 @@
 {
   "version": "validate-scheme-b",
-  "status": "phase2_complete",
+  "status": "experiment_complete",
   "created": "2026-03-17",
   "phase1": {
     "stage": "local_experiment_running",
@@ -87,10 +87,10 @@
       "notes": "APPROVED with 1 minor FLAG (0 blocks). All 3 revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence. No existing cells modified. 6 new cells verified: V4 stats loading with pkl dedup, side-by-side comparison, gradient flow diagram, counterfactual verdict, membrane readout discussion, convergent evidence assessment. Variable scope correct. 9/9 checklist pass. Review at: pipeline_builds/validate-scheme-b_critic_revision_code_review.md"
     },
     "local_experiment_running": {
-      "status": "in_progress",
-      "started_at": "2026-03-23 11:48",
-      "agent": "system",
-      "notes": "EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts"
+      "status": "complete",
+      "completed_at": "2026-03-23 15:34",
+      "agent": "builder",
+      "notes": "RESULTS: 14 Phase 2 experiments on real BTC 4H data (3-fold dry-run). Best variant VSB-TURN-03a (EMA smoothing alpha=0.3) with net Sharpe 0.699. TURN-01 penalized loss hurt accuracy. TURN-02/03 reduced turnover. Position sizing marginal. 4 notebook bugs fixed (3-tuple unpacking, regression target dtype, batch mismatch, variable naming)."
     },
     "local_analysis_architect": {
       "status": "complete",
@@ -153,9 +153,9 @@
       "notes": "Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved (per-candle predictions saved, TURN-01 tier separation, Kelly lookahead prevented). 24 new cells, 14 experiment variants. FLAG-1 MED: TURN-01 penalty acts as consistency regularizer not temporal flip penalty due to batch shuffling \u2014 results still valid but interpretation changes. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant \u2014 uninformative for primary metric but useful for drawdown/risk analysis. FLAG-3 LOW: DSR approximation conservative. Notebook ready to run: ~3.5h total (30 retrain runs + ~110 post-processing runs)."
     }
   },
-  "last_updated": "2026-03-23 11:48",
-  "pending_action": "phase2_complete",
-  "status_updated": "2026-03-23 11:18",
+  "last_updated": "2026-03-23 15:34",
+  "pending_action": "local_experiment_complete",
+  "status_updated": "2026-03-23 15:34",
   "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_code_review.md",
   "current_agent": "phase2_complete",
   "last_dispatched": "2026-03-23T10:32:50.162502+00:00",

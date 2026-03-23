@@ -981,6 +981,10 @@ class AgentSession:
     last_active: float
     anchor_time: float
     subscribe_patterns: list = field(default_factory=list)  # Phase 2: pattern filter
+    # Phase 2 V4: Stage session metadata
+    pipeline: str | None = None       # e.g. 'validate-scheme-b'
+    stage: str | None = None          # e.g. 'architect_design'
+    role: str | None = None           # 'primary' or 'reviewer'
 
 
 class SessionManager:
@@ -1139,16 +1143,32 @@ class SessionManager:
 
         if cmd == 'attach':
             agent = msg.get('agent', 'unknown')
+            pipeline = msg.get('pipeline')
+            stage = msg.get('stage')
+            role = msg.get('role', 'primary')
             now = time.time()
             session = AgentSession(
                 session_id=session_id, agent_name=agent,
                 connected_at=now, last_active=now,
                 anchor_time=self.diff_engine.anchor_time,
+                pipeline=pipeline, stage=stage, role=role,
             )
             with self._lock:
                 self._sessions[session_id] = session
                 self._client_conns[session_id] = conn
-            return {'ok': True, 'session_id': session_id, 'tree_size': len(self.tree.nodes)}
+                # D4: If this is a second agent in a stage session, emit reviewer_joined
+                if pipeline and stage:
+                    stage_peers = [s for s in self._sessions.values()
+                                   if s.pipeline == pipeline and s.stage == stage
+                                   and s.session_id != session_id]
+                    if stage_peers:
+                        self.notify_all({
+                            'event': 'reviewer_joined',
+                            'pipeline': pipeline, 'stage': stage,
+                            'agent': agent, 'role': role,
+                        })
+            return {'ok': True, 'session_id': session_id, 'tree_size': len(self.tree.nodes),
+                    'pipeline': pipeline, 'stage': stage}
 
         elif cmd == 'tree':
             coord = msg.get('coord')

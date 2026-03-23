@@ -157,7 +157,7 @@
   "pending_action": "phase2_complete",
   "status_updated": "2026-03-23 11:18",
   "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_code_review.md",
-  "current_agent": "phase2_complete",
-  "last_dispatched": "2026-03-23T10:32:50.162502+00:00",
+  "current_agent": "local_experiment_complete",
+  "last_dispatched": "2026-03-23T15:34:37.034928+00:00",
   "dispatch_claimed": false
 }

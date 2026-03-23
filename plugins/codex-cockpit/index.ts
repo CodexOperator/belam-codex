@@ -163,11 +163,16 @@ export default function register(api: any) {
       prependCtx = COORD_SCAFFOLD;
     }
 
-    // ── Result register injection (Codex Layer Phase A) ──
+    // ── Result register injection (Phase 1 FLAG-1 fix: direct file read, not subprocess) ──
     let registerCtx = "";
-    const registerOutput = codexExec("--register-show", cwd);
-    if (registerOutput) {
-      registerCtx = `\n\n## Result Register\n${registerOutput}`;
+    try {
+      const regPath = join(cwd, '.codex_runtime', 'register.json');
+      const reg = JSON.parse(readFileSync(regPath, 'utf-8'));
+      if (reg.latest) registerCtx = `\n\n## Result Register\n_ = ${reg.latest}`;
+    } catch {
+      // No register file — try subprocess fallback
+      const registerOutput = codexExec("--register-show", cwd);
+      if (registerOutput) registerCtx = `\n\n## Result Register\n${registerOutput}`;
     }
 
     // Helper: merge legend + register into result

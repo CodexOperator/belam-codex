@@ -1610,6 +1610,259 @@ def run_exchange_loop(version: str, stage: str) -> dict:
     }
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# Phase 2 V4: Stage Session Support
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# D3: Stage flow table — defines session behavior per transition
+# session_type: 'shared' = reviewer joins existing session, 'fresh' = new session
+STAGE_FLOW = {
+    'architect_design':     ('critic_design_review', 'critic', 'shared'),
+    'critic_design_review': ('builder_implementation', 'builder', 'fresh'),
+    'builder_implementation': ('critic_code_review', 'critic', 'shared'),
+    'critic_code_review':   ('phase1_complete', 'architect', 'fresh'),
+    'phase2_architect_design':     ('phase2_critic_design_review', 'critic', 'shared'),
+    'phase2_critic_design_review': ('phase2_builder_implementation', 'builder', 'fresh'),
+    'phase2_builder_implementation': ('phase2_critic_code_review', 'critic', 'shared'),
+    'phase2_critic_code_review':   ('phase2_complete', 'architect', 'fresh'),
+}
+
+
+def generate_stage_session_id(version: str, stage: str) -> str:
+    """Generate a deterministic session ID for a pipeline stage."""
+    return f"pipeline:{version}:{stage}"
+
+
+def orchestrate_signal(version: str, stage: str, agent: str, signal: str, notes: str = ''):
+    """D2: Agent signals a stage event (ready_for_review, approved, flag, block).
+    
+    Writes signal to pipeline state JSON. Consumers watch via inotify or polling.
+    """
+    state = load_pipeline_state(version)
+    stages = state.setdefault('stage_signals', {}).setdefault(stage, {})
+    stages['signal'] = signal
+    stages['signal_at'] = datetime.now(timezone.utc).isoformat()
+    stages['signal_agent'] = agent
+    stages['signal_notes'] = notes
+    save_pipeline_state(version, state)
+
+    # Notify render engine for push to attached agents
+    try:
+        import socket as _socket
+        sock_path = WORKSPACE / '.codex_runtime' / 'render.sock'
+        if sock_path.exists():
+            s = _socket.socket(_socket.AF_UNIX, _socket.SOCK_STREAM)
+            s.settimeout(2.0)
+            s.connect(str(sock_path))
+            s.sendall(json.dumps({'cmd': 'refresh', 'prefix': 'p'}).encode() + b'\n')
+            s.recv(4096)
+            s.close()
+    except Exception:
+        pass
+
+    print(f"   📡 Signal '{signal}' from {agent} for {version}:{stage}")
+    if notes:
+        print(f"   📝 Notes: {notes[:200]}")
+
+
+def wait_for_signal(version: str, stage: str, signals: list[str],
+                    timeout: int = 1800, poll_interval: int = 30) -> str | None:
+    """D2: Wait for a signal in pipeline state.
+    
+    Uses inotify when available, falls back to polling.
+    Returns the signal string or None on timeout.
+    """
+    state_path = None
+    for candidate in [BUILDS_DIR / f'{version}_state.json',
+                      RESEARCH_BUILDS_DIR / f'{version}_state.json']:
+        if candidate.exists():
+            state_path = candidate
+            break
+    if not state_path:
+        return None
+
+    deadline = time.time() + timeout
+    use_inotify = False
+
+    # Try inotify
+    try:
+        import inotify.adapters
+        i = inotify.adapters.Inotify()
+        i.add_watch(str(state_path.parent), mask=0x00000002)  # IN_MODIFY
+        use_inotify = True
+    except ImportError:
+        pass
+
+    while time.time() < deadline:
+        state = load_pipeline_state(version)
+        current = state.get('stage_signals', {}).get(stage, {}).get('signal')
+        if current and current in signals:
+            return current
+
+        if use_inotify:
+            remaining = deadline - time.time()
+            wait_time = min(poll_interval, max(remaining, 0))
+            try:
+                events = list(i.event_gen(yield_nones=False, timeout_s=wait_time))
+                # Check state again after any file change
+            except Exception:
+                time.sleep(min(poll_interval, max(deadline - time.time(), 0)))
+        else:
+            time.sleep(min(poll_interval, max(deadline - time.time(), 0)))
+
+    return None
+
+
+def terminate_stage_session(version: str, stage: str):
+    """D7: Archive session conversation and clean up.
+    
+    Archives conversation history to pipeline_builds/ for memory extraction.
+    """
+    state = load_pipeline_state(version)
+    active = state.get('active_sessions', {})
+    session_info = active.get(stage, {})
+    session_id = session_info.get('session_id')
+
+    if session_id:
+        # Archive conversation (best-effort — sessions may already be gone)
+        try:
+            archive_path = BUILDS_DIR / f'{version}_{stage}_session_archive.md'
+            # Attempt to fetch history via openclaw CLI
+            result = subprocess.run(
+                ['openclaw', 'sessions', 'history', '--session-id', session_id,
+                 '--limit', '100', '--format', 'markdown'],
+                capture_output=True, text=True, timeout=15,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                archive_content = f"# Session Archive: {version} / {stage}\n\n"
+                archive_content += f"Session ID: {session_id}\n"
+                archive_content += f"Archived: {datetime.now(timezone.utc).isoformat()}\n\n"
+                archive_content += result.stdout
+                archive_path.write_text(archive_content, encoding='utf-8')
+                print(f"   📦 Session archived: {archive_path.name}")
+        except Exception as e:
+            print(f"   ⚠️  Session archive failed: {e}")
+
+    # Clean up session tracking
+    active.pop(stage, None)
+    # Clear signal
+    state.get('stage_signals', {}).pop(stage, None)
+    state['active_sessions'] = active
+    save_pipeline_state(version, state)
+
+
+def run_stage_session(version: str, stage: str, primary_agent: str,
+                      reviewer: str = 'critic', max_exchanges: int = 3) -> dict:
+    """D2+D3: Run a pipeline stage as a shared session with ping-pong review.
+    
+    Uses openclaw agent --session-id to create/reuse persistent sessions.
+    Session type from STAGE_FLOW determines if reviewer joins existing session
+    or gets a fresh one.
+    """
+    session_id = generate_stage_session_id(version, stage)
+
+    # Build context
+    context = build_handoff_message(version, '', stage, primary_agent, '')
+    
+    # Track in pipeline state
+    state = load_pipeline_state(version)
+    active = state.setdefault('active_sessions', {})
+    active[stage] = {
+        'session_id': session_id,
+        'primary': primary_agent,
+        'reviewer': reviewer,
+        'started_at': datetime.now(timezone.utc).isoformat(),
+        'exchange_count': 0,
+    }
+    save_pipeline_state(version, state)
+
+    # Dispatch primary agent
+    result = dispatch_agent(primary_agent, context, session_id=session_id,
+                           timeout=DISPATCH_TIMEOUT)
+
+    if not result.get('completed'):
+        return {'status': 'primary_timeout', 'exchanges': 0}
+
+    # Check stage flow for session type
+    flow = STAGE_FLOW.get(stage)
+    if not flow:
+        return {'status': 'no_flow', 'exchanges': 1}
+
+    next_stage, next_agent, session_type = flow
+
+    if session_type == 'shared':
+        # Reviewer joins same session
+        review_msg = build_review_message(version, stage, result)
+        reviewer_result = dispatch_agent(
+            reviewer, review_msg, session_id=session_id,
+            timeout=DISPATCH_TIMEOUT
+        )
+
+        # Update exchange count
+        active[stage]['exchange_count'] = 1
+        save_pipeline_state(version, state)
+
+        if not reviewer_result.get('has_blocks'):
+            terminate_stage_session(version, stage)
+            return {'status': 'approved', 'exchanges': 1}
+
+        # FLAG — iterate
+        for exchange in range(1, max_exchanges):
+            fix_msg = f"Exchange {exchange + 1}/{max_exchanges}: Fix blocks from reviewer.\n"
+            fix_msg += reviewer_result.get('response', '')[:2000]
+
+            result = dispatch_agent(primary_agent, fix_msg, session_id=session_id,
+                                   timeout=DISPATCH_TIMEOUT)
+            if not result.get('completed'):
+                break
+
+            review_msg = build_review_message(version, stage, result)
+            reviewer_result = dispatch_agent(reviewer, review_msg,
+                                             session_id=session_id,
+                                             timeout=DISPATCH_TIMEOUT)
+            active[stage]['exchange_count'] = exchange + 1
+            save_pipeline_state(version, state)
+
+            if not reviewer_result.get('has_blocks'):
+                terminate_stage_session(version, stage)
+                return {'status': 'approved', 'exchanges': exchange + 1}
+
+        terminate_stage_session(version, stage)
+        return {'status': 'exchange_limit', 'exchanges': max_exchanges}
+    else:
+        # Fresh session for next agent — terminate current, start new
+        terminate_stage_session(version, stage)
+        return {'status': 'completed', 'exchanges': 1}
+
+
+def check_stalled_sessions(max_idle_seconds: int = 7200):
+    """D3: Check for sessions with no activity for >2h. Called by cron."""
+    for state_file in BUILDS_DIR.glob('*_state.json'):
+        try:
+            state = json.loads(state_file.read_text())
+        except Exception:
+            continue
+        version = state_file.stem.replace('_state', '')
+        for stage, session in state.get('active_sessions', {}).items():
+            started = session.get('started_at', '')
+            if not started:
+                continue
+            try:
+                started_dt = datetime.fromisoformat(started)
+                idle = (datetime.now(timezone.utc) - started_dt).total_seconds()
+                if idle > max_idle_seconds:
+                    exchanges = session.get('exchange_count', 0)
+                    print(f"⚠️ STALLED: {version}/{stage} — idle {idle/3600:.1f}h, "
+                          f"exchanges={exchanges}")
+                    send_orchestrator_notification(
+                        version, '⚠️ Stalled Session',
+                        f'<b>{version}/{stage}</b> idle for {idle/3600:.1f}h '
+                        f'({exchanges} exchanges). Manual intervention needed.'
+                    )
+            except Exception:
+                pass
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -1679,6 +1932,20 @@ def main():
 
     elif action == 'verify':
         orchestrate_verify(version)
+
+    elif action == 'signal':
+        stage = positional[0] if positional else flags.get('stage')
+        signal_name = positional[1] if len(positional) > 1 else flags.get('signal')
+        agent = flags.get('agent', 'unknown')
+        notes = flags.get('notes', '')
+        if not stage or not signal_name:
+            print("Usage: pipeline_orchestrate.py <version> signal <stage> <signal> --agent <role>")
+            sys.exit(1)
+        orchestrate_signal(version, stage, agent, signal_name, notes)
+
+    elif action == 'check-stalled':
+        max_idle = int(flags.get('max-idle', flags.get('max_idle', '7200')))
+        check_stalled_sessions(max_idle)
 
     elif action in ('run-experiment', 'run', 'experiment'):
         dry_run = 'dry-run' in flags or 'dry_run' in flags

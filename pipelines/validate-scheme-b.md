@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: experiment_running
+status: experiment_complete
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -83,6 +83,7 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842043, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842350, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
+| local_experiment_running | 2026-03-23 | builder | RESULTS: 14 Phase 2 experiments on real BTC 4H data (3-fold dry-run). Best variant VSB-TURN-03a (EMA smoothing alpha=0.3) with net Sharpe 0.699. TURN-01 penalized loss hurt accuracy. TURN-02/03 reduced turnover. Position sizing marginal. 4 notebook bugs fixed (3-tuple unpacking, regression target dtype, batch mismatch, variable naming). |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_
