@@ -621,29 +621,10 @@ def _get_bot_token(agent: str) -> str | None:
 
 
 def send_orchestrator_notification(version: str, event: str, details: str):
-    """Send an orchestrator-level notification to the group chat."""
-    import urllib.request
-    import urllib.error
-    try:
-        token = _get_bot_token('architect')
-        if not token:
-            return
-
-        message = f"🔄 <b>Orchestrator</b> — <code>{version}</code>\n{event}\n{details}"
-
-        url = f'https://api.telegram.org/bot{token}/sendMessage'
-        payload = json.dumps({
-            'chat_id': PIPELINE_GROUP_CHAT_ID,
-            'text': message,
-            'parse_mode': 'HTML',
-            'disable_notification': False,
-        }).encode('utf-8')
-
-        req = urllib.request.Request(url, data=payload, headers={'Content-Type': 'application/json'})
-        with urllib.request.urlopen(req, timeout=10):
-            pass
-    except Exception as e:
-        print(f"   ⚠️  Orchestrator notification failed: {e}")
+    """DISABLED — was sending via architect's bot token for orchestrator-level events.
+    notify_group() in pipeline_update.py handles per-agent notifications instead.
+    Kept as no-op so callers don't break."""
+    pass
 
 
 # ═══════════════════════════════════════════════════════════════════════
