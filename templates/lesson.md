@@ -17,7 +17,7 @@ fields:
   applies_to:
     type: string[]
 cli:
-  list: "belam lessons"
-  show: "belam lesson <name>"
-  shortcut: "belam l"
+  list: "R lessons"
+  show: "R lesson <name>"
+  shortcut: "R l"
 ---

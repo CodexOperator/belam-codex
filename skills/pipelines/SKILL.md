@@ -24,59 +24,59 @@ The `belam` CLI (at `~/.local/bin/belam`, on PATH) wraps all pipeline and primit
 
 ### Pipelines
 ```bash
-belam pipelines                    # Dashboard: all pipelines with status
-belam pipeline <ver>               # Detail view with full stage history
-belam pipeline <ver> --watch [sec] # Live auto-refresh (default 10s)
-belam pipeline update <ver> <cmd>  # Update stage (complete/start/block/status/show)
-belam pipeline launch <ver> --desc "..."  # Create new pipeline
-belam pipeline analyze <ver>       # Launch analysis pipeline
-belam kickoff <ver>                # Kick off a created pipeline (wake architect via orchestrator)
-belam orchestrate <ver> <action>   # Orchestrated stage transition (auto-handoff)
-belam handoffs                     # Check for stuck/pending handoffs
+R pipelines                    # Dashboard: all pipelines with status
+R pipeline <ver>               # Detail view with full stage history
+R pipeline <ver> --watch [sec] # Live auto-refresh (default 10s)
+R pipeline update <ver> <cmd>  # Update stage (complete/start/block/status/show)
+R pipeline launch <ver> --desc "..."  # Create new pipeline
+R pipeline analyze <ver>       # Launch analysis pipeline
+R kickoff <ver>                # Kick off a created pipeline (wake architect via orchestrator)
+R orchestrate <ver> <action>   # Orchestrated stage transition (auto-handoff)
+R handoffs                     # Check for stuck/pending handoffs
 ```
 
 ### Experiment Analysis
 ```bash
-belam analyze <ver>                # Run analysis (auto-finds analysis pipeline)
-belam analyze --detect             # Auto-detect new experiment results
-belam analyze --check-gate <ver>   # Check Phase 3 gate
+R analyze <ver>                # Run analysis (auto-finds analysis pipeline)
+R analyze --detect             # Auto-detect new experiment results
+R analyze --check-gate <ver>   # Check Phase 3 gate
 ```
 
 ### Primitives
 ```bash
-belam tasks                        # List tasks (with status + tags)
-belam task <name>                  # Show one task (fuzzy match)
-belam lessons                      # List lessons
-belam projects                     # List projects
-belam decisions                    # List decisions
+R tasks                        # List tasks (with status + tags)
+R task <name>                  # Show one task (fuzzy match)
+R lessons                      # List lessons
+R projects                     # List projects
+R decisions                    # List decisions
 ```
 
 ### Memory & Status
 ```bash
-belam status                       # Full overview: pipelines + tasks + memory + git
-belam log "message"                # Quick memory entry
-belam log -t tag "message"         # Tagged memory entry
-belam consolidate                  # Run memory consolidation
+R status                       # Full overview: pipelines + tasks + memory + git
+R log "message"                # Quick memory entry
+R log -t tag "message"         # Tagged memory entry
+R consolidate                  # Run memory consolidation
 ```
 
 ### Shortcuts
-`belam pl` = pipelines, `belam p` = pipeline, `belam t` = tasks, `belam l` = lessons,
-`belam d` = decisions, `belam pj` = projects, `belam s` = status, `belam a` = analyze
+`R pl` = pipelines, `R p` = pipeline, `R t` = tasks, `R l` = lessons,
+`R d` = decisions, `R pj` = projects, `R s` = status, `R a` = analyze
 
 ## Direct Script Commands (equivalent)
 
 Scripts are in the workspace `scripts/` directory. The `belam` CLI calls these under the hood.
 
-| belam command | Script equivalent |
+| R command | Script equivalent |
 |---------------|-------------------|
-| `belam pipelines` | `python3 scripts/pipeline_dashboard.py` |
-| `belam pipeline <ver>` | `python3 scripts/pipeline_dashboard.py <ver>` |
-| `belam pipeline update <ver> ...` | `python3 scripts/pipeline_update.py <ver> ...` |
-| `belam pipeline launch <ver> ...` | `python3 scripts/launch_pipeline.py <ver> ...` |
-| `belam pipeline analyze <ver>` | `python3 scripts/launch_analysis_pipeline.py <ver>` |
-| `belam analyze <ver>` | `python3 scripts/analyze_experiment.py --notebook <ver>` |
-| `belam analyze --check-gate <ver>` | `python3 scripts/analyze_experiment.py --check-gate <ver>` |
-| `belam log "msg"` | `python3 scripts/log_memory.py "msg"` |
+| `R pipelines` | `python3 scripts/pipeline_dashboard.py` |
+| `R pipeline <ver>` | `python3 scripts/pipeline_dashboard.py <ver>` |
+| `R pipeline update <ver> ...` | `python3 scripts/pipeline_update.py <ver> ...` |
+| `R pipeline launch <ver> ...` | `python3 scripts/launch_pipeline.py <ver> ...` |
+| `R pipeline analyze <ver>` | `python3 scripts/launch_analysis_pipeline.py <ver>` |
+| `R analyze <ver>` | `python3 scripts/analyze_experiment.py --notebook <ver>` |
+| `R analyze --check-gate <ver>` | `python3 scripts/analyze_experiment.py --check-gate <ver>` |
+| `R log "msg"` | `python3 scripts/log_memory.py "msg"` |
 
 ### Generate phase 3 proposal (autonomous)
 ```bash

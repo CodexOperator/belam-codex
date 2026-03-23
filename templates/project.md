@@ -22,7 +22,7 @@ fields:
   location:
     type: string
 cli:
-  list: "belam projects"
-  show: "belam project <name>"
-  shortcut: "belam pj"
+  list: "R projects"
+  show: "R project <name>"
+  shortcut: "R pj"
 ---

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-codex_engine.py — Codex Engine for the belam workspace CLI.
+codex_engine.py — Codex Engine for the R workspace CLI.
 
 Unified primitive navigation, namespace resolution, and rendering system.
 All output is plain ASCII/Unicode (tree chars ╶─ │ are fine), no colors.
@@ -1442,13 +1442,13 @@ def _bfs_paths(src, dst, graph, max_depth=6):
 # ─── Execute Action ──────────────────────────────────────────────────────────────
 
 def execute_action(args):
-    """Execute an action via belam command dispatch.
+    """Execute an action via R command dispatch.
 
     Syntax:
-      execute_action(['status'])           → belam status --raw
-      execute_action(['p5', 'run'])        → belam run validate-scheme-b --raw
-      execute_action(['t1', 'complete'])   → belam edit ... --set status=complete --raw
-      execute_action(['m', 'log', 'msg'])  → belam log "msg" --raw
+      execute_action(['status'])           → R status --raw
+      execute_action(['p5', 'run'])        → R run validate-scheme-b --raw
+      execute_action(['t1', 'complete'])   → R edit ... --set status=complete --raw
+      execute_action(['m', 'log', 'msg'])  → R log "msg" --raw
 
     Always passes --raw to avoid recursion through the index engine.
     """
@@ -1456,7 +1456,7 @@ def execute_action(args):
         args = args.split()
 
     if not args:
-        print("execute: no action specified. Usage: belam -x [coord] <action> [args...]")
+        print("execute: no action specified. Usage: R -x [coord] <action> [args...]")
         return
 
     belam_bin = '/home/ubuntu/.local/bin/belam'
@@ -1496,7 +1496,7 @@ def execute_action(args):
     if not resolved:
         # Maybe it's a general action spelled differently
         print(f"execute: unknown action or unresolved coordinate: {args[0]!r}")
-        print("Usage: belam -x [coord] <action> [extra args...]")
+        print("Usage: R -x [coord] <action> [extra args...]")
         return
 
     item = resolved[0]
@@ -1545,7 +1545,7 @@ def execute_action(args):
         }
         if action in status_map:
             new_status = status_map[action]
-            # Delegate to edit_primitive.py via belam edit
+            # Delegate to edit_primitive.py via R edit
             cmd_args = ['edit', f'tasks/{slug}.md', '--set', f'status={new_status}', '--raw']
             _belam_exec(belam_bin, cmd_args)
         else:
@@ -1570,7 +1570,7 @@ def execute_action(args):
 
 
 def _belam_exec(belam_bin, cmd_args):
-    """Run belam with the given args, streaming stdout/stderr."""
+    """Run R with the given args, streaming stdout/stderr."""
     cmd = [belam_bin] + [str(a) for a in cmd_args]
     result = subprocess.run(cmd, check=False)
     if result.returncode not in (0, 2):
@@ -2063,16 +2063,16 @@ def execute_edit(args):
     """Handle -e mode: edit primitive fields and/or body and write back.
 
     Usage:
-      belam -e <coord> <field_num> <value> [<field_num> <value> ...]
-      belam -e <coord> B  <value>           -> replace entire body
-      belam -e <coord> B+ <value>           -> append to body
-      belam -e <coord> B5 <value>           -> replace body line 5 (1-indexed)
-      belam -e <coord> B5-10 <value>        -> replace body lines 5-10
-      belam -e <coord> B5-B10 <value>       -> same as B5-10
-      belam -e <coord> B.Section <value>    -> replace ## Section content
+      R -e <coord> <field_num> <value> [<field_num> <value> ...]
+      R -e <coord> B  <value>           -> replace entire body
+      R -e <coord> B+ <value>           -> append to body
+      R -e <coord> B5 <value>           -> replace body line 5 (1-indexed)
+      R -e <coord> B5-10 <value>        -> replace body lines 5-10
+      R -e <coord> B5-B10 <value>       -> same as B5-10
+      R -e <coord> B.Section <value>    -> replace ## Section content
     """
     if not args:
-        print("Usage: belam -e <coord> <field_num|B-spec> <value> [...]")
+        print("Usage: R -e <coord> <field_num|B-spec> <value> [...]")
         return 1
 
     edits = _parse_edit_args(args)
@@ -2274,7 +2274,7 @@ def execute_edit(args):
 def _scaffold_pending_action(slug, description):
     """Write a pending ACTION_REGISTRY stub to the dynamic registry file.
 
-    Called when a command primitive is created via belam -n c 'name'.
+    Called when a command primitive is created via R -n c 'name'.
     The stub uses handler: 'pending' and will print a scaffolded-but-not-implemented
     message when dispatched. Stubs are loaded from PENDING_REGISTRY_FILE at startup.
     """
@@ -2319,7 +2319,7 @@ def _load_pending_registry():
 def execute_create(args):
     """Handle -n mode: create a new primitive via create_primitive.py.
 
-    Usage: belam -n <type_prefix> <title words...>
+    Usage: R -n <type_prefix> <title words...>
     Prefixes: t=task, d=decision, l=lesson, w=project, c=command, s=skill
 
     Primitive-first gate: when creating a command primitive (prefix 'c'),
@@ -2328,7 +2328,7 @@ def execute_create(args):
     import subprocess as _sp
 
     if not args or len(args) < 2:
-        print("Usage: belam -n <type_prefix> <title>")
+        print("Usage: R -n <type_prefix> <title>")
         print("  Prefixes: " + ', '.join(f"{k}={v}" for k, v in sorted(PREFIX_TO_CREATE_TYPE.items())))
         return 1
 
@@ -2432,7 +2432,7 @@ def execute_create(args):
 def execute_undo(args):
     """Handle -z mode: undo a previous F-label edit.
 
-    Usage: belam -z [F-label]  (e.g. belam -z or belam -z F1)
+    Usage: R -z [F-label]  (e.g. R -z or R -z F1)
     """
     tracker = get_render_tracker()
 
@@ -2618,7 +2618,7 @@ def _session_list(args):
 def _session_info(args):
     """Show detailed info for an agent's current session."""
     if not args:
-        print("Usage: belam -x session info <agent>")
+        print("Usage: R -x session info <agent>")
         return 1
 
     agent = args[0]
@@ -2679,7 +2679,7 @@ def _session_info(args):
 def _session_new(args):
     """Rotate an agent's current session by archiving the JSONL and clearing sessions.json."""
     if not args:
-        print("Usage: belam -x session new <agent>")
+        print("Usage: R -x session new <agent>")
         return 1
 
     agent = args[0]
@@ -2739,7 +2739,7 @@ def _session_send(args):
     filtered = [a for a in args if a != '--bg']
 
     if len(filtered) < 2:
-        print("Usage: belam -x session send <agent> \"<message>\" [--bg]")
+        print("Usage: R -x session send <agent> \"<message>\" [--bg]")
         return 1
 
     agent = filtered[0]
@@ -2779,7 +2779,7 @@ def _session_send(args):
 def _session_log(args):
     """Show the last N messages from an agent's active transcript."""
     if not args:
-        print("Usage: belam -x session log <agent> [--tail N] [--verbose]")
+        print("Usage: R -x session log <agent> [--tail N] [--verbose]")
         return 1
 
     verbose = '--verbose' in args or '-v' in args
@@ -2809,7 +2809,7 @@ def _session_log(args):
             i += 1
 
     if not agent:
-        print("Usage: belam -x session log <agent> [--tail N] [--verbose]")
+        print("Usage: R -x session log <agent> [--tail N] [--verbose]")
         return 1
 
     data, _ = _load_sessions_json(agent)
@@ -2901,7 +2901,7 @@ def handle_session(subcommand, args):
     """Dispatch session subcommands: list, info, new, send, log."""
     sub = (subcommand or '').lower()
     if not sub or sub in ('help', '--help', '-h'):
-        print("Usage: belam -x session <subcommand> [args]")
+        print("Usage: R -x session <subcommand> [args]")
         print("  list [agent]              List sessions (all agents or one)")
         print("  info <agent>              Detailed session info")
         print("  new  <agent>              Rotate to a fresh session")
@@ -2938,9 +2938,9 @@ _SPAWN_MODEL_ALIASES = {
 def handle_spawn(args):
     """Spawn a fresh agent session. Auto-rotates the target agent's session first.
 
-    Usage: belam -x spawn <agent> "<task or @file>"
-           belam -x spawn <agent> @/path/to/prompt.md
-           belam -x spawn [--model <alias>] [--timeout <sec>] [--bg] <agent> "<task>"
+    Usage: R -x spawn <agent> "<task or @file>"
+           R -x spawn <agent> @/path/to/prompt.md
+           R -x spawn [--model <alias>] [--timeout <sec>] [--bg] <agent> "<task>"
 
     If no named agent given, runs as an ephemeral subagent (prints sessions_spawn JSON
     for the calling agent to execute — use when running inside an agent session).
@@ -2973,7 +2973,7 @@ def handle_spawn(args):
             i += 1
 
     if len(positional) < 2:
-        print("Usage: belam -x spawn <agent> \"<task or @file>\"")
+        print("Usage: R -x spawn <agent> \"<task or @file>\"")
         print("  Options: --model <alias>  --timeout <sec>  --bg")
         print("  Model aliases: sonnet, opus, haiku")
         print("  Use @/path/to/file.md to read task from a file")
@@ -3055,8 +3055,8 @@ ACTION_REGISTRY = {
     'report':           {'script': 'pipeline_orchestrate.py',   'needs_version': True,  'args_suffix': ['report-build'],    'description': 'Build LaTeX report'},
 
     # Primitives
-    # create/new: SUPERSEDED by belam -n mode (execute_create in codex_engine.py)
-    # edit: SUPERSEDED by belam -e mode (execute_edit in codex_engine.py)
+    # create/new: SUPERSEDED by R -n mode (execute_create in codex_engine.py)
+    # edit: SUPERSEDED by R -e mode (execute_edit in codex_engine.py)
     'audit':            {'script': 'audit_primitives.py',       'description': 'Audit primitive consistency'},
     'au':               {'alias': 'audit'},
     # embed-primitives: ARCHIVED — supermap hook replaced static indexes
@@ -3166,7 +3166,7 @@ def dispatch_action(action_word, remaining_args):
         elif handler == 'revise':
             # revise <version> --context "..." [rest]
             if not remaining_args:
-                print("Usage: belam revise <version> --context \"revision directions...\"")
+                print("Usage: R revise <version> --context \"revision directions...\"")
                 return 1
             version = remaining_args[0]
             rest = list(remaining_args[1:])
@@ -3193,14 +3193,14 @@ def dispatch_action(action_word, remaining_args):
             return handle_spawn(list(remaining_args))
 
         elif handler == 'extract':
-            # belam extract [instance] [--file PATH] [--bg] [--last]
+            # R extract [instance] [--file PATH] [--bg] [--last]
             # Delegates to belam_extract.sh — passes all args through
             extract_script = str(WORKSPACE / 'scripts' / 'belam_extract.sh')
             result = subprocess.run(['bash', extract_script] + remaining_args, cwd=str(WORKSPACE))
             return result.returncode
 
         elif handler == 'edges':
-            # belam edges [--check] [--fix]
+            # R edges [--check] [--fix]
             # Checks for missing upstream/downstream edges across all primitives
             fix_mode = '--fix' in remaining_args
             check_mode = '--check' in remaining_args or not fix_mode
@@ -3251,11 +3251,11 @@ def dispatch_action(action_word, remaining_args):
                     print(f"  {src_coord} ({src_slug}).{field_key} → {ref}")
                     print(f"    ↳ {tgt_coord} missing .{reverse} ← {src_slug}")
                 print()
-                print("Run 'belam edges --fix' to auto-repair with a subagent.")
+                print("Run 'R edges --fix' to auto-repair with a subagent.")
 
             if fix_mode:
                 # Build a focused prompt for a Sonnet subagent
-                lines = ["You are fixing asymmetric YAML frontmatter edges in the belam workspace."]
+                lines = ["You are fixing asymmetric YAML frontmatter edges in the R workspace."]
                 lines.append(f"Workspace: {WORKSPACE}")
                 lines.append("")
                 lines.append("For each item below, add the missing reverse edge to the target primitive's")
@@ -3301,7 +3301,7 @@ def dispatch_action(action_word, remaining_args):
 
         if needs_version:
             if not remaining_args:
-                print(f"Usage: belam {canonical} <version> [options]")
+                print(f"Usage: R {canonical} <version> [options]")
                 return 1
             version = remaining_args[0]
             extra = list(remaining_args[1:])
@@ -3334,7 +3334,7 @@ def _print_action_help():
             target = entry['alias']
             alias_map.setdefault(target, []).append(word)
 
-    print("belam — action words\n")
+    print("R — action words\n")
     for cat_name, words in categories:
         print(f"  {cat_name}")
         for word in words:

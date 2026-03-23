@@ -59,10 +59,10 @@ Rewrite the engine parser to support dense alphanumeric grammar (d10) and coordi
 
 | Current Flag | New Coordinate | Function |
 |-------------|---------------|----------|
-| `belam -o` | `e0` | Orchestrate — pipeline dispatch, gate check, handoff |
-| `belam -e` | `e1` | Edit — primitive mutation, status transitions |
-| `belam -n` | `e2` | Create — new primitive scaffolding |
-| `belam -x` | `e3` | Extend — meta-mode, modify the engine itself |
+| **`R -o` | `e0` | Orchestrate — pipeline dispatch, gate check, handoff |
+| **`R -e` | `e1` | Edit — primitive mutation, status transitions |
+| **`R -n` | `e2` | Create — new primitive scaffolding |
+| **`R -x` | `e3` | Extend — meta-mode, modify the engine itself |
 | (implicit) | bare coords | View — current default, unchanged |
 
 ### Mode Primitives
@@ -95,7 +95,7 @@ Each extend operation creates a primitive trail — `e3` to see all extensions a
 
 - Remove `-o`, `-e`, `-c`, `-x` flag parsing from `codex_engine.py`
 - Preserve `-g`, `--depth`, `--as`, `--tag`, `--since` as view modifiers
-- Update `belam help` / action word registry for new grammar
+- Update `R help` / action word registry for new grammar
 - Backward compatibility period: warn on old flags, suggest coordinate equivalent
 
 ---

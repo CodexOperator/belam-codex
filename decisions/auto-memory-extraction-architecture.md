@@ -28,7 +28,7 @@ The hook resolves the session file from `event.context.previousSessionEntry.sess
 
 **Agent:** sage (formerly code-tutor — session key updated from `agent:code-tutor:main` to `agent:sage:main`)
 
-**CLI:** `belam extract [instance] [--file PATH] [--bg]` — routes through codex engine (`-x` flag)
+**CLI:** `R extract [instance] [--file PATH] [--bg]` — routes through codex engine (`-x` flag)
 
 **Logging:** All errors to `logs/memory-extract.log`
 
@@ -42,4 +42,4 @@ The hook resolves the session file from `event.context.previousSessionEntry.sess
 
 - Bundled `session-memory` hook: **disabled** (replaced by this hook)
 - Orchestrator's `consolidate_agent_memory()`: fallback for sub-agent sessions at handoff time
-- `embed_primitives.py`: **archived** — replaced by codex engine supermap (`belam boot`)
+- `embed_primitives.py`: **archived** — replaced by codex engine supermap (`R boot`)

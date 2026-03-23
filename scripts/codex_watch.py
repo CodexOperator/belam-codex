@@ -4,14 +4,14 @@ codex_watch.py — Live Diff Daemon for the Codex Engine.
 
 Monitors all primitive directories for filesystem changes and emits R-label
 diffs into a buffer file (~/.belam_live_diffs.log). Agents consume diffs via
-`belam diffs` (--read-diffs) at turn-start instead of polling the full engine.
+`R diffs` (--read-diffs) at turn-start instead of polling the full engine.
 
 DEPENDENCY: Requires the `watchdog` Python library.
     pip3 install watchdog
 
 Usage:
     codex_watch.py --watch          Start the daemon in the foreground (caller backgrounded it)
-    codex_watch.py --read-diffs     Read and clear the diff buffer (called by `belam diffs`)
+    codex_watch.py --read-diffs     Read and clear the diff buffer (called by `R diffs`)
     codex_watch.py --status         Show whether the daemon is running
     codex_watch.py --stop           Stop a running daemon
 
@@ -470,7 +470,7 @@ def run_daemon():
 # ─── CLI Commands ────────────────────────────────────────────────────────────────
 
 def cmd_read_diffs():
-    """Read and clear the diff buffer. Called by `belam diffs`."""
+    """Read and clear the diff buffer. Called by `R diffs`."""
     entries = _read_and_clear_diffs()
 
     if not entries:
@@ -558,7 +558,7 @@ def main():
         epilog="""
 Commands:
   --watch        Start the live diff daemon (foreground; use & or nohup to background)
-  --read-diffs   Read and clear the accumulated diff buffer (called by `belam diffs`)
+  --read-diffs   Read and clear the accumulated diff buffer (called by `R diffs`)
   --status       Show whether the daemon is running
   --stop         Stop a running daemon
 

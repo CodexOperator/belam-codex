@@ -102,7 +102,7 @@ created: 2026-03-19T03:15:00Z
 Optional extra context body text.
 ```
 
-CLI shortcut: `belam queue-revision <ver> --context-file <path> --section "## Header" --priority high`
+CLI shortcut: `R queue-revision <ver> --context-file <path> --section "## Header" --priority high`
 
 Autorun picks up the highest-priority request, loads context from the referenced file (with optional section extraction), calls `orchestrate_revise()`, then deletes the request file. One revision at a time.
 
@@ -171,8 +171,8 @@ The orchestrator uses a hardcoded transition map to determine next agent:
 Optional revision loop from `phase1_complete`. Triggered by coordinator, not agents.
 
 ```bash
-# Via belam CLI
-belam revise <version> --context "revision directions..."
+# Via R CLI
+R revise <version> --context "revision directions..."
 
 # Via orchestrator directly
 python3 scripts/pipeline_orchestrate.py <version> revise --context "..."

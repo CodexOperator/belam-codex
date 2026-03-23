@@ -41,8 +41,8 @@ The supermap shows **what exists** (state). The legendary map shows **what you c
 │  ╶─ lm11  graph            {coord} -g           → show relationships
 │  ╶─ lm12  diff             .d                   → diff since anchor
 │  ╶─ lm13  anchor           .a                   → reset diff anchor
-│  ╶─ lm14  pipeline-launch  belam pipeline launch {ver} --desc "..." --kickoff
-│  ╶─ lm15  pipeline-status  belam pipeline {ver}  → show pipeline state
+│  ╶─ lm14  pipeline-launch  R pipeline launch {ver} --desc "..." --kickoff
+│  ╶─ lm15  pipeline-status  R pipeline {ver}  → show pipeline state
 │  ╶─ lm16  memory-search    memory_search("{q}")  → search memory entries
 ╶─ p   pipelines (6)
 │  ╶─ p1    codex-engine-v2-modes  phase1_complete/high

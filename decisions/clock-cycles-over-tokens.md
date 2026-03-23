@@ -5,7 +5,7 @@ date: 2026-03-19
 context: LLM tokens cost orders of magnitude more than CPU cycles
 alternatives: [LLM-driven heartbeat decisions]
 rationale: Every deterministic operation should be code, not reasoning
-consequences: [belam CLI and autorun scripts are the right pattern, continuously migrate]
+consequences: [R CLI and autorun scripts are the right pattern, continuously migrate]
 tags: [infrastructure, cost, design-principle, tokens]
 upstream: [memory/2026-03-19_204801_design-principle-from-shael-clock-cycles]
 ---

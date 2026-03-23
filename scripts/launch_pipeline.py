@@ -543,7 +543,7 @@ def main():
             print(f"   Manual fallback: python3 scripts/orchestration_engine.py dispatch {args.version}")
     else:
         print(f"\n🚀 Pipeline created. Kick off with:")
-        print(f"   belam kickoff {args.version}")
+        print(f"   R kickoff {args.version}")
         print(f"\n   Or re-run with --kickoff to send automatically:")
         print(f"   python3 scripts/launch_pipeline.py {args.version} ... --kickoff")
 

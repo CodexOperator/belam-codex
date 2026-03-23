@@ -64,13 +64,13 @@ fields:
     type: object
     description: "Paths to pipeline artifacts (design brief, review, notebook)"
 cli:
-  dashboard: "belam pipelines"
-  detail: "belam pipeline <version>"
-  watch: "belam pipeline <version> --watch [sec]"
-  update: "belam pipeline update <version> complete|start|block|show ..."
-  analyze: "belam analyze <source_version>"
-  launch: "belam pipeline analyze <version>"
-  shortcut: "belam pl / belam p <ver> / belam a <ver>"
+  dashboard: "R pipelines"
+  detail: "R pipeline <version>"
+  watch: "R pipeline <version> --watch [sec]"
+  update: "R pipeline update <version> complete|start|block|show ..."
+  analyze: "R analyze <source_version>"
+  launch: "R pipeline analyze <version>"
+  shortcut: "R pl / R p <ver> / R a <ver>"
 ---
 
 # Analysis Pipeline: {version}

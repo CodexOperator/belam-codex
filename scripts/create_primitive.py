@@ -158,7 +158,7 @@ def build_project_frontmatter(title: str, args: argparse.Namespace) -> str:
 
 def build_command_frontmatter(title: str, args: argparse.Namespace) -> str:
     tags = _tags_yaml(args.tags or "")
-    cmd = args.command or f"belam {slugify(title)}"
+    cmd = args.command or f"R {slugify(title)}"
     aliases_list = [a.strip() for a in (args.aliases or "").split(",") if a.strip()]
     aliases = "[" + ", ".join(f'"{a}"' for a in aliases_list) + "]" if aliases_list else "[]"
     desc = args.desc or "(add description)"
@@ -305,7 +305,7 @@ _Current state. What's done, what's in progress, what's blocked._
 
 
 def build_command_body(title: str, args: argparse.Namespace) -> str:
-    cmd = args.command or f"belam {slugify(title)}"
+    cmd = args.command or f"R {slugify(title)}"
     desc = args.desc or "(describe what this command does)"
     return f"""# {cmd}
 
@@ -574,7 +574,7 @@ def auto_link_command(cmd_name: str, cmd_desc: str, tags: set[str], category: st
         text = skill_md_path.read_text(encoding="utf-8")
 
         # Skip if already referenced
-        if f"commands/{cmd_name}.md" in text or f"`belam {cmd_name}`" in text:
+        if f"commands/{cmd_name}.md" in text or f"`R {cmd_name}`" in text:
             continue
 
         ref_line = f"- `commands/{cmd_name}.md` — {cmd_desc}"
@@ -671,8 +671,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--depends", default="", help="Comma-separated task dependencies.")
 
     # Command options
-    parser.add_argument("--command", default="", help="Full command string (e.g. 'belam revise <ver>').")
-    parser.add_argument("--aliases", default="", help="Comma-separated aliases (e.g. 'belam rev').")
+    parser.add_argument("--command", default="", help="Full command string (e.g. 'R revise <ver>').")
+    parser.add_argument("--aliases", default="", help="Comma-separated aliases (e.g. 'R rev').")
     parser.add_argument("--category", default="", help="Command category (pipeline/memory/primitives/infrastructure/analysis).")
 
     # Skill options
@@ -716,7 +716,7 @@ def main():
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists():
             print(f"  ⚠️  Already exists: {path}")
-            print("     Use 'belam edit' to modify existing primitives.")
+            print("     Use 'R edit' to modify existing primitives.")
             continue
         path.write_text(content, encoding="utf-8")
         created.append(path)

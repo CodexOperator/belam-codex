@@ -52,13 +52,13 @@ fields:
     type: object[]
     description: "Chronological log of post-build patches applied to the notebook. Each entry: {date, author, summary, commits}. Patches are always applied to the main notebook directly."
 cli:
-  dashboard: "belam pipelines"
-  detail: "belam pipeline <version>"
-  watch: "belam pipeline <version> --watch [sec]"
-  update: "belam pipeline update <version> complete|start|block|show ..."
-  launch: "belam pipeline launch <version> --desc '...'"
-  analyze: "belam analyze <version>"
-  shortcut: "belam pl / belam p <ver>"
+  dashboard: "R pipelines"
+  detail: "R pipeline <version>"
+  watch: "R pipeline <version> --watch [sec]"
+  update: "R pipeline update <version> complete|start|block|show ..."
+  launch: "R pipeline launch <version> --desc '...'"
+  analyze: "R analyze <version>"
+  shortcut: "R pl / R p <ver>"
 ---
 
 # Implementation Pipeline: {version}
@@ -211,7 +211,7 @@ Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-tr
 
 - **Auto-triggered** by `pipeline_autorun.py` when Phase 1 completes
 - **Self-healing** — builder agent is invoked to fix runtime errors
-- **Manual trigger:** `belam run {version}`
+- **Manual trigger:** `R run {version}`
 - **Results:** `notebooks/local_results/{version}/`
 
 ### Experiment History

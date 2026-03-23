@@ -6,7 +6,7 @@ Deterministic orchestrator that:
 2. Two modes: LLM judgment for causal pairs, heuristic for structural pairs
 3. Tracks progress in relationship_progress.json (resumable)
 4. Spawns fresh Opus subagent per single pair (deep judgment with room to reference context)
-5. Applies discovered relationships via belam link backend (direct Python)
+5. Applies discovered relationships via R link backend (direct Python)
 
 LLM-judged pairs (causal/semantic):
   - memory ↔ lesson   (memory crystallized into lesson)
@@ -369,7 +369,7 @@ def build_agent_task(key_a, meta_a, key_b, meta_b):
     """Build a navigation task for the subagent to judge a single pair.
     
     Instead of dumping content, give the agent identifiers and let it 
-    browse using belam CLI, memory_search, and read.
+    browse using R CLI, memory_search, and read.
     """
     up_count_a = count_upstream(meta_a)
     up_count_b = count_upstream(meta_b)

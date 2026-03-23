@@ -271,7 +271,7 @@ Examples:
     if not args.quiet:
         print(result.get("summary", ""))
         print("\n✅ Memory context loaded. Daily log ready for today's entries.")
-        print(f"   Use: belam log \"message\" or python3 scripts/log_memory.py \"message\"")
+        print(f"   Use: R log \"message\" or python3 scripts/log_memory.py \"message\"")
     else:
         # Quiet mode: just print the summary block
         print(result.get("summary", ""))

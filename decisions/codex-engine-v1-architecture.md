@@ -30,14 +30,14 @@ Option B: Build the Codex Engine as a single Python module (`scripts/codex_engin
 ### V1 Modes (live)
 | Input | Mode |
 |-------|------|
-| `belam [coords]` | view (default, implicit) |
-| `belam -e [coords] [field] [value]` | edit + F-labeled diff |
-| `belam -n [type] [title]` | create + F-labeled output |
-| `belam -z [label]` | undo (cascade-aware) |
-| `belam -g [coords]` | graph (BFS path-finding) |
-| `belam -x [coords] [action]` | explicit execute |
-| `belam [action_word] [args]` | implicit execute (55 action words) |
-| `belam help` | action word registry |
+| `R [coords]` | view (default, implicit) |
+| **`R -e [coords] [field] [value]` | edit + F-labeled diff |
+| **`R -n [type] [title]` | create + F-labeled output |
+| **`R -z [label]` | undo (cascade-aware) |
+| **`R -g [coords]` | graph (BFS path-finding) |
+| **`R -x [coords] [action]` | explicit execute |
+| `R [action_word] [args]` | implicit execute (55 action words) |
+| `R help` | action word registry |
 
 ### Attention-Native Feedback Language
 - **F-labels**: filesystem mutations (`F1 Δ t1.2 status open→complete`)

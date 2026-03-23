@@ -15,7 +15,7 @@ tags: [infrastructure, knowledge-graph, primitives, relationships]
 
 ## Context
 
-The primitive relationship graph (`decisions/primitive-relationship-graph`) gives every primitive upstream/downstream fields, and `belam link` enables batch wiring. But with ~100 primitives, manually identifying all meaningful relationships is impractical. The implicit structure exists — earlier lessons inform later decisions, shared tags suggest connections — but it needs to be made explicit.
+The primitive relationship graph (`decisions/primitive-relationship-graph`) gives every primitive upstream/downstream fields, and `R link` enables batch wiring. But with ~100 primitives, manually identifying all meaningful relationships is impractical. The implicit structure exists — earlier lessons inform later decisions, shared tags suggest connections — but it needs to be made explicit.
 
 ## Options Considered
 
@@ -26,7 +26,7 @@ The primitive relationship graph (`decisions/primitive-relationship-graph`) give
 
 ## Decision
 
-**Incremental pairwise comparison with fresh context per batch.** A deterministic orchestrator (`scripts/map_relationships.py`) tracks progress, pre-filters obvious non-matches, and spawns a fresh Opus reasoning subagent for each batch of 3-5 primitive pairs. The agent sees only those primitives' content, judges relationships, and outputs structured links. The orchestrator applies them via the `belam link` backend and marks pairs as processed.
+**Incremental pairwise comparison with fresh context per batch.** A deterministic orchestrator (`scripts/map_relationships.py`) tracks progress, pre-filters obvious non-matches, and spawns a fresh Opus reasoning subagent for each batch of 3-5 primitive pairs. The agent sees only those primitives' content, judges relationships, and outputs structured links. The orchestrator applies them via the `R link` backend and marks pairs as processed.
 
 Key design principles:
 - **Clock cycles over tokens**: orchestration is pure Python, only genuine judgment uses LLM

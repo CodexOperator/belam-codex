@@ -144,17 +144,17 @@ All remaining word-based commands, flags, and references must be migrated to the
 
 **Action words in dispatch_action():**
 - Currently 55+ action words route through `_ALL_ACTION_WORDS` in codex_engine.py
-- These are legacy belam CLI commands: `pipelines`, `status`, `tasks`, `kick`, `analyze`, `revise`, etc.
+- These are legacy R CLI commands: `pipelines`, `status`, `tasks`, `kick`, `analyze`, `revise`, etc.
 - **Target:** All action words become `e0` sub-operations or coordinate-addressed operations
 - Map each action word to its e0 numbered equivalent or coordinate form
 - Emit deprecation warnings on word usage, route to numbered equivalent
 
-**belam CLI subcommands:**
-- `belam pipelines` → `e0 5` (list)
-- `belam status` → `R` (supermap) or `e0` (sweep)
-- `belam tasks` → `t` (bare namespace)
-- `belam kick <ver>` → `e0 p1 6 i2` (dispatch builder)
-- `belam analyze <ver>` → coordinate-addressed analysis operation
+**R CLI subcommands:**
+- `R pipelines` → `e0 5` (list)
+- `R status` → `R` (supermap) or `e0` (sweep)
+- `R tasks` → `t` (bare namespace)
+- `R kick <ver>` → `e0 p1 6 i2` (dispatch builder)
+- `R analyze <ver>` → coordinate-addressed analysis operation
 - All subcommands in `belam_relay.sh` BELAM_COMMANDS list need numbered equivalents
 
 **View modifier flags:**
@@ -238,7 +238,7 @@ No Edit/Write/Read tool calls on primitives. Engine is the sole interface.
 
 ### Legacy Audit
 - [ ] All 55+ action words in `_ALL_ACTION_WORDS` mapped to numbered equivalents
-- [ ] All belam CLI subcommands mapped to coordinate equivalents
+- [ ] All R CLI subcommands mapped to coordinate equivalents
 - [ ] `belam_relay.sh` BELAM_COMMANDS list updated
 - [ ] No word-based operation remains as primary (all have numbered form)
 - [ ] View modifier flags (`--as`, `--tag`, `--since`, `-g`) confirmed as flags (no migration needed)

@@ -173,12 +173,12 @@ Report → Script → Assets → Assembly → Review → Export
 
 ## Phase 5: Automation & CLI Integration
 
-**Goal:** Make it a belam command.
+**Goal:** Make it a R command.
 
-- [ ] `belam video <report>` — full pipeline from report to video
-- [ ] `belam video <report> --script-only` — generate script for review
-- [ ] `belam video <report> --from-script <script.md>` — resume from approved script
-- [ ] `belam video <report> --assets-only` — regenerate assets without reassembly
+- [ ] `R video <report>` — full pipeline from report to video
+- [ ] `R video <report> --script-only` — generate script for review
+- [ ] `R video <report> --from-script <script.md>` — resume from approved script
+- [ ] `R video <report> --assets-only` — regenerate assets without reassembly
 - [ ] Pipeline stage tracking (same pattern as experiment pipelines)
 - [ ] Config file for defaults (voice, style, music, resolution)
 

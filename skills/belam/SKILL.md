@@ -5,12 +5,12 @@ description: >
   types commands exactly as Belam would — codex coordinates (t1, d6, p, m, md2), 
   V2 dense grammar (e0p3, e1t12, e2 t "title", e3), codex flags (-g, -e, -n, --depth, --graph),
   pipeline commands (pipelines, pipeline list, pipeline status), task commands (tasks, task detail),
-  status checks (status), memory inspection (memory), and any other belam CLI subcommand.
+  status checks (status), memory inspection (memory), and any other R CLI subcommand.
   Routes codex coordinates, V2 mode operations, and flags to `python3 scripts/codex_engine.py`;
   routes named subcommands (pipelines, status, tasks, etc.) to the `belam` CLI.
   No translation — the user's input passes through verbatim (after sanitization).
   Triggers on: bare coordinates like t1/d6/p/m/md2, V2 mode ops like e0/e1/e2/e3,
-  dash-flags like -g or --depth, or any belam CLI subcommand typed directly in chat.
+  dash-flags like -g or --depth, or any R CLI subcommand typed directly in chat.
 ---
 
 # Belam Relay Skill
@@ -22,7 +22,7 @@ Lets Shael invoke the Codex Engine and Belam CLI directly from chat using the **
 - User types a bare coordinate: `t1`, `d6`, `p`, `m`, `md2`, `e`, etc.
 - User types a V2 mode operation: `e0`, `e0p3`, `e1t12`, `e2 t "title"`, `e3`
 - User types a flag-style command: `-g d6`, `-g d6 --depth 2`, `-e t1`, `-n m`
-- User types a belam subcommand: `pipelines`, `status`, `tasks`, `memory`, `logs`
+- User types a R subcommand: `pipelines`, `status`, `tasks`, `memory`, `logs`
 - User types a pipeline subcommand: `pipeline list`, `pipeline status`, `pipelines`
 - No args / empty: show the supermap
 
@@ -45,8 +45,8 @@ bash skills/belam/scripts/belam_relay.sh <user_input>
 | `e0 locks` | `python3 scripts/codex_engine.py e0 locks` |
 | `e` | `python3 scripts/codex_engine.py e` (list modes) |
 | `-g d6 --depth 2` | `python3 scripts/codex_engine.py -g d6 --depth 2` |
-| `pipelines` | `belam pipelines` |
-| `status` | `belam status` |
+| `pipelines` | `R pipelines` |
+| `status` | `R status` |
 | *(no args)* | `python3 scripts/codex_engine.py` (supermap) |
 
 ## Routing Logic

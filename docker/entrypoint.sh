@@ -3,7 +3,7 @@
 #
 # Responsibilities:
 #   1. Verify workspace is mounted (fail fast if not)
-#   2. Install/link belam CLI
+#   2. Install/link R CLI
 #   3. Run incarnate.sh dependencies (Python packages check)
 #   4. Start OpenClaw gateway in foreground
 
@@ -53,7 +53,7 @@ else
   warn "No SSH keys found — git push/clone over SSH won't work"
 fi
 
-# ── 4. belam CLI link ────────────────────────────────────────
+# ── 4. R CLI link ────────────────────────────────────────
 BELAM_SCRIPT="$WORKSPACE/scripts/belam.sh"
 BELAM_LINK="$HOME/.local/bin/belam"
 
@@ -61,7 +61,7 @@ if [ -f "$BELAM_SCRIPT" ]; then
   mkdir -p "$HOME/.local/bin"
   ln -sf "$BELAM_SCRIPT" "$BELAM_LINK"
   chmod +x "$BELAM_SCRIPT"
-  ok "belam CLI linked"
+  ok "R CLI linked"
 else
   warn "belam.sh not found in workspace/scripts/"
 fi

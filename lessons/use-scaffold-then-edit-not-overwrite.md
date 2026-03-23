@@ -11,7 +11,7 @@ upstream: [memory/2026-03-19_204801_design-principle-from-shael-clock-cycles]
 
 ## Context
 
-Creating two new decision primitives (phase2-human-gate, clock-cycles-over-tokens). Used `belam create decision` to scaffold, then tried `Edit` tool to replace body content — but guessed the template markers wrong (assumed `<!-- comment -->` instead of actual `_italic prompts_`). Fell back to `Write` which overwrote the entire file, bypassing the scaffold pattern.
+Creating two new decision primitives (phase2-human-gate, clock-cycles-over-tokens). Used `R create decision` to scaffold, then tried `Edit` tool to replace body content — but guessed the template markers wrong (assumed `<!-- comment -->` instead of actual `_italic prompts_`). Fell back to `Write` which overwrote the entire file, bypassing the scaffold pattern.
 
 ## What Happened
 
@@ -19,13 +19,13 @@ Creating two new decision primitives (phase2-human-gate, clock-cycles-over-token
 
 ## Lesson
 
-Always work WITH the scaffold: `belam create` → `belam edit --set` for frontmatter → `Read` the file → `Edit` body sections using exact placeholder text. Never `Write`-overwrite a scaffolded file.
+Always work WITH the scaffold: `R create` → `R edit --set` for frontmatter → `Read` the file → `Edit` body sections using exact placeholder text. Never `Write`-overwrite a scaffolded file.
 
 ## Application
 
 Every time a new primitive is created. The workflow is:
-1. `belam create <type> "name" --desc --tags` — scaffold (clock cycles)
-2. `belam edit "name" --set key=value` — frontmatter updates (clock cycles)
+1. `R create <type> "name" --desc --tags` — scaffold (clock cycles)
+2. `R edit "name" --set key=value` — frontmatter updates (clock cycles)
 3. `Read` the file — learn exact placeholder text (one tool call)
 4. `Edit` with exact `oldText` matches — surgical body replacement (minimal tokens)
 

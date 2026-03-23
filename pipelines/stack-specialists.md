@@ -82,7 +82,7 @@ Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-tr
 `phase1_complete` → `experiment_running` → `experiment_complete` → Phase 2
 
 - **Results:** `notebooks/local_results/stack-specialists/`
-- **Manual trigger:** `belam run stack-specialists`
+- **Manual trigger:** `R run stack-specialists`
 
 ### Experiment History
 | Run | Date | Duration | Experiments | Errors | Notes |

@@ -25,7 +25,7 @@ fields:
   project:
     type: string
 cli:
-  list: "belam tasks"
-  show: "belam task <name>"
-  shortcut: "belam t"
+  list: "R tasks"
+  show: "R task <name>"
+  shortcut: "R t"
 ---

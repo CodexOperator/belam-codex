@@ -2,22 +2,22 @@
 
 ## Overview
 
-Add a `session` command group to `scripts/codex_engine.py` that manages agent sessions. All commands accessed via `belam -x session <subcommand>`.
+Add a `session` command group to `scripts/codex_engine.py` that manages agent sessions. All commands accessed via **`R -x session <subcommand>`.
 
 ## Commands
 
-### `belam -x session list [agent]`
+### **`R -x session list [agent]`
 - Default: list all agents' sessions
 - With agent: filter to that agent
 - Wraps `openclaw sessions --agent <id> --json` and formats output
 - Show: session key, session ID, last updated (human-readable age), token count, file path
 
-### `belam -x session info <agent>`
+### **`R -x session info <agent>`
 - Show detailed info for an agent's current session
 - Read `~/.openclaw/agents/<agent>/sessions/sessions.json`
 - Show: session key, session ID, model, total tokens, last updated, transcript file path, file size
 
-### `belam -x session new <agent>`
+### **`R -x session new <agent>`
 - Force-rotate the agent's current session to start fresh
 - Steps:
   1. Read `~/.openclaw/agents/<agent>/sessions/sessions.json`
@@ -31,18 +31,18 @@ Add a `session` command group to `scripts/codex_engine.py` that manages agent se
   7. Print confirmation: which file was rotated, session cleared
 - If no active session found, print "No active session for <agent>" and exit 0
 
-### `belam -x session send <agent> "<message>"`
+### **`R -x session send <agent> "<message>"`
 - Send a message to an agent via `openclaw agent --agent <agent> -m "<message>"`
 - If message starts with `@` treat it as a file path: read the file content as the message
-- Useful for: `belam -x session send sage @/tmp/prompt.md`
+- Useful for: **`R -x session send sage @/tmp/prompt.md`
 - Print the agent's response (or "dispatched" if --bg flag used)
 
-### `belam -x session log <agent> [--tail N]`
+### **`R -x session log <agent> [--tail N]`
 - Show the last N messages (default 10) from the agent's active transcript
 - Parse the JSONL, extract user/assistant messages, format as readable markdown
 - Skip tool calls unless `--verbose` flag
 
-### `belam -x spawn [options] "<task>"`
+### **`R -x spawn [options] "<task>"`
 - Convenience shorthand that maps to `sessions_spawn` tool call
 - Options:
   - `--model <alias>` — model override (default: sonnet)
@@ -96,17 +96,17 @@ if message.startswith('@'):
 
 ## Testing
 After implementation, verify:
-1. `belam -x session list` — shows all agents
-2. `belam -x session info sage` — shows sage's current session
-3. `belam -x session new sage` — rotates sage's session
-4. `belam -x session info sage` — shows "no active session"
-5. `belam -x session send sage "hello"` — creates new session automatically
-6. `belam -x session log sage --tail 5` — shows the hello exchange
+1. **`R -x session list` — shows all agents
+2. **`R -x session info sage` — shows sage's current session
+3. **`R -x session new sage` — rotates sage's session
+4. **`R -x session info sage` — shows "no active session"
+5. **`R -x session send sage "hello"` — creates new session automatically
+6. **`R -x session log sage --tail 5` — shows the hello exchange
 
 ## Hook Integration (Post-Build)
 Once working, update `hooks/memory-extract/handler.ts` to call:
 ```bash
-belam -x session new sage
-belam -x session send sage @${promptFile}
+R -x session new sage
+R -x session send sage @${promptFile}
 ```
 Instead of `openclaw agent --agent sage --session-id ... --message ...`

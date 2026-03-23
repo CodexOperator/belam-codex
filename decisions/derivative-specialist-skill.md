@@ -16,7 +16,7 @@ consequences:
 project: quant-knowledge-skills
 tags: [derivatives, pricing, volatility, knowledge]
 knowledge: derivative-specialist
-cli: "belam lessons (for derivative-related findings)"
+cli: "R lessons (for derivative-related findings)"
 ---
 
 # Decision: Derivative Specialist Skill

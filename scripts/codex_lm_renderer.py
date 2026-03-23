@@ -122,7 +122,7 @@ def scan_commands(workspace: Path) -> List[LMEntry]:
         desc = fm.get('description', fp.stem)[:40]
         entries.append(LMEntry(
             verb=fp.stem,
-            syntax=f'belam {fp.stem}',
+            syntax=f'R {fp.stem}',
             description=desc,
             source='command',
         ))

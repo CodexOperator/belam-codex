@@ -15,7 +15,7 @@ tags: [infrastructure, knowledge-graph, primitives, relationships]
 
 ## Description
 
-Build a slow, incremental relationship mapper that compares primitives pairwise using an Opus reasoning model, wiring upstream/downstream links via `belam link`. Designed to run in small batches (3-5 pairs per invocation) with fresh context each time — pristine attention over speed.
+Build a slow, incremental relationship mapper that compares primitives pairwise using an Opus reasoning model, wiring upstream/downstream links via `R link`. Designed to run in small batches (3-5 pairs per invocation) with fresh context each time — pristine attention over speed.
 
 ## Design Decisions (Pending)
 
@@ -32,7 +32,7 @@ Build a slow, incremental relationship mapper that compares primitives pairwise 
 2. `canvas/relationship_progress.json` — tracks completed pairs
 3. Spawns one Opus subagent per batch with only the relevant primitive content
 4. Agent outputs structured relationship judgments
-5. Script applies via `belam link` backend (direct Python, no shell)
+5. Script applies via `R link` backend (direct Python, no shell)
 6. Smart filtering reduces C(100,2) ≈ 4,950 pairs to meaningful subset
 
 ## Acceptance Criteria
@@ -41,7 +41,7 @@ Build a slow, incremental relationship mapper that compares primitives pairwise 
 - [ ] Progress tracking persists across invocations
 - [ ] Pre-filtering reduces comparison matrix to meaningful pairs
 - [ ] Each invocation spawns fresh Opus context (no accumulated state)
-- [ ] Relationships applied via existing `belam link` backend
+- [ ] Relationships applied via existing `R link` backend
 - [ ] Dry-run mode for testing without writes
 - [ ] Design decisions above resolved with Shael before cron activation
 

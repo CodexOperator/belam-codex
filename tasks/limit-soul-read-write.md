@@ -18,7 +18,7 @@ After the Codex Engine (V1) is functional and proven, restrict the Soul/coordina
 
 - **Codex Engine coordinates** for all primitive state access (view, edit, create, graph)
 - **Sub-agents** for direct filesystem work (code writing, script editing, debugging)
-- **Execute mode** (`belam -x`) for action dispatch
+- **Execute mode** (**`R -x`) for action dispatch
 
 Direct Read/Write/Edit remain available to:
 - Sub-agent instances (architect, critic, builder personas loaded via skills)
@@ -40,14 +40,14 @@ The Soul instance is the conductor — it holds the holographic pattern and orch
 - The Soul sees the unified supermap across all domains
 
 ### Filtered Render Views (future)
-- `belam --as architect` → supermap weighted toward decisions, knowledge, specs
-- `belam --as builder` → supermap weighted toward tasks, code, experiments
-- `belam --as critic` → supermap weighted toward lessons, test results, validation
+- **`R --as architect` → supermap weighted toward decisions, knowledge, specs
+- **`R --as builder` → supermap weighted toward tasks, code, experiments
+- **`R --as critic` → supermap weighted toward lessons, test results, validation
 
 ## Implementation
 
-1. Add boot convention to AGENTS.md: "Primitive state access exclusively via belam coordinates. Direct Read/Write reserved for non-primitive content (code, scripts, configs). Sub-agents have full access."
-2. Add `--direct` flag to belam that logs override usage (for tracking compliance)
+1. Add boot convention to AGENTS.md: "Primitive state access exclusively via R coordinates. Direct Read/Write reserved for non-primitive content (code, scripts, configs). Sub-agents have full access."
+2. Add `--direct` flag to R that logs override usage (for tracking compliance)
 3. Track compliance: engine logs when direct file access happens on primitive paths
 4. Persona skill loading: create skill templates that configure filtered supermap views
 

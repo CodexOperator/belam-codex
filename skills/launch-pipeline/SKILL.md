@@ -7,7 +7,7 @@ description: >
   (3) an analysis gate opens and downstream tasks become eligible.
   Handles the full flow: gate checking → pipeline creation → orchestrator kickoff → task status update.
   NOT for: checking pipeline status (use pipelines skill), updating existing pipeline stages
-  (agents use pipeline_orchestrate.py directly), or creating analysis pipelines (use belam pipeline analyze).
+  (agents use pipeline_orchestrate.py directly), or creating analysis pipelines (use R pipeline analyze).
 ---
 
 # Launch Pipeline
@@ -16,12 +16,12 @@ description: >
 
 Kick off an existing (already-created) pipeline:
 ```bash
-belam kickoff <version>
+R kickoff <version>
 ```
 
 Create AND kick off a new pipeline from scratch:
 ```bash
-belam pipeline launch <version> --desc "..." --priority <p> --tags <t> --project <proj> --kickoff
+R pipeline launch <version> --desc "..." --priority <p> --tags <t> --project <proj> --kickoff
 ```
 
 ## Decision Flow
@@ -38,13 +38,13 @@ cat tasks/<task-slug>.md
 Check:
 - `status: open` (not `in_pipeline`, `blocked`, or `done`)
 - `depends_on` — all listed dependencies must be `status: done` or `status: in_pipeline` with completion
-- No existing pipeline for this task (`belam pipelines` — check version names)
+- No existing pipeline for this task (`R pipelines` — check version names)
 
 ### 2. Does it need the analysis gate?
 
 **Gate-blocked tasks** (new notebook versions like `build-equilibrium-snn`):
 ```bash
-belam pipeline v4-deep-analysis
+R pipeline v4-deep-analysis
 ```
 - Must show `analysis_phase2_complete` or later
 - If gate is NOT open → skip, do not launch
@@ -57,7 +57,7 @@ belam pipeline v4-deep-analysis
 
 | Task Type | Action |
 |-----------|--------|
-| New notebook version | Full pipeline (`belam pipeline launch`) |
+| New notebook version | Full pipeline (`R pipeline launch`) |
 | Experiment validation | Full pipeline |
 | Ensemble/stacking | Full pipeline |
 | Infrastructure/config | Single sub-agent (no pipeline needed) |
@@ -67,7 +67,7 @@ belam pipeline v4-deep-analysis
 
 For a full pipeline:
 ```bash
-belam pipeline launch <version> \
+R pipeline launch <version> \
   --desc "<from task description>" \
   --priority <task priority> \
   --tags <comma,separated,tags> \
@@ -77,7 +77,7 @@ belam pipeline launch <version> \
 
 For an already-created pipeline that was never kicked off:
 ```bash
-belam kickoff <version>
+R kickoff <version>
 ```
 
 ### 5. Update the task
@@ -90,7 +90,7 @@ After launching, update the task's status:
 #   pipeline: <version>
 ```
 
-## What `belam kickoff` does
+## What `R kickoff` does
 
 1. Calls `pipeline_orchestrate.py <version> complete pipeline_created`
 2. Orchestrator **saves memory** for the calling agent (auto-consolidation)
@@ -118,7 +118,7 @@ All agents (architect, critic, builder) run on **Opus** with:
 
 For post-experiment analysis (after Colab run produces pkl files):
 ```bash
-belam pipeline analyze <source-version> \
+R pipeline analyze <source-version> \
   --desc "..." \
   --priority <p> \
   --kickoff
@@ -130,17 +130,17 @@ belam pipeline analyze <source-version> \
 Space kickoffs apart to let the agent finish before receiving the next:
 
 ```bash
-belam kickoff build-equilibrium-snn
-# Wait for architect to complete design (check with: belam pipeline build-equilibrium-snn)
-belam kickoff stack-specialists
+R kickoff build-equilibrium-snn
+# Wait for architect to complete design (check with: R pipeline build-equilibrium-snn)
+R kickoff stack-specialists
 # Wait again...
-belam kickoff validate-scheme-b
+R kickoff validate-scheme-b
 ```
 
 If kicking off multiple in sequence without waiting:
 ```bash
 for ver in build-equilibrium-snn stack-specialists validate-scheme-b; do
-  belam kickoff "$ver"
+  R kickoff "$ver"
   sleep 5
 done
 ```
@@ -149,8 +149,8 @@ done
 
 If kickoff fails (architect doesn't respond):
 ```bash
-belam handoffs              # Check pending handoffs
-belam orchestrate <ver> verify  # Retry failed handoffs
+R handoffs              # Check pending handoffs
+R orchestrate <ver> verify  # Retry failed handoffs
 ```
 
 If agent times out repeatedly:

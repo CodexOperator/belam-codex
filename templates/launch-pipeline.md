@@ -29,27 +29,27 @@ fields:
         description: "State tracker called by orchestrator. Updates markdown + state JSON + Telegram group."
   cli:
     type: object
-    description: "belam CLI commands"
+    description: "R CLI commands"
     properties:
       kickoff:
         type: string
-        default: "belam kickoff <version>"
+        default: "R kickoff <version>"
         description: "Kick off an already-created pipeline (wake architect via orchestrator)"
       create_and_kickoff:
         type: string
-        default: "belam pipeline launch <version> --desc '...' --priority <p> --tags <t> --project <proj> --kickoff"
+        default: "R pipeline launch <version> --desc '...' --priority <p> --tags <t> --project <proj> --kickoff"
         description: "Create pipeline AND kick off in one step"
       create_analysis:
         type: string
-        default: "belam pipeline analyze <version> --desc '...' --kickoff"
+        default: "R pipeline analyze <version> --desc '...' --kickoff"
         description: "Create and kick off analysis pipeline"
       handoffs:
         type: string
-        default: "belam handoffs"
+        default: "R handoffs"
         description: "Check for stuck/pending handoffs"
       verify:
         type: string
-        default: "belam orchestrate <version> verify"
+        default: "R orchestrate <version> verify"
         description: "Retry failed handoffs for a specific pipeline"
   gates:
     type: object
@@ -105,10 +105,10 @@ Bridges the gap between **eligible tasks** and **running pipelines**. The launch
 Task (status: open, deps met)
   │
   ├─ Pipeline exists but never kicked off?
-  │    → belam kickoff <version>
+  │    → R kickoff <version>
   │
   └─ No pipeline yet?
-       → belam pipeline launch <version> --desc "..." --kickoff
+       → R pipeline launch <version> --desc "..." --kickoff
             │
             ├─ Creates pipelines/<version>.md from template
             ├─ Creates pipeline_builds/<version>_state.json
@@ -126,10 +126,10 @@ Sonnet reads `HEARTBEAT.md` Task 1 each cycle, which references `templates/heart
 
 ```bash
 # Already-created, never kicked off
-belam kickoff <version>
+R kickoff <version>
 
 # New pipeline from task
-belam pipeline launch <version> --desc "..." --priority <p> --tags <t> --project <proj> --kickoff
+R pipeline launch <version> --desc "..." --priority <p> --tags <t> --project <proj> --kickoff
 
 # Space multiple kickoffs
 sleep 5  # between calls

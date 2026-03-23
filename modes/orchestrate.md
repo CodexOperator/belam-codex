@@ -69,9 +69,9 @@ View modifiers (-g, --depth, --as) compose orthogonally with e0 operations.
 ## Workflows
 
 ### .l1 — Full Pipeline Launch
-1. `belam pipeline launch {ver} --desc "..." --kickoff`
+1. `R pipeline launch {ver} --desc "..." --kickoff`
 2. Wait for architect handoff (auto-dispatched)
-3. Monitor via `belam pipelines` or `e0l`
+3. Monitor via `R pipelines` or `e0l`
 
 ### .l2 — Emergency Pipeline Block
 1. `python3 scripts/pipeline_orchestrate.py {ver} block {stage} --agent {role} --notes "reason"`

@@ -23,20 +23,20 @@ Agents wake fresh each session and have no ambient awareness of concurrent chang
 ## Decision
 
 Implement a **Live Diff Daemon** (`scripts/codex_watch.py`) that:
-- Runs as a background process (daemon mode via `belam watch`)
+- Runs as a background process (daemon mode via `R watch`)
 - Uses the `watchdog` Python library to monitor all primitive directories for filesystem events
 - On file change → re-renders only the affected coordinate(s) using existing engine internals
 - Writes R-label diffs to an append-only buffer file (`~/.belam_live_diffs.log`)
-- Exposes a read-and-clear interface via `belam diffs`
+- Exposes a read-and-clear interface via `R diffs`
 
 ## Architecture
 
 ### Daemon Lifecycle
 
 ```
-belam watch          → starts codex_watch.py --watch in background, writes ~/.belam_watch.pid
-belam watch --stop   → sends SIGTERM to PID from pidfile
-belam watch --status → checks if daemon process is running
+R watch          → starts codex_watch.py --watch in background, writes ~/.belam_watch.pid
+R watch --stop   → sends SIGTERM to PID from pidfile
+R watch --status → checks if daemon process is running
 ```
 
 The daemon holds the workspace primitive index in memory. This is the key efficiency win: Python cold-start paid once at daemon launch, then filesystem events drive re-renders at near-zero marginal cost.
@@ -105,12 +105,12 @@ Format (JSONL — one JSON object per line):
 Properties:
 - **Append-only** during daemon operation
 - **Max 50 entries** — when limit reached, oldest entries are dropped (ring buffer semantics)
-- **Read-and-clear** via `belam diffs`: reads all entries, truncates the file, prints entries
+- **Read-and-clear** via `R diffs`: reads all entries, truncates the file, prints entries
 
 ### Read-and-Clear Interface
 
 ```
-belam diffs
+R diffs
 ```
 
 Reads `~/.belam_live_diffs.log`, prints each R-label diff to stdout, then truncates the file. Atomic: uses file locking (or write-truncate) to avoid races with the daemon writer.
@@ -135,11 +135,11 @@ This section describes intended consumption patterns. **Integration is future wo
 
 ### Turn-Start Pattern (V3 Target)
 
-At conversation turn-start, the coordinator agent calls `belam diffs` before doing anything else. If diffs are present, it incorporates them into its working context — knowing what changed without re-rendering the full supermap.
+At conversation turn-start, the coordinator agent calls `R diffs` before doing anything else. If diffs are present, it incorporates them into its working context — knowing what changed without re-rendering the full supermap.
 
 ```
 # Pseudo-code for coordinator turn-start
-diffs = belam diffs
+diffs = R diffs
 if diffs:
     # Context-patch: update local understanding of changed coordinates
     process_r_label_diffs(diffs)
@@ -150,11 +150,11 @@ else:
 
 ### Heartbeat Pattern
 
-Heartbeats can poll `belam diffs` to detect workspace activity and surface notable changes (new tasks created, pipeline state updates, memory entries added by other agents).
+Heartbeats can poll `R diffs` to detect workspace activity and surface notable changes (new tasks created, pipeline state updates, memory entries added by other agents).
 
 ### OpenClaw Hook (Future)
 
-A future OpenClaw session hook could call `belam diffs` at turn-start and inject the output directly into session context, making diff awareness transparent to agents without them needing to call it explicitly.
+A future OpenClaw session hook could call `R diffs` at turn-start and inject the output directly into session context, making diff awareness transparent to agents without them needing to call it explicitly.
 
 ### Why Not Poll the Full Engine?
 
@@ -197,7 +197,7 @@ Would require OS-specific code. Watchdog abstracts this cleanly and handles edge
 **Positive:**
 - Near-zero idle cost ambient awareness
 - R-label continuity across interactive and daemon renders
-- Agents can orient themselves at turn-start with `belam diffs` instead of full supermap re-render
+- Agents can orient themselves at turn-start with `R diffs` instead of full supermap re-render
 - Batched diff history survives across short gaps in daemon uptime
 
 **Negative / Risks:**

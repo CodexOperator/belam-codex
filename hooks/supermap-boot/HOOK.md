@@ -11,6 +11,6 @@ metadata:
 
 # Supermap Boot Hook
 
-Runs `belam boot` on every `agent:bootstrap` event to regenerate the Codex Engine 
+Runs `R boot` on every `agent:bootstrap` event to regenerate the Codex Engine 
 supermap section in AGENTS.md. This ensures the coordinate-addressable primitive map 
 is always fresh in context without relying on separate embed_primitives runs.

@@ -1,5 +1,5 @@
 ---
-title: Indexed Command Interface as Default belam UX
+title: Indexed Command Interface as Default R UX
 status: superseded
 date: 2026-03-20
 upstream: [decisions/clock-cycles-over-tokens]
@@ -8,27 +8,27 @@ tags: [infrastructure, cli, ux, belam]
 superseded_by: decision/codex-engine-v1-architecture
 ---
 
-# Indexed Command Interface as Default belam UX
+# Indexed Command Interface as Default R UX
 
 ## Context
 
-Every belam command previously rendered flat text output. Navigation required knowing exact command names and primitive slugs. We wanted every command to render an **addressable indexed view** by default — coordinates you can reference in follow-up calls.
+Every R command previously rendered flat text output. Navigation required knowing exact command names and primitive slugs. We wanted every command to render an **addressable indexed view** by default — coordinates you can reference in follow-up calls.
 
 ## Decision
 
-**Every belam command renders indexed, addressable output by default.** Raw/plain output is available via `--raw` flag.
+**Every R command renders indexed, addressable output by default.** Raw/plain output is available via `--raw` flag.
 
 ## Implementation
 
-**Engine:** `scripts/belam_index.py` (883 lines) — intercepts all belam commands before bash dispatch.
+**Engine:** `scripts/belam_index.py` (883 lines) — intercepts all R commands before bash dispatch.
 
 **Three levels of indexing:**
 
-1. **Root menu** (`belam` with no args) — all commands organized by category. Categories: a=PIPELINES, b=PRIMITIVES, c=CREATE/EDIT, d=EXPERIMENTS, e=MEMORY, f=NOTEBOOKS, g=OTHER. Example: `belam a1` → `belam pipelines`.
+1. **Root menu** (`belam` with no args) — all commands organized by category. Categories: a=PIPELINES, b=PRIMITIVES, c=CREATE/EDIT, d=EXPERIMENTS, e=MEMORY, f=NOTEBOOKS, g=OTHER. Example: `R a1` → `R pipelines`.
 
-2. **List views** (`belam lessons`, `belam tasks`, `belam pipelines`, `belam notebooks`, `belam status`) — each item gets a numeric index. Example: `belam lesson 4` shows the 4th lesson. Bare numbers work too: `belam 4` resolves against the last list.
+2. **List views** (`R lessons`, `R tasks`, `R pipelines`, `R notebooks`, `R status`) — each item gets a numeric index. Example: `R lesson 4` shows the 4th lesson. Bare numbers work too: `R 4` resolves against the last list.
 
-3. **Create scaffolds** (`belam create lesson`, `belam create task`, etc.) — field-level coordinates showing what's required/optional with type hints. Falls through to normal creation when title is provided.
+3. **Create scaffolds** (`R create lesson`, `R create task`, etc.) — field-level coordinates showing what's required/optional with type hints. Falls through to normal creation when title is provided.
 
 **Coordinate system:**
 - Root: `{letter}{number}` — e.g., `a1`, `b3`, `c2` (sticky — always work)

@@ -143,7 +143,7 @@ def kick_pipeline(version: str, dry_run: bool = False) -> bool:
     """Kick off a pipeline via the orchestrator."""
     print(f"  🚀 Kicking off {version}...")
     if dry_run:
-        print(f"     [DRY RUN] Would call: belam kickoff {version}")
+        print(f"     [DRY RUN] Would call: R kickoff {version}")
         return True
 
     try:

@@ -218,7 +218,7 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
   const promptFile = promptMatch[1].trim();
   log('info', `Prompt ready at ${promptFile}, spawning sage via codex engine`);
 
-  // Step 3: Use belam -x spawn sage @promptFile (auto-rotates session + sends)
+  // Step 3: Use R -x spawn sage @promptFile (auto-rotates session + sends)
   try {
     const child = spawn(
       'python3',

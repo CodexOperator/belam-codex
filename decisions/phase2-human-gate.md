@@ -19,7 +19,7 @@ Pipelines follow: Phase 1 (autonomous build) → local experiments → local ana
 
 ## Options Considered
 
-- **Explicit kickoff command** (chosen): `belam kickoff <ver> --phase2 --direction <file>` — human runs command to approve + attach direction
+- **Explicit kickoff command** (chosen): `R kickoff <ver> --phase2 --direction <file>` — human runs command to approve + attach direction
 - **File-based passive gate:** autorun detects `{version}_phase2_shael_direction.md` and auto-kicks. More moving pieces, less explicit.
 - **No gate:** auto-transition straight through. Phase 2 is fundamentally human-directed — wrong approach.
 
@@ -28,7 +28,7 @@ Pipelines follow: Phase 1 (autonomous build) → local experiments → local ana
 `local_analysis_complete` is a terminal stage with no auto-transition in `STAGE_TRANSITIONS`. Phase 2 requires:
 
 ```
-belam kickoff <ver> --phase2 [--direction <file>]
+R kickoff <ver> --phase2 [--direction <file>]
 ```
 
 The `--direction` flag copies Shael's direction file to `pipeline_builds/{version}_phase2_shael_direction.md` for the architect. The orchestrator sends a notification when a pipeline reaches this gate.

@@ -266,8 +266,8 @@ def main():
         all_results.append(result)
         print(result)
 
-    # ── belam CLI ─────────────────────────────────────────────────────────
-    print(f'\n🔮 belam CLI')
+    # ── R CLI ─────────────────────────────────────────────────────────
+    print(f'\n🔮 R CLI')
     dst_belam = REPO / 'bin' / 'belam'
     result = sync_file(BELAM_CLI, dst_belam, dry_run)
     if result:

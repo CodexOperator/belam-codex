@@ -22,7 +22,7 @@ fields:
   tags:
     type: string[]
 cli:
-  list: "belam decisions"
-  show: "belam decision <name>"
-  shortcut: "belam d"
+  list: "R decisions"
+  show: "R decision <name>"
+  shortcut: "R d"
 ---

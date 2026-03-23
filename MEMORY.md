@@ -12,7 +12,7 @@ _This is an orientation file, not a knowledge store. Details live in primitives.
 - `projects/snn-standard-model.md` — Baseline benchmarking (COMPLETE)
 
 ## Active Pipelines
-Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
+Run `R pipelines` for live status. Pipeline files: `pipelines/*.md`
 
 ## Key Decisions
 - `decisions/agent-session-isolation.md` — Fresh sessions per handoff, memory-based continuity
@@ -38,7 +38,7 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 - **Autorun:** `scripts/pipeline_autorun.py` — event-driven gate/stall automation
 - **Codex Engine:** `scripts/codex_engine.py` — coordinate-addressable primitive navigation
 - **Memory extraction:** bootstrap hook → sage agent (automatic on /new, /reset)
-- **CLI:** `belam` — workspace command center (`belam status` for overview)
+- **CLI:** `belam` — workspace command center (`R status` for overview)
 - **Git repos:** workspace → `CodexOperator/belam-codex`, research → `CodexOperator/machinelearning`
 
 ## Memory System
@@ -46,12 +46,12 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 - **Daily logs:** `memory/YYYY-MM-DD.md` — read today + yesterday at session start
 - **Indexed entries:** `memory/entries/` — searchable via `memory_search`
 - **Auto-extraction:** sage agent processes ended sessions → creates primitives with `instance:` tags
-- **Consolidation:** `belam consolidate` — runs during heartbeat
+- **Consolidation:** `R consolidate` — runs during heartbeat
 
 ## How to Orient
 1. Read this file (you just did)
 2. Read `memory/$(date -u +%Y-%m-%d).md` for today's context
-3. Run `belam status` for live project state
+3. Run `R status` for live project state
 4. Use `memory_search` for anything specific
 5. Check primitives (`lessons/`, `decisions/`, `tasks/`) before creating new ones
 

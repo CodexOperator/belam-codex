@@ -35,7 +35,7 @@ The primary heartbeat responsibility: move work forward. This is now **fully aut
    - For each open task, read its `depends_on` field
    - If dependencies are met AND no pipeline already exists → eligible for pipeline spawn
    - **Gate check:** `python3 scripts/pipeline_autorun.py --check-gates --dry-run` shows what's blocked
-   - To create AND kick off: `belam pipeline launch {ver} --desc "..." --priority {p} --tags {t} --project {proj} --kickoff`
+   - To create AND kick off: `R pipeline launch {ver} --desc "..." --priority {p} --tags {t} --project {proj} --kickoff`
    - After spawning, update the task's `status: in_pipeline` and add `pipeline: {version}`
 
 3. **If nothing to do:** skip silently
@@ -68,7 +68,7 @@ Detect new experiment results and extract lessons:
 Manage the interleaved Phase 3 iteration chain between main and analysis pipelines.
 
 1. Check if analysis Phase 2 is complete (gate for all Phase 3 work):
-   - `belam pipeline v4-deep-analysis` → must show `analysis_phase2_complete`
+   - `R pipeline v4-deep-analysis` → must show `analysis_phase2_complete`
    - If not complete: skip all Phase 3 work silently
 2. If gate is open, check iteration chain state:
    - Find the latest main pipeline Phase 3 iteration ID (from `pipelines/v4.md` iteration log)

@@ -732,7 +732,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         send_orchestrator_notification(version, '📊 Local analysis complete',
             f'<b>{version}</b> local analysis is complete with PDF report. '
             f'Awaiting Phase 2 approval to proceed.\n'
-            f'Approve: <code>belam kickoff {version} --phase2 [--direction file.md]</code>')
+            f'Approve: <code>R kickoff {version} --phase2 [--direction file.md]</code>')
         return True
 
     # Step 3: Fire-and-forget dispatch to next agent (non-blocking)
@@ -863,7 +863,7 @@ def orchestrate_revise(version: str, context: str, revision_num: int = None):
 
     Usage:
         python3 pipeline_orchestrate.py <version> revise --context "findings..."
-        belam revise <version> --context "findings..."
+        R revise <version> --context "findings..."
     """
     print(f"\n{'═' * 70}")
     print(f"  🔄 ORCHESTRATOR: {version} — triggering Phase 1 revision")

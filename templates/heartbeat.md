@@ -15,7 +15,7 @@ Each heartbeat cycle, evaluate tasks and pipelines in this priority order:
 
 ### 1. Check Active Pipelines
 ```bash
-belam pipelines
+R pipelines
 ```
 - If any pipeline has a stalled stage (>2h since last update), alert Shael
 - If a pipeline reached phase completion, check if downstream work can be unblocked
@@ -26,7 +26,7 @@ grep -l "status: open" tasks/*.md
 ```
 For each open task:
 - Read `depends_on` — skip if dependencies aren't met
-- Check if a pipeline already exists for this task (`belam pipelines` output)
+- Check if a pipeline already exists for this task (`R pipelines` output)
 - If no pipeline exists AND dependencies are clear → eligible for pipeline spawn
 
 ### 3. Gate Awareness
@@ -36,7 +36,7 @@ For each open task:
 2. V{N} analysis pipeline Phase 3 iterations
 3. V{N+1} implementation pipeline Phase 1
 
-Check: `belam pipeline v4-deep-analysis`
+Check: `R pipeline v4-deep-analysis`
 
 **Phase 3 Iteration Chain Protocol:**
 ```
@@ -70,14 +70,14 @@ When a task is eligible for a pipeline:
 
 **For implementation tasks** (building notebooks, models, infrastructure):
 
-If a pipeline already exists but was never kicked off (check `belam pipelines` — shows `pipeline_created` with no agent activity):
+If a pipeline already exists but was never kicked off (check `R pipelines` — shows `pipeline_created` with no agent activity):
 ```bash
-belam kickoff {version}
+R kickoff {version}
 ```
 
 If no pipeline exists yet, create and kick off in one step:
 ```bash
-belam pipeline launch {version} \
+R pipeline launch {version} \
   --desc "{description from task}" \
   --priority {task priority} \
   --tags {task tags} \
@@ -163,14 +163,14 @@ Always use `timeoutSeconds: 0` — agents may take minutes to respond.
 ## CLI Quick Reference (belam)
 
 ```bash
-belam status          # Full overview
-belam pipelines       # Pipeline dashboard
-belam pipeline v4     # Detail view
-belam tasks           # Open tasks
-belam lessons         # Lessons learned
-belam analyze v4      # Trigger analysis
-belam log "message"   # Quick memory entry
-belam sync            # Sync to knowledge repo
+R status          # Full overview
+R pipelines       # Pipeline dashboard
+R pipeline v4     # Detail view
+R tasks           # Open tasks
+R lessons         # Lessons learned
+R analyze v4      # Trigger analysis
+R log "message"   # Quick memory entry
+R sync            # Sync to knowledge repo
 ```
 
 ## Anti-Patterns
@@ -178,6 +178,6 @@ belam sync            # Sync to knowledge repo
 - **Don't spawn pipelines for gated tasks** — check the gate first
 - **Don't use sessions_send with timeout > 0** — agents are slow, it'll timeout
 - **Don't put data in sessions_send payloads** — write files, then ping
-- **Don't create pipelines for tasks that already have one** — check `belam pipelines` first
+- **Don't create pipelines for tasks that already have one** — check `R pipelines` first
 - **Don't skip pipeline_update.py** — it's the single write path for state + frontmatter sync
 - **Don't launch new versions without analysis gate clearance** — MANDATORY

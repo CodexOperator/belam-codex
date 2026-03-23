@@ -5,7 +5,7 @@ date: 2026-03-20
 context: "Primitives exist in isolation — no way to trace how lessons led to decisions, decisions spawned tasks, or memories crystallized into lessons"
 alternatives: ["flat tags only", "explicit link files", "frontmatter relationship fields"]
 rationale: "Frontmatter fields are the simplest approach — no new infrastructure needed, just two directional fields that create typed edges between primitives. The audit system can validate links and the index can render them."
-consequences: ["primitives become a navigable graph", "audit can detect orphaned/broken links", "belam can show upstream/downstream in detail views"]
+consequences: ["primitives become a navigable graph", "audit can detect orphaned/broken links", "R can show upstream/downstream in detail views"]
 upstream: [decisions/indexed-command-interface]
 downstream: [memory/2026-03-20_033917_primitive-relationship-graph-deployed-al, task/build-codex-engine, decision/codex-engine-v1-architecture]
 tags: [infrastructure, primitives, knowledge-graph, conventions]
@@ -61,7 +61,7 @@ The `supersedes` field remains separate — that's replacement, not connection.
 
 ## Audit Integration
 
-`belam audit` checks:
+`R audit` checks:
 - Broken links (referenced primitive doesn't exist)
 - Asymmetric links (A lists B as downstream, but B doesn't list A as upstream) — warning, not error
 - Orphaned primitives (no upstream or downstream) — informational

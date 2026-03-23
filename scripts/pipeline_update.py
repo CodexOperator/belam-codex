@@ -112,7 +112,7 @@ STAGE_TRANSITIONS = {
     'local_analysis_code_review':         ('local_analysis_report_build',        'system',    'Analysis code review passed. Building LaTeX report.'),
     'local_analysis_report_build':        ('local_analysis_complete',            'system',    'LaTeX report built. PDF at notebooks/local_results/{v}/{v}_report.pdf'),
     # local_analysis_complete is a HUMAN GATE — no auto-transition to Phase 2.
-    # Shael must explicitly approve via: belam kickoff <ver> --phase2
+    # Shael must explicitly approve via: R kickoff <ver> --phase2
     # 'local_analysis_complete':         ('phase2_architect_design',            'architect', 'Local analysis complete with PDF report. Design Phase 2 per ...'),
 
     # Phase 2

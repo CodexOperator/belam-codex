@@ -1,7 +1,7 @@
 ---
 primitive: lesson
 date: 2026-03-20
-source: session — belam edit --set with list values broke on spaces
+source: session — R edit --set with list values broke on spaces
 confidence: high
 upstream: [decision/indexed-command-interface, memory/2026-03-18_225239_major-workspace-infrastructure-session-1]
 downstream: []
@@ -12,11 +12,11 @@ tags: [infrastructure, cli, debugging, belam, argparse]
 
 ## Context
 
-`belam edit` uses `--set key=value` for frontmatter updates. List fields like `downstream=[lesson/foo, memory/bar]` contain spaces inside brackets.
+`R edit` uses `--set key=value` for frontmatter updates. List fields like `downstream=[lesson/foo, memory/bar]` contain spaces inside brackets.
 
 ## What Happened
 
-`belam edit primitive --set downstream=[a, b]` failed with argparse seeing `b]` as an unrecognized positional argument. The shell splits on the space between `a,` and `b]`, turning one argument into two. The error was opaque — argparse complained about extra arguments, not about malformed lists.
+`R edit primitive --set downstream=[a, b]` failed with argparse seeing `b]` as an unrecognized positional argument. The shell splits on the space between `a,` and `b]`, turning one argument into two. The error was opaque — argparse complained about extra arguments, not about malformed lists.
 
 ## Lesson
 

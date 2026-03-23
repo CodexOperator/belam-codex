@@ -4,7 +4,7 @@ audit_primitives.py — Scan all primitives for consistency issues.
 
 Checks:
   1. Commands without skill references (orphaned commands)
-  2. Skills with stale command lists (belam commands referenced but no commands/*.md)
+  2. Skills with stale command lists (R commands referenced but no commands/*.md)
   3. Cross-reference integrity (skill: frontmatter field points to real skill)
   4. Decision primitives for every skill (skill: field in decisions/*.md)
   5. Duplicate/similar primitive names
@@ -135,16 +135,16 @@ def check_commands_referenced(fix: bool = False) -> tuple[list[str], list[str], 
     for cmd_file in all_command_files():
         cmd_name = cmd_file.stem  # e.g. "autorun"
         fm = parse_frontmatter(cmd_file)
-        cmd_str = fm.get("command", f"belam {cmd_name}").lower()
+        cmd_str = fm.get("command", f"R {cmd_name}").lower()
         aliases_raw = fm.get("aliases", "")
 
         # Build all search tokens: command name, command string, aliases
         tokens = {cmd_name, cmd_str}
-        # Parse aliases from YAML list string like ["belam auto", "belam au"]
+        # Parse aliases from YAML list string like ["R auto", "R au"]
         for a in re.findall(r'"([^"]+)"', aliases_raw):
             tokens.add(a.lower())
-        # Also add the short alias part (e.g. "auto" from "belam auto")
-        for a in re.findall(r'"belam\s+(\S+)"', aliases_raw):
+        # Also add the short alias part (e.g. "auto" from "R auto")
+        for a in re.findall(r'"R (\S+)"', aliases_raw):
             tokens.add(a.lower())
 
         found_in = None
@@ -207,7 +207,7 @@ def check_commands_referenced(fix: bool = False) -> tuple[list[str], list[str], 
 
 def check_skill_command_refs(fix: bool = False) -> tuple[list[str], list[str], int]:
     """
-    For each skill SKILL.md, find all 'belam X' references and check that
+    For each skill SKILL.md, find all 'R X' references and check that
     commands/X.md exists.
     Returns (ok_lines, warn_lines, issue_count).
     """
@@ -222,11 +222,11 @@ def check_skill_command_refs(fix: bool = False) -> tuple[list[str], list[str], i
         skill_md = sd / "SKILL.md"
         text = get_full_text(skill_md)
 
-        # Find all "belam <word>" patterns — looking for real command names
-        # Match: backtick-quoted `belam X` or in code blocks (``` lines starting with belam)
-        found_refs = re.findall(r'`belam\s+([a-z][a-z0-9-]{2,})`', text)
-        # Also find belam X at start of a code line (indented or in fenced block)
-        found_refs += re.findall(r'^\s+belam\s+([a-z][a-z0-9-]{3,})(?:\s|$)', text, re.MULTILINE)
+        # Find all "R <word>" patterns — looking for real command names
+        # Match: backtick-quoted `R X` or in code blocks (``` lines starting with R)
+        found_refs = re.findall(r'`R\s+([a-z][a-z0-9-]{2,})`', text)
+        # Also find R X at start of a code line (indented or in fenced block)
+        found_refs += re.findall(r'^\s+R\s+([a-z][a-z0-9-]{3,})(?:\s|$)', text, re.MULTILINE)
         # Deduplicate; ignore very generic/meta words, single-letter aliases, table headers
         ignore = {
             "help", "create", "new", "edit", "status", "log", "command", "version",
@@ -239,17 +239,17 @@ def check_skill_command_refs(fix: bool = False) -> tuple[list[str], list[str], i
         ))
 
         if not refs:
-            ok_lines.append(f"  {G}✅{RST}  {skill_name}: no belam command references found (ok)")
+            ok_lines.append(f"  {G}✅{RST}  {skill_name}: no R command references found (ok)")
             continue
 
         skill_ok = True
         for ref in refs:
             # Check if commands/ref.md exists
             if ref in existing_commands:
-                ok_lines.append(f"  {G}✅{RST}  {skill_name}: 'belam {ref}' → commands/{ref}.md exists")
+                ok_lines.append(f"  {G}✅{RST}  {skill_name}: 'R {ref}' → commands/{ref}.md exists")
             else:
                 warn_lines.append(
-                    f"  {Y}⚠️ {RST}  {skill_name}: references 'belam {ref}' but no commands/{ref}.md exists"
+                    f"  {Y}⚠️ {RST}  {skill_name}: references 'R {ref}' but no commands/{ref}.md exists"
                 )
                 issues += 1
                 skill_ok = False
@@ -259,21 +259,21 @@ def check_skill_command_refs(fix: bool = False) -> tuple[list[str], list[str], i
                     stub_path = COMMANDS_DIR / f"{ref}.md"
                     stub_content = f"""---
 primitive: command
-command: "belam {ref}"
+command: "R {ref}"
 aliases: []
 description: "(stub — auto-created by audit --fix)"
 category: {skill_name}
 tags: [{skill_name}]
 ---
 
-# belam {ref}
+# R {ref}
 
 _(Stub — fill in description and usage.)_
 
 ## Usage
 
 ```bash
-belam {ref} [args]
+R {ref} [args]
 ```
 
 ## Related

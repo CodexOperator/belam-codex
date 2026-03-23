@@ -4,7 +4,7 @@ Create a revision request file for pipeline_autorun.py to pick up.
 
 Usage:
     python3 scripts/create_revision_request.py <version> [options]
-    belam queue-revision <version> [options]
+    R queue-revision <version> [options]
 
 Options:
     --context-file <path>   Path to findings doc (relative to machinelearning/snn_applied_finance/ or workspace)
@@ -87,7 +87,7 @@ def main():
         print(f"   Context:  {args.context_file}")
         if args.section:
             print(f"   Section:  {args.section}")
-    print(f"\n   Will be picked up by next 'belam autorun' or heartbeat cycle.")
+    print(f"\n   Will be picked up by next 'R autorun' or heartbeat cycle.")
 
 
 if __name__ == '__main__':

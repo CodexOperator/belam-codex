@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""belam indexed command interface — core engine.
+"""R indexed command interface — core engine.
 
 Provides:
   - Root menu rendering with category/command coordinates
@@ -125,7 +125,7 @@ def render_root_menu():
             print(f"    {C}{coord}{R}  {B}{display:<28s}{R} {D}{desc}{R}")
     
     print()
-    print(f"  {D}Type a coordinate to run: {C}belam a1{R}  {D}or{R}  {C}belam b2{R}")
+    print(f"  {D}Type a coordinate to run: {C}R a1{R}  {D}or{R}  {C}R b2{R}")
     print(f"  {D}Raw output: add {C}--raw{R}  {D}to any command{R}")
     print()
     
@@ -411,7 +411,7 @@ def render_pipelines_indexed():
             idx += 1
 
     print()
-    print(f"  {D}View details: {C}belam pipeline <#>{R}  {D}e.g.{R} {C}belam pipeline 1{R}")
+    print(f"  {D}View details: {C}R pipeline <#>{R}  {D}e.g.{R} {C}R pipeline 1{R}")
     print()
 
     save_context("list:pipelines", mapping)
@@ -648,7 +648,7 @@ def render_notebooks_indexed():
         print(f"  {C}{i:<4d}{R} {display_name:<42s} {Y}{size_str:<10s}{R} {D}{date_str}{R}")
 
     print()
-    print(f"  {D}View path: {C}belam notebook <#>{R}  {D}e.g.{R} {C}belam notebook 1{R}")
+    print(f"  {D}View path: {C}R notebook <#>{R}  {D}e.g.{R} {C}R notebook 1{R}")
     print()
 
     save_context("list:notebooks", mapping)
@@ -741,7 +741,7 @@ def render_create_scaffold(ptype):
         if len(flag_examples) >= 2:
             break
     flags_str = " ".join(flag_examples)
-    print(f"  {D}Fill:{R} {C}belam create {ptype} \"{example_title}\"{R}" +
+    print(f"  {D}Fill:{R} {C}R create {ptype} \"{example_title}\"{R}" +
           (f" {C}{flags_str}{R}" if flags_str else ""))
     print()
     return True
@@ -875,15 +875,15 @@ def _add_to_frontmatter_list(content, key, value):
 
 
 def cmd_link(exprs):
-    """Handle `belam link <expr> [<expr> ...]`.
+    """Handle `R link <expr> [<expr> ...]`.
 
     Each expr is:  a>b  (a downstream b, b upstream a)
                    a<b  (b downstream a, a upstream b)
     Coords: l4 d7 t2 p1 pj3 k2  or bare numbers against last list context.
     """
     if not exprs:
-        print(f"\n  {RD}✗{R} Usage: belam link <expr> [<expr>...]")
-        print(f"  {D}Examples:{R}  belam link l4>d7   belam link l1>d1 d1>t1")
+        print(f"\n  {RD}✗{R} Usage: R link <expr> [<expr>...]")
+        print(f"  {D}Examples:{R}  R link l4>d7   R link l1>d1 d1>t1")
         print(f"  {D}Types:{R}    l=lesson  d=decision  t=task  p=pipeline  pj=project  k=knowledge")
         print(f"  {D}Syntax:{R}   a>b  (a→downstream, b←upstream)   a<b  (b→downstream, a←upstream)\n")
         sys.exit(1)
@@ -1046,7 +1046,7 @@ def main():
     if re.match(r'^[a-z]\d+$', cmd) or (re.match(r'^\d+$', cmd) and len(args) == 1):
         resolved, ctx_type = resolve_coordinate(cmd)
         if resolved:
-            # Re-exec belam with resolved command
+            # Re-exec R with resolved command
             belam_path = os.path.expanduser("~/.local/bin/belam")
             os.execv(belam_path, ["belam"] + resolved + args[1:])
         else:
@@ -1059,7 +1059,7 @@ def main():
         # cmd_link always calls sys.exit, but be defensive:
         sys.exit(0)
 
-    # Handle create scaffold: `belam create <type>` with no title → show scaffold
+    # Handle create scaffold: `R create <type>` with no title → show scaffold
     if cmd in ("create", "new", "c") and not raw_mode:
         if len(args) >= 2 and args[1] in CREATE_SCHEMAS:
             # Type given — check if title is also provided
@@ -1071,14 +1071,14 @@ def main():
                 render_create_scaffold(args[1])
                 sys.exit(0)
         elif len(args) == 1:
-            # Bare `belam create` — show all types
+            # Bare `R create` — show all types
             print()
             print(f"  {B}🔮 Create{R}  {D}— choose a type{R}")
             print(f"  {D}{'─' * 50}{R}")
             for i, ptype in enumerate(sorted(CREATE_SCHEMAS), 1):
                 print(f"  {C}{i}{R}  {ptype}")
             print()
-            print(f"  {D}Usage:{R} {C}belam create <type>{R}  {D}or{R}  {C}belam create <type> \"Title\"{R}")
+            print(f"  {D}Usage:{R} {C}R create <type>{R}  {D}or{R}  {C}R create <type> \"Title\"{R}")
             print()
             sys.exit(0)
         # Unknown type or flags — fall through
@@ -1121,7 +1121,7 @@ def main():
                 print(f"  {RD}✗{R} Index {args[1]} not found in last pipelines list.")
                 sys.exit(1)
         else:
-            print(f"  {RD}✗{R} No pipelines list context. Run {C}belam pipelines{R} first.")
+            print(f"  {RD}✗{R} No pipelines list context. Run {C}R pipelines{R} first.")
             sys.exit(1)
     
     # Handle notebook <number> resolution
@@ -1136,7 +1136,7 @@ def main():
                 print(f"  {RD}✗{R} Index {args[1]} not found in last notebooks list.")
                 sys.exit(1)
         else:
-            print(f"  {RD}✗{R} No notebooks list context. Run {C}belam notebooks{R} first.")
+            print(f"  {RD}✗{R} No notebooks list context. Run {C}R notebooks{R} first.")
             sys.exit(1)
 
     # Handle indexed show commands with numeric arg

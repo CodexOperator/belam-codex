@@ -8,7 +8,7 @@ Default target width: 38 chars.
 Usage:
   python3 codex_engine.py | python3 mobile_format.py
   python3 codex_engine.py t1 | python3 mobile_format.py
-  belam pipelines 2>&1 | python3 mobile_format.py
+  R pipelines 2>&1 | python3 mobile_format.py
   python3 mobile_format.py --width 40 < output.txt
   python3 mobile_format.py --raw < output.txt   # passthrough
 """
@@ -263,7 +263,7 @@ def format_numbered_field(content: str, width: int) -> list[str]:
 
 def format_pipeline_dashboard(lines: list[str], width: int) -> list[str]:
     """
-    Format belam pipeline dashboard output for mobile.
+    Format R pipeline dashboard output for mobile.
     Handles the VALIDATE-SCHEME-B style blocks.
     """
     out = []
@@ -343,7 +343,7 @@ def format_pipeline_dashboard(lines: list[str], width: int) -> list[str]:
 # ─── Main formatting engine ────────────────────────────────────────────────────
 
 def detect_dashboard(lines: list[str]) -> bool:
-    """Detect if input looks like a belam pipeline dashboard."""
+    """Detect if input looks like a R pipeline dashboard."""
     for ln in lines[:5]:
         if '🔬' in ln or 'PIPELINE DASHBOARD' in ln:
             return True

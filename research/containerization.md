@@ -21,7 +21,7 @@
 **`incarnate.sh` already covers:**
 - ✅ Python dep check (PyYAML, matplotlib, numpy, pandas, pydub, Pillow, pdfplumber, faster-whisper)
 - ✅ System package install (ffmpeg, latex, libcairo2-dev, libpango1.0-dev, gh)
-- ✅ belam CLI symlink to `~/.local/bin/belam`
+- ✅ R CLI symlink to `~/.local/bin/belam`
 - ✅ `~/.openclaw/workspace` symlink → repo dir
 - ✅ git submodule init
 - ✅ PATH update in `.bashrc`
@@ -42,7 +42,7 @@
 
 ### 1. Docker (Single Container)
 
-**What:** One Dockerfile bundling Node 22 + Python 3.12 + OpenClaw + belam scripts. Container clones `belam-codex` on first run, mounts SSH keys and config from host.
+**What:** One Dockerfile bundling Node 22 + Python 3.12 + OpenClaw + R scripts. Container clones `belam-codex` on first run, mounts SSH keys and config from host.
 
 **Pros:**
 - Standard, portable — works anywhere Docker runs (ARM64 well-supported)
