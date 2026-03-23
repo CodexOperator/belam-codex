@@ -35,31 +35,38 @@ def uds_send(sock: socket.socket, msg: dict) -> dict:
             raise ConnectionError("Render engine closed connection")
         buf += chunk
     line, remainder = buf.split(b'\n', 1)
-    return json.loads(line), remainder
+    return json.loads(line.decode('utf-8') if isinstance(line, bytes) else line), remainder
 
 
 def format_diff(diff: dict, include_content: bool = False) -> str:
     """Format a single diff entry for terminal display."""
     ts = datetime.now(timezone.utc).strftime('%H:%M:%S')
-    action = diff.get('action', '?')
+    kind = diff.get('kind', '?')
     coord = diff.get('coord', '?')
-    label = diff.get('label', '?')
     slug = diff.get('slug', '')
 
-    # Color codes
+    # Color codes by kind
     colors = {
-        'CREATE': '\033[32m+\033[0m',  # green
-        'MODIFY': '\033[33m~\033[0m',  # yellow
-        'DELETE': '\033[31m-\033[0m',  # red
+        'added':      ('\033[32m+\033[0m', '\033[32m'),    # green
+        'modified':   ('\033[33m~\033[0m', '\033[33m'),    # yellow
+        'removed':    ('\033[31m-\033[0m', '\033[31m'),    # red
+        'reassigned': ('\033[36m→\033[0m', '\033[36m'),    # cyan
     }
-    icon = colors.get(action, ' ')
+    reset = '\033[0m'
+    icon, color = colors.get(kind, (' ', ''))
 
-    line = f"  {ts} {icon} [{label}] {coord} {slug}"
+    line = f"  {ts} {icon} {color}{coord}{reset} {slug}"
 
-    if include_content and 'content' in diff:
-        content = diff['content']
+    # Show field-level changes
+    field_diffs = diff.get('field_diffs', [])
+    for fd in field_diffs[:3]:
+        if isinstance(fd, (list, tuple)) and len(fd) >= 3:
+            fname, old, new = fd[0], fd[1], fd[2]
+            line += f"\n         │ {fname}: {old} → {new}"
+
+    if include_content:
+        content = diff.get('content', '')
         if content:
-            # Indent content preview (first 3 lines, max 120 chars each)
             preview_lines = content.strip().split('\n')[:3]
             for pl in preview_lines:
                 line += f"\n         │ {pl[:120]}"
@@ -91,7 +98,7 @@ def main():
 
     # Attach as observer
     resp, remainder = uds_send(sock, {
-        'command': 'attach',
+        'cmd': 'attach',
         'agent': f'monitor-{args.name}',
         'pipeline': args.pipeline or '',
         'stage': 'observe',
@@ -137,52 +144,56 @@ def main():
                 except json.JSONDecodeError:
                     continue
 
-                # Handle different notification types
-                notify_type = msg.get('type', msg.get('command', ''))
+                # Handle different event types from render engine
+                event = msg.get('event', '')
 
-                if notify_type == 'diff_update':
-                    diffs = msg.get('diffs', [])
-                    for d in diffs:
-                        # Agent filter
-                        if args.agent:
-                            agent = d.get('agent', d.get('source', ''))
-                            if args.agent.lower() not in str(agent).lower():
-                                continue
-                        # Pipeline filter (match on coord prefix or slug)
-                        if args.pipeline:
-                            coord = d.get('coord', '')
-                            slug = d.get('slug', '')
-                            if args.pipeline.lower() not in f"{coord} {slug}".lower():
-                                continue
-                        print(format_diff(d, include_content=args.content))
+                if event in ('change', 'create'):
+                    d = msg.get('diff', {})
+                    if not d:
+                        continue
+                    # Pipeline filter (match on coord prefix p-namespace or slug)
+                    if args.pipeline:
+                        coord = d.get('coord', '')
+                        slug = d.get('slug', '')
+                        content = d.get('content', '') if args.content else ''
+                        match_text = f"{coord} {slug} {content}".lower()
+                        if args.pipeline.lower() not in match_text:
+                            continue
+                    # Agent filter (match on slug or content mentioning agent)
+                    if args.agent:
+                        slug = d.get('slug', '')
+                        content = d.get('content', '')
+                        match_text = f"{slug} {content}".lower()
+                        if args.agent.lower() not in match_text:
+                            continue
+                    print(format_diff(d, include_content=args.content))
+                    sys.stdout.flush()
 
-                elif notify_type == 'session_joined':
+                elif event == 'reviewer_joined':
                     agent = msg.get('agent', '?')
+                    pipeline = msg.get('pipeline', '')
+                    stage = msg.get('stage', '')
                     print(f"  {'─' * 40}")
-                    print(f"  👤 Agent joined: {agent}")
+                    print(f"  👤 Agent joined: {agent} ({pipeline}/{stage})")
                     print(f"  {'─' * 40}")
+                    sys.stdout.flush()
 
-                elif notify_type == 'session_left':
-                    agent = msg.get('agent', '?')
-                    print(f"  {'─' * 40}")
-                    print(f"  👋 Agent left: {agent}")
-                    print(f"  {'─' * 40}")
-
-                elif notify_type == 'heartbeat':
+                elif event == 'ping':
                     # Silent keepalive
                     pass
 
                 else:
-                    # Unknown message — show raw for debugging
+                    # Unknown event — show raw for debugging
                     ts = datetime.now(timezone.utc).strftime('%H:%M:%S')
                     print(f"  {ts} ? {json.dumps(msg)[:100]}")
+                    sys.stdout.flush()
 
     except KeyboardInterrupt:
         print(f"\n{'─' * 72}")
         print("🔮 Stream ended")
     finally:
         try:
-            sock.sendall((json.dumps({'command': 'detach'}) + '\n').encode('utf-8'))
+            sock.sendall((json.dumps({'cmd': 'detach'}) + '\n').encode('utf-8'))
         except Exception:
             pass
         sock.close()
