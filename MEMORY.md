@@ -25,6 +25,13 @@ Run `belam pipelines` for live status. Pipeline files: `pipelines/*.md`
 - `lessons/checkpoint-and-resume-pattern.md` — Timeout recovery pattern
 - `lessons/analysis-phase2-gate-mandatory.md` — Never start new versions without analysis
 
+## Recent Milestones (week of 2026-03-16)
+- Codex Engine V3 design complete + approved (4 modules: MCP server, temporal queries, batch ops, migration)
+- Orchestration V3 monitoring pipeline Phase 1 complete
+- Codex Engine V2 modes pipeline Phase 1 complete
+- Research-openclaw-internals and validate-scheme-b both reached local analysis complete
+- All 9 pipelines touched by all 4 agents this week — full cross-agent convergence
+
 ## Infrastructure
 - **Agents:** architect, critic, builder (Opus), sage (Sonnet — knowledge/extraction)
 - **Orchestrator:** `scripts/pipeline_orchestrate.py` — handoffs, memory, checkpoint-and-resume
