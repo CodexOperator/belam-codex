@@ -1868,9 +1868,12 @@ def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
             })
             continue
 
-        # Phase 1 complete gate: experiment or revision
+        # Phase 1 complete gate: direction file, revision, or human review
         if pending == 'phase1_complete':
             rev_file = BUILDS_DIR / f'{ver}_revision_request.md'
+            # Check for Phase 2 direction file (either naming convention)
+            direction_file = BUILDS_DIR / f'{ver}_phase2_direction.md'
+            direction_file_shael = BUILDS_DIR / f'{ver}_phase2_shael_direction.md'
             if rev_file.exists():
                 results.append({
                     'pipeline': ver,
@@ -1878,6 +1881,14 @@ def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
                     'status': 'open',
                     'blocked_by': None,
                     'action': 'Process revision request',
+                })
+            elif direction_file.exists() or direction_file_shael.exists():
+                results.append({
+                    'pipeline': ver,
+                    'gate': 'phase2_direction',
+                    'status': 'open',
+                    'blocked_by': None,
+                    'action': 'Phase 2 direction file found -- kick Phase 2',
                 })
             else:
                 results.append({
@@ -2311,6 +2322,16 @@ def sweep(dry_run: bool = False) -> list[str]:
                         kicked += 1
                 except Exception as e:
                     print(f'    -> Kick failed: {e}')
+            elif g['gate'] == 'phase2_direction' and _HAS_ORCHESTRATE:
+                print(f'    -> Phase 2 direction found, kicking architect for {g["pipeline"]}...')
+                try:
+                    result = orchestrate_complete(g['pipeline'], 'phase1_complete',
+                                                  'belam-main', 'Phase 2 direction file found — auto-kicked by sweep')
+                    if result:
+                        actions.append(f'F1 D {g["pipeline"]}.phase2_direction -> architect DISPATCHED')
+                        kicked += 1
+                except Exception as e:
+                    print(f'    -> Phase 2 kick failed: {e}')
             elif g['gate'] == 'analysis' and _HAS_ORCHESTRATE:
                 print(f'    -> Auto-launching analysis for {g["pipeline"]}...')
                 try:
