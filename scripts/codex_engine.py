@@ -511,6 +511,33 @@ def resolve_coords(args):
         if not arg:
             continue
 
+        # Result register: _ prefix (_, _1, _.field) — delegate to output codec
+        if arg.startswith('_'):
+            try:
+                from codex_output_codec import ResultRegister
+                reg = ResultRegister(WORKSPACE)
+                if '.' in arg:
+                    val = reg.resolve_field(arg)
+                    if val is not None:
+                        resolved.append({
+                            'prefix': '_', 'index': 0,
+                            'filepath': None, 'slug': arg,
+                            'type': 'register',
+                            '_lm_text': val,
+                        })
+                else:
+                    result = reg.resolve(arg)
+                    if result:
+                        resolved.append({
+                            'prefix': '_', 'index': 0,
+                            'filepath': None, 'slug': arg,
+                            'type': 'register',
+                            '_lm_text': result.rendered,
+                        })
+            except ImportError:
+                pass
+            continue
+
         # Dot-syntax sub-index: {coord}.l{N} — delegate to LM renderer
         if '.' in arg:
             parts = arg.split('.', 1)
@@ -4497,6 +4524,29 @@ def main(args=None):
     if '--supermap' in args:
         print(_render_sm())
         _restore_shuffle()
+        return
+
+    # --register-show: display result register state (for cockpit plugin injection)
+    if '--register-show' in args:
+        try:
+            from codex_output_codec import ResultRegister
+            reg = ResultRegister(WORKSPACE)
+            output = reg.show()
+            if output:
+                print(output)
+        except ImportError:
+            pass
+        return
+
+    # --register-clear: clear result register (S1)
+    if '--register-clear' in args:
+        try:
+            from codex_output_codec import ResultRegister
+            reg = ResultRegister(WORKSPACE)
+            reg.clear()
+            print('Register cleared.')
+        except ImportError:
+            pass
         return
 
     # --supermap-anchor: render fresh supermap AND drop anchor for future diffs
