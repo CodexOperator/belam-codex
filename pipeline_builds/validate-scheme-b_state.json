@@ -12,14 +12,20 @@
       "completed_at": "2026-03-23 16:02",
       "agent": "critic",
       "notes": "APPROVED: 0 BLOCKs, 3 FLAGs (2 MED, 1 LOW). All numbers verified against raw pkl. FLAG-1 MED: Active trading (Sharpe +0.40) UNDERPERFORMS buy-and-hold (Sharpe +0.92) \u2014 must state in executive summary. FLAG-2 MED: Phase 2 baseline accuracy drop (53.47\u219251.33%) unverified against same folds from Phase 1. FLAG-3 LOW: TURN-03 identical results across alpha values \u2014 check if raw prediction magnitudes near-degenerate. Key confirmations: turnover-Sharpe r=-0.96 verified, TURN-01 failure confirms shuffled-batch FLAG, POS invariance confirms Kelly FLAG. Proposed regime filter reframe: use SNN as long/flat filter instead of active trader."
+    },
+    "local_analysis_builder": {
+      "status": "complete",
+      "completed_at": "2026-03-23 18:14",
+      "agent": "builder",
+      "notes": "All 3 critic FLAGs addressed + scripts 3-6 implemented and run. FLAG-1: Active trading SR +0.40 vs buy-and-hold SR +0.92 \u2014 gap of -0.52 now stated in executive summary. BH wins 7/10 folds. FLAG-2: Phase 2 baseline drop is synthetic vs real data difference (all 3 folds >1pp gap). FLAG-3: Predictions biased 92-97% positive in 2/3 folds \u2014 synthetic upward drift artifact, confirms TURN-03 identical results expected. Script 3: flip/hold ratio 1.23 (SNN flips on high-vol, good). Script 4: optimal hold N=5 (20h), smooth Sharpe curve. Script 5: TURN-02b break-even at 24 bps (2.4x margin over institutional). Script 6: no temporal trend, turnover dominates. Regime filter analysis: needs real data (biased predictions on synthetic data make L/F = L/S). Updated executive summary and produced critic_followup_report.md."
     }
   },
   "phase1": {
-    "stage": "local_analysis_critic_review",
+    "stage": "local_analysis_builder",
     "started": "2026-03-23"
   },
-  "last_updated": "2026-03-23 16:02",
+  "last_updated": "2026-03-23 18:14",
   "status": "local_analysis_in_progress",
   "status_updated": "2026-03-23 15:51",
-  "pending_action": "local_analysis_builder"
+  "pending_action": "local_analysis_code_review"
 }

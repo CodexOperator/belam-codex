@@ -1341,6 +1341,58 @@ SNN output layers that predict financial quantities need to respect derivatives 
 ---
 ---
 primitive: decision
+slug: diff-triggered-heartbeat-architecture
+title: Diff-Triggered Heartbeat Architecture
+importance: 4
+tags:
+- instance:main
+- render-engine
+- heartbeat
+- diff
+- architecture
+created: 2026-03-23
+__coord__: d23
+__slug__: diff-triggered-heartbeat-architecture
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/diff-triggered-heartbeat-architecture.md
+__prefix__: d
+__index__: 23
+__ptype__: decisions
+---
+# Decision: Diff-Triggered Heartbeat Architecture
+
+## Context
+The render engine produces R/F label diffs when files change via inotify. Previously these diffs were passive — accumulated until a user message triggered a turn. The coordinator would only see them on the next organic conversation turn.
+
+## Decision
+Add a `HeartbeatTrigger` thread to `codex_render.py` that:
+- Polls every 5 seconds for accumulated F-label diff count
+- When 10+ F-label diffs accumulate within the window, fires a `POST /hooks/wake` to the OpenClaw webhook endpoint
+- Wakes the main session as a system event (not a user message)
+- Coordinator processes the diffs, may take action, but doesn't message the user unless something is actionable
+
+## Rationale
+- Gives the coordinator real-time awareness of memory extractions, pipeline state changes, and file updates
+- Avoids polling loops — the render engine is already watching files, so it's the natural place to emit wake signals
+- Threshold of 10 F-labels prevents spurious wakes from single small writes; 5s poll keeps latency acceptable
+- Keeps the event type clearly distinct from user messages (system event, not user prompt)
+
+## Implementation
+- `codex_render.py`: `HeartbeatTrigger` class, `_load_hook_config()`, started/stopped in engine lifecycle
+- OpenClaw config: `hooks.enabled: true`, `hooks.token` set, `hooks.path: /hooks`
+- Committed: ceb8d260
+
+## Tradeoffs
+- Could create feedback loops (response writes files → inotify → diff → wake → ...). Mitigated by threshold and the fact that wake only fires once per batch.
+- Coordinator must distinguish "diff wake" from "user message" — system event format handles this naturally.
+
+## Related
+- upstream: codex-engine-v2-live-diff-architecture
+- upstream: render-engine-pid-file-and-force-flag
+- downstream: r-f-label-split-by-agent-role
+- downstream: webhook-hooks-enabled-for-diff-heartbeat
+---
+---
+primitive: decision
 status: accepted
 date: 2026-03-21
 context: (add context)
@@ -1356,11 +1408,11 @@ tags:
 - e2
 - namespace
 - architecture
-__coord__: d23
+__coord__: d24
 __slug__: e3-e2-namespace-chain-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/e3-e2-namespace-chain-architecture.md
 __prefix__: d
-__index__: 23
+__index__: 24
 __ptype__: decisions
 ---
 # e3-e2-namespace-chain-architecture
@@ -1399,11 +1451,11 @@ tags:
 - lm
 - coordinate-grammar
 - pipeline
-__coord__: d24
+__coord__: d25
 __slug__: heartbeat-md-e0-primary-path
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/heartbeat-md-e0-primary-path.md
 __prefix__: d
-__index__: 24
+__index__: 25
 __ptype__: decisions
 ---
 # heartbeat-md-e0-primary-path
@@ -1444,11 +1496,11 @@ decided_by:
 downstream:
 - memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe
 - memory/2026-03-17_221720_hierarchical-memory-system-built-and-dep
-__coord__: d25
+__coord__: d26
 __slug__: hierarchical-memory-system
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/hierarchical-memory-system.md
 __prefix__: d
-__index__: 25
+__index__: 26
 __ptype__: decisions
 ---
 # Hierarchical Memory Consolidation System
@@ -1514,11 +1566,11 @@ tags:
 - knowledge-graph
 - primitives
 - relationships
-__coord__: d26
+__coord__: d27
 __slug__: incremental-relationship-mapping-via-pairwise-opus-comparison
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/incremental-relationship-mapping-via-pairwise-opus-comparison.md
 __prefix__: d
-__index__: 26
+__index__: 27
 __ptype__: decisions
 ---
 # Incremental Relationship Mapping via Pairwise Opus Comparison
@@ -1568,11 +1620,11 @@ tags:
 - ux
 - belam
 superseded_by: decision/codex-engine-v1-architecture
-__coord__: d27
+__coord__: d28
 __slug__: indexed-command-interface
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/indexed-command-interface.md
 __prefix__: d
-__index__: 27
+__index__: 28
 __ptype__: decisions
 ---
 # Indexed Command Interface as Default R UX
@@ -1645,11 +1697,11 @@ tags:
 - pipeline
 - infrastructure
 - local-analysis
-__coord__: d28
+__coord__: d29
 __slug__: infra-pipelines-use-local-analysis
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/infra-pipelines-use-local-analysis.md
 __prefix__: d
-__index__: 28
+__index__: 29
 __ptype__: decisions
 ---
 # infra-pipelines-use-local-analysis
@@ -1693,11 +1745,11 @@ tags:
 - diff
 - token-efficiency
 - architecture
-__coord__: d29
+__coord__: d30
 __slug__: inter-agent-diff-comms-turn-by-turn
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/inter-agent-diff-comms-turn-by-turn.md
 __prefix__: d
-__index__: 29
+__index__: 30
 __ptype__: decisions
 ---
 # inter-agent-diff-comms-turn-by-turn
@@ -1737,11 +1789,11 @@ tags:
 - legendary-map
 - supermap
 - architecture
-__coord__: d30
+__coord__: d31
 __slug__: legendary-map-as-lm-namespace-on-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/legendary-map-as-lm-namespace-on-supermap.md
 __prefix__: d
-__index__: 30
+__index__: 31
 __ptype__: decisions
 ---
 # legendary-map-as-lm-namespace-on-supermap
@@ -1775,11 +1827,11 @@ tags:
 upstream:
 - decision/codex-engine-v1-architecture
 downstream: []
-__coord__: d31
+__coord__: d32
 __slug__: live-diff-streaming-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/live-diff-streaming-architecture.md
 __prefix__: d
-__index__: 31
+__index__: 32
 __ptype__: decisions
 ---
 # Live Diff Streaming Architecture
@@ -2011,11 +2063,11 @@ tags:
 - codex-engine
 - token-efficiency
 - design
-__coord__: d32
+__coord__: d33
 __slug__: lm-design-tool-patterns-navigable-runnable
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-design-tool-patterns-navigable-runnable.md
 __prefix__: d
-__index__: 32
+__index__: 33
 __ptype__: decisions
 ---
 # lm-design-tool-patterns-navigable-runnable
@@ -2056,11 +2108,11 @@ tags:
 - dot-syntax
 - coordinate-grammar
 - codex-engine
-__coord__: d33
+__coord__: d34
 __slug__: lm-dot-syntax-workflow-hierarchy
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-dot-syntax-workflow-hierarchy.md
 __prefix__: d
-__index__: 33
+__index__: 34
 __ptype__: decisions
 ---
 # lm-dot-syntax-workflow-hierarchy
@@ -2098,11 +2150,11 @@ tags:
 - infrastructure
 - coordinate-system
 - scaffold
-__coord__: d34
+__coord__: d35
 __slug__: lm-v2-task-coordinate-native-launch-and-scaffold
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-v2-task-coordinate-native-launch-and-scaffold.md
 __prefix__: d
-__index__: 34
+__index__: 35
 __ptype__: decisions
 ---
 # lm-v2-task-coordinate-native-launch-and-scaffold
@@ -2145,11 +2197,11 @@ tags:
 - orchestration
 - concurrency
 - gate
-__coord__: d35
+__coord__: d36
 __slug__: max-concurrent-pipelines-increased-to-2
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/max-concurrent-pipelines-increased-to-2.md
 __prefix__: d
-__index__: 35
+__index__: 36
 __ptype__: decisions
 ---
 # max-concurrent-pipelines-increased-to-2
@@ -2204,11 +2256,11 @@ downstream:
 - memory/2026-03-18_203356_memory-hierarchy-now-indexed-as-primitiv
 - task/build-codex-engine
 - decision/codex-engine-v1-architecture
-__coord__: d36
+__coord__: d37
 __slug__: memory-as-index-not-store
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-as-index-not-store.md
 __prefix__: d
-__index__: 36
+__index__: 37
 __ptype__: decisions
 ---
 # Decision: MEMORY.md as Boot Index, Not Knowledge Store
@@ -2235,11 +2287,11 @@ downstream:
 upstream:
 - decision/memory-as-index-not-store
 - memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe
-__coord__: d37
+__coord__: d38
 __slug__: memory-as-primitive-type
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-as-primitive-type.md
 __prefix__: d
-__index__: 37
+__index__: 38
 __ptype__: decisions
 ---
 # Decision: Memory Hierarchy as Primitive Type
@@ -2285,11 +2337,11 @@ tags:
 - memory-extract
 - session-memory
 - error-handling
-__coord__: d38
+__coord__: d39
 __slug__: memory-extract-hook-error-handling-fix
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-extract-hook-error-handling-fix.md
 __prefix__: d
-__index__: 38
+__index__: 39
 __ptype__: decisions
 ---
 # memory-extract-hook-error-handling-fix
@@ -2343,11 +2395,11 @@ downstream:
 - memory/2026-03-18_233943_built-phase-1-revision-system-new-stages
 - lesson/openclaw-agent-routes-to-active-session
 - memory/2026-03-17_033425_all-three-agents-architect-critic-builde
-__coord__: d39
+__coord__: d40
 __slug__: orchestration-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/orchestration-architecture.md
 __prefix__: d
-__index__: 39
+__index__: 40
 __ptype__: decisions
 ---
 # Decision: Centralized Orchestration Architecture
@@ -2424,11 +2476,11 @@ tags:
 - pipeline
 - infrastructure
 - architecture
-__coord__: d40
+__coord__: d41
 __slug__: orchestration-fire-and-forget-dispatch
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/orchestration-fire-and-forget-dispatch.md
 __prefix__: d
-__index__: 40
+__index__: 41
 __ptype__: decisions
 ---
 # orchestration-fire-and-forget-dispatch
@@ -2467,11 +2519,11 @@ tags:
 - output-codec
 - coordinate-grammar
 - architecture
-__coord__: d41
+__coord__: d42
 __slug__: output-codec-coordinate-compression
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/output-codec-coordinate-compression.md
 __prefix__: d
-__index__: 41
+__index__: 42
 __ptype__: decisions
 ---
 # output-codec-coordinate-compression
@@ -2514,11 +2566,11 @@ upstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
 downstream:
 - memory/2026-03-17_134119_phase-2-cold-start-protocol-agent-contex
-__coord__: d42
+__coord__: d43
 __slug__: phase2-human-gate
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/phase2-human-gate.md
 __prefix__: d
-__index__: 42
+__index__: 43
 __ptype__: decisions
 ---
 # Phase 2 Requires Explicit Human Approval
@@ -2559,11 +2611,11 @@ tags:
 - pipeline
 - convention
 - infrastructure
-__coord__: d43
+__coord__: d44
 __slug__: pipeline-builds-per-version-subdirectory
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-builds-per-version-subdirectory.md
 __prefix__: d
-__index__: 43
+__index__: 44
 __ptype__: decisions
 ---
 # Pipeline Builds: Per-Version Subdirectories
@@ -2637,11 +2689,11 @@ tags:
 - plugin
 - supermap
 - prompt-optimization
-__coord__: d44
+__coord__: d45
 __slug__: pipeline-context-plugin-retired-supermap-sufficient
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-context-plugin-retired-supermap-sufficient.md
 __prefix__: d
-__index__: 44
+__index__: 45
 __ptype__: decisions
 ---
 # pipeline-context-plugin-retired-supermap-sufficient
@@ -2682,11 +2734,11 @@ tags:
 - orchestration
 - pipeline
 - dedup
-__coord__: d45
+__coord__: d46
 __slug__: pipeline-kick-duplicate-dispatch-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-kick-duplicate-dispatch-guard.md
 __prefix__: d
-__index__: 45
+__index__: 46
 __ptype__: decisions
 ---
 # pipeline-kick-duplicate-dispatch-guard
@@ -2727,11 +2779,11 @@ tags:
 - encoding
 - snn
 - decision
-__coord__: d46
+__coord__: d47
 __slug__: population-coding-over-delta
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/population-coding-over-delta.md
 __prefix__: d
-__index__: 46
+__index__: 47
 __ptype__: decisions
 ---
 # Population Coding Over Delta Encoding (Default)
@@ -2764,11 +2816,11 @@ tags:
 - market-making
 - knowledge
 knowledge: predictionmarket-specialist
-__coord__: d47
+__coord__: d48
 __slug__: predictionmarket-specialist-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/predictionmarket-specialist-skill.md
 __prefix__: d
-__index__: 47
+__index__: 48
 __ptype__: decisions
 ---
 # Decision: Prediction Market Specialist Skill
@@ -2823,11 +2875,11 @@ tags:
 - primitives
 - knowledge-graph
 - conventions
-__coord__: d48
+__coord__: d49
 __slug__: primitive-relationship-graph
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/primitive-relationship-graph.md
 __prefix__: d
-__index__: 48
+__index__: 49
 __ptype__: decisions
 ---
 # Primitive Relationship Graph
@@ -2916,11 +2968,11 @@ cli: R lessons (for infrastructure-related findings)
 downstream:
 - memory/2026-03-17_033419_built-two-major-systems-tonight-1-analys
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d49
+__coord__: d50
 __slug__: quant-infrastructure-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/quant-infrastructure-skill.md
 __prefix__: d
-__index__: 49
+__index__: 50
 __ptype__: decisions
 ---
 # Decision: Quant Infrastructure Skill
@@ -2972,11 +3024,11 @@ tags:
 - workflow
 - knowledge
 knowledge: quant-workflow
-__coord__: d50
+__coord__: d51
 __slug__: quant-workflow-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/quant-workflow-skill.md
 __prefix__: d
-__index__: 50
+__index__: 51
 __ptype__: decisions
 ---
 # Decision: Quant Workflow Skill
@@ -3031,11 +3083,11 @@ tags:
 - R-command
 - context-injection
 - legendary-map
-__coord__: d51
+__coord__: d52
 __slug__: r-command-default-shows-legend-plus-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-command-default-shows-legend-plus-supermap.md
 __prefix__: d
-__index__: 51
+__index__: 52
 __ptype__: decisions
 ---
 # r-command-default-shows-legend-plus-supermap
@@ -3074,11 +3126,11 @@ tags:
 - render-engine
 - cli
 - architecture
-__coord__: d52
+__coord__: d53
 __slug__: r-command-render-layer-cli
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-command-render-layer-cli.md
 __prefix__: d
-__index__: 52
+__index__: 53
 __ptype__: decisions
 ---
 # r-command-render-layer-cli
@@ -3102,6 +3154,56 @@ _What follows from this choice? Trade-offs, risks, next steps._
 ---
 ---
 primitive: decision
+slug: r-f-label-split-by-agent-role
+title: R/F Label Split by Agent Role
+importance: 4
+tags:
+- instance:main
+- render-engine
+- diff
+- cockpit
+- context
+created: 2026-03-23
+__coord__: d54
+__slug__: r-f-label-split-by-agent-role
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-f-label-split-by-agent-role.md
+__prefix__: d
+__index__: 54
+__ptype__: decisions
+---
+# Decision: R/F Label Split by Agent Role
+
+## Context
+The render engine produces two label types on diffs:
+- **R labels**: rendered summary lines (compact, coordinate-level)
+- **F labels**: full file content inline (`F[m1]: | --- | title: ...`)
+
+Previously all agents received R-only labels. With F-label content now stored in DiffEntry, we can choose per-agent.
+
+## Decision
+- **Coordinator (main session)**: R-only diffs. Coordinator needs signal, not content — can `read` any entry that looks relevant.
+- **Pipeline agents** (builder, analyst, etc.): R+F labels by default. These agents benefit from seeing full content of new primitives, experiment results, and file changes inline without extra reads.
+
+## Rationale
+- Coordinator context is precious — F-label content would flood it for every memory extraction
+- Pipeline agents operate in isolated sessions with focused tasks; full content improves their accuracy
+- Memory entries are compact enough that F-labels don't catastrophically blow up pipeline agent context
+- Creates a natural experimentation axis: can tune which agents see full content vs summaries
+
+## Implementation
+Cockpit plugin (`index.ts`) detects agent role:
+- main session → `include_content: false`
+- pipeline/other → `include_content: true`
+
+Render engine `my_diff` and `diff` commands respect `include_content` param.
+
+## Related
+- upstream: codex-cockpit-plugin-architecture
+- upstream: codex-engine-v2-live-diff-architecture
+- upstream: diff-triggered-heartbeat-architecture
+---
+---
+primitive: decision
 status: accepted
 date: 2026-03-22
 context: (add context)
@@ -3118,11 +3220,11 @@ tags:
 - architecture
 - context-injection
 - codex-cockpit
-__coord__: d53
+__coord__: d55
 __slug__: render-engine-as-default-context-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-as-default-context-layer.md
 __prefix__: d
-__index__: 53
+__index__: 55
 __ptype__: decisions
 ---
 # render-engine-as-default-context-layer
@@ -3161,11 +3263,11 @@ tags:
 - render-engine
 - robustness
 - session-startup
-__coord__: d54
+__coord__: d56
 __slug__: render-engine-pid-file-and-force-flag
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-pid-file-and-force-flag.md
 __prefix__: d
-__index__: 54
+__index__: 56
 __ptype__: decisions
 ---
 # render-engine-pid-file-and-force-flag
@@ -3206,11 +3308,11 @@ tags:
 - pipeline
 - run-experiment
 - architecture
-__coord__: d55
+__coord__: d57
 __slug__: run-experiment-phase-flag-for-notebook-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md
 __prefix__: d
-__index__: 55
+__index__: 57
 __ptype__: decisions
 ---
 # run-experiment-phase-flag-for-notebook-cell-targeting
@@ -3251,11 +3353,11 @@ tags:
 - skills
 - knowledge
 - workflow
-__coord__: d56
+__coord__: d58
 __slug__: skill-extraction-from-reports
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-extraction-from-reports.md
 __prefix__: d
-__index__: 56
+__index__: 58
 __ptype__: decisions
 ---
 # Extract Domain Reports Into Skills + Knowledge Files
@@ -3290,11 +3392,11 @@ tags:
 - knowledge-management
 downstream:
 - memory/2026-03-18_192651_convention-established-every-workspace-s
-__coord__: d57
+__coord__: d59
 __slug__: skill-primitive-pairing
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-primitive-pairing.md
 __prefix__: d
-__index__: 57
+__index__: 59
 __ptype__: decisions
 ---
 # Decision: Every Skill Gets a Primitive
@@ -3333,11 +3435,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: d58
+__coord__: d60
 __slug__: stop-auto-logging-pipeline-stage-transitions
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/stop-auto-logging-pipeline-stage-transitions.md
 __prefix__: d
-__index__: 58
+__index__: 60
 __ptype__: decisions
 ---
 # stop-auto-logging-pipeline-stage-transitions
@@ -3376,11 +3478,11 @@ tags:
 - anchor
 - diff
 - cockpit-plugin
-__coord__: d59
+__coord__: d61
 __slug__: supermap-anchor-diff-flags-in-codex-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-anchor-diff-flags-in-codex-engine.md
 __prefix__: d
-__index__: 59
+__index__: 61
 __ptype__: decisions
 ---
 # supermap-anchor-diff-flags-in-codex-engine
@@ -3426,11 +3528,11 @@ tags:
 - legend
 - r-command
 importance: 3
-__coord__: d60
+__coord__: d62
 __slug__: supermap-pure-signal-legend-as-orientation-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-pure-signal-legend-as-orientation-layer.md
 __prefix__: d
-__index__: 60
+__index__: 62
 __ptype__: decisions
 ---
 # supermap-pure-signal-legend-as-orientation-layer
@@ -3477,11 +3579,11 @@ tags:
 - lifecycle
 - boot-optimization
 note: References to embed_primitives.py filtering are stale — codex engine supermap handles boot index filtering
-__coord__: d61
+__coord__: d63
 __slug__: superseded-primitive-lifecycle
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/superseded-primitive-lifecycle.md
 __prefix__: d
-__index__: 61
+__index__: 63
 __ptype__: decisions
 ---
 # Superseded Primitive Lifecycle
@@ -3534,11 +3636,11 @@ tags:
 - experiments
 - builder
 - architecture
-__coord__: d62
+__coord__: d64
 __slug__: supervised-builder-experiments
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supervised-builder-experiments.md
 __prefix__: d
-__index__: 62
+__index__: 64
 __ptype__: decisions
 ---
 # Supervised Builder Agent for Experiment Execution
@@ -3584,11 +3686,11 @@ tags:
 - symbolic-dispatch
 - coordinate-grammar
 - architecture
-__coord__: d63
+__coord__: d65
 __slug__: symbolic-dispatch-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/symbolic-dispatch-architecture.md
 __prefix__: d
-__index__: 63
+__index__: 65
 __ptype__: decisions
 ---
 # symbolic-dispatch-architecture
@@ -3632,11 +3734,11 @@ tags:
 - workflow
 downstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d64
+__coord__: d66
 __slug__: two-phase-backtest-workflow
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/two-phase-backtest-workflow.md
 __prefix__: d
-__index__: 64
+__index__: 66
 __ptype__: decisions
 ---
 # Two-Phase Backtest Workflow
@@ -3660,11 +3762,11 @@ tags:
 - orchestration
 - e0
 - resilience
-__coord__: d65
+__coord__: d67
 __slug__: unclaimed-dispatch-recovery-in-sweep
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/unclaimed-dispatch-recovery-in-sweep.md
 __prefix__: d
-__index__: 65
+__index__: 67
 __ptype__: decisions
 ---
 # unclaimed-dispatch-recovery-in-sweep
@@ -3688,6 +3790,47 @@ _What follows from this choice? Trade-offs, risks, next steps._
 ---
 ---
 primitive: decision
+slug: webhook-hooks-enabled-for-diff-heartbeat
+title: Webhook Hooks Enabled for Diff-Triggered Heartbeat
+importance: 3
+tags:
+- instance:main
+- hooks
+- webhook
+- heartbeat
+- config
+created: 2026-03-23
+__coord__: d68
+__slug__: webhook-hooks-enabled-for-diff-heartbeat
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/webhook-hooks-enabled-for-diff-heartbeat.md
+__prefix__: d
+__index__: 68
+__ptype__: decisions
+---
+# Decision: Webhook Hooks Enabled for Diff-Triggered Heartbeat
+
+## Context
+The diff-triggered heartbeat architecture requires the render engine to POST to `/hooks/wake`. The OpenClaw webhook endpoint was previously disabled (no token set).
+
+## Decision
+Enable webhook hooks in `openclaw.json`:
+- `hooks.enabled: true`
+- `hooks.token`: generated secure random token
+- `hooks.path: /hooks`
+
+Token stored in hooks config, also injected into `codex_render.py` via `_load_hook_config()` which reads the gateway config at startup.
+
+## Rationale
+The `/hooks/wake` endpoint is the cleanest way for an external process (render engine) to inject a system event into the main session. Avoids need for custom IPC or writing to session files directly.
+
+## Security Note
+Token is a 43-char random string. The hooks endpoint is local-only (gateway runs on localhost:18789). Risk is low.
+
+## Related
+- upstream: diff-triggered-heartbeat-architecture
+---
+---
+primitive: decision
 date: 2026-03-23
 status: under-discussion
 upstream:
@@ -3702,11 +3845,11 @@ tags:
 - zoom
 - context-efficiency
 importance: 3
-__coord__: d66
+__coord__: d69
 __slug__: zoom-replaces-supermap-injection-option
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/zoom-replaces-supermap-injection-option.md
 __prefix__: d
-__index__: 66
+__index__: 69
 __ptype__: decisions
 ---
 # zoom-replaces-supermap-injection-option
@@ -10258,243 +10401,78 @@ _When does this lesson apply? What should change going forward?_
 ---
 ---
 primitive: lesson
-title: diff-trigger-test-1
-status: test
-created: 2026-03-23
+slug: diff-updates-are-turn-based-not-mid-turn
+title: Diff Updates Are Turn-Based, Not Mid-Turn
+importance: 3
 tags:
-- test
-- diff-trigger
+- instance:main
+- render-engine
+- diff
+- architecture
+- context
+created: 2026-03-23
 __coord__: l20
-__slug__: diff-trigger-test-1
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-1.md
+__slug__: diff-updates-are-turn-based-not-mid-turn
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-updates-are-turn-based-not-mid-turn.md
 __prefix__: l
 __index__: 20
 __ptype__: lessons
 ---
-# Test Primitive 1
+# Lesson: Diff Updates Are Turn-Based, Not Mid-Turn
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
+## What Happened
+Shael asked whether live diffs would show up mid-session. Clarification was needed on when exactly diffs appear.
+
+## The Pattern
+Diffs from the render engine are **turn-based**, not real-time push:
+
+1. inotify fires → tree updates → diff recorded in engine RAM
+2. Diffs **accumulate** between turns
+3. On the **next turn** (next user message or heartbeat), cockpit's `before_prompt_build` queries `my_diff` via UDS
+4. That turn's context includes all accumulated diffs since last query
+5. There is no mid-turn push — coordinator can't see a diff that arrives while it's generating a response
+
+## Why It Matters
+- Coordinator should not expect to "see" changes while mid-response
+- Diff-triggered heartbeats solve the "no one sent a message" gap, not the mid-turn gap
+- The UDS anchor pattern ensures each session only gets diffs it hasn't seen yet
+
+## Related
+- upstream: codex-engine-v2-live-diff-architecture
+- upstream: diff-triggered-heartbeat-architecture
 ---
 ---
 primitive: lesson
-title: diff-trigger-test-10
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
+date: '2026-03-23'
+source: (add source)
+confidence: '?'
+upstream: []
+downstream: []
+tags: []
 __coord__: l21
-__slug__: diff-trigger-test-10
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-10.md
+__slug__: diffentry-content-field-for-f-label-display
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diffentry-content-field-for-f-label-display.md
 __prefix__: l
 __index__: 21
 __ptype__: lessons
 ---
-# Test Primitive 10
+# diffentry-content-field-for-f-label-display
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289247.00
----
----
-primitive: lesson
-title: diff-trigger-test-11
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l22
-__slug__: diff-trigger-test-11
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-11.md
-__prefix__: l
-__index__: 22
-__ptype__: lessons
----
-# Test Primitive 11
+## Context
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289247.00
----
----
-primitive: lesson
-title: diff-trigger-test-12
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l23
-__slug__: diff-trigger-test-12
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-12.md
-__prefix__: l
-__index__: 23
-__ptype__: lessons
----
-# Test Primitive 12
+_What was happening? What problem or situation triggered this?_
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289247.00
----
----
-primitive: lesson
-title: diff-trigger-test-2
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l24
-__slug__: diff-trigger-test-2
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-2.md
-__prefix__: l
-__index__: 24
-__ptype__: lessons
----
-# Test Primitive 2
+## What Happened
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-3
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l25
-__slug__: diff-trigger-test-3
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-3.md
-__prefix__: l
-__index__: 25
-__ptype__: lessons
----
-# Test Primitive 3
+_Describe the event, experiment, or observation._
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-4
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l26
-__slug__: diff-trigger-test-4
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-4.md
-__prefix__: l
-__index__: 26
-__ptype__: lessons
----
-# Test Primitive 4
+## Lesson
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-5
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l27
-__slug__: diff-trigger-test-5
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-5.md
-__prefix__: l
-__index__: 27
-__ptype__: lessons
----
-# Test Primitive 5
+_The core insight. Single crisp sentence if possible._
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-6
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l28
-__slug__: diff-trigger-test-6
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-6.md
-__prefix__: l
-__index__: 28
-__ptype__: lessons
----
-# Test Primitive 6
+## Application
 
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-7
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l29
-__slug__: diff-trigger-test-7
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-7.md
-__prefix__: l
-__index__: 29
-__ptype__: lessons
----
-# Test Primitive 7
-
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-8
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l30
-__slug__: diff-trigger-test-8
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-8.md
-__prefix__: l
-__index__: 30
-__ptype__: lessons
----
-# Test Primitive 8
-
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
----
----
-primitive: lesson
-title: diff-trigger-test-9
-status: test
-created: 2026-03-23
-tags:
-- test
-- diff-trigger
-__coord__: l31
-__slug__: diff-trigger-test-9
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-trigger-test-9.md
-__prefix__: l
-__index__: 31
-__ptype__: lessons
----
-# Test Primitive 9
-
-This is a test file to trigger the diff-triggered heartbeat.
-Created at 1774289246.99
+_When does this lesson apply? What should change going forward?_
 ---
 ---
 primitive: lesson
@@ -10508,11 +10486,11 @@ tags:
 - pipeline
 - orchestration
 - dispatch
-__coord__: l32
+__coord__: l22
 __slug__: dispatch-claimed-flag-required-for-true-active-check
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dispatch-claimed-flag-required-for-true-active-check.md
 __prefix__: l
-__index__: 32
+__index__: 22
 __ptype__: lessons
 ---
 # dispatch-claimed-flag-required-for-true-active-check
@@ -10550,11 +10528,11 @@ tags:
 - dispatch
 - bug
 importance: 3
-__coord__: l33
+__coord__: l23
 __slug__: dot-syntax-ln-workflow-dispatch-unreachable
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dot-syntax-ln-workflow-dispatch-unreachable.md
 __prefix__: l
-__index__: 33
+__index__: 23
 __ptype__: lessons
 ---
 # dot-syntax-lN-workflow-dispatch-unreachable
@@ -10593,11 +10571,11 @@ tags:
 - e0
 - orchestration
 - pipeline
-__coord__: l34
+__coord__: l24
 __slug__: e0-sweep-routes-through-orchestration-engine-not-autorun
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e0-sweep-routes-through-orchestration-engine-not-autorun.md
 __prefix__: l
-__index__: 34
+__index__: 24
 __ptype__: lessons
 ---
 # e0-sweep-routes-through-orchestration-engine-not-autorun
@@ -10632,11 +10610,11 @@ tags:
 - e2
 - namespace
 - design-pattern
-__coord__: l35
+__coord__: l25
 __slug__: e3-chains-e2-after-namespace-registration
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e3-chains-e2-after-namespace-registration.md
 __prefix__: l
-__index__: 35
+__index__: 25
 __ptype__: lessons
 ---
 # e3-chains-e2-after-namespace-registration
@@ -10669,11 +10647,11 @@ tags:
 - architecture
 applies_to:
 - snn-applied-finance
-__coord__: l36
+__coord__: l26
 __slug__: event-detection-not-state-classification
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/event-detection-not-state-classification.md
 __prefix__: l
-__index__: 36
+__index__: 26
 __ptype__: lessons
 ---
 # Simple SNNs Detect Events, Not States
@@ -10697,11 +10675,11 @@ tags:
 - orchestration
 - pipeline
 - bug-fix
-__coord__: l37
+__coord__: l27
 __slug__: fire-and-forget-dispatch-timeout-1-killed-all-agents
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/fire-and-forget-dispatch-timeout-1-killed-all-agents.md
 __prefix__: l
-__index__: 37
+__index__: 27
 __ptype__: lessons
 ---
 # fire-and-forget-dispatch-timeout-1-killed-all-agents
@@ -10743,11 +10721,11 @@ related:
 - beta-convergence
 - snn-treats-like-weird-cnn
 supersedes: tiny-snn-gpu-parallelism
-__coord__: l38
+__coord__: l28
 __slug__: gpu-parallel-thrashing-t4
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gpu-parallel-thrashing-t4.md
 __prefix__: l
-__index__: 38
+__index__: 28
 __ptype__: lessons
 ---
 # GPU Parallel Worker Thrashing on Tesla T4
@@ -10795,11 +10773,11 @@ tags:
 - r-command
 - design
 importance: 3
-__coord__: l39
+__coord__: l29
 __slug__: guidance-prose-belongs-in-legend-not-supermap-tree
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/guidance-prose-belongs-in-legend-not-supermap-tree.md
 __prefix__: l
-__index__: 39
+__index__: 29
 __ptype__: lessons
 ---
 # guidance-prose-belongs-in-legend-not-supermap-tree
@@ -10835,11 +10813,11 @@ tags:
 - heartbeat
 - lm
 - coordinate-grammar
-__coord__: l40
+__coord__: l30
 __slug__: heartbeat-md-contaminates-manual-session-behavior
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/heartbeat-md-contaminates-manual-session-behavior.md
 __prefix__: l
-__index__: 40
+__index__: 30
 __ptype__: lessons
 ---
 # heartbeat-md-contaminates-manual-session-behavior
@@ -10878,11 +10856,11 @@ tags:
 - bug
 - regex
 importance: 3
-__coord__: l41
+__coord__: l31
 __slug__: is-coordinate-single-char-prefix-limitation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/is-coordinate-single-char-prefix-limitation.md
 __prefix__: l
-__index__: 41
+__index__: 31
 __ptype__: lessons
 ---
 # is-coordinate-single-char-prefix-limitation
@@ -10917,11 +10895,11 @@ tags:
 - launch
 - imports
 - scripting
-__coord__: l42
+__coord__: l32
 __slug__: launch-pipeline-kickoff-path-had-stale-imports
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/launch-pipeline-kickoff-path-had-stale-imports.md
 __prefix__: l
-__index__: 42
+__index__: 32
 __ptype__: lessons
 ---
 # launch-pipeline-kickoff-path-had-stale-imports
@@ -10955,11 +10933,11 @@ tags:
 - commands
 - primitives
 - cleanup
-__coord__: l43
+__coord__: l33
 __slug__: legacy-view-command-primitives-redundant-after-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/legacy-view-command-primitives-redundant-after-engine.md
 __prefix__: l
-__index__: 43
+__index__: 33
 __ptype__: lessons
 ---
 # legacy-view-command-primitives-redundant-after-engine
@@ -10992,11 +10970,11 @@ tags:
 - lm
 - coordinate-grammar
 - ux
-__coord__: l44
+__coord__: l34
 __slug__: lm-entries-must-be-compelling-to-displace-raw-scripts
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/lm-entries-must-be-compelling-to-displace-raw-scripts.md
 __prefix__: l
-__index__: 44
+__index__: 34
 __ptype__: lessons
 ---
 # lm-entries-must-be-compelling-to-displace-raw-scripts
@@ -11032,11 +11010,11 @@ tags:
 upstream:
 - infra-pipelines-use-local-analysis
 downstream: []
-__coord__: l45
+__coord__: l35
 __slug__: local-analysis-is-pipeline-type-agnostic
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/local-analysis-is-pipeline-type-agnostic.md
 __prefix__: l
-__index__: 45
+__index__: 35
 __ptype__: lessons
 ---
 # local-analysis-is-pipeline-type-agnostic
@@ -11075,11 +11053,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: l46
+__coord__: l36
 __slug__: memory-entries-capture-events-not-state
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-entries-capture-events-not-state.md
 __prefix__: l
-__index__: 46
+__index__: 36
 __ptype__: lessons
 ---
 # memory-entries-capture-events-not-state
@@ -11113,11 +11091,11 @@ tags:
 - memory-extract
 - bash
 - session-files
-__coord__: l47
+__coord__: l37
 __slug__: memory-extract-hook-session-file-detection-mismatch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extract-hook-session-file-detection-mismatch.md
 __prefix__: l
-__index__: 47
+__index__: 37
 __ptype__: lessons
 ---
 # memory-extract-hook-session-file-detection-mismatch
@@ -11151,11 +11129,11 @@ tags:
 - sage
 - design
 - extraction-limits
-__coord__: l48
+__coord__: l38
 __slug__: memory-extraction-misses-design-convergence-in-conversation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extraction-misses-design-convergence-in-conversation.md
 __prefix__: l
-__index__: 48
+__index__: 38
 __ptype__: lessons
 ---
 # memory-extraction-misses-design-convergence-in-conversation
@@ -11188,11 +11166,11 @@ tags:
 - pipeline
 - experiments
 - notebooks
-__coord__: l49
+__coord__: l39
 __slug__: notebook-runs-need-phase-aware-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/notebook-runs-need-phase-aware-cell-targeting.md
 __prefix__: l
-__index__: 49
+__index__: 39
 __ptype__: lessons
 ---
 # notebook-runs-need-phase-aware-cell-targeting
@@ -11227,11 +11205,11 @@ tags:
 - agents
 - openclaw
 - session-routing
-__coord__: l50
+__coord__: l40
 __slug__: openclaw-agent-routes-to-active-session
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-agent-routes-to-active-session.md
 __prefix__: l
-__index__: 50
+__index__: 40
 __ptype__: lessons
 ---
 # openclaw agent CLI Routes to Active Session, Not Isolated
@@ -11267,11 +11245,11 @@ tags:
 - context
 - boot
 - infrastructure
-__coord__: l51
+__coord__: l41
 __slug__: openclaw-fixed-context-injection-list
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-fixed-context-injection-list.md
 __prefix__: l
-__index__: 51
+__index__: 41
 __ptype__: lessons
 ---
 # openclaw-fixed-context-injection-list
@@ -11306,11 +11284,11 @@ tags:
 - plugin-sdk
 - before_prompt_build
 - codex-cockpit
-__coord__: l52
+__coord__: l42
 __slug__: openclaw-plugin-definepluginentry-import-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-plugin-definepluginentry-import-path.md
 __prefix__: l
-__index__: 52
+__index__: 42
 __ptype__: lessons
 ---
 # openclaw-plugin-definePluginEntry-import-path
@@ -11360,11 +11338,11 @@ tags:
 - pipeline
 - sessions_spawn
 - dispatch
-__coord__: l53
+__coord__: l43
 __slug__: orchestration-dispatch-payload-spawn-relay
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-dispatch-payload-spawn-relay.md
 __prefix__: l
-__index__: 53
+__index__: 43
 __ptype__: lessons
 ---
 # orchestration-dispatch-payload-spawn-relay
@@ -11406,11 +11384,11 @@ tags:
 - self-reference
 - infrastructure
 - meta
-__coord__: l54
+__coord__: l44
 __slug__: orchestration-engine-v1-self-built-through-legacy-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-engine-v1-self-built-through-legacy-pipeline.md
 __prefix__: l
-__index__: 54
+__index__: 44
 __ptype__: lessons
 ---
 # orchestration-engine-v1-self-built-through-legacy-pipeline
@@ -11452,11 +11430,11 @@ tags:
 - validation
 applies_to:
 - snn-applied-finance
-__coord__: l55
+__coord__: l45
 __slug__: per-fold-significance-tests-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/per-fold-significance-tests-required.md
 __prefix__: l
-__index__: 55
+__index__: 45
 __ptype__: lessons
 ---
 # Per-Fold Significance Tests and Permutation Tests Are Required
@@ -11483,11 +11461,11 @@ tags:
 - ablation
 - equilibrium
 - phasic
-__coord__: l56
+__coord__: l46
 __slug__: phasic-only-ablation-wins-equilibrium
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/phasic-only-ablation-wins-equilibrium.md
 __prefix__: l
-__index__: 56
+__index__: 46
 __ptype__: lessons
 ---
 # Phasic-Only Ablation Wins in Equilibrium SNN
@@ -11534,11 +11512,11 @@ tags:
 - instance:main
 - tooling
 - monitoring
-__coord__: l57
+__coord__: l47
 __slug__: pipeline-dashboard-watch-flag-vs-linux-watch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-dashboard-watch-flag-vs-linux-watch.md
 __prefix__: l
-__index__: 57
+__index__: 47
 __ptype__: lessons
 ---
 # pipeline-dashboard-watch-flag-vs-linux-watch
@@ -11572,11 +11550,11 @@ tags:
 - pipeline
 - infrastructure
 - hanging
-__coord__: l58
+__coord__: l48
 __slug__: pipeline-orchestrate-blocking-agent-wake
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-orchestrate-blocking-agent-wake.md
 __prefix__: l
-__index__: 58
+__index__: 48
 __ptype__: lessons
 ---
 # pipeline-orchestrate-blocking-agent-wake
@@ -11610,11 +11588,11 @@ tags:
 - pipeline
 - bug
 - infrastructure
-__coord__: l59
+__coord__: l49
 __slug__: pipeline-state-json-not-synced-on-archive
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-json-not-synced-on-archive.md
 __prefix__: l
-__index__: 59
+__index__: 49
 __ptype__: lessons
 ---
 # pipeline-state-json-not-synced-on-archive
@@ -11647,11 +11625,11 @@ tags:
 - pipeline
 - state-json
 - orchestration
-__coord__: l60
+__coord__: l50
 __slug__: pipeline-state-pending-action-is-agent-role-not-stage-name
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-pending-action-is-agent-role-not-stage-name.md
 __prefix__: l
-__index__: 60
+__index__: 50
 __ptype__: lessons
 ---
 # pipeline-state-pending-action-is-agent-role-not-stage-name
@@ -11686,11 +11664,11 @@ tags:
 applies_to:
 - pipeline_update.py
 - pipeline primitives
-__coord__: l61
+__coord__: l51
 __slug__: pipeline-table-separator-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-table-separator-required.md
 __prefix__: l
-__index__: 61
+__index__: 51
 __ptype__: lessons
 ---
 # Pipeline Table Separator Required for Update Script
@@ -11729,11 +11707,11 @@ tags:
 - openclaw
 - config
 - infrastructure
-__coord__: l62
+__coord__: l52
 __slug__: plugin-allowlist-must-be-updated-on-plugin-retire
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md
 __prefix__: l
-__index__: 62
+__index__: 52
 __ptype__: lessons
 ---
 # plugin-allowlist-must-be-updated-on-plugin-retire
@@ -11768,11 +11746,11 @@ tags:
 - commands
 - architecture
 - primitives
-__coord__: l63
+__coord__: l53
 __slug__: plugins-have-presence-commands-are-fire-and-forget
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugins-have-presence-commands-are-fire-and-forget.md
 __prefix__: l
-__index__: 63
+__index__: 53
 __ptype__: lessons
 ---
 # plugins-have-presence-commands-are-fire-and-forget
@@ -11808,11 +11786,11 @@ tags:
 - lm
 - boot
 - scaffold
-__coord__: l64
+__coord__: l54
 __slug__: r0-scaffold-as-lightweight-coordinate-mode-nudge
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md
 __prefix__: l
-__index__: 64
+__index__: 54
 __ptype__: lessons
 ---
 # r0-scaffold-as-lightweight-coordinate-mode-nudge
@@ -11847,11 +11825,11 @@ tags:
 - context-injection
 - architecture
 - llm-context
-__coord__: l65
+__coord__: l55
 __slug__: render-engine-agents-are-in-it-not-calling-it
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-agents-are-in-it-not-calling-it.md
 __prefix__: l
-__index__: 65
+__index__: 55
 __ptype__: lessons
 ---
 # render-engine-agents-are-in-it-not-calling-it
@@ -11885,11 +11863,11 @@ tags:
 - render-engine
 - session-startup
 - robustness
-__coord__: l66
+__coord__: l56
 __slug__: render-engine-zombie-blocks-session-startup
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-zombie-blocks-session-startup.md
 __prefix__: l
-__index__: 66
+__index__: 56
 __ptype__: lessons
 ---
 # render-engine-zombie-blocks-session-startup
@@ -11926,11 +11904,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l67
+__coord__: l57
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 67
+__index__: 57
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -11963,11 +11941,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l68
+__coord__: l58
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 68
+__index__: 58
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -12014,11 +11992,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l69
+__coord__: l59
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 69
+__index__: 59
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -12058,11 +12036,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l70
+__coord__: l60
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 70
+__index__: 60
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -12098,11 +12076,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l71
+__coord__: l61
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 71
+__index__: 61
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -12139,11 +12117,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l72
+__coord__: l62
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 72
+__index__: 62
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -12167,11 +12145,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l73
+__coord__: l63
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 73
+__index__: 63
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -12204,11 +12182,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l74
+__coord__: l64
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 74
+__index__: 64
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -12253,11 +12231,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l75
+__coord__: l65
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 75
+__index__: 65
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -12289,11 +12267,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l76
+__coord__: l66
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 76
+__index__: 66
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -12342,11 +12320,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l77
+__coord__: l67
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 77
+__index__: 67
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -12368,11 +12346,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l78
+__coord__: l68
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 78
+__index__: 68
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -12405,11 +12383,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l79
+__coord__: l69
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 79
+__index__: 69
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -12433,11 +12411,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l80
+__coord__: l70
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 80
+__index__: 70
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -12475,11 +12453,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l81
+__coord__: l71
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 81
+__index__: 71
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -12531,11 +12509,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l82
+__coord__: l72
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 82
+__index__: 72
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -12570,11 +12548,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l83
+__coord__: l73
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 83
+__index__: 73
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -12604,11 +12582,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l84
+__coord__: l74
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 84
+__index__: 74
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -12656,11 +12634,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l85
+__coord__: l75
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 85
+__index__: 75
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -12697,11 +12675,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l86
+__coord__: l76
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 86
+__index__: 76
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -12735,11 +12713,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l87
+__coord__: l77
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 87
+__index__: 77
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -16931,6 +16909,37 @@ Render engine zombie process bug diagnosed and fixed. Shael asked if agent prope
 *Tags: instance:main, render-engine, codex-cockpit, robustness, session-startup*
 ---
 ---
+primitive: memory_log
+timestamp: '2026-03-23T18:12:48Z'
+category: event
+importance: 4
+tags:
+- instance:main
+- render-engine
+- diff
+- heartbeat
+- architecture
+source: session
+content: 'Diff-triggered heartbeats and R/F label split implemented. HeartbeatTrigger thread added to codex_render.py: polls every 5s, fires POST to /hooks/wake when 10+ F-label diffs accumulate. Coordinator (main) gets R-only diffs; pipeline agents get R+F. DiffEntry.content field added. Cockpit plugin updated with include_content by agent role. Webhook hooks endpoint enabled. Committed ceb8d260 to belam-codex.'
+status: active
+__coord__: m129
+__slug__: 2026-03-23_181248_diff-triggered-heartbeats-and-rf-label-s
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_181248_diff-triggered-heartbeats-and-rf-label-s.md
+__prefix__: m
+__index__: 129
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-23T18:12:48Z** · `event` · importance 4/5
+
+Diff-triggered heartbeats and R/F label split implemented. HeartbeatTrigger thread added to codex_render.py: polls every 5s, fires POST to /hooks/wake when 10+ F-label diffs accumulate. Coordinator (main) gets R-only diffs; pipeline agents get R+F. DiffEntry.content field added. Cockpit plugin updated with include_content by agent role. Webhook hooks endpoint enabled. Committed ceb8d260 to belam-codex.
+
+---
+*Source: session*
+*Tags: instance:main, render-engine, diff, heartbeat, architecture*
+---
+---
 __coord__: md1
 __slug__: '2026-03-24'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-24.md
@@ -17882,6 +17891,18 @@ Short session (~12 min). Shael asked whether the agent uses the render engine on
 
 - **[★★★★☆]** Render engine zombie process bug diagnosed and fixed. Shael asked if agent properly spawns into render engine on new sessions. Investigation revealed zombie processes from prior sessions blocked fresh engine starts (socket held by dead process). Fixed codex_render.py: (1) PID file written to .codex_runtime/render.pid on start/cleaned on stop, (2) --force CLI flag: sends stop via UDS, waits, kills by PID if needed (verifies /proc/{pid}/cmdline), (3) stale PID cleanup on startup if socket gone but PID file exists. Cockpit plugin updated to pass --force on ensureRenderEngine() and poll socket up to 3s. Committed to belam-codex master (a04ea56f).
   *tags: instance:main, render-engine, codex-cockpit, robustness, session-startup*
+
+---
+
+## 2026-03-23T18:12:48Z — event ⚡⚡⚡⚡
+
+Diff-triggered heartbeats and R/F label split implemented. HeartbeatTrigger thread added to codex_render.py: polls every 5s, fires POST to /hooks/wake when 10+ F-label diffs accumulate. Coordinator (main) gets R-only diffs; pipeline agents get R+F. DiffEntry.content field added. Cockpit plugin updated with include_content by agent role. Webhook hooks endpoint enabled. Committed ceb8d260 to belam-codex.
+
+*Tags: instance:main, render-engine, diff, heartbeat, architecture*
+
+*Source: session*
+
+*Entry: `2026-03-23_181248_diff-triggered-heartbeats-and-rf-label-s.md`*
 
 ---
 ---
@@ -23163,7 +23184,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 ---
 ---
 primitive: pipeline
-status: experiment_running
+status: experiment_complete
 priority: high
 type: research
 version: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
@@ -23210,6 +23231,7 @@ _Architect designs → Critic reviews → Builder implements_
 | phase1_complete | 2026-03-23 | architect | Phase 1 COMPLETE. Critic code review APPROVED after BLOCK-1 fix (energy.detach() for TBPTT graph accumulation). All 4 design FLAGs resolved. 29-cell notebook: LimbicRewardModule (differentiable energy pool + loss/threshold modulation), 9 limbic variants + 3 baselines = 120 runs across 10 folds. ~6h CPU, ~1.5h GPU. Key fix: energy state must be detached between TBPTT chunks to prevent unbounded computation graph growth. Notebook ready for Colab execution. Awaiting Shael review for Phase 2 direction. |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842116, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842351, mode: supervised) |
+| local_experiment_running | 2026-03-23 | builder | RESULTS: 12 experiments (9 SNN + 3 baselines), dry-run CPU with synthetic data. All SNN variants (LR-BASE through LR-08) produce identical results: acc=50.4%, SR=+0.46, turnover=0.0, entropy=1.0. Limbic modulation has ZERO observable effect — consistent with energy-detach pattern (reward_sensitivity receives no gradient). Model converges to constant prediction on 5 epochs/synthetic data. BL-02 (logistic) best acc 53.0%. Bug fixed: snntorch threshold is Buffer, requires fill_() not float assignment. Needs real data + full epochs for meaningful limbic comparison. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
@@ -24480,6 +24502,7 @@ _Architect designs → Critic reviews → Builder implements_
 | local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/ |
 | local_analysis_architect | 2026-03-23 | architect | Analysis complete: Phase 1+2 combined report. Phase 1 (10 folds): Signal validated — accuracy lift p=0.001, gross Sharpe +2.66 (p<0.0001). Net Sharpe +0.40 but CI includes zero. Turnover explains 92% of net Sharpe variance (r=-0.96). CTRL-01 (Scheme 0) highest accuracy (54.11%) but lower gross Sharpe than Scheme B — accuracy-Sharpe disconnect. Abstention falsified (active accuracy < full accuracy). Phase 2 (3 folds — UNDERPOWERED): TURN-01 destroys accuracy (dead end). TURN-02b (min hold=4) best variant (+0.43 Sharpe, turnover 0.10). TURN-03 misleading (zero turnover = static position). Position sizing ineffective (uncalibrated confidence). Break-even: 40 bps for TURN-02b. 6 scripts specified for deeper analysis. |
 | local_analysis_critic_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (2 MED, 1 LOW). All numbers verified against raw pkl. FLAG-1 MED: Active trading (Sharpe +0.40) UNDERPERFORMS buy-and-hold (Sharpe +0.92) — must state in executive summary. FLAG-2 MED: Phase 2 baseline accuracy drop (53.47→51.33%) unverified against same folds from Phase 1. FLAG-3 LOW: TURN-03 identical results across alpha values — check if raw prediction magnitudes near-degenerate. Key confirmations: turnover-Sharpe r=-0.96 verified, TURN-01 failure confirms shuffled-batch FLAG, POS invariance confirms Kelly FLAG. Proposed regime filter reframe: use SNN as long/flat filter instead of active trader. |
+| local_analysis_builder | 2026-03-23 | builder | All 3 critic FLAGs addressed + scripts 3-6 implemented and run. FLAG-1: Active trading SR +0.40 vs buy-and-hold SR +0.92 — gap of -0.52 now stated in executive summary. BH wins 7/10 folds. FLAG-2: Phase 2 baseline drop is synthetic vs real data difference (all 3 folds >1pp gap). FLAG-3: Predictions biased 92-97% positive in 2/3 folds — synthetic upward drift artifact, confirms TURN-03 identical results expected. Script 3: flip/hold ratio 1.23 (SNN flips on high-vol, good). Script 4: optimal hold N=5 (20h), smooth Sharpe curve. Script 5: TURN-02b break-even at 24 bps (2.4x margin over institutional). Script 6: no temporal trend, turnover dominates. Regime filter analysis: needs real data (biased predictions on synthetic data make L/F = L/S). Updated executive summary and produced critic_followup_report.md. |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_

@@ -1,0 +1,18 @@
+{
+  "version": "limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network",
+  "stages": {
+    "local_experiment_running": {
+      "status": "complete",
+      "completed_at": "2026-03-23 18:09",
+      "agent": "builder",
+      "notes": "RESULTS: 12 experiments (9 SNN + 3 baselines), dry-run CPU with synthetic data. All SNN variants (LR-BASE through LR-08) produce identical results: acc=50.4%, SR=+0.46, turnover=0.0, entropy=1.0. Limbic modulation has ZERO observable effect \u2014 consistent with energy-detach pattern (reward_sensitivity receives no gradient). Model converges to constant prediction on 5 epochs/synthetic data. BL-02 (logistic) best acc 53.0%. Bug fixed: snntorch threshold is Buffer, requires fill_() not float assignment. Needs real data + full epochs for meaningful limbic comparison."
+    }
+  },
+  "phase1": {
+    "stage": "local_experiment_running"
+  },
+  "last_updated": "2026-03-23 18:09",
+  "pending_action": "local_experiment_complete",
+  "status": "experiment_complete",
+  "status_updated": "2026-03-23 18:09"
+}

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: experiment_running
+status: experiment_complete
 priority: high
 type: research
 version: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
@@ -37,6 +37,7 @@ _Architect designs → Critic reviews → Builder implements_
 | phase1_complete | 2026-03-23 | architect | Phase 1 COMPLETE. Critic code review APPROVED after BLOCK-1 fix (energy.detach() for TBPTT graph accumulation). All 4 design FLAGs resolved. 29-cell notebook: LimbicRewardModule (differentiable energy pool + loss/threshold modulation), 9 limbic variants + 3 baselines = 120 runs across 10 folds. ~6h CPU, ~1.5h GPU. Key fix: energy state must be detached between TBPTT chunks to prevent unbounded computation graph growth. Notebook ready for Colab execution. Awaiting Shael review for Phase 2 direction. |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842116, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842351, mode: supervised) |
+| local_experiment_running | 2026-03-23 | builder | RESULTS: 12 experiments (9 SNN + 3 baselines), dry-run CPU with synthetic data. All SNN variants (LR-BASE through LR-08) produce identical results: acc=50.4%, SR=+0.46, turnover=0.0, entropy=1.0. Limbic modulation has ZERO observable effect — consistent with energy-detach pattern (reward_sensitivity receives no gradient). Model converges to constant prediction on 5 epochs/synthetic data. BL-02 (logistic) best acc 53.0%. Bug fixed: snntorch threshold is Buffer, requires fill_() not float assignment. Needs real data + full epochs for meaningful limbic comparison. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

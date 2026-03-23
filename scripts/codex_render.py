@@ -2156,13 +2156,26 @@ class CodexRenderEngine:
                 self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
 
         elif event_type == 'created':
-            # FLAG-3: CREATE → reindex namespace (new file shifts coordinates)
-            prefix = self.tree._filepath_to_prefix(filepath)
-            if prefix:
-                diff_entry = self.tree._reindex_single_new(filepath, prefix)
-                if diff_entry:
-                    self.diff_engine.record(diff_entry, tree=self.tree)
-                    self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
+            fp_str = str(filepath)
+            # Check if a previous reindex in this flush batch already indexed this file
+            existing_coord = self.tree._filepath_to_coord.get(fp_str)
+            if existing_coord and existing_coord in self.tree.nodes:
+                # Already indexed — emit an 'added' diff from the existing node
+                node = self.tree.nodes[existing_coord]
+                diff_entry = DiffEntry(
+                    kind='added', coord=existing_coord, slug=node.slug,
+                    timestamp=time.time(), content=node.raw_text or '',
+                )
+                self.diff_engine.record(diff_entry)
+                self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
+            else:
+                # FLAG-3: CREATE → reindex namespace (new file shifts coordinates)
+                prefix = self.tree._filepath_to_prefix(filepath)
+                if prefix:
+                    diff_entry = self.tree._reindex_single_new(filepath, prefix)
+                    if diff_entry:
+                        self.diff_engine.record(diff_entry, tree=self.tree)
+                        self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
 
         elif event_type == 'deleted':
             diff = self.tree.apply_deletion(filepath)

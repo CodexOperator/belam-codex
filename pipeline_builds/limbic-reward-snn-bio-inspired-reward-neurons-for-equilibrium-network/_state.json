@@ -58,8 +58,8 @@
   },
   "status": "phase1_complete",
   "status_updated": "2026-03-23 11:27",
-  "current_agent": "phase2_architect_design",
-  "last_dispatched": "2026-03-23T10:43:59.108711+00:00",
+  "current_agent": "local_experiment_complete",
+  "last_dispatched": "2026-03-23T18:09:47.102752+00:00",
   "dispatch_claimed": false,
   "phase1": {
     "stage": "local_experiment_running",
