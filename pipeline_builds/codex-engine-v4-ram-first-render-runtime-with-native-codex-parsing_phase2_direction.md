@@ -1,61 +1,109 @@
-# Phase 2 Direction: Persistent Agent Sessions via Render Engine
+# Phase 2 Direction: Stage-Based Agent Sessions via Render Engine
 
 ## Context
 
-Phase 1 delivered the RAM-first render runtime: UDS socket, cockpit plugin with per-session diffs, write-through cache, per-node locking. But agents are still spawned as one-shot sessions with full context injection each time. The render engine holds authoritative state in RAM but agents don't live inside it — they get snapshots injected into their prompts.
+Phase 1 delivered the RAM-first render runtime: UDS socket, cockpit plugin with per-session diffs, write-through cache, per-node locking. But agents are still spawned as one-shot sessions with full context injection each time — no ping-pong, no iterative review. The render engine holds authoritative state in RAM but agents don't live inside it.
 
 ## Phase 2 Goal
 
-**Agents become persistent UDS sessions attached to the render engine.** They stay attached throughout a pipeline phase (architect → critic → builder → critic) until the phase gate clears (e.g. "code review approved"). The render engine is both shared state and communication channel.
+**Each pipeline stage gets a shared conversation session, like a chat room.** Agents join and leave based on the stage lifecycle. The render engine provides state continuity between stages; the session provides conversation continuity within a stage. Sessions are terminated and fresh ones spawned at each stage boundary.
+
+## Session Lifecycle Model
+
+### Stage 1: Architect Design
+```
+Session A created by orchestrator
+  → architect attaches (solo)
+  → architect reads tree, designs, writes design to tree
+  → architect signals "ready for review"
+  → session expands: critic joins
+  → critic gets: full tree state + design artifacts
+  → architect ↔ critic ping-pong (revisions, clarifications, FLAG resolution)
+  → critic signals APPROVED
+  → Session A terminated
+```
+
+### Stage 2: Builder Implementation
+```
+Session B created by orchestrator
+  → builder attaches (solo)
+  → builder reads tree (sees design from Stage 1 — tree persisted)
+  → builder implements, writes code to tree
+  → builder signals "ready for review"
+  → session expands: critic joins fresh
+  → critic gets: full tree state + implementation diff since design
+  → builder ↔ critic ping-pong (FLAG fixes, revision requests)
+  → critic signals APPROVED
+  → Session B terminated
+  → Phase gate: phase1_complete
+```
+
+### Key Properties
+- **2 agents max per session** (architect+critic OR builder+critic)
+- **Critic always joins fresh** — cold context injection per stage (mirrors real code review)
+- **Tree is continuity** — design decisions persist in RAM across sessions
+- **Conversation is disposable** — each stage starts clean, no token debt from prior stages
+- **Orchestrator manages lifecycle** — creates sessions, routes signals, terminates on approval
 
 ## Deliverables
 
-### D1: Persistent Agent Session Manager
-Extend the render engine's SessionManager to support named persistent sessions (not just anonymous cockpit sessions). Each pipeline agent role gets a named session (`architect`, `critic`, `builder`) that persists across orchestrator signals.
+### D1: Stage Session Manager (render engine extension)
+Extend render engine SessionManager to support orchestrated stage sessions:
 
-- `attach {agent: "architect", pipeline: "v4", persistent: true}` → returns session_id, stays alive
-- Session tracks: last anchor, last activity, pipeline context
-- Idle sessions are kept alive but cost nothing (no LLM tokens, just a UDS entry)
+- `create_stage_session(pipeline, stage, initial_agent)` → session_id
+- `join_session(session_id, agent)` → attaches agent, injects tree state + stage context
+- `terminate_session(session_id)` → cleanup, archives conversation
+- Max 2 concurrent agents per session (enforced)
+- Session tracks: stage, pipeline, participants, message count, creation time
 
-### D2: Orchestrator Signal Protocol
-Replace `fire_and_forget_dispatch()` spawn pattern with signal-based handoffs via UDS:
+### D2: Agent Ping-Pong Protocol
+Within a stage session, agents communicate via the render engine:
 
-- `signal {session_id, task: "design", pipeline: "...", context_coord: "t3"}` → wakes the agent
-- Agent reads tree state from its session anchor (sees only what changed)
-- Agent writes results to tree → sends `done {session_id, result: "approved|flagged|complete"}`
-- Orchestrator routes next signal based on result
+- Agent writes work artifacts to tree → signals `ready_for_review`
+- Orchestrator adds reviewer to session → reviewer gets tree diff injection
+- Reviewer responds (APPROVED / FLAG / BLOCK) → written to tree
+- If FLAG: original agent sees diff, addresses it, re-signals
+- If APPROVED: orchestrator terminates session, advances pipeline stage
+- If BLOCK: orchestrator terminates session, logs block, alerts human
 
-### D3: Cockpit Plugin Simplification
-With agents attached directly to the render engine:
-- First turn: attach + full tree render (unchanged)
-- Subsequent turns: `my_diff` returns nothing if agent hasn't been signaled (agent is idle)
-- Remove per-turn supermap re-injection for persistent sessions — they already have it in conversation history
-- Legend scaffold still injected (small, serves as persistent reminder)
+### D3: Orchestrator Integration
+Replace `fire_and_forget_dispatch()` with stage session orchestration:
 
-### D4: Session Compaction Integration
-After each agent handoff within a pipeline phase:
-- Trigger OpenClaw conversation compaction for the idle agent
-- Render engine retains full state — agent doesn't lose anything from compaction
-- Next signal to the agent starts with lean context + diff from tree
+- `advance_pipeline(pipeline)` → determines next stage → creates session → attaches first agent
+- Handoff detection: monitor session for `ready_for_review` signal → auto-join critic
+- Approval detection: monitor for APPROVED verdict → terminate → advance to next stage
+- Stall detection: session active >2h with no new messages → alert
 
-### D5: Graceful Degradation
-If render engine crashes or restarts:
-- Sessions reconnect on next signal (re-attach, get full tree)
-- Fall back to one-shot spawn model if persistent session is unreachable
-- No pipeline work is lost (write-through ensures disk is always current)
+### D4: Context Injection per Stage
+When an agent joins a session:
+
+- **First agent (solo phase):** full tree render + pipeline spec + relevant design docs from tree
+- **Second agent (review phase):** full tree render + diff since session creation (what the first agent produced) + previous stage verdicts
+- No per-turn re-injection — conversation history carries context forward (like main session)
+- Legend scaffold injected once at join
+
+### D5: Cockpit Plugin Adaptation
+- Persistent sessions use stage session manager (not per-turn supermap injection)
+- `before_prompt_build` detects if agent is in a stage session → skips injection (session handles it)
+- Fallback: if no stage session active, behave as current (per-turn diff injection)
+
+### D6: Graceful Degradation
+- If render engine crashes: fall back to one-shot spawn model (current behavior)
+- If session agent crashes: orchestrator detects timeout → respawns agent into same session (with tree state recovery)
+- Write-through ensures disk is always current — no data loss on any failure
 
 ## Phase 1 FLAG to Address
 - **FLAG-1 MED** (from critic code review): `codexExec('--register-show')` subprocess takes 158ms per turn. Fix: read `.codex_runtime/register.json` directly in TypeScript (<1ms).
 
 ## Key Architectural Shift
-- **Before:** Agent lifecycle = spawn → inject → work → exit → parse
-- **After:** Agent lifecycle = attach → idle → signal → work → signal → idle → ... → detach
-- **Communication:** Render engine RAM tree replaces file-based handoffs
-- **Context:** Tree diffs replace full prompt injection
-- **Observation:** Critic as persistent observer sees project evolve, not just final diffs
+- **Before:** Agent lifecycle = spawn → inject everything → work alone → exit → parse output → spawn next
+- **After:** Agent lifecycle = join session → work → ping-pong with reviewer → approved → session ends
+- **State continuity:** Render engine RAM tree (persists across sessions)
+- **Conversation continuity:** Stage session (disposable, clean per stage)
+- **Communication:** Direct agent-to-agent within session, not file-based handoff parsing
 
 ## Open Questions for Architect
-1. Should all 3 agent roles share one render engine session or each get their own? (Recommend: each gets own — independent anchors)
-2. How does this interact with OpenClaw's `sessions_spawn` / `sessions_send`? Can we use persistent OpenClaw sessions (`mode: "session"`) as the agent process, with UDS as the state channel?
-3. Token budget: what's the practical limit for a persistent agent session before compaction is needed? Should compaction be time-based, token-based, or handoff-based?
-4. Should the orchestrator itself be a render engine session, or remain external?
+1. How do stage sessions map to OpenClaw's `sessions_spawn` / `sessions_send`? Use `mode: "session"` with `sessions_send` for ping-pong?
+2. Should the orchestrator poll for signals or should the render engine push notifications (e.g. inotify on a signal file)?
+3. What's the compaction strategy within a stage session? Compact after every N exchanges, or only when approaching token limit?
+4. Should stage session conversations be archived (for memory extraction by sage) or are tree artifacts sufficient?
