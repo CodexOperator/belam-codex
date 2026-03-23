@@ -1,14 +1,18 @@
 {
   "status": "complete",
-  "session": "cf2de8db-c7ce-4d8f-9c00-c1dc876eb5d4",
+  "session": "47ca3340-bb45-4ae5-bab0-4cfe8c21eb23",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T04:09:00Z",
+  "completed_at": "2026-03-23T06:12:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_040926_shael-reported-stale-supermap-on-initial.md",
-    "lessons/agents-md-embedded-supermap-conflicts-with-cockpit-plugin.md",
-    "decisions/deprecate-boot-flag-use-cockpit-plugin-for-supermap.md",
-    "decisions/supermap-anchor-diff-flags-in-codex-engine.md"
+    "memory/entries/2026-03-23_061018_session-2026-03-23-morning-kicked-off-le.md",
+    "memory/entries/2026-03-23_061018_shael-disclosed-2-months-of-runway-remai.md",
+    "memory/entries/2026-03-23_061034_five-long-term-goal-docs-created-in-goal.md",
+    "decisions/r-command-default-shows-legend-plus-supermap.md",
+    "decisions/lm-design-tool-patterns-navigable-runnable.md",
+    "decisions/lm-dot-syntax-workflow-hierarchy.md",
+    "lessons/token-efficiency-stacks-as-runway-multiplier.md",
+    "decisions/inter-agent-diff-comms-turn-by-turn.md"
   ],
-  "last_run": "2026-03-23T04:09:00Z"
+  "last_run": "2026-03-23T06:12:00Z"
 }
