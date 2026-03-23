@@ -1,18 +1,13 @@
 {
   "status": "complete",
-  "session": "5f2a7acd-30cd-48cb-9724-1b0213a42957",
+  "session": "3f1a75d2-f3d0-4fa4-a044-38e351e4ee19",
   "instance": "main",
-  "date": "2026-03-22",
-  "completed_at": "2026-03-22T21:51:00Z",
+  "date": "2026-03-23",
+  "completed_at": "2026-03-23T03:51:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-22_215028_legendary-map-lm-concept-discussed-with.md",
-    "memory/entries/2026-03-22_215033_created-two-new-tasks-1-codex-engine-v3.md",
-    "memory/entries/2026-03-22_215042_orchestration-enginepy-keeps-being-kille.md",
-    "memory/entries/2026-03-22_215057_shael-articulated-a-task-auto-archive-ru.md",
-    "lessons/boot-context-missing-command-grammar-reference.md",
-    "lessons/task-auto-archive-follows-downstream-work.md",
-    "decisions/legendary-map-as-lm-namespace-on-supermap.md",
-    "decisions/build-codex-layer-v1-unified-task.md"
+    "decisions/infra-pipelines-use-local-analysis.md",
+    "lessons/local-analysis-is-pipeline-type-agnostic.md",
+    "memory/entries/2026-03-23_035117_session-2026-03-22-evening-heartbeat-ran.md"
   ],
-  "last_run": "2026-03-22T21:51:00Z"
+  "last_run": "2026-03-23T03:51:00Z"
 }

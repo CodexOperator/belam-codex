@@ -1,38 +1,28 @@
----
-type: supermap
-generated: 2026-03-22T01:27:49Z
-sort_mode: alpha
-hash: eaea4eb35330
----
-╶─ Codex Engine Supermap [2026-03-22 01:27 UTC]
-╶─ p   pipelines (6)
+╶─ Codex Engine Supermap [2026-03-23 03:51 UTC]
+╶─ p   pipelines (2)
 │  ╶─ p1    codex-engine-v2-modes  phase1_complete/high
-│  ╶─ p2    codex-engine-v3  phase1_build/medium
-│  ╶─ p3    orchestration-engine-v2-temporal  phase2_complete/medium
-│  ╶─ p4    orchestration-v3-monitoring  phase1_complete/medium
-│  ╶─ p5    research-openclaw-internals  local_analysis_complete/high
-│  ╶─ p6    validate-scheme-b  local_analysis_complete/high
-╶─ t   tasks (16)
-│  ╶─ t1    build-incremental-relationship-mapper  active/medium  ←d30,m76
-│  ╶─ t2    codex-engine-enum-field-indexing  open/medium
-│  ╶─ t3    codex-engine-v2-modes-mcp-temporal  complete/high
-│  ╶─ t4    codex-engine-v3-temporal-mcp-autoclave  open/medium  ←d14
+│  ╶─ p2    validate-scheme-b  local_analysis_complete/high
+╶─ t   tasks (12)
+│  ╶─ t1    build-codex-layer-v1  open/critical  ←t4
+│  ╶─ t2    build-incremental-relationship-mapper  active/medium  ←d36,m76
+│  ╶─ t3    codex-engine-enum-field-indexing  open/medium
+│  ╶─ t4    codex-engine-v3-legendary-map  open/high  →t1
 │  ╶─ t5    containerize-openclaw-workspace  open/high
-│  ... (+11 more)
-╶─ d   decisions (37)
+│  ... (+7 more)
+╶─ d   decisions (46)
 │  ╶─ d1    aad-over-finite-differences
-│  ╶─ d2    agent-session-isolation  →d25,l8,m30
+│  ╶─ d2    agent-session-isolation  →d29,l9,m30
 │  ╶─ d3    agent-trio-architecture  →m8
 │  ╶─ d4    auto-memory-extraction-architecture
-│  ╶─ d5    automated-dependency-resolution-on-completion  ←d25,t9
-│  ... (+32 more)
-╶─ l   lessons (40)
+│  ╶─ d5    automated-dependency-resolution-on-completion  ←d29,t7
+│  ... (+41 more)
+╶─ l   lessons (52)
 │  ╶─ l1    agent-reconstruction-errors-from-fragments-vs-actual-conclusions  high
 │  ╶─ l2    always-back-up-workspace-to-github  high  ←d6
 │  ╶─ l3    analysis-phase2-gate-mandatory
 │  ╶─ l4    auto-memory-extraction-on-bootstrap  high
 │  ╶─ l5    beta-convergence-is-market-determined  high
-│  ... (+35 more)
+│  ... (+47 more)
 ╶─ w   workspaces (5)
 │  ╶─ w1    agent-roster  active
 │  ╶─ w2    multi-agent-infrastructure  active
@@ -66,14 +56,12 @@ hash: eaea4eb35330
 │  ╶─ i2    builder
 │  ╶─ i3    critic
 ╶─ m   memory
-│  ╶─ today (4 entries)
-│  │  ╶─ m155 [01:20] codex-engine-v3 design review APPROVED: 0 BLOCKs, 4 FLAGs (2 med,...
-│  │  ╶─ m154 [01:18] Engine V3 design review APPROVED: 0 BLOCKs, 5 FLAGs (2 MED, 3 LOW...
-│  │  ╶─ m153 [01:14] Engine V3 design complete: 4 modules — MCP server (stdio JSON-RPC...
-│  │  ╶─ m152 [01:10] Launching Phase 1 — final item in queue | Pipeline: codex-engine-...
-│  ╶─ dailies (9)
-│  │  ╶─ md1 2026-03-23  0 entries  
-│  │  ╶─ md2 2026-03-22  7 entries  
-│  │  ╶─ md3 2026-03-21  84 entries  
-│  ╶─ weeklies (1)
+│  ╶─ today (1 entries)
+│  │  ╶─ m194 [03:51] Session 2026-03-22 evening: Heartbeat ran cleanly — 4 active pipe...
+│  ╶─ dailies (7)
+│  │  ╶─ md1 2026-03-24  0 entries  
+│  │  ╶─ md2 2026-03-23  2 entries  
+│  │  ╶─ md3 2026-03-22  60 entries  
+│  ╶─ weeklies (2)
 │     ╶─ mw1 2026-03-09 → 2026-03-15  
+│     ╶─ mw2 2026-03-16 → 2026-03-22  [agent:main,agents,alphanumeric]
