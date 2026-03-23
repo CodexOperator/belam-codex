@@ -431,7 +431,11 @@ def print_ping_instruction(version, next_agent, ping_msg, artifact=None):
 
 
 def load_state(version):
-    """Load pipeline state JSON."""
+    """Load pipeline state JSON (checks subdirectory first, then legacy flat)."""
+    # Prefer subdirectory format (what sweep reads)
+    sub_file = BUILDS_DIR / version / '_state.json'
+    if sub_file.exists():
+        return json.loads(sub_file.read_text())
     state_file = BUILDS_DIR / f'{version}_state.json'
     if state_file.exists():
         return json.loads(state_file.read_text())
@@ -439,10 +443,16 @@ def load_state(version):
 
 
 def save_state(version, state):
-    """Save pipeline state JSON."""
+    """Save pipeline state JSON (writes to both locations for compatibility)."""
     BUILDS_DIR.mkdir(parents=True, exist_ok=True)
+    content = json.dumps(state, indent=2)
+    # Always write flat file
     state_file = BUILDS_DIR / f'{version}_state.json'
-    state_file.write_text(json.dumps(state, indent=2))
+    state_file.write_text(content)
+    # Also write subdirectory file if it exists (sweep prefers this)
+    sub_dir = BUILDS_DIR / version
+    if sub_dir.is_dir():
+        (sub_dir / '_state.json').write_text(content)
 
 
 def load_pipeline_md(version):

@@ -17281,6 +17281,35 @@ Recurring SIGTERM on orchestration engine during heartbeat tasks: e0 sweep and c
 *Tags: instance:main, gateway, systemd, codex-engine-v4, orchestration*
 ---
 ---
+primitive: memory_log
+timestamp: '2026-03-23T19:34:01Z'
+category: technical
+importance: 4
+tags:
+- agent:main
+- pipeline:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
+- stage:local_experiment_running
+source: pipeline_update:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network:local_experiment_running
+content: 'Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. | Pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network | Stage: local_experiment_running'
+status: active
+__coord__: m134
+__slug__: 2026-03-23_193401_experiment-completed-all-12-results-pkls
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_193401_experiment-completed-all-12-results-pkls.md
+__prefix__: m
+__index__: 134
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-23T19:34:01Z** · `technical` · importance 4/5
+
+Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. | Pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network | Stage: local_experiment_running
+
+---
+*Source: pipeline_update:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network:local_experiment_running*
+*Tags: agent:main, pipeline:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network, stage:local_experiment_running*
+---
+---
 __coord__: md1
 __slug__: '2026-03-24'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-24.md
@@ -18340,6 +18369,40 @@ Recurring SIGTERM on orchestration engine during heartbeat tasks: e0 sweep and c
 *Source: session*
 
 *Entry: `2026-03-23_193127_recurring-sigterm-on-orchestration-engin.md`*
+
+---
+
+---
+
+## Session Extract — 2026-03-23T18:12–19:26 UTC
+
+**Session:** 8d30f936-8909-432c-9170-438ce8b99584 | **Instance:** main
+
+### Events
+- **Render engine inotify coalescing bug diagnosed and fixed:** Burst-creating 12 test primitives produced only 1 DiffEntry. Root cause: each `_on_file_change` callback called `_reindex_single_new` → full namespace reindex, but only first returned diffs; subsequent found nothing new. Also: filepath_to_coord lookup failed due to relative vs absolute path mismatch. Fix: return all new files from a single reindex; track already-diffed files; update `apply_disk_change` return type from `DiffEntry|None` to `list[DiffEntry]`.
+- **Telegram went silent ~3min:** Main session lane backed up to 299 seconds wait. System events (exec failures, diff-trigger at 10 F-labels, stall recovery SIGTERM) all queued simultaneously, blocking interactive DMs. Gateway also hit ETIMEDOUT and fell back to IPv4-only. Resolved once queue drained.
+- **Gateway systemd vs process confusion:** systemd service showed `inactive (dead)` (12 restart loop, missing config error at 18:04 UTC) but actual gateway process (pid 2934107) was alive and handling Telegram normally. Always check `ps aux` separately.
+- **Recurring SIGTERM on orchestration engine:** e0 sweep and checkpoint logic both killed by SIGTERM before completion during heartbeat tasks. System-level timeout issue; needs investigation.
+- **Heartbeat complete:** e0 sweep ran; p1 (codex-engine-v4) stalled 174min → stall recovery dispatched; p2/p3 at human gates; both repos committed and pushed (workspace: f5d280b2, research: 31dee19); 2 conversations exported.
+
+### Primitives Created
+- [memory] inotify-coalescing-bug-burst-creating-12 (imp=4)
+- [memory] telegram-unresponsive-for-3min-due-to-ma (imp=3)
+- [memory] recurring-sigterm-on-orchestration-engin (imp=3)
+- [lesson] inotify-batch-creates-coalesce-to-single-reindex (imp=4)
+- [lesson] gateway-systemd-can-crash-while-process-survives (imp=3)
+- [lesson] main-session-lane-backup-from-event-bursts (imp=4)
+- [decision] diff-trigger-threshold-raised-to-reduce-lane-backup (imp=3)
+
+## 2026-03-23T19:34:01Z — technical ⚡⚡⚡⚡
+
+Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. | Pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network | Stage: local_experiment_running
+
+*Tags: agent:main, pipeline:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network, stage:local_experiment_running*
+
+*Source: pipeline_update:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network:local_experiment_running*
+
+*Entry: `2026-03-23_193401_experiment-completed-all-12-results-pkls.md`*
 
 ---
 ---
@@ -23444,7 +23507,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 ---
 ---
 primitive: pipeline
-status: phase2_in_progress
+status: phase2_build
 priority: critical
 type: research
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
@@ -23507,6 +23570,7 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_critic_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 7 deliverables verified. Both design FLAGs resolved (session spawning via dispatch_agent, compaction deferred). FLAG-1 MED: stall detection uses started_at not last activity (false positives on long-running active sessions). FLAG-2 LOW: openclaw sessions history CLI may not exist (best-effort wrapped). FLAG-3 LOW: inotify not installed, polling fallback works. 325L, 3 files. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_critic_code_review.md |
 | phase2_critic_design_review | 2026-03-23 | unknown | In progress |
 | phase2_complete | 2026-03-23 | architect | Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 7 deliverables verified (325L, 3 files). D1: stage session metadata. D2: exchange loop with signal detection. D3: table-driven stage flow + stall detection. D4: reviewer-join event. D5: cockpit plugin stage-session mode + FLAG-1 fix (register read). D7: session archival. FLAG-1 MED: stall detection uses started_at not last_signal_at — false positive on long active sessions. FLAG-2 LOW: openclaw sessions history CLI best-effort wrapped. FLAG-3 LOW: inotify not installed, polling fallback works. Both Phase 1 and Phase 2 complete — full RAM-first render runtime with stage-based agent sessions. |
+| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts. FLAG-2 LOW: compaction trigger undefined. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_critic_design_review.md |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
@@ -23677,6 +23741,8 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-23 | builder | RESULTS: 12 experiments (9 SNN + 3 baselines), dry-run CPU with synthetic data. All SNN variants (LR-BASE through LR-08) produce identical results: acc=50.4%, SR=+0.46, turnover=0.0, entropy=1.0. Limbic modulation has ZERO observable effect — consistent with energy-detach pattern (reward_sensitivity receives no gradient). Model converges to constant prediction on 5 epochs/synthetic data. BL-02 (logistic) best acc 53.0%. Bug fixed: snntorch threshold is Buffer, requires fill_() not float assignment. Needs real data + full epochs for meaningful limbic comparison. |
 | local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 | local_analysis_architect | 2026-03-23 | architect | TOTAL FAILURE — limbic module has zero effect. All 9 variants identical to baseline. Root cause: dead neurons by epoch 2 (spike rate = 0.0 in both layers). With zero spikes, predictions are near-zero, reward is ~1e-6, reward gradient is exactly 0.0. The limbic module receives no gradient and learns nothing. Energy dynamics work mechanically (pool decays, bounds clamp correctly) but modulate nothing. Only 5 epochs ran (vs designed 100). The equilibrium SNN backbone (96→48, T=1) dies on CPU — wrong backbone choice. Limbic must be re-tested on V3 Scheme B (128→64, T=20) which actually produces 53.5% accuracy. 4 follow-up scripts specified. |
+| local_experiment_running | 2026-03-23 | system | Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

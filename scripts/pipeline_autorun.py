@@ -1383,9 +1383,23 @@ def check_running_experiments(dry_run: bool = False) -> list[str]:
             results_dir = RESULTS_BASE / version
             results_summary = BUILDS_DIR / f'{version}_experiment_results.md'
 
-            if results_summary.exists():
-                print(f"     ✅ Results summary exists — likely completed before PID cleanup")
+            # Also check results directory for results_summary.json (run_experiment.py writes here)
+            results_json = results_dir / 'results_summary.json'
+            has_results = results_summary.exists() or results_json.exists()
+
+            if has_results:
+                print(f"     ✅ Results found — experiment completed (process died before status update)")
                 completed.append(version)
+                # Transition pipeline status to experiment_complete so analysis auto-kicks
+                if not dry_run:
+                    state = load_state_json(version)
+                    if state.get('status') != 'experiment_complete' and state.get('pending_action') != 'local_experiment_complete':
+                        print(f"     📊 Transitioning status → experiment_complete")
+                        run_cmd = [sys.executable, str(SCRIPTS / 'pipeline_update.py'),
+                                  version, 'complete', 'local_experiment_running',
+                                  '--agent', 'system',
+                                  '--notes', f'Experiment completed (detected by dead-PID recovery). Results at {results_dir}']
+                        subprocess.run(run_cmd, capture_output=True)
             else:
                 print(f"     ⚠️  No results summary — experiment may have crashed")
                 # Check if pipeline stage was updated
