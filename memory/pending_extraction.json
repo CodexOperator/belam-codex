@@ -1,15 +1,13 @@
 {
   "status": "complete",
-  "session": "37eedb39-56e8-407f-8d97-ef3096486eb2",
+  "session": "07ee7cf1-a260-4503-972c-88032da72b87",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T07:43:00Z",
+  "completed_at": "2026-03-23T08:24:50Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_074321_agent-bypassed-coordinate-system-during.md",
-    "memory/entries/2026-03-23_074321_heartbeatmd-and-launch-pipeline-skillmd.md",
-    "lessons/heartbeat-md-contaminates-manual-session-behavior.md",
-    "lessons/lm-entries-must-be-compelling-to-displace-raw-scripts.md",
-    "decisions/heartbeat-md-e0-primary-path.md"
+    "memory/entries/2026-03-23_082450_bug-found-and-fixed-fire-and-forget-disp.md",
+    "lessons/fire-and-forget-dispatch-timeout-1-killed-all-agents.md",
+    "decisions/consolidate-pipeline-state-json-to-workspace-builds-dir.md"
   ],
-  "last_run": "2026-03-23T07:56:00Z"
+  "last_run": "2026-03-23T08:24:50Z"
 }
