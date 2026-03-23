@@ -1472,8 +1472,11 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
     state_file = BUILDS_DIR / f'{version}_state.json'
     try:
         state = json.loads(state_file.read_text()) if state_file.exists() else {}
-        state['pending_action'] = stage
-        state['current_agent'] = agent
+        # NOTE: Do NOT overwrite pending_action here — pipeline_update.py is the
+        # single authority for that field via STAGE_TRANSITIONS. Overwriting it
+        # here caused corruption (e.g. writing 'critic' instead of 'phase2_critic_code_review')
+        # when callers passed agent role names instead of stage names.
+        state['current_agent'] = stage  # stage name for dispatch tracking
         state['last_dispatched'] = datetime.now(timezone.utc).isoformat()
         state['dispatch_claimed'] = False
         state_file.write_text(json.dumps(state, indent=2))
@@ -2085,6 +2088,78 @@ def check_stalls(threshold_minutes: int = STALL_THRESHOLD_MINUTES) -> list[dict]
     return stalled
 
 
+def _check_unclaimed_dispatches(dry_run: bool = False,
+                                 threshold_minutes: int = 5) -> list[dict]:
+    """Find pipelines where a dispatch was sent but never claimed by an agent.
+
+    Returns list of dicts with pipeline, agent, elapsed keys.
+    """
+    AGENT_STAGES = {
+        'architect_design', 'critic_design_review', 'builder_implementation',
+        'critic_code_review', 'architect_design_revision', 'builder_apply_blocks',
+        'phase2_architect_design', 'phase2_critic_design_review',
+        'phase2_builder_implementation', 'phase2_critic_code_review',
+        'phase2_architect_revision',
+        'analysis_architect_design', 'analysis_critic_review',
+        'analysis_builder_implementation', 'analysis_critic_code_review',
+        'local_analysis_architect', 'local_analysis_critic_review',
+        'local_analysis_builder', 'local_analysis_code_review',
+        'local_analysis_report_build',
+    }
+
+    unclaimed = []
+    pipelines = get_active_pipelines()
+
+    for p in pipelines:
+        version = p.get('version', '')
+        state_file = BUILDS_DIR / f'{version}_state.json'
+        if not state_file.exists():
+            continue
+
+        try:
+            state = json.loads(state_file.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        pending = state.get('pending_action', '')
+        dispatch_claimed = state.get('dispatch_claimed', True)
+        last_dispatched = state.get('last_dispatched', '')
+        current_agent = state.get('current_agent', pending)
+
+        if dispatch_claimed or not last_dispatched:
+            continue
+
+        # pending_action can be either a stage name or an agent role
+        AGENT_ROLES = {'architect', 'critic', 'builder'}
+        if pending not in AGENT_STAGES and pending not in AGENT_ROLES:
+            continue
+
+        try:
+            dispatched_dt = datetime.fromisoformat(last_dispatched)
+            elapsed = (datetime.now(timezone.utc) - dispatched_dt).total_seconds() / 60
+        except (ValueError, TypeError):
+            continue
+
+        if elapsed < threshold_minutes:
+            continue
+
+        # Resolve agent name from stage
+        agent = 'unknown'
+        for role in ('architect', 'critic', 'builder'):
+            if role in current_agent:
+                agent = role
+                break
+
+        unclaimed.append({
+            'pipeline': version,
+            'agent': agent,
+            'stage': current_agent,
+            'elapsed': elapsed,
+        })
+
+    return unclaimed
+
+
 # ─── Full Sweep ─────────────────────────────────────────────────────────────────
 
 def sweep(dry_run: bool = False) -> list[str]:
@@ -2281,6 +2356,28 @@ def sweep(dry_run: bool = False) -> list[str]:
                 actions.append(f'[DRY] Would resume {s["pipeline"]}/{s["pending_action"]}')
     else:
         print('  No stalled pipelines.')
+
+    # 5b. Check unclaimed dispatches (agent never picked up the handoff)
+    print(f'\n--- Unclaimed Dispatch Recovery ---\n')
+    if kicked:
+        print('  Skipping — pipeline already kicked this sweep.')
+    else:
+        unclaimed = _check_unclaimed_dispatches(dry_run=dry_run)
+        if unclaimed:
+            for u in unclaimed:
+                print(f'  ⚠️  {u["pipeline"]}: dispatch to {u["agent"]} unclaimed after {u["elapsed"]:.0f}min — re-kicking')
+                if not dry_run and _HAS_ORCHESTRATE:
+                    try:
+                        ok = pipeline_resume(u['pipeline'])
+                        if ok:
+                            actions.append(f'F1 D {u["pipeline"]}.unclaimed_recovery {u["agent"]} RESUMED')
+                            kicked = True
+                    except Exception as e:
+                        print(f'    -> Recovery failed: {e}')
+                elif dry_run:
+                    actions.append(f'[DRY] Would re-kick {u["pipeline"]}/{u["agent"]}')
+        else:
+            print('  No unclaimed dispatches.')
 
     # 6. Check pending handoffs
     print(f'\n--- Handoff Check ---\n')

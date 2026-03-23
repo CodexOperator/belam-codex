@@ -187,6 +187,14 @@ def _is_pipeline_already_dispatched(version: str) -> bool:
     try:
         dispatched_dt = datetime.fromisoformat(last_dispatched)
         elapsed = (datetime.now(timezone.utc) - dispatched_dt).total_seconds() / 60
+
+        # Unclaimed dispatch older than 5 min = failed dispatch, not active
+        UNCLAIMED_THRESHOLD_MINUTES = 5
+        dispatch_claimed = state.get('dispatch_claimed', True)  # default True for backwards compat
+        if not dispatch_claimed and elapsed >= UNCLAIMED_THRESHOLD_MINUTES:
+            print(f"  ⚠️  {version}: dispatch unclaimed after {elapsed:.0f}min — treating as failed")
+            return False
+
         if elapsed < ACTIVE_WINDOW_MINUTES:
             return True
     except (ValueError, TypeError):
@@ -635,6 +643,86 @@ def check_stalled(dry_run: bool = False, skip_versions: set = None) -> list[str]
 
     if not rekicked:
         print("\n  No stalled pipelines found.")
+
+    return rekicked
+
+
+def check_unclaimed_dispatches(dry_run: bool = False, skip_versions: set = None) -> list[str]:
+    """
+    Recover pipelines where a dispatch was sent but never claimed by the agent.
+
+    A dispatch is considered unclaimed if:
+    - dispatch_claimed is False
+    - last_dispatched is older than UNCLAIMED_THRESHOLD_MINUTES (5 min)
+    - pending_action is an agent stage
+
+    This catches the gap between _is_pipeline_already_dispatched (which now
+    treats unclaimed dispatches as failed) and check_stalled (which uses the
+    120-min threshold on last_updated).
+    """
+    UNCLAIMED_THRESHOLD_MINUTES = 5
+    skip_versions = skip_versions or set()
+
+    agent_stages = {
+        'architect_design', 'critic_design_review', 'builder_implementation',
+        'critic_code_review', 'architect_design_revision', 'builder_apply_blocks',
+        'phase2_architect_design', 'phase2_critic_design_review',
+        'phase2_builder_implementation', 'phase2_critic_code_review',
+        'phase2_architect_revision',
+        'analysis_architect_design', 'analysis_critic_review',
+        'analysis_builder_implementation', 'analysis_critic_code_review',
+        'local_analysis_architect', 'local_analysis_critic_review',
+        'local_analysis_builder', 'local_analysis_code_review',
+        'local_analysis_report_build',
+        'local_experiment_running', 'report_building',
+    }
+
+    pipelines = get_active_pipelines()
+    rekicked = []
+
+    for p in pipelines:
+        version = p['version']
+        if version in skip_versions:
+            continue
+
+        state_file = BUILDS_DIR / f'{version}_state.json'
+        if not state_file.exists():
+            continue
+
+        try:
+            state = json.loads(state_file.read_text())
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        pending = state.get('pending_action', '')
+        dispatch_claimed = state.get('dispatch_claimed', True)  # default True for backwards compat
+        last_dispatched = state.get('last_dispatched', '')
+
+        if dispatch_claimed or not last_dispatched:
+            continue
+        if pending not in agent_stages:
+            continue
+
+        try:
+            dispatched_dt = datetime.fromisoformat(last_dispatched)
+            elapsed = (datetime.now(timezone.utc) - dispatched_dt).total_seconds() / 60
+        except (ValueError, TypeError):
+            continue
+
+        if elapsed < UNCLAIMED_THRESHOLD_MINUTES:
+            continue
+
+        print(f"  ⚠️  {version}: dispatch unclaimed after {elapsed:.0f}min — re-kicking")
+
+        if dry_run:
+            print(f"     [DRY RUN] Would re-kick {version}")
+            rekicked.append(version)
+            break
+
+        success = kick_pipeline(version, dry_run=False)
+        if success:
+            rekicked.append(version)
+        break  # ONE at a time
 
     return rekicked
 
@@ -1244,6 +1332,11 @@ def main():
             # No gate kicks happened — check for stalls
             stalled = check_stalled(args.dry_run, skip_versions=set(kicked))
             kicked += stalled
+
+    # Unclaimed dispatch recovery — catches dispatches that were sent but never picked up
+    if not kicked:
+        unclaimed = check_unclaimed_dispatches(args.dry_run, skip_versions=set(kicked))
+        kicked += unclaimed
 
     # Summary
     print(f"\n{'─' * 60}")
