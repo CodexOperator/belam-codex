@@ -652,11 +652,25 @@ def _files_for_stage(version: str, stage: str, agent: str) -> list[str]:
     phase_prefix = 'phase2_' if is_phase2 else ''
 
     def _find_build_artifact(filename: str) -> Path | None:
-        """Check workspace pipeline_builds/ first, then research pipeline_builds/."""
+        """Check pipeline_builds/ — subdirectory first, then flat (legacy).
+        
+        Subdirectory convention: pipeline_builds/{version}/{artifact}
+        Legacy convention: pipeline_builds/{version}_{artifact}
+        """
+        # Strip version prefix if present (for subdirectory lookup)
+        artifact_name = filename
+        if filename.startswith(f'{version}_'):
+            artifact_name = filename[len(f'{version}_'):]
+        
         for d in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
-            p = d / filename
-            if p.exists():
-                return p
+            # New: subdirectory path
+            subdir_path = d / version / artifact_name
+            if subdir_path.exists():
+                return subdir_path
+            # Legacy: flat prefixed path
+            flat_path = d / filename
+            if flat_path.exists():
+                return flat_path
         return None
 
     # Previous stage artifacts
@@ -1074,6 +1088,11 @@ except ImportError as e:
         return result
 
     def load_state_json(version: str) -> dict:
+        # New: subdirectory path first
+        state_file = BUILDS_DIR / version / '_state.json'
+        if state_file.exists():
+            return json.load(open(state_file))
+        # Legacy: flat path
         state_file = BUILDS_DIR / f'{version}_state.json'
         if state_file.exists():
             return json.load(open(state_file))
@@ -1278,13 +1297,19 @@ def pipeline_next_action(version: str) -> str | None:
         return f'Kick off pipeline: dispatch architect for design'
     if pending == 'phase1_complete':
         # Check for revision requests
-        rev_file = BUILDS_DIR / f'{version}_revision_request.md'
-        if rev_file.exists():
+        rev_new = BUILDS_DIR / version / 'revision_request.md'
+        rev_legacy = BUILDS_DIR / f'{version}_revision_request.md'
+        if rev_new.exists() or rev_legacy.exists():
             return f'Process pending revision request'
+        dir_new = BUILDS_DIR / version / 'phase2_direction.md'
+        dir_legacy = BUILDS_DIR / f'{version}_phase2_direction.md'
+        if dir_new.exists() or dir_legacy.exists():
+            return f'Phase 2 direction file found -- kick off Phase 2'
         return f'Human gate: Phase 1 complete, awaiting experiment run or Phase 2 direction'
     if pending == 'local_analysis_complete':
-        direction_file = BUILDS_DIR / f'{version}_phase2_shael_direction.md'
-        if direction_file.exists():
+        dir_new2 = BUILDS_DIR / version / 'phase2_direction.md'
+        dir_legacy2 = BUILDS_DIR / f'{version}_phase2_direction.md'
+        if dir_new2.exists() or dir_legacy2.exists():
             return f'Phase 2 direction file found -- kick off Phase 2'
         return f'Human gate: local analysis complete, awaiting Phase 2 direction'
     if pending in HUMAN_ACTIONS:
@@ -1378,8 +1403,9 @@ def _gate_status_for(version: str, fm: dict, state: dict) -> dict:
     # Fallback: heuristic gates (backward compat with existing pipelines)
     # Phase 2 gate
     if 'phase1_complete' in pending or 'phase1_complete' in status:
-        gates['phase2'] = 'open' if BUILDS_DIR.joinpath(
-            f'{version}_phase2_shael_direction.md').exists() else 'closed'
+        has_dir = (BUILDS_DIR / version / 'phase2_direction.md').exists() or \
+                  (BUILDS_DIR / f'{version}_phase2_direction.md').exists()
+        gates['phase2'] = 'open' if has_dir else 'closed'
 
     # Phase 3 gate
     phase2_status = state.get('phase2', {}).get('stage', '')
@@ -1478,7 +1504,12 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
     Returns: {'success': True/False, 'pid': int|None, 'error': str|None}
     """
     # --- Update state JSON first (state machine write) ---
-    state_file = BUILDS_DIR / f'{version}_state.json'
+    # Prefer subdirectory, fall back to flat
+    state_file = BUILDS_DIR / version / '_state.json'
+    if not state_file.exists():
+        legacy = BUILDS_DIR / f'{version}_state.json'
+        state_file = legacy if legacy.exists() else state_file
+    state_file.parent.mkdir(parents=True, exist_ok=True)
     try:
         state = json.loads(state_file.read_text()) if state_file.exists() else {}
         # NOTE: Do NOT overwrite pending_action here — pipeline_update.py is the
@@ -1870,11 +1901,14 @@ def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
 
         # Phase 1 complete gate: direction file, revision, or human review
         if pending == 'phase1_complete':
-            rev_file = BUILDS_DIR / f'{ver}_revision_request.md'
-            # Check for Phase 2 direction file (either naming convention)
-            direction_file = BUILDS_DIR / f'{ver}_phase2_direction.md'
-            direction_file_shael = BUILDS_DIR / f'{ver}_phase2_shael_direction.md'
-            if rev_file.exists():
+            # Check both subdirectory and flat paths
+            rev_file_new = BUILDS_DIR / ver / 'revision_request.md'
+            rev_file_legacy = BUILDS_DIR / f'{ver}_revision_request.md'
+            dir_file_new = BUILDS_DIR / ver / 'phase2_direction.md'
+            dir_file_legacy = BUILDS_DIR / f'{ver}_phase2_direction.md'
+            has_revision = rev_file_new.exists() or rev_file_legacy.exists()
+            has_direction = dir_file_new.exists() or dir_file_legacy.exists()
+            if has_revision:
                 results.append({
                     'pipeline': ver,
                     'gate': 'phase1_revision',
@@ -1882,7 +1916,7 @@ def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
                     'blocked_by': None,
                     'action': 'Process revision request',
                 })
-            elif direction_file.exists() or direction_file_shael.exists():
+            elif has_direction:
                 results.append({
                     'pipeline': ver,
                     'gate': 'phase2_direction',
@@ -1902,8 +1936,9 @@ def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
 
         # Local analysis complete gate
         if pending == 'local_analysis_complete' or status == 'local_analysis_complete':
-            direction_file = BUILDS_DIR / f'{ver}_phase2_shael_direction.md'
-            if direction_file.exists():
+            dir_new = BUILDS_DIR / ver / 'phase2_direction.md'
+            dir_legacy = BUILDS_DIR / f'{ver}_phase2_direction.md'
+            if dir_new.exists() or dir_legacy.exists():
                 results.append({
                     'pipeline': ver,
                     'gate': 'phase2_direction',

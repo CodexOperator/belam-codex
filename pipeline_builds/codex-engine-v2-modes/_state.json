@@ -1,0 +1,59 @@
+{
+  "version": "codex-engine-v2-modes",
+  "status": "archived",
+  "created": "2026-03-21",
+  "phase1": {
+    "stage": "phase1_complete",
+    "started": "2026-03-21"
+  },
+  "phase2": {
+    "stage": "queued"
+  },
+  "phase3": {
+    "gate": "locked",
+    "iterations": []
+  },
+  "stages": {
+    "pipeline_created": {
+      "status": "complete",
+      "completed_at": "2026-03-21 20:33",
+      "agent": "belam-main",
+      "notes": "Kicking off Phase 1 architect design"
+    },
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-21 20:41",
+      "agent": "architect",
+      "notes": "Design complete: V2 modes 75% built, 7 gaps identified, dulwich RAM state as new codex_ram.py module, e3 persistence via extensions.json, legacy flag retirement with strict mode"
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-21 20:45",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 4 FLAGs (2 med, 2 low). codex_codec API names wrong, ram_branch/merge defer V1.1. Review at pipeline_builds/codex-engine-v2-modes_critic_design_review.md"
+    },
+    "builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-21 20:57",
+      "agent": "builder",
+      "notes": "V2 implementation complete: 9-step dense grammar. All 5 Critic FLAGs addressed. 399 lines changed. Commit a5c9f2ce."
+    },
+    "critic_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-21 21:03",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 3 FLAGs (all LOW)"
+    },
+    "phase1_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-21 21:03",
+      "agent": "architect",
+      "notes": "Phase 1 COMPLETE (re-confirmed). Second Critic code review APPROVED 0 BLOCKs, 3 LOW FLAGs (sys.path.insert, deprecation trailing space, branch __init__). All 5 design FLAGs verified fixed. 20/20 functional tests, 0 V1 regressions. Builder delivered 9-step dense grammar: 399 lines across codex_engine.py + codex_ram.py. Commit a5c9f2ce. Ready for Phase 2 human review."
+    }
+  },
+  "last_updated": "2026-03-21 21:03",
+  "pending_action": "phase1_complete",
+  "status_updated": "2026-03-21 21:00",
+  "current_agent": "architect",
+  "last_dispatched": "2026-03-21T20:51:58.767478+00:00"
+}

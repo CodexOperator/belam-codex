@@ -1,0 +1,169 @@
+{
+  "version": "v4",
+  "current_stage": "critic_phase2_code_review_complete",
+  "last_updated": "2026-03-15T21:23:00Z",
+  "architect_session": "agent:main:subagent:39f51df4-6075-4600-b656-461782f62f43",
+  "design_artifact": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4_architect_design.md",
+  "phase2_design_artifact": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4_phase2_architect_design.md",
+  "history": [
+    {
+      "stage": "design_brief_generated",
+      "timestamp": "2026-03-15T17:32:40Z",
+      "notes": null
+    },
+    {
+      "stage": "design_brief_generated",
+      "timestamp": "2026-03-15T17:32:49Z",
+      "notes": null
+    },
+    {
+      "stage": "architect_design_complete",
+      "timestamp": "2026-03-15T17:44:00Z",
+      "notes": "Architect design v1 written."
+    },
+    {
+      "stage": "critic_review_received",
+      "timestamp": "2026-03-15T17:50:00Z",
+      "notes": "Critic identified 3 BLOCKs, 5 FLAGs, 3 suggestions. Review at v4_critic_design_review.md"
+    },
+    {
+      "stage": "architect_design_revised_v2",
+      "timestamp": "2026-03-15T17:52:00Z",
+      "notes": "All BLOCKs resolved: BLOCK-1 (equilibrium Option A + sequential eval), BLOCK-2 (key rename to equil_popcode), BLOCK-3 (LR/RF baselines added). All 5 FLAGs addressed. Architect response at v4_architect_response.md"
+    },
+    {
+      "stage": "builder_handoff",
+      "timestamp": "2026-03-15T18:37:43Z",
+      "notes": "Shael approved design. Human sign-off received. Advancing to Phase 1 implementation."
+    },
+    {
+      "stage": "builder_implementing",
+      "timestamp": "2026-03-15T18:41:08Z",
+      "notes": "Brief sent to Builder agent (agent:builder:telegram:group:-5243763228). Building snn_crypto_predictor_v4_autonomous.ipynb."
+    },
+    {
+      "stage": "builder_complete",
+      "timestamp": "2026-03-15T20:02:00Z",
+      "notes": "Notebook confirmed on disk: snn_crypto_predictor_v4_autonomous.ipynb \u2014 78 cells, 141KB. State updated by Architect after Builder failed to update. Critic code review triggered."
+    },
+    {
+      "stage": "critic_code_review",
+      "timestamp": "2026-03-15T20:02:00Z",
+      "notes": "Critic kicked off by Architect. Reviewing snn_crypto_predictor_v4_autonomous.ipynb against design spec v4_architect_design.md."
+    },
+    {
+      "stage": "critic_code_review_complete",
+      "timestamp": "2026-03-15T20:07:55Z",
+      "notes": "APPROVED. 20/20 checklist items pass. 2 flags (n_folds_magnitude documentation, dead network guard scope) \u2014 both non-blocking, documented in v4_critic_code_review.md."
+    },
+    {
+      "stage": "phase2_design_complete",
+      "timestamp": "2026-03-15T20:08:00Z",
+      "notes": "Phase 2 architect design written \u2014 v4_phase2_architect_design.md. Key change: decoding_scheme='exponential' (sigmoid(exp(r_up)-exp(r_down))), combined notebook (v4_combined.ipynb), FLAG-1/2 fixes, cross-analysis Section 9."
+    },
+    {
+      "stage": "phase2_critic_design_review",
+      "timestamp": "2026-03-15T20:08:00Z",
+      "notes": "Critic design review requested for v4_phase2_architect_design.md. Awaiting approval before Builder handoff."
+    },
+    {
+      "stage": "builder_phase2_implemented",
+      "timestamp": "2026-03-15T20:41:39Z",
+      "notes": "snn_crypto_predictor_v4_combined.ipynb built. 111 cells. All 3 Critic additions + 2 FLAG fixes. 20/20 structural checks. Pending Critic phase 2 code review."
+    },
+    {
+      "stage": "critic_phase2_code_review_blocked",
+      "timestamp": "2026-03-15T21:04:00Z",
+      "notes": "BLOCKED \u2014 2 issues found. BLOCK-1: train_fold_v4() uses BCEWithLogitsLoss for exponential direction training (double sigmoid on prob output) + loss_type undefined (NameError). Fix: detect model.decoding_scheme, swap to nn.BCELoss() for exponential, delete loss_type. BLOCK-2: evaluate_model_v4() confidence extraction uses |prob| for exp mode (asymmetric \u2014 strong-DOWN gets 0.152, strong-UP gets 0.848). Fix: use |prob - 0.5| when decoding=='exponential'. Full fix code in: research/pipeline_builds/v4_critic_phase2_blocks.md"
+    },
+    {
+      "stage": "critic_phase2_code_review_complete",
+      "timestamp": "2026-03-15T21:23:00Z",
+      "notes": "APPROVED. Both blocks resolved. BLOCK-1: BCELoss for exponential, loss_type removed. BLOCK-2: |prob-0.5| confidence in evaluate_model_v4 and epoch_confidences. All 3 mandated additions pass. FLAG-1/FLAG-2 fixes confirmed. Section 9 cross-analysis complete. Review at: research/pipeline_builds/v4_critic_phase2_code_review.md"
+    }
+  ],
+  "pending_action": "ready_for_colab_run",
+  "phase2_blocks_artifact": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4_critic_phase2_blocks.md",
+  "critic_review_artifact": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4_critic_code_review.md",
+  "phase2_critic_design_review_artifact": "pending",
+  "builder_session": "agent:builder:telegram:group:-5243763228",
+  "critic_session": "agent:critic:telegram:group:-5243763228",
+  "stages": {
+    "phase2_critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "critic",
+      "notes": "APPROVED with 3 mandatory additions: clamp, magnitude linear path, coverage note."
+    },
+    "builder_phase2_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "builder",
+      "notes": "snn_crypto_predictor_v4_combined.ipynb built. 111 cells. All 3 Critic additions + 2 FLAG fixes. 20/20 structural checks."
+    },
+    "critic_phase2_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-15 21:23",
+      "agent": "critic",
+      "notes": "Phase 2 fully approved. Both code review flags fixed (commit 187765a). Notebook ready for Colab run."
+    },
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "architect",
+      "notes": "Design v2 with all BLOCKs resolved (equil Option A, equil_popcode key, LR/RF baselines). 32-experiment matrix. Critic APPROVED."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "critic",
+      "notes": "APPROVED with 3 BLOCKs, 5 FLAGs \u2014 all resolved before builder handoff."
+    },
+    "builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "builder",
+      "notes": "snn_crypto_predictor_v4_autonomous.ipynb built. 78 cells, 37 code. All 32 experiments, equilibrium sequential eval, dead-network guard, LR/RF baselines, McNemar+Bonferroni."
+    },
+    "critic_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "critic",
+      "notes": "APPROVED 20/20. 2 non-blocking flags (n_folds_magnitude comment, warm-up edge case)."
+    },
+    "phase2_architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:45",
+      "agent": "architect",
+      "notes": "Phase 2 design: exponential decoding sigmoid(exp(r_up)-exp(r_down)). Same 32 experiments. Single combined notebook. Critic-mandated 3 additions. FLAG-1/FLAG-2 fixes."
+    },
+    "test_stage_check": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:47",
+      "agent": "builder",
+      "notes": "Verifying table parsing works after separator fix."
+    },
+    "smoke_test": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:57",
+      "agent": "builder",
+      "notes": "Pipeline table writes confirmed working."
+    },
+    "critic_block_fixes": {
+      "status": "complete",
+      "completed_at": "2026-03-15 21:02",
+      "agent": "builder",
+      "notes": "BLOCK-1 (loss routing) + BLOCK-2 (confidence extraction) fixed per Critic. loss_type removed. All 8 checks pass."
+    },
+    "critic_phase2_blocks_review": {
+      "status": "complete",
+      "completed_at": "2026-03-15 21:20",
+      "agent": "critic",
+      "notes": "BLOCK-1 (double-sigmoid + loss_type NameError) + BLOCK-2 (asymmetric confidence) identified by Critic. Ref: v4_critic_phase2_blocks.md. Both fixed by Builder \u2014 all 5 checks pass."
+    }
+  },
+  "status": "archived",
+  "status_updated": "2026-03-17 15:29",
+  "combined_artifact": "SNN_research/machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_v4_combined.ipynb",
+  "phase2_critic_code_review_artifact": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4_critic_phase2_code_review.md"
+}

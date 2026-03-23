@@ -42,26 +42,20 @@
       "completed_at": "2026-03-23 15:30",
       "agent": "architect",
       "notes": "Phase 2 design: stage-based agent sessions via render engine. 7 deliverables (~225L across 3 files). Key architecture: OpenClaw manages session lifecycle (sessions_spawn/sessions_send), render engine manages tree state (UDS), orchestrator manages pipeline flow (stage transitions + signal detection). D1: stage metadata in AgentSession. D2: exchange loop with inotify-based signal detection (not polling). D3: table-driven stage flow + stall detection. D4: reviewer-join compaction trigger. D5: cockpit plugin stage-session mode + FLAG-1 fix (register read <1ms). D7: session archival for memory extraction. 4 open questions for critic."
-    },
-    "phase2_critic_design_review": {
-      "status": "complete",
-      "completed_at": "2026-03-23 15:33",
-      "agent": "critic",
-      "notes": "APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts \u2014 openclaw agent CLI runs one turn only, has no --mode session or --label. Builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Clean separation of concerns (OpenClaw=sessions, render engine=tree state, orchestrator=pipeline flow). inotify signal detection correct. Stage flow table clean. Phase 1 FLAG-1 fix included."
     }
   },
-  "status": "phase2_build",
-  "status_updated": "2026-03-23 15:33",
-  "current_agent": "phase2_critic_design_review",
-  "last_dispatched": "2026-03-23T15:30:15.633056+00:00",
+  "status": "phase2_review",
+  "status_updated": "2026-03-23 15:30",
+  "current_agent": "phase2_builder_implementation",
+  "last_dispatched": "2026-03-23T15:33:32.242831+00:00",
   "dispatch_claimed": false,
   "phase1": {
     "stage": "phase1_complete"
   },
-  "last_updated": "2026-03-23 15:33",
-  "pending_action": "phase2_builder_implementation",
+  "last_updated": "2026-03-23 15:30",
+  "pending_action": "phase2_critic_design_review",
   "phase2_architect_design_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/pipelines/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing.md",
   "phase2": {
-    "stage": "phase2_critic_design_review"
+    "stage": "phase2_architect_design"
   }
 }

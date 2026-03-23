@@ -53,6 +53,27 @@ PIPELINE_UPDATE = SCRIPTS / 'pipeline_update.py'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
 RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
+
+
+def resolve_build_path(version: str, artifact: str, write: bool = False) -> Path:
+    """Resolve a pipeline build artifact path.
+    
+    Checks subdirectory first (pipeline_builds/{version}/{artifact}),
+    then legacy flat path (pipeline_builds/{version}_{artifact}).
+    If write=True and neither exists, returns subdirectory path (new convention).
+    """
+    for d in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+        subdir = d / version / artifact
+        if subdir.exists():
+            return subdir
+        flat = d / f'{version}_{artifact}'
+        if flat.exists():
+            return flat
+    # Not found — return new convention path for writes
+    path = BUILDS_DIR / version / artifact
+    if write:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    return path
 HANDOFFS_DIR = WORKSPACE / 'pipelines' / 'handoffs'
 OPENCLAW_CONFIG = Path(os.path.expanduser('~/.openclaw/openclaw.json'))
 
