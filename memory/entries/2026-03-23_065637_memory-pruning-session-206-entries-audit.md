@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main]
 source: "session"
 content: "Memory pruning session: 206 entries audited, 99 pipeline stage-transition entries moved to memory/entries/_pruned/ (recoverable). Active entries reduced from 206 to 107. Root cause: consolidate_agent_memory() in pipeline_orchestrate.py was calling log_memory.py on every handoff with stage: tags. Fixed by removing indexed log_memory calls from routine completions; agent daily-file writes preserved. Also updated agent prompt templates in orchestration_engine.py and pipeline_orchestrate.py to stop instructing agents to always log memory entries."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

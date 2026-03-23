@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, supermap, r-command, lm, legend, guidance]
 source: "session"
 content: "Shael noticed R command was missing the guidance text explaining how to use the supermap with LM coordinates. Session iterated through several placement approaches: (1) appended after legend, (2) embedded in cockpit plugin, (3) baked into render_supermap() function header. Final design converged: supermap = clean coordinate tree with no prose, codex_legend.md = identity block + rich 'How to Use the Supermap' section teaching LM as action grammar. Changes: render_supermap() no longer embeds inline guidance, codex_legend.md updated with Action Grammar section."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

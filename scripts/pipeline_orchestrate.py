@@ -104,7 +104,10 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
 
     # Determine the design/review file to read based on pipeline type and phase
     is_analysis = 'analysis' in version or 'analysis' in completed_stage
-    phase = 2 if 'phase2' in completed_stage else (3 if 'phase3' in completed_stage else 1)
+    # Detect phase from BOTH completed and next stage (phase1_complete → phase2_architect_design is Phase 2)
+    phase2_signal = 'phase2' in completed_stage or 'phase2' in next_stage
+    phase3_signal = 'phase3' in completed_stage or 'phase3' in next_stage
+    phase = 2 if phase2_signal else (3 if phase3_signal else 1)
 
     # Build file references
     files_to_read = [
@@ -114,6 +117,25 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
         files_to_read.append(knowledge_file)
     if is_analysis:
         files_to_read.append('research/ANALYSIS_AGENT_ROLES.md')
+
+    # Add Phase 2 direction file if this is a Phase 2 transition
+    if phase == 2:
+        direction_found = False
+        for dname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
+            # Check both workspace pipeline_builds/ and research pipeline_builds/
+            for base_dir, prefix in ((WORKSPACE / 'pipeline_builds', 'pipeline_builds'),
+                                      (BUILDS_DIR, 'research/pipeline_builds')):
+                dpath = base_dir / dname
+                if dpath.exists():
+                    files_to_read.append(f'{prefix}/{dname}')
+                    direction_found = True
+                    break
+            if direction_found:
+                break
+        # Also include the task file for context
+        task_file = WORKSPACE / 'tasks' / f'{version}.md'
+        if task_file.exists():
+            files_to_read.append(f'tasks/{version}.md')
 
     # Add the relevant design/review artifact
     if artifact:
@@ -658,12 +680,22 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     # Step 2: Determine next agent from transition map
     transition = STAGE_TRANSITIONS.get(stage)
 
-    # Special case: local_analysis_complete is a human gate — requires direction file.
-    # Autorun detects {version}_phase2_shael_direction.md and calls orchestrate_complete.
-    if stage == 'local_analysis_complete' and not transition:
+    # Phase 2 entry: both phase1_complete and local_analysis_complete are human gates
+    # that transition to phase2_architect_design when kicked off.
+    phase2_entry_stages = ('phase1_complete', 'local_analysis_complete')
+    if stage in phase2_entry_stages and not transition:
+        # Check for direction file in both workspace and research pipeline_builds/
+        direction_note = ''
+        ws_builds = WORKSPACE / 'pipeline_builds'
+        for fname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
+            for loc, prefix in ((ws_builds, 'pipeline_builds'), (BUILDS_DIR, 'research/pipeline_builds')):
+                if (loc / fname).exists():
+                    direction_note = f' Read direction at {prefix}/{fname}.'
+                    break
+            if direction_note:
+                break
         transition = ('phase2_architect_design', 'architect',
-                      'Phase 2 approved. Design Phase 2 per pipeline_builds/{v}_experiment_results.md '
-                      'and analysis at notebooks/local_results/{v}/')
+                      f'Phase 2 approved.{direction_note} Design Phase 2 enrichments.')
 
     if not transition:
         print(f"\n   ℹ️  No auto-transition for '{stage}' — no handoff needed")
@@ -1471,33 +1503,70 @@ def main():
         orchestrate_report_build(version)
 
     elif action == 'kickoff':
-        phase2 = '--phase2' in sys.argv
+        # Auto-detect phase from current pipeline status
+        from pipeline_update import load_pipeline_md
+        md_path = WORKSPACE / 'pipelines' / f'{version}.md'
+        current_status = ''
+        if md_path.exists():
+            text = md_path.read_text()
+            for line in text.split('\n'):
+                if line.startswith('status:'):
+                    current_status = line.split(':', 1)[1].strip()
+                    break
+
+        # Determine which stage to complete based on current status
+        phase2_entry_stages = ('phase1_complete', 'local_analysis_complete')
+        force_phase2 = '--phase2' in sys.argv
         direction = flags.get('direction', '')
-        if phase2:
-            # Phase 2 kickoff with optional direction file
-            notes = 'Phase 2 approved by Shael'
+
+        if current_status in phase2_entry_stages or force_phase2:
+            # Phase 2 kickoff — auto-detected or forced
+            notes = 'Phase 2 kickoff'
+
+            # Handle direction file — check both workspace and research pipeline_builds/
+            ws_builds = WORKSPACE / 'pipeline_builds'
+            search_dirs = [ws_builds, BUILDS_DIR]  # workspace first, then research
+
             if direction:
-                direction_path = Path(direction)
-                if not direction_path.exists():
-                    # Try relative to pipeline_builds
-                    direction_path = BUILDS_DIR / direction
-                if not direction_path.exists():
-                    # Try relative to workspace
-                    direction_path = WORKSPACE / direction
-                if direction_path.exists():
-                    # Copy to standard location for architect to find
-                    target = BUILDS_DIR / f'{version}_phase2_shael_direction.md'
+                # Explicit --direction flag — search multiple locations
+                direction_path = None
+                for loc in [Path(direction), BUILDS_DIR / direction, ws_builds / direction, WORKSPACE / direction]:
+                    if loc.exists():
+                        direction_path = loc
+                        break
+                if direction_path:
                     import shutil
+                    target = ws_builds / f'{version}_phase2_shael_direction.md'
                     shutil.copy2(direction_path, target)
-                    notes = f'Phase 2 approved by Shael. Direction at {target.name}'
+                    notes = f'Phase 2 kickoff. Direction at {target.name}'
                     print(f"   📄 Direction file: {target.name}")
                 else:
                     print(f"   ❌ Direction file not found: {direction}")
                     sys.exit(1)
-            orchestrate_complete(version, 'local_analysis_complete', 'belam-main', notes)
-        else:
+            else:
+                # Auto-detect direction file from both locations
+                for loc in search_dirs:
+                    for dname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
+                        if (loc / dname).exists():
+                            notes = f'Phase 2 kickoff. Direction at {dname}'
+                            print(f"   📄 Direction file found: {loc / dname}")
+                            break
+                    else:
+                        continue
+                    break
+
+            # Complete from whatever Phase 2 entry stage the pipeline is at
+            complete_from = current_status if current_status in phase2_entry_stages else 'local_analysis_complete'
+            print(f"   🔄 Phase 2 kickoff (from {complete_from})")
+            orchestrate_complete(version, complete_from, 'belam-main', notes)
+        elif current_status in ('', 'pipeline_created', 'created'):
             # Standard Phase 1 kickoff
             orchestrate_complete(version, 'pipeline_created', 'belam-main', 'Pipeline kickoff')
+        else:
+            print(f"   ⚠️  Pipeline status is '{current_status}' — not at a kickoff-ready stage")
+            print(f"   Expected: pipeline_created (Phase 1) or phase1_complete/local_analysis_complete (Phase 2)")
+            print(f"   Use 'complete <stage>' for manual stage transitions")
+            sys.exit(1)
 
     else:
         print(f"Unknown action: {action}")

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: phase2_code_review
 priority: critical
 type: research
 version: codex-engine-v3-legendary-map
@@ -45,9 +45,21 @@ _Architect designs → Critic reviews → Builder implements_
 | builder_implementation | 2026-03-23 | builder | In progress |
 | builder_implementation | 2026-03-23 | builder | LM implementation complete: codex_lm_renderer.py (~310L) + codex_engine.py (+46L) + workflow sections in 2 modes + 4 commands tagged. All 3 FLAGs + 2 LOWs addressed. 18 entries, 1015B budget, 1.7ms render. Commit 5e200f6f. |
 | critic_code_review | 2026-03-23 | critic | approved: clean implementation, two minor non-blocking flags (dead code in scan_modes, workflow coord heuristic) |
+| phase1_complete | 2026-03-23 | unknown | Phase 2 direction: enrich LM entries with concrete examples and richer descriptions. Direction file at pipeline_builds/codex-engine-v3-legendary-map_phase2_direction.md |
+| pipeline_created | 2026-03-23 | belam-main | Pipeline kickoff |
+| phase1_complete | 2026-03-23 | belam-main | Phase 2 kickoff. Direction at codex-engine-v3-legendary-map_phase2_direction.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-23 | architect | Phase 2: enrich LM descriptions with concrete examples. Read pipeline_builds/codex-engine-v3-legendary-map_phase2_direction.md for full scope. |
+| phase2_architect_design | 2026-03-23 | architect | Phase 2 design: enrich 14 LM descriptions with inline examples. Three tiers (example-heavy/one-liner/leave-as-is). ~15 lines changed in 1 file. 2 open questions for critic. |
+| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). Use paren form for lm2/lm4 double em-dash. Keep lm3 density. Update ≤40 char comment. Review at: pipeline_builds/codex-engine-v3-legendary-map_phase2_critic_design_review.md |
+| phase2_builder_implementation | 2026-03-23 | builder | Phase 2 critic approved (0 BLOCKs, 2 FLAGs). Implement enriched LM descriptions per phase2_architect_design.md and phase2_critic_design_review.md |
+| phase2_builder_implementation | 2026-03-23 | builder | Phase 2 complete: enriched inline descriptions for all 14 LM entries. Paren form for lm2/lm4 examples. lm3 keeps all 4 sub-patterns. Verb padding :<14>. Comment ≤60 chars. 1401B total, 1 file changed. Commit 1267c784. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

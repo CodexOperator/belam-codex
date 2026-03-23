@@ -82,21 +82,19 @@ R kickoff <version>
 
 ### 5. Update the task
 
-After launching, update the task's status:
-```python
-# In the task file, change:
-#   status: open  →  status: in_pipeline
-# Add:
-#   pipeline: <version>
+After launching, update the task's status via coordinate edit:
 ```
+e1{task_coord} status in_pipeline
+```
+Example: `e1t3 status in_pipeline` sets task 3's status.
 
-## What `R kickoff` does
+## What `R kickoff` / `e0` does
 
-1. Calls `pipeline_orchestrate.py <version> complete pipeline_created`
+1. Completes `pipeline_created` stage → triggers architect_design transition
 2. Orchestrator **saves memory** for the calling agent (auto-consolidation)
-3. Orchestrator runs `pipeline_update.py` → updates state + markdown + Telegram group notification
-4. Orchestrator determines next agent (architect) from transition map
-5. Wakes architect via `openclaw agent --agent architect` with a **fresh session** (UUID4)
+3. Updates state + markdown + Telegram group notification
+4. Determines next agent (architect) from transition map
+5. Wakes architect via fresh session (UUID4)
 6. Architect gets full context: files to read, pipeline state, orchestrator commands, memory protocol
 7. Writes handoff record to `pipelines/handoffs/` for verification
 8. **On timeout (10 min):** checkpoint-and-resume kicks in automatically

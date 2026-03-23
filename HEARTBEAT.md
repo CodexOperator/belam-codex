@@ -8,42 +8,25 @@
 
 ## Task 1: Pipeline Automation (CODE-DRIVEN)
 
-The primary heartbeat responsibility: move work forward. This is now **fully automated via script** — no LLM decision-making needed.
+The primary heartbeat responsibility: move work forward via the orchestration sweep.
 
-1. **Run the automation script:**
-   - **Preferred (V1+):** `python3 scripts/orchestration_engine.py` or equivalent `e0` sweep
-   - **Fallback:** `python3 scripts/pipeline_autorun.py`
+1. **Run `e0`** — the orchestration sweep:
    ```bash
-   # Preferred: orchestration engine sweep (or use `e0` in codex engine)
-   python3 scripts/orchestration_engine.py
-   # Fallback: legacy autorun
-   python3 scripts/pipeline_autorun.py
+   e0
    ```
-   This automatically:
-   - Clears stale session locks (dead/hung agent PIDs)
-   - Monitors running experiments (progress, dead process recovery)
-   - Checks analysis gates → kicks off downstream pipelines when gates open
-   - Checks pending revision requests → kicks revisions from `pipeline_builds/*_revision_request.md`
-   - Auto-launches experiments for `phase1_complete` pipelines (priority-ordered)
-   - Detects stalled pipelines (>2h no activity) → re-kicks them with checkpoint-and-resume
-   - One pipeline at a time, priority-ordered — pure event-driven logic
+   This automatically: clears stale locks, monitors experiments, checks gates, kicks downstream pipelines, handles revisions, detects stalls (>2h), and re-kicks with checkpoint-and-resume. One pipeline at a time, priority-ordered.
 
 2. **Check open tasks** (still needs judgment):
-   ```bash
-   grep -l "status: open" tasks/*.md
-   ```
-   - For each open task, read its `depends_on` field
-   - If dependencies are met AND no pipeline already exists → eligible for pipeline spawn
-   - **Gate check:** `python3 scripts/pipeline_autorun.py --check-gates --dry-run` shows what's blocked
-   - To create AND kick off: `R pipeline launch {ver} --desc "..." --priority {p} --tags {t} --project {proj} --kickoff`
-   - After spawning, update the task's `status: in_pipeline` and add `pipeline: {version}`
+   - `e0` output shows eligible tasks. For each with met dependencies and no existing pipeline:
+   - Create AND kick off: `R pipeline launch {ver} --desc "..." --priority {p} --tags {t} --project {proj} --kickoff`
+   - After spawning: `e1{task_coord} status in_pipeline`
 
 3. **If nothing to do:** skip silently
 
 ## Task 2: Handoff Verification
 
-1. `python3 scripts/pipeline_orchestrate.py --check-pending`
-2. If any handoffs are stuck, the script auto-retries and alerts the group
+1. `e0` already checks pending handoffs in the sweep output
+2. If any are stuck, the sweep auto-retries and alerts the group
 3. Skip silently if all clear
 
 ## Task 3: Experiment Analysis Pipeline
@@ -82,11 +65,9 @@ Manage the interleaved Phase 3 iteration chain between main and analysis pipelin
 
 ## Task 5: Pipeline Archival
 
-1. `python3 scripts/launch_pipeline.py --check-supersedes` (auto-archives pipelines superseded by active ones)
-2. `python3 scripts/launch_pipeline.py --list`
-3. For any pipeline at `phase2_complete` or `phase3_complete`:
-   - `python3 scripts/launch_pipeline.py <version> --check-archive`
-   - If archivable → auto-archive with `--archive`
+1. `R pipeline --check-supersedes` (auto-archives pipelines superseded by active ones)
+2. Check supermap `p` namespace for pipelines at `phase2_complete` or `phase3_complete`
+3. For any archivable pipeline: `R pipeline {version} --archive`
 4. Skip silently if nothing to archive
 
 ## Task 6: Git Commits (Both Repos)
