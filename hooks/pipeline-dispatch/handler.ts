@@ -101,54 +101,80 @@ export default async (event: any) => {
       continue;
     }
 
-    // ── Sage analysis of failed session ──
+    // ── Timeout retry: sage analysis → retry same agent ──
     console.log(`[pipeline-dispatch] 🔄 ${pipeline}/${stage}: ${agent} ended (${endReason}), retry ${retryCount + 1}/${MAX_RETRIES}`);
 
-    let sageLessons = `Agent ${agent} ended with reason: ${endReason}. Retry ${retryCount + 1}/${MAX_RETRIES}.`;
-
-    // Try to get sage to analyze the failed session
-    try {
-      const sagePrompt = `Analyze why agent ${agent} failed/timed out on pipeline ${pipeline}, stage ${stage}. ` +
-        `Session ID: ${sessionId}. End reason: ${endReason}. ` +
-        `Check the pipeline build artifacts in ${buildsDir} for partial work. ` +
-        `Check memory/entries/ for any logs from this session. ` +
-        `Summarize in 3-5 bullet points: what was accomplished, what remained, why it likely failed, and specific advice for the retry attempt. Keep it under 500 chars.`;
-
-      sageLessons = execSync(
-        `openclaw agent --agent sage --message ${JSON.stringify(sagePrompt)} --timeout 30`,
-        { cwd: workspaceDir, timeout: 45000, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
-      ).trim() || sageLessons;
-    } catch {
-      // Sage unavailable — use basic context
-      console.log(`[pipeline-dispatch] ⚠️ Sage analysis unavailable, using basic retry context`);
-
-      // Fallback: check for partial build artifacts
-      try {
-        const artifacts = readdirSync(buildsDir)
-          .filter(f => f.startsWith(pipeline) && !f.endsWith('_state.json'))
-          .join(', ');
-        if (artifacts) {
-          sageLessons += ` Partial artifacts found: ${artifacts}. Resume from where the previous attempt left off.`;
-        }
-      } catch {}
-    }
-
-    // ── Update state and retry ──
+    // Update state for retry
     state.retry_count = retryCount + 1;
     state.last_retry_at = new Date().toISOString();
     state.last_error = endReason;
-    state.dispatch_claimed = false;  // Allow fire_and_forget to claim
+    state.dispatch_claimed = false;
     writeFileSync(statePath, JSON.stringify(state, null, 2));
 
-    // Build retry message with lessons
-    const retryMsg = `Pipeline RETRY dispatch: ${pipeline} / ${stage} (attempt ${retryCount + 2}/${MAX_RETRIES + 1})\n\n` +
-      `Your task is stage \`${stage}\` for pipeline \`${pipeline}\`.\n\n` +
-      `⚠️ PREVIOUS ATTEMPT FAILED (${endReason}). Lessons from last session:\n${sageLessons}\n\n` +
-      `Check for partial work in pipeline_builds/ — resume from where the previous attempt left off.\n` +
-      `Do NOT start from scratch if partial artifacts exist.\n\n` +
-      `When complete: python3 scripts/pipeline_orchestrate.py ${pipeline} complete ${stage} --agent ${agent} --notes "your summary"`;
+    // Gather basic context (non-blocking)
+    let partialArtifacts = '';
+    try {
+      partialArtifacts = readdirSync(buildsDir)
+        .filter(f => f.startsWith(pipeline) && !f.endsWith('_state.json'))
+        .join(', ');
+    } catch {}
 
-    // Fire and forget dispatch
+    // Sage lessons file path — sage writes here, retry agent reads it
+    const lessonsFile = join(buildsDir, `${pipeline}_retry_lessons.md`);
+
+    // Fire-and-forget sage to analyze the failure and write lessons
+    const sageTask = [
+      `Analyze why agent ${agent} failed/timed out on pipeline ${pipeline}, stage ${stage}.`,
+      `End reason: ${endReason}. Retry attempt: ${retryCount + 1}/${MAX_RETRIES}.`,
+      `Partial artifacts: ${partialArtifacts || 'none found'}.`,
+      ``,
+      `Check these for context:`,
+      `- ${buildsDir}/${pipeline}_* (partial build artifacts)`,
+      `- memory/entries/ (recent logs from ${agent})`,
+      ``,
+      `Write your analysis to: ${lessonsFile}`,
+      `Format: 3-5 bullet points covering:`,
+      `1. What was accomplished before failure`,
+      `2. What remained to be done`,
+      `3. Why it likely failed (timeout? complexity? missing context?)`,
+      `4. Specific advice for the retry attempt`,
+      `Keep it concise — under 500 chars total.`,
+    ].join('\n');
+
+    try {
+      const sageChild = spawn('openclaw', ['agent', '--agent', 'sage', '--message', sageTask], {
+        detached: true,
+        stdio: 'ignore',
+        cwd: workspaceDir,
+      });
+      sageChild.unref();
+      console.log(`[pipeline-dispatch] 🦉 Sage analyzing failure (pid=${sageChild.pid})`);
+    } catch (err: any) {
+      console.log(`[pipeline-dispatch] ⚠️ Sage dispatch failed: ${err.message}`);
+    }
+
+    // Small delay to let sage start (but don't block on completion)
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    // Build retry message — agent checks for sage lessons file
+    const retryMsg = [
+      `Pipeline RETRY dispatch: ${pipeline} / ${stage} (attempt ${retryCount + 2}/${MAX_RETRIES + 1})`,
+      ``,
+      `Your task is stage \`${stage}\` for pipeline \`${pipeline}\`.`,
+      ``,
+      `⚠️ PREVIOUS ATTEMPT FAILED (${endReason}).`,
+      ``,
+      `Before starting, check for sage analysis: ${lessonsFile}`,
+      `If it exists, read the lessons and apply them. If not, sage may still be writing — proceed with caution.`,
+      ``,
+      `Partial artifacts: ${partialArtifacts || 'none'}`,
+      `Check pipeline_builds/ for partial work — resume from where the previous attempt left off.`,
+      `Do NOT start from scratch if partial artifacts exist.`,
+      ``,
+      `When complete: python3 scripts/pipeline_orchestrate.py ${pipeline} complete ${stage} --agent ${agent} --notes "your summary"`,
+    ].join('\n');
+
+    // Fire and forget retry dispatch
     try {
       const child = spawn('openclaw', ['agent', '--agent', agent, '--message', retryMsg], {
         detached: true,
