@@ -4922,6 +4922,20 @@ def main(args=None):
         execute_action(clean_args[1:])
         return
 
+    # 5b. Dot-syntax workflow: {coord}.l{N} → LM workflow resolution
+    #     e.g. e0.l1, e1.l2 — route to workflow resolver before coordinate/format checks
+    wf_m = re.match(r'^(.+)\.(l\d+)$', first, re.IGNORECASE)
+    if wf_m:
+        parent_coord, sub_coord = wf_m.group(1), wf_m.group(2)
+        try:
+            from codex_lm_renderer import resolve_workflow
+            result = resolve_workflow(parent_coord, sub_coord, WORKSPACE)
+            if result:
+                print(result)
+                return
+        except ImportError:
+            pass
+
     # 6. First arg is a coordinate → zoom/view mode
     # Output format detection: coord.1 → JSON output (e.g., t1.1, d3.1)
     view_output_format = 'text'
