@@ -162,11 +162,13 @@ export default function register(api: any) {
       prependCtx = legend + modeSuffix;
     }
 
-    // Helper: merge legend into result
-    const withLegend = (result?: Record<string, any>) => {
+    // Helper: merge supermap (prepend, first in context) + legend (append, ambient)
+    const withContext = (result?: Record<string, any>) => {
       const out: Record<string, any> = {};
-      if (prependCtx) out.prependSystemContext = prependCtx;
-      if (result?.appendSystemContext) out.appendSystemContext = result.appendSystemContext;
+      // Supermap + LM lands FIRST — action grammar before identity
+      if (result?.supermapContext) out.prependSystemContext = result.supermapContext;
+      // Legend is ambient identity — append after workspace files
+      if (prependCtx) out.appendSystemContext = prependCtx;
       return Object.keys(out).length > 0 ? out : undefined;
     };
 
@@ -192,12 +194,11 @@ export default function register(api: any) {
       if (!lastCoords) {
         lastCoords = parseCoords(supermap);
         renderCount++;
-        return withLegend({
-          appendSystemContext: [
+        return withContext({
+          supermapContext: [
             `<!-- CODEX R${renderCount} — live render engine (${lastCoords.size} coords) -->`,
             "",
-            "Navigate: `t1` `d5` `m103`. Edit: `e1 t1 status active`. Create: `e2 l \"title\"`.",
-            "Modes: `e0` orchestrate, `e1` edit, `e2` create, `e3` extend.",
+            "Use coordinates to navigate and act. The LM (legendary map) below is your action grammar — start there.",
             "",
             "```",
             supermap,
@@ -211,7 +212,7 @@ export default function register(api: any) {
       const rDiffText = rDiff(lastCoords, currCoords);
       lastCoords = currCoords;
 
-      if (!rDiffText && !diffText) return withLegend(); // Nothing changed — still inject legend
+      if (!rDiffText && !diffText) return withContext(); // Nothing changed — still inject legend
 
       renderCount++;
       const parts: string[] = [];
@@ -222,8 +223,8 @@ export default function register(api: any) {
 
       // Large delta → full re-render
       if (changedCount > currCoords.size * 0.6) {
-        return withLegend({
-          appendSystemContext: [
+        return withContext({
+          supermapContext: [
             `<!-- CODEX R${renderCount} — full re-render (large delta) -->`,
             "```",
             supermap,
@@ -232,26 +233,25 @@ export default function register(api: any) {
         });
       }
 
-      return withLegend({
-        appendSystemContext: `<!-- CODEX R${renderCount}Δ (${changedCount} shifted) -->\n${parts.join("\n")}`,
+      return withContext({
+        supermapContext: `<!-- CODEX R${renderCount}Δ (${changedCount} shifted) -->\n${parts.join("\n")}`,
       });
     }
 
     // ── Fallback: cold exec path (render engine not running) ──
     const output = fallbackSupermap(cwd);
-    if (!output) return withLegend(); // No supermap — still inject legend if available
+    if (!output) return withContext(); // No supermap — still inject legend if available
 
     const coords = parseCoords(output);
 
     if (!lastCoords) {
       lastCoords = coords;
       renderCount++;
-      return withLegend({
-        appendSystemContext: [
+      return withContext({
+        supermapContext: [
           `# CODEX.codex — Supermap R${renderCount} (fallback — render engine not running)`,
           "",
-          "Navigate: `t1` `d5` `m103`. Edit: `e1 t1 status active`. Create: `e2 l \"title\"`.",
-          "Modes: `e0` orchestrate, `e1` edit, `e2` create, `e3` extend.",
+          "Use coordinates to navigate and act. The LM (legendary map) below is your action grammar — start there.",
           "",
           "```",
           output,
@@ -262,19 +262,19 @@ export default function register(api: any) {
 
     const diff = rDiff(lastCoords, coords);
     lastCoords = coords;
-    if (!diff) return withLegend(); // No diff — still inject legend
+    if (!diff) return withContext(); // No diff — still inject legend
 
     const changedCount = diff.split("\n").length;
     if (changedCount > coords.size * 0.6) {
       renderCount++;
-      return withLegend({
-        appendSystemContext: `# CODEX.codex R${renderCount} (full re-render)\n\`\`\`\n${output}\n\`\`\``,
+      return withContext({
+        supermapContext: `# CODEX.codex R${renderCount} (full re-render)\n\`\`\`\n${output}\n\`\`\``,
       });
     }
 
     renderCount++;
-    return withLegend({
-      appendSystemContext: `CODEX.codex R${renderCount}Δ (${changedCount} shifted)\n${diff}`,
+    return withContext({
+      supermapContext: `CODEX.codex R${renderCount}Δ (${changedCount} shifted)\n${diff}`,
     });
   });
 }
