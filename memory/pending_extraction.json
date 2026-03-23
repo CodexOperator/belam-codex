@@ -1,13 +1,14 @@
 {
   "status": "complete",
-  "session": "3f1a75d2-f3d0-4fa4-a044-38e351e4ee19",
+  "session": "cf2de8db-c7ce-4d8f-9c00-c1dc876eb5d4",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T03:51:00Z",
+  "completed_at": "2026-03-23T04:09:00Z",
   "primitives_created": [
-    "decisions/infra-pipelines-use-local-analysis.md",
-    "lessons/local-analysis-is-pipeline-type-agnostic.md",
-    "memory/entries/2026-03-23_035117_session-2026-03-22-evening-heartbeat-ran.md"
+    "memory/entries/2026-03-23_040926_shael-reported-stale-supermap-on-initial.md",
+    "lessons/agents-md-embedded-supermap-conflicts-with-cockpit-plugin.md",
+    "decisions/deprecate-boot-flag-use-cockpit-plugin-for-supermap.md",
+    "decisions/supermap-anchor-diff-flags-in-codex-engine.md"
   ],
-  "last_run": "2026-03-23T03:51:00Z"
+  "last_run": "2026-03-23T04:09:00Z"
 }
