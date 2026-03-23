@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_code_review
+status: phase1_complete
 priority: critical
 type: research
 version: codex-engine-v3-legendary-map
@@ -43,6 +43,7 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (2 HIGH, 1 MED). Review at pipeline_builds/codex-engine-v3-legendary-map_critic_design_review.md |
 | builder_implementation | 2026-03-23 | builder | In progress |
 | builder_implementation | 2026-03-23 | builder | LM implementation complete: codex_lm_renderer.py (~310L) + codex_engine.py (+46L) + workflow sections in 2 modes + 4 commands tagged. All 3 FLAGs + 2 LOWs addressed. 18 entries, 1015B budget, 1.7ms render. Commit 5e200f6f. |
+| critic_code_review | 2026-03-23 | critic | approved: clean implementation, two minor non-blocking flags (dead code in scan_modes, workflow coord heuristic) |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

@@ -1,0 +1,15 @@
+{
+  "version": "codex-engine-v3-legendary-map",
+  "completed_stage": "critic_code_review",
+  "next_stage": "phase1_complete",
+  "next_agent": "architect",
+  "timestamp": "2026-03-23T05:55:30.877579+00:00",
+  "pipeline_session_id": "a1a21d56-a105-42fd-b80a-3af8c76d84a2",
+  "wake_result": {
+    "success": true,
+    "status": "pending_agent_spawn",
+    "session_id": "",
+    "response_preview": "Dispatch payload emitted \u2014 completing agent will spawn next agent"
+  },
+  "verified": true
+}
