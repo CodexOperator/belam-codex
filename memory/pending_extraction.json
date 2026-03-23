@@ -1,20 +1,15 @@
 {
   "status": "complete",
-  "session": "a1318751-3378-436a-8eb1-098781772c69",
+  "session": "2af6d993-ec43-45c8-9257-13fd723ad84d",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T11:12:00Z",
+  "completed_at": "2026-03-23T11:36:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_111203_codex-engine-v3-legendary-map-archived-a.md",
-    "memory/entries/2026-03-23_111211_t1-build-codex-layer-v1-pipeline-launche.md",
-    "memory/entries/2026-03-23_111216_created-t6-lm-v2-coordinate-native-pipel.md",
-    "memory/entries/2026-03-23_111220_pipeline-gate-logic-updated-to-allow-2-c.md",
-    "memory/entries/2026-03-23_111226_t6-lm-v2-coordinate-native-pipeline-laun.md",
-    "lessons/launch-pipeline-kickoff-path-had-stale-imports.md",
-    "lessons/workflow-doc-step-refs-must-match-actual-script-names.md",
-    "lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md",
-    "decisions/max-concurrent-pipelines-increased-to-2.md",
-    "decisions/lm-v2-task-coordinate-native-launch-and-scaffold.md"
+    "memory/entries/2026-03-23_113551_validate-scheme-b-phase-2-turnover-mgmt.md",
+    "memory/entries/2026-03-23_113551_shael-directed-run-validate-scheme-b-exp.md",
+    "lessons/notebook-runs-need-phase-aware-cell-targeting.md",
+    "lessons/builder-supervisor-task-needs-explicit-pkl-discipline.md",
+    "decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md"
   ],
-  "last_run": "2026-03-23T11:12:00Z"
+  "last_run": "2026-03-23T11:36:00Z"
 }
