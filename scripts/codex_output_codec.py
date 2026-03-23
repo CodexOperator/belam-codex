@@ -6,7 +6,7 @@ Phase A of the Codex Layer. Provides:
   - Result register with transient coordinates (_, _1, _2, ...)
   - Dot notation field access (_.status, _.p1)
 
-Register state persists per-workspace at {workspace}/.codex_result_register.json
+Register state persists per-workspace at {workspace}/.codex_runtime/register.json
 (FLAG-1: scoped per-workspace, not HOME, to avoid cross-agent clobber).
 
 Pipeline: build-codex-layer-v1
@@ -51,13 +51,15 @@ REGISTER_TTL_SECONDS = 300  # 5 minutes — auto-expire stale entries (S2)
 class ResultRegister:
     """Transient coordinate stack for command outputs.
 
-    Persists to {workspace}/.codex_result_register.json for cross-process access.
+    Persists to {workspace}/.codex_runtime/register.json for cross-process access.
     """
 
     def __init__(self, workspace: Path, max_history: int = 5):
         self.workspace = workspace
         self._stack: deque[CodexResult] = deque(maxlen=max_history)
-        self._state_file = workspace / '.codex_result_register.json'
+        runtime_dir = workspace / '.codex_runtime'
+        runtime_dir.mkdir(exist_ok=True)
+        self._state_file = runtime_dir / 'register.json'
         self._load()
 
     def push(self, result: CodexResult) -> str:

@@ -1414,6 +1414,181 @@ def parse_flags(argv):
     return flags, positional
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# P3: Agent-to-Agent Conversational Exchange Loop
+# ═══════════════════════════════════════════════════════════════════════
+
+MAX_EXCHANGES = 3
+DISPATCH_TIMEOUT = 300  # FLAG-1 MED: per-dispatch timeout in seconds
+
+
+def load_pipeline_state(version: str) -> dict:
+    """Load pipeline state JSON."""
+    state_file = BUILDS_DIR / f'{version}_state.json'
+    if not state_file.exists():
+        state_file = RESEARCH_BUILDS_DIR / f'{version}_state.json'
+    if state_file.exists():
+        try:
+            return json.loads(state_file.read_text(encoding='utf-8'))
+        except Exception:
+            pass
+    return {}
+
+
+def save_pipeline_state(version: str, state: dict):
+    """Save pipeline state JSON."""
+    state_file = BUILDS_DIR / f'{version}_state.json'
+    if not state_file.exists():
+        state_file = RESEARCH_BUILDS_DIR / f'{version}_state.json'
+    try:
+        state_file.write_text(json.dumps(state, indent=2, default=str), encoding='utf-8')
+    except Exception as e:
+        print(f"   ⚠️  Failed to save state: {e}")
+
+
+def dispatch_agent(agent: str, message: str, session_id: str = None,
+                   timeout: int = DISPATCH_TIMEOUT) -> dict:
+    """Dispatch an agent with optional session-ID tracking.
+
+    Uses wake_agent() with timeout. Returns {completed, session_id, response, has_blocks}.
+    """
+    result = wake_agent(agent, message, timeout=timeout, session_id=session_id)
+    response = result.get('response', '')
+
+    # Detect blocks/flags in critic responses
+    has_blocks = bool(re.search(r'\bBLOCK', response, re.IGNORECASE)) if response else False
+
+    return {
+        'completed': result.get('success', False),
+        'session_id': result.get('session_id', ''),
+        'response': response,
+        'has_blocks': has_blocks,
+    }
+
+
+def get_render_diff() -> str:
+    """Get render engine diff for review context."""
+    try:
+        import socket as _socket
+        sock_path = WORKSPACE / '.codex_runtime' / 'render.sock'
+        if sock_path.exists():
+            s = _socket.socket(_socket.AF_UNIX, _socket.SOCK_STREAM)
+            s.settimeout(2.0)
+            s.connect(str(sock_path))
+            s.sendall(b'diff\n')
+            data = s.recv(65536).decode('utf-8', errors='replace')
+            s.close()
+            return data.strip()
+    except Exception:
+        pass
+    # Fallback: run codex_engine --supermap-diff
+    try:
+        out = subprocess.run(
+            [sys.executable, str(WORKSPACE / 'scripts' / 'codex_engine.py'), '--supermap-diff'],
+            capture_output=True, text=True, cwd=str(WORKSPACE), timeout=10,
+        )
+        return out.stdout.strip()
+    except Exception:
+        return ''
+
+
+def build_review_message(version: str, stage: str, builder_result: dict) -> str:
+    """D6: Build a review message with embedded diffs for critic."""
+    diff = get_render_diff()
+    notes = builder_result.get('response', '')[:500]
+
+    msg = f"🔄 Review request — {version}\n"
+    msg += f"Stage: {stage}\n"
+    if notes:
+        msg += f"Builder notes: {notes}\n"
+    if diff:
+        msg += f"\n## Changes Since Last Anchor\n```\n{diff[:2000]}\n```\n"
+    msg += "\nReview the implementation and provide feedback. If issues found, list BLOCKs."
+    return msg
+
+
+def post_exchange_to_group(from_agent: str, to_agent: str, exchange: int,
+                           version: str, summary: str):
+    """D7: Post agent exchange summary to group chat.
+
+    FLAG-2 LOW: For 1-exchange cases, post only once (the approval).
+    For 2+ exchanges, post first (review started) + last (concluded).
+    """
+    preview = summary[:200] + ('...' if len(summary) > 200 else '')
+    group_msg = f"💬 {from_agent} → {to_agent} [exchange {exchange + 1}] ({version})\n{preview}"
+    try:
+        send_orchestrator_notification(version, f'💬 Exchange {exchange + 1}', group_msg)
+    except Exception:
+        pass  # non-critical
+
+
+def run_exchange_loop(version: str, stage: str) -> dict:
+    """D5: Run builder→critic exchange loop with session-ID tracking.
+
+    Returns {status, exchanges, final_result}.
+    """
+    state = load_pipeline_state(version)
+    active = state.get('active_sessions', {})
+    critic_session_id = active.get('critic', {}).get('session_id')
+
+    for exchange in range(MAX_EXCHANGES):
+        # 1. Spawn builder (always fresh — stateless implementors)
+        builder_context = f"Exchange {exchange + 1}/{MAX_EXCHANGES} for {version} stage {stage}"
+        if exchange > 0:
+            # Include previous critic feedback
+            prev_feedback = active.get('critic', {}).get('last_feedback', '')
+            if prev_feedback:
+                builder_context += f"\n\nCritic feedback from previous exchange:\n{prev_feedback}"
+
+        builder_result = dispatch_agent('builder', builder_context, timeout=DISPATCH_TIMEOUT)
+        if not builder_result.get('completed'):
+            return {'status': 'builder_timeout', 'exchanges': exchange}
+
+        # 2. Build review message with diffs
+        review_msg = build_review_message(version, stage, builder_result)
+
+        # 3. Spawn/resume critic (Option B: session-ID tracking, Option C: fallback)
+        critic_result = dispatch_agent(
+            'critic', review_msg,
+            session_id=critic_session_id,
+            timeout=DISPATCH_TIMEOUT,
+        )
+
+        # Track critic session for next exchange
+        new_session_id = critic_result.get('session_id', '')
+        if new_session_id:
+            critic_session_id = new_session_id
+
+        # Update state
+        active.setdefault('critic', {})
+        active['critic']['session_id'] = critic_session_id
+        active['critic']['exchange_count'] = exchange + 1
+        active['critic']['last_feedback'] = critic_result.get('response', '')[:1000]
+        state['active_sessions'] = active
+        save_pipeline_state(version, state)
+
+        # 4. Group chat visibility (FLAG-2: first + last only, dedup for 1-exchange)
+        should_post = (exchange == 0) or (not critic_result.get('has_blocks'))
+        if should_post:
+            summary = critic_result.get('response', 'No response')[:200]
+            post_exchange_to_group('builder', 'critic', exchange, version, summary)
+
+        # 5. Check if critic approved (no blocks)
+        if not critic_result.get('has_blocks'):
+            return {
+                'status': 'approved',
+                'exchanges': exchange + 1,
+                'final_result': critic_result,
+            }
+
+    # Hit exchange limit
+    return {
+        'status': 'exchange_limit',
+        'exchanges': MAX_EXCHANGES,
+        'final_result': critic_result if 'critic_result' in dir() else None,
+    }
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)

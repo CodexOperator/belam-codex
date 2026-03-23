@@ -55,8 +55,11 @@ def _get_engine():
 # ── Configuration ───────────────────────────────────────────────────────────────
 
 WORKSPACE = Path(os.environ.get('BELAM_WORKSPACE', Path.home() / '.openclaw/workspace'))
-SOCKET_PATH = Path.home() / '.belam_render.sock'
-TEST_MODE_FLAG = Path.home() / '.belam_render_test_mode'  # FLAG-1: flag file for test mode
+RUNTIME_DIR = WORKSPACE / '.codex_runtime'
+RUNTIME_DIR.mkdir(exist_ok=True)
+SOCKET_PATH = RUNTIME_DIR / 'render.sock'
+PID_FILE = RUNTIME_DIR / 'render.pid'
+TEST_MODE_FLAG = RUNTIME_DIR / 'test_mode'
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

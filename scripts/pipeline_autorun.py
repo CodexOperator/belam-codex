@@ -1272,6 +1272,116 @@ def kick_one(version: str, dry_run: bool = False) -> bool:
     return kick_pipeline(version, dry_run)
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# P4: Autonomous Iteration
+# ═══════════════════════════════════════════════════════════════════════
+
+MAX_DAILY_ITERATIONS = 3
+MAX_TOTAL_UNREVIEWED = 6
+ITERATION_GAP_SECONDS = 1800  # 30 minutes
+
+
+def iterate_pipeline(version: str, dry_run: bool = False) -> bool:
+    """D8: Run one autonomous iteration. Returns True if iteration was spawned."""
+    state = load_state_json(version)
+
+    # Gate 1: Pipeline must be at phase2_complete or phase3
+    status = state.get('status', '')
+    if status not in ('phase2_complete', 'phase3', 'phase2_code_review'):
+        print(f"   Skip: {version} status '{status}' not eligible for iteration")
+        return False
+
+    # Gate 2: Time since last iteration (>30 min)
+    last_iter = state.get('last_iteration_at', '')
+    if last_iter:
+        elapsed = minutes_since(last_iter)
+        if elapsed is not None and elapsed < ITERATION_GAP_SECONDS / 60:
+            print(f"   Skip: only {elapsed:.0f}min since last iteration (need {ITERATION_GAP_SECONDS // 60})")
+            return False
+
+    # Gate 3: Daily iteration count without human feedback
+    daily_count = state.get('daily_iteration_count', 0)
+    daily_human_input = state.get('daily_human_input', False)
+    if daily_count >= MAX_DAILY_ITERATIONS and not daily_human_input:
+        print(f"   Skip: {daily_count} iterations today without human feedback")
+        try:
+            from pipeline_orchestrate import send_orchestrator_notification
+            send_orchestrator_notification(version, '⏸️ Iteration cap',
+                f'{version}: {daily_count} iterations without human input. Pausing.')
+        except Exception:
+            pass
+        return False
+
+    # Gate 4: Total unreviewed cap (FLAG-3)
+    total_unreviewed = state.get('total_unreviewed_iterations', 0)
+    if total_unreviewed >= MAX_TOTAL_UNREVIEWED:
+        print(f"   Skip: {total_unreviewed} total unreviewed iterations (cap: {MAX_TOTAL_UNREVIEWED})")
+        return False
+
+    if dry_run:
+        print(f"   [DRY RUN] Would iterate {version} (daily: {daily_count}, total: {total_unreviewed})")
+        return True
+
+    # S3: Log iteration proposal
+    iteration_n = state.get('iteration_count', 0) + 1
+    proposal_dir = Path(WORKSPACE) / 'pipeline_builds'
+    proposal_dir.mkdir(exist_ok=True)
+    try:
+        (proposal_dir / f'{version}_iteration_{iteration_n}_proposal.md').write_text(
+            f"# Iteration {iteration_n} — {version}\n\n"
+            f"**Date:** {datetime.now(timezone.utc).isoformat()}\n"
+            f"**Daily count:** {daily_count + 1}\n"
+            f"**Total unreviewed:** {total_unreviewed + 1}\n",
+            encoding='utf-8',
+        )
+    except Exception:
+        pass
+
+    # Build iteration context
+    context = f"Autonomous iteration {iteration_n} for {version}.\n"
+    context += "Propose one targeted improvement based on:\n"
+    context += f"- Pipeline status: {status}\n"
+
+    last_feedback = state.get('active_sessions', {}).get('critic', {}).get('last_feedback', '')
+    if last_feedback:
+        context += f"- Last critic feedback: {last_feedback[:500]}\n"
+
+    try:
+        from pipeline_orchestrate import get_render_diff
+        diff = get_render_diff()
+        if diff:
+            context += f"- Recent changes:\n```\n{diff[:1000]}\n```\n"
+    except Exception:
+        pass
+
+    context += "\nKeep the improvement small and focused. One change per iteration."
+
+    # Spawn architect
+    print(f"   🚀 Spawning architect for iteration {iteration_n}...")
+    try:
+        from pipeline_orchestrate import wake_agent
+        result = wake_agent('architect', context, timeout=300)
+        print(f"   Result: {'success' if result.get('success') else 'failed'}")
+    except Exception as e:
+        print(f"   ⚠️  Dispatch failed: {e}")
+        return False
+
+    # Update state
+    state['last_iteration_at'] = datetime.now(timezone.utc).isoformat()
+    state['daily_iteration_count'] = daily_count + 1
+    state['total_unreviewed_iterations'] = total_unreviewed + 1
+    state['iteration_count'] = iteration_n
+    state_file = Path(WORKSPACE) / 'pipeline_builds' / f'{version}_state.json'
+    if not state_file.exists():
+        state_file = Path(WORKSPACE) / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_state.json'
+    try:
+        state_file.write_text(json.dumps(state, indent=2, default=str), encoding='utf-8')
+    except Exception:
+        pass
+
+    return True
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description='Pipeline Autorun — event-driven lifecycle automation')
@@ -1282,6 +1392,8 @@ def main():
     parser.add_argument('--check-experiments', action='store_true', help='Check for experiment-eligible pipelines')
     parser.add_argument('--dry-run', action='store_true', help='Report only, do not kick')
     parser.add_argument('--one', type=str, help='Kick one specific pipeline')
+    parser.add_argument('--iterate', type=str, metavar='VERSION',
+                        help='Run one autonomous iteration for a pipeline')
     args = parser.parse_args()
 
     print(f"{'═' * 60}")
@@ -1290,6 +1402,14 @@ def main():
 
     if args.dry_run:
         print("  [DRY RUN MODE — no actions will be taken]\n")
+
+    if args.iterate:
+        result = iterate_pipeline(args.iterate, args.dry_run)
+        if result:
+            print(f"  ✅ Iteration spawned for {args.iterate}")
+        else:
+            print(f"  ⏭️  Iteration skipped for {args.iterate}")
+        return
 
     if args.one:
         kick_one(args.one, args.dry_run)

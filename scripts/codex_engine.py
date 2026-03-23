@@ -1155,6 +1155,12 @@ def render_zoom(coords_or_args, field_selections=None):
 
         lines.append(f"╶─ {coord} {slug}")
 
+        # _lm_text consumer: virtual entries (lm, register) have no filepath
+        if fp is None:
+            if item.get('_lm_text'):
+                lines.append(item['_lm_text'])
+            continue
+
         prim = load_primitive(fp, ptype)
         if not prim:
             lines.append(f"   (file not found: {fp})")
@@ -4707,6 +4713,49 @@ def main(args=None):
             print('Register cleared.')
         except ImportError:
             pass
+        return
+
+    # --render-diff: get diff from render engine UDS, fallback to file-based
+    if '--render-diff' in args:
+        import socket as _socket
+        sock_path = WORKSPACE / '.codex_runtime' / 'render.sock'
+        if sock_path.exists():
+            try:
+                s = _socket.socket(_socket.AF_UNIX, _socket.SOCK_STREAM)
+                s.settimeout(2.0)
+                s.connect(str(sock_path))
+                s.sendall(b'diff\n')
+                data = b''
+                while True:
+                    chunk = s.recv(65536)
+                    if not chunk:
+                        break
+                    data += chunk
+                s.close()
+                output = data.decode('utf-8', errors='replace').strip()
+                if output:
+                    print(output)
+                    return
+            except Exception:
+                pass
+        # Fallback to file-based diff
+        # (handled by --supermap-diff below)
+        return
+
+    # --render-anchor-reset: reset render engine's diff anchor
+    if '--render-anchor-reset' in args:
+        import socket as _socket
+        sock_path = WORKSPACE / '.codex_runtime' / 'render.sock'
+        if sock_path.exists():
+            try:
+                s = _socket.socket(_socket.AF_UNIX, _socket.SOCK_STREAM)
+                s.settimeout(2.0)
+                s.connect(str(sock_path))
+                s.sendall(b'anchor-reset\n')
+                s.recv(1024)
+                s.close()
+            except Exception:
+                pass
         return
 
     # --supermap-anchor: render fresh supermap AND drop anchor for future diffs

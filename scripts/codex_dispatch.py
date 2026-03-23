@@ -26,9 +26,10 @@ from codex_output_codec import CodexResult, ResultRegister, output_to_codex
 # Coordinate grammar regex (matches codex coordinate patterns)
 COORD_RE = re.compile(r'^(md|mw|lm|[a-z])\d*$', re.IGNORECASE)
 
-# Extended: also match e0, e1t5, e0p3, etc. (mode+coord patterns)
+# Extended: match e{n}{coord} compounds (e1t6, e0p3) + bare coords (t5, lm3, d1-d5)
 EXTENDED_COORD_RE = re.compile(
-    r'^(e[0-3]|md|mw|lm|[a-z])(\d+)?(\s|$)', re.IGNORECASE
+    r'^(?:e\d+(?:(?:md|mw|[a-z])\d*)?|(?:md|mw|lm|[a-z])\d*(?:-(?:md|mw|lm|[a-z])?\d+)?)$',
+    re.IGNORECASE,
 )
 
 # Render verb patterns
@@ -188,9 +189,10 @@ class CodexDispatcher:
 
         text = re.sub(r'_\.(\w+)', replace_field, text)
         # Bare _ → previous rendered output (first line)
+        # Only substitute standalone _ (not inside identifiers like _my_var)
         if '_' in text and not re.search(r'_\.\w', text):
             first_line = prev.rendered.split('\n')[0] if prev.rendered else ''
-            text = text.replace('_', first_line)
+            text = re.sub(r'(?<!\w)_(?!\w)', first_line, text)
         return text
 
 
