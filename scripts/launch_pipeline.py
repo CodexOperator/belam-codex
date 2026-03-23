@@ -604,19 +604,13 @@ def main():
         # Import and use fire_and_forget_dispatch directly — no blocking
         sys.path.insert(0, str(Path(__file__).parent))
         from orchestration_engine import fire_and_forget_dispatch
-        from pipeline_orchestrate import update_pipeline_status, notify_group
+        from pipeline_orchestrate import orchestrate_status
 
         # 1. State transition: pipeline_created → architect_design
-        update_pipeline_status(args.version, 'architect_design')
+        orchestrate_status(args.version, 'architect_design')
         print(f"   ✅ State: architect_design")
 
-        # 2. Notify group chat
-        try:
-            notify_group(f"🚀 Pipeline {args.version} kicked off → architect_design")
-        except Exception:
-            pass  # Non-critical
-
-        # 3. Fire-and-forget dispatch architect (returns immediately)
+        # 2. Fire-and-forget dispatch architect (returns immediately)
         result = fire_and_forget_dispatch(args.version, 'architect_design', 'architect')
         if result['success']:
             print(f"   ✅ Architect dispatched (pid={result['pid']})")

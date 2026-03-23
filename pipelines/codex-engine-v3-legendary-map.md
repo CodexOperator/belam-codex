@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: critical
 type: research
 version: codex-engine-v3-legendary-map
@@ -11,6 +11,7 @@ supersedes: codex-engine-v2-modes
 tags: [codex-engine, legendary-map]
 project: codex
 started: 2026-03-23
+archived: 2026-03-23
 ---
 
 # Implementation Pipeline: CODEX-ENGINE-V3-LEGENDARY-MAP

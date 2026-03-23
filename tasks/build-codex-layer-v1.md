@@ -8,6 +8,7 @@ depends_on: [codex-layer-context-injection]
 upstream: [codex-engine-v3-legendary-map]
 downstream: []
 tags: [codex-layer, v1, interceptor, output-codec, symbolic-dispatch, infrastructure]
+pipeline: build-codex-layer-v1
 supersedes: [codex-layer-output-codec, codex-layer-symbolic-dispatch]
 ---
 

@@ -2290,7 +2290,8 @@ def sweep(dry_run: bool = False) -> list[str]:
     # 3. Check gates
     print(f'\n--- Gate Check ---\n')
     gates = check_gates(dry_run=dry_run)
-    kicked = False
+    MAX_CONCURRENT = 2  # Max pipelines with active agent work
+    kicked = 0
     for g in gates:
         status_label = g['status'].upper()
         blocked = f' (blocked by: {g["blocked_by"]})' if g.get('blocked_by') else ''
@@ -2298,8 +2299,8 @@ def sweep(dry_run: bool = False) -> list[str]:
         if g.get('action'):
             print(f'    -> {g["action"]}')
 
-        # Auto-kick eligible pipelines (one at a time)
-        if g['status'] in ('eligible', 'open') and not kicked and not dry_run:
+        # Auto-kick eligible pipelines (up to MAX_CONCURRENT)
+        if g['status'] in ('eligible', 'open') and kicked < MAX_CONCURRENT and not dry_run:
             if g['gate'] == 'kickoff' and _HAS_ORCHESTRATE:
                 print(f'    -> Auto-kicking {g["pipeline"]}...')
                 try:
@@ -2307,7 +2308,7 @@ def sweep(dry_run: bool = False) -> list[str]:
                                                   'belam-main', 'Auto-kicked by sweep')
                     if result:
                         actions.append(f'F1 D {g["pipeline"]}.kickoff -> architect_design')
-                        kicked = True
+                        kicked += 1
                 except Exception as e:
                     print(f'    -> Kick failed: {e}')
             elif g['gate'] == 'analysis' and _HAS_ORCHESTRATE:
@@ -2317,7 +2318,7 @@ def sweep(dry_run: bool = False) -> list[str]:
                     result = orchestrate_local_analysis(g['pipeline'])
                     if result:
                         actions.append(f'F1 D {g["pipeline"]}.analysis LAUNCHED')
-                        kicked = True
+                        kicked += 1
                 except Exception as e:
                     print(f'    -> Analysis launch failed: {e}')
             elif dry_run:
@@ -2334,33 +2335,33 @@ def sweep(dry_run: bool = False) -> list[str]:
             fm = load_pipeline_frontmatter(rf)
             ver = fm.get('version', rf.stem.replace('_revision_request', ''))
             print(f'  PENDING: {ver} revision request at {rf.name}')
-            if not kicked and not dry_run and _HAS_ORCHESTRATE:
+            if kicked < MAX_CONCURRENT and not dry_run and _HAS_ORCHESTRATE:
                 try:
                     from pipeline_orchestrate import orchestrate_revise
                     context = rf.read_text()
                     result = orchestrate_revise(ver, context)
                     if result:
                         actions.append(f'F1 D {ver}.revision KICKED')
-                        kicked = True
+                        kicked += 1
                         rf.unlink()
                 except Exception as e:
                     print(f'    -> Revision kick failed: {e}')
     else:
         print('  No pending revisions.')
 
-    # 5. Check stalls (only if nothing was kicked -- one at a time)
+    # 5. Check stalls
     print(f'\n--- Stall Check (>{STALL_THRESHOLD_MINUTES}min) ---\n')
     stalls = check_stalls()
     if stalls:
         for s in stalls:
             print(f'  STALLED: {s["pipeline"]}/{s["pending_action"]} by {s["agent"]} ({s["age_minutes"]:.0f}min)')
-            if not kicked and not dry_run and _HAS_ORCHESTRATE:
+            if kicked < MAX_CONCURRENT and not dry_run and _HAS_ORCHESTRATE:
                 print(f'    -> Auto-recovering...')
                 try:
                     ok = pipeline_resume(s['pipeline'])
                     if ok:
                         actions.append(f'F1 D {s["pipeline"]}.stall_recovery {s["agent"]} RESUMED')
-                        kicked = True
+                        kicked += 1
                 except Exception as e:
                     print(f'    -> Recovery failed: {e}')
             elif dry_run:
@@ -2370,8 +2371,8 @@ def sweep(dry_run: bool = False) -> list[str]:
 
     # 5b. Check unclaimed dispatches (agent never picked up the handoff)
     print(f'\n--- Unclaimed Dispatch Recovery ---\n')
-    if kicked:
-        print('  Skipping — pipeline already kicked this sweep.')
+    if kicked >= MAX_CONCURRENT:
+        print(f'  Skipping — {kicked} pipeline(s) already kicked this sweep (limit={MAX_CONCURRENT}).')
     else:
         unclaimed = _check_unclaimed_dispatches(dry_run=dry_run)
         if unclaimed:
@@ -2382,7 +2383,7 @@ def sweep(dry_run: bool = False) -> list[str]:
                         ok = pipeline_resume(u['pipeline'])
                         if ok:
                             actions.append(f'F1 D {u["pipeline"]}.unclaimed_recovery {u["agent"]} RESUMED')
-                            kicked = True
+                            kicked += 1
                     except Exception as e:
                         print(f'    -> Recovery failed: {e}')
                 elif dry_run:

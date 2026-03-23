@@ -1,9 +1,11 @@
 ---
 primitive: task
-status: in_pipeline
+status: archived
 priority: critical
 pipeline: codex-engine-v3-legendary-map
 created: 2026-03-22
+archived: 2026-03-23
+archive_reason: pipeline codex-engine-v3-legendary-map archived
 owner: belam
 depends_on: [codex-engine-v3-temporal-mcp-autoclave]
 upstream: [codex-engine-v3]

@@ -46,7 +46,8 @@ LOCK_STALE_MINUTES = 5
 # Delay between sequential kickoffs (seconds)
 KICKOFF_DELAY_SECONDS = 10
 
-# Only one pipeline may have active agent work at a time.
+# Max concurrent pipelines with active agent work.
+MAX_CONCURRENT_PIPELINES = 2
 # A pipeline is "active" if its last_updated is within this window
 # and it has a pending agent action (not human-gated).
 ACTIVE_WINDOW_MINUTES = STALL_THRESHOLD_MINUTES  # Same as stall threshold
@@ -236,17 +237,13 @@ def kick_pipeline(version: str, dry_run: bool = False) -> bool:
 
 def get_active_agent_pipeline() -> str | None:
     """
-    Check if any pipeline currently has active agent work.
+    Check which pipelines currently have active agent work.
     
-    Returns the version string of the active pipeline, or None if no pipeline
-    is currently being worked on by an agent.
+    Returns a list of version strings with active agent work.
     
     A pipeline is "active" if:
     - It has a pending agent action (not human-gated)
     - Its last_updated is within ACTIVE_WINDOW_MINUTES
-    
-    This enforces ONE pipeline at a time — agents focus on a single pipeline
-    until it either completes its current stage or stalls past the threshold.
     """
     agent_actions = {
         'architect_design', 'critic_design_review', 'builder_implementation',
@@ -262,6 +259,7 @@ def get_active_agent_pipeline() -> str | None:
         'local_experiment_running', 'report_building',
     }
 
+    active = []
     pipelines = get_active_pipelines()
     for p in pipelines:
         pending = p['pending_action']
@@ -270,9 +268,9 @@ def get_active_agent_pipeline() -> str | None:
 
         elapsed = minutes_since(p['last_updated'])
         if elapsed is not None and elapsed < ACTIVE_WINDOW_MINUTES:
-            return p['version']
+            active.append(p['version'])
 
-    return None
+    return active
 
 
 def check_analysis_gate() -> bool:
@@ -415,12 +413,14 @@ def check_gates(dry_run: bool = False) -> list[str]:
     print("\n🔓 Checking gates...\n")
     kicked = []
 
-    # Enforce one-at-a-time: check if any pipeline already has active agent work
+    # Enforce concurrency limit: check how many pipelines have active agent work
     active = get_active_agent_pipeline()
-    if active:
-        print(f"  🔒 Pipeline '{active}' has active agent work — skipping new kickoffs")
-        print(f"     (One pipeline at a time. Will kick next when this completes or stalls.)")
+    if len(active) >= MAX_CONCURRENT_PIPELINES:
+        print(f"  🔒 {len(active)} pipeline(s) active ({', '.join(active)}) — at limit of {MAX_CONCURRENT_PIPELINES}")
+        print(f"     Will kick next when one completes or stalls.")
         return kicked
+    elif active:
+        print(f"  ⚡ {len(active)} active ({', '.join(active)}), {MAX_CONCURRENT_PIPELINES - len(active)} slot(s) open")
 
     analysis_gate_open = check_analysis_gate()
     print(f"  Analysis gate (v4-deep-analysis phase2): {'✅ OPEN' if analysis_gate_open else '🔒 CLOSED'}")
