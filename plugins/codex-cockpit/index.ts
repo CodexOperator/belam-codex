@@ -197,9 +197,6 @@ export default function register(api: any) {
         return withContext({
           supermapContext: [
             `<!-- CODEX R${renderCount} — live render engine (${lastCoords.size} coords) -->`,
-            "",
-            "Use coordinates to navigate and act. The LM (legendary map) below is your action grammar — start there.",
-            "",
             "```",
             supermap,
             "```",
@@ -250,9 +247,6 @@ export default function register(api: any) {
       return withContext({
         supermapContext: [
           `# CODEX.codex — Supermap R${renderCount} (fallback — render engine not running)`,
-          "",
-          "Use coordinates to navigate and act. The LM (legendary map) below is your action grammar — start there.",
-          "",
           "```",
           output,
           "```",
