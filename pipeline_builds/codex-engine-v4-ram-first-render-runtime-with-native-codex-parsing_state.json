@@ -8,19 +8,25 @@
       "notes": "Phase 2 implemented: D1 (AgentSession metadata \u2014 pipeline/stage/role), D2 (signal handling with inotify + exchange loop via openclaw agent --session-id), D3 (STAGE_FLOW table + stall detection), D4 (reviewer_joined event on second agent attach), D5 (cockpit FLAG-1 fix \u2014 register.json direct read), D6 (graceful degradation \u2014 existing patterns sufficient), D7 (session archival to markdown). FLAG-1 resolved: openclaw agent --session-id already supports deterministic session routing. FLAG-2 deferred to V5 (compaction trigger). Total ~225 lines across 3 files. Commit 14a81b0c."
     },
     "phase2_critic_design_review": {
+      "status": "in_progress",
+      "started_at": "2026-03-23 19:18",
+      "agent": "unknown"
+    },
+    "phase2_critic_code_review": {
       "status": "complete",
-      "completed_at": "2026-03-23 18:42",
+      "completed_at": "2026-03-23 19:16",
       "agent": "critic",
-      "notes": "APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts \u2014 builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_critic_design_review.md"
+      "notes": "APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 7 deliverables verified. Both design FLAGs resolved (session spawning via dispatch_agent, compaction deferred). FLAG-1 MED: stall detection uses started_at not last activity (false positives on long-running active sessions). FLAG-2 LOW: openclaw sessions history CLI may not exist (best-effort wrapped). FLAG-3 LOW: inotify not installed, polling fallback works. 325L, 3 files. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_critic_code_review.md"
     }
   },
   "phase2": {
-    "stage": "phase2_critic_design_review"
+    "stage": "phase2_critic_design_review",
+    "started": "2026-03-23"
   },
-  "last_updated": "2026-03-23 18:42",
-  "pending_action": "phase2_critic_code_review",
-  "status": "phase2_build",
-  "status_updated": "2026-03-23 17:59",
+  "last_updated": "2026-03-23 19:18",
+  "pending_action": "phase2_complete",
+  "status": "phase2_in_progress",
+  "status_updated": "2026-03-23 19:18",
   "current_agent": "critic",
   "dispatch_claimed": true,
   "last_dispatched": null

@@ -43,6 +43,12 @@ STALL_THRESHOLD_MINUTES = 120  # 2 hours
 # Lock staleness threshold: if a session lock file is older than this, the agent is hung
 LOCK_STALE_MINUTES = 5
 
+# Rate limit cooldown: wait this many minutes after detecting a rate limit before re-dispatching
+RATE_LIMIT_COOLDOWN_MINUTES = 15
+
+# Rate limit marker directory
+RATE_LIMIT_DIR = BUILDS_DIR / '.rate_limits'
+
 # Delay between sequential kickoffs (seconds)
 KICKOFF_DELAY_SECONDS = 10
 
@@ -143,6 +149,125 @@ def minutes_since(ts: str) -> float | None:
     now = datetime.now(timezone.utc)
     return (now - dt).total_seconds() / 60
 
+
+# ── Rate Limit Detection & Cooldown ──────────────────────────────────────────
+
+def _check_rate_limit_logs(lookback_minutes: int = 30) -> list[dict]:
+    """Check OpenClaw gateway logs for recent API rate-limit errors.
+
+    Scans agent-turns.jsonl and openclaw process output for 429/rate-limit patterns.
+    Returns list of {'timestamp': str, 'agent': str, 'message': str} entries.
+    """
+    hits = []
+    rate_patterns = ['429', 'rate_limit', 'rate limit', 'too many requests',
+                     'overloaded', 'quota exceeded', 'throttled', 'rate-limited']
+    cutoff = time.time() - (lookback_minutes * 60)
+
+    # Check agent-turns.jsonl for ERROR entries (not tool calls or normal messages)
+    turns_log = Path.home() / '.openclaw' / 'logs' / 'agent-turns' / 'agent-turns.jsonl'
+    if turns_log.exists():
+        try:
+            with open(turns_log) as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    # Only check error-type entries, not tool calls or regular messages
+                    entry_type = entry.get('type', '')
+                    if entry_type in ('tool_call', 'tool_result', 'message_received', 'message_sent'):
+                        continue  # Skip normal operations — these aren't API errors
+                    # Must have an actual error field
+                    error_msg = entry.get('error', entry.get('errorMessage', ''))
+                    if not error_msg:
+                        continue
+                    # Check if entry is recent
+                    ts_str = entry.get('timestamp', '')
+                    ts_dt = parse_timestamp(ts_str)
+                    if ts_dt and ts_dt.timestamp() < cutoff:
+                        continue
+                    # Check for rate-limit indicators in the error message
+                    error_lower = str(error_msg).lower()
+                    if any(p in error_lower for p in rate_patterns):
+                        hits.append({
+                            'timestamp': ts_str,
+                            'agent': entry.get('agent', entry.get('agentId', '?')),
+                            'message': str(error_msg)[:200],
+                        })
+        except Exception:
+            pass
+
+    # Check gateway process stderr/stdout via journalctl (if available)
+    try:
+        result = subprocess.run(
+            ['journalctl', '-u', 'openclaw', '--since', f'{lookback_minutes} minutes ago',
+             '--no-pager', '-q'],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0:
+            for line in result.stdout.split('\n'):
+                line_lower = line.lower()
+                if any(p in line_lower for p in rate_patterns):
+                    hits.append({
+                        'timestamp': '',
+                        'agent': '?',
+                        'message': line[:200],
+                    })
+    except Exception:
+        pass
+
+    return hits
+
+
+def _set_rate_limit_cooldown(version: str, agent: str, reason: str = '') -> None:
+    """Set a rate-limit cooldown marker for a pipeline/agent."""
+    RATE_LIMIT_DIR.mkdir(parents=True, exist_ok=True)
+    marker = RATE_LIMIT_DIR / f'{version}_{agent}.json'
+    marker.write_text(json.dumps({
+        'version': version,
+        'agent': agent,
+        'set_at': datetime.now(timezone.utc).isoformat(),
+        'cooldown_minutes': RATE_LIMIT_COOLDOWN_MINUTES,
+        'reason': reason,
+    }))
+
+
+def _check_rate_limit_cooldown(version: str, agent: str) -> float | None:
+    """Check if a rate-limit cooldown is active for this pipeline/agent.
+
+    Returns minutes remaining if cooldown is active, None otherwise.
+    """
+    marker = RATE_LIMIT_DIR / f'{version}_{agent}.json'
+    if not marker.exists():
+        return None
+    try:
+        data = json.loads(marker.read_text())
+        set_at = parse_timestamp(data.get('set_at', ''))
+        cooldown = data.get('cooldown_minutes', RATE_LIMIT_COOLDOWN_MINUTES)
+        if set_at:
+            elapsed = (datetime.now(timezone.utc) - set_at).total_seconds() / 60
+            remaining = cooldown - elapsed
+            if remaining > 0:
+                return remaining
+            else:
+                # Cooldown expired — clean up
+                marker.unlink(missing_ok=True)
+                return None
+    except Exception:
+        marker.unlink(missing_ok=True)
+    return None
+
+
+def _clear_rate_limit_cooldown(version: str, agent: str) -> None:
+    """Clear a rate-limit cooldown marker."""
+    marker = RATE_LIMIT_DIR / f'{version}_{agent}.json'
+    marker.unlink(missing_ok=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 def _is_pipeline_already_dispatched(version: str) -> bool:
     """Check if a pipeline already has an active orchestration dispatch.
@@ -574,6 +699,25 @@ def check_stalled(dry_run: bool = False, skip_versions: set = None) -> list[str]
         )
 
         print(f"  🚨 {version}: STALLED — {pending} by {agent}, last activity {elapsed:.0f}min ago")
+
+        # Check rate-limit cooldown before re-dispatching
+        cooldown_remaining = _check_rate_limit_cooldown(version, agent)
+        if cooldown_remaining is not None:
+            print(f"     ⏳ Rate-limit cooldown active — {cooldown_remaining:.0f}min remaining. Skipping re-dispatch.")
+            continue
+
+        # Check for recent rate-limit errors in logs
+        rate_hits = _check_rate_limit_logs(lookback_minutes=30)
+        if rate_hits:
+            # Filter for hits relevant to this agent (or general hits)
+            relevant = [h for h in rate_hits if h['agent'] == '?' or agent in h['agent'].lower()]
+            if relevant:
+                print(f"     ⚠️  Rate-limit detected in logs ({len(relevant)} hit(s) in last 30min)")
+                for h in relevant[:2]:
+                    print(f"        → {h['message'][:100]}")
+                _set_rate_limit_cooldown(version, agent, reason=relevant[0]['message'][:200])
+                print(f"     ⏳ Setting {RATE_LIMIT_COOLDOWN_MINUTES}min cooldown before retry")
+                continue
 
         if dry_run:
             print(f"     [DRY RUN] Would re-kick {version} → {agent}")
@@ -1393,6 +1537,7 @@ def main():
     parser.add_argument('--check-locks', action='store_true', help='Check for stale session locks only')
     parser.add_argument('--check-revisions', action='store_true', help='Check for pending revision requests')
     parser.add_argument('--check-experiments', action='store_true', help='Check for experiment-eligible pipelines')
+    parser.add_argument('--check-ratelimits', action='store_true', help='Check for API rate-limit errors and manage cooldowns')
     parser.add_argument('--dry-run', action='store_true', help='Report only, do not kick')
     parser.add_argument('--one', type=str, help='Kick one specific pipeline')
     parser.add_argument('--iterate', type=str, metavar='VERSION',
@@ -1423,11 +1568,12 @@ def main():
         return
 
     # Determine which checks to run
-    explicit = args.check_gates or args.check_stalled or args.check_revisions or args.check_experiments
+    explicit = args.check_gates or args.check_stalled or args.check_revisions or args.check_experiments or args.check_ratelimits
     run_gates = args.check_gates or not explicit
     run_stalled = args.check_stalled or not explicit
     run_revisions = args.check_revisions or not explicit
     run_experiments = args.check_experiments or not explicit
+    run_ratelimits = args.check_ratelimits or not explicit
 
     # Always check stale locks first — they block everything else
     stale_agents = check_stale_locks(args.dry_run)
@@ -1448,6 +1594,48 @@ def main():
         # Auto-launch experiments for phase1_complete pipelines
         launched = check_experiment_eligible(args.dry_run)
         kicked += launched
+    # Rate-limit check — scan for API errors and set/clear cooldowns
+    rate_limited_agents = []
+    if run_ratelimits:
+        print(f"\n⚡ Checking for API rate-limit errors...\n")
+        rate_hits = _check_rate_limit_logs(lookback_minutes=30)
+        if rate_hits:
+            print(f"  ⚠️  {len(rate_hits)} rate-limit indicator(s) in last 30min:")
+            for h in rate_hits[:5]:
+                print(f"     → [{h['agent']}] {h['message'][:120]}")
+            # Set cooldowns for affected agents across all active pipelines
+            pipelines = get_active_pipelines()
+            for p in pipelines:
+                pending = p['pending_action']
+                if pending == 'none':
+                    continue
+                agent = 'architect' if 'architect' in pending else (
+                    'critic' if 'critic' in pending else (
+                        'builder' if 'builder' in pending else None
+                    )
+                )
+                if agent:
+                    relevant = [h for h in rate_hits if h['agent'] == '?' or agent in h.get('agent', '').lower()]
+                    if relevant:
+                        _set_rate_limit_cooldown(p['version'], agent, reason=relevant[0]['message'][:200])
+                        rate_limited_agents.append(f"{agent}@{p['version'][:25]}")
+                        print(f"  ⏳ Cooldown set: {agent} on {p['version'][:40]} ({RATE_LIMIT_COOLDOWN_MINUTES}min)")
+        else:
+            # Clear any expired cooldowns
+            if RATE_LIMIT_DIR.exists():
+                for marker in RATE_LIMIT_DIR.glob('*.json'):
+                    try:
+                        data = json.loads(marker.read_text())
+                        agent = data.get('agent', '?')
+                        version = data.get('version', '?')
+                        remaining = _check_rate_limit_cooldown(version, agent)
+                        if remaining is None:
+                            print(f"  ✅ Cooldown expired: {agent} on {version[:40]}")
+                    except Exception:
+                        marker.unlink(missing_ok=True)
+            print(f"  ✅ No rate-limit errors detected")
+        print()
+
     if run_stalled:
         if kicked:
             # A pipeline was just kicked — don't start another one
@@ -1470,6 +1658,8 @@ def main():
         print(f"  🧪 Experiments completed: {', '.join(experiment_completed)}")
     if kicked:
         print(f"  📊 Kicked {len(kicked)} pipeline(s): {', '.join(kicked)}")
+    if rate_limited_agents:
+        print(f"  ⚡ Rate-limit cooldowns active: {', '.join(rate_limited_agents)}")
     if not kicked and not stale_agents and not experiment_completed:
         print(f"  📊 No action needed — all pipelines healthy or gated.")
     print(f"{'─' * 60}\n")
