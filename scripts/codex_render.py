@@ -1043,18 +1043,47 @@ class SessionManager:
         # Engine-level refs (set by CodexRenderEngine after construction)
         self._engine_ref = None
 
-    def start(self) -> None:
-        """Bind UDS, start accept thread."""
+    def start(self, force: bool = False) -> None:
+        """Bind UDS, start accept thread.
+
+        Args:
+            force: If True, kill any existing render engine and take over.
+        """
         if SOCKET_PATH.exists():
-            # Check if stale
+            # Check if another engine is actually alive
+            alive = False
             try:
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                s.settimeout(0.5)
+                s.settimeout(1.0)
                 s.connect(str(SOCKET_PATH))
+                s.sendall(b'{"cmd":"ping"}\n')
+                resp = s.recv(4096)
                 s.close()
+                alive = b'"pong"' in resp
+            except (ConnectionRefusedError, OSError, TimeoutError):
+                pass
+
+            if alive and not force:
                 raise RuntimeError("Another render engine is already running")
-            except (ConnectionRefusedError, OSError):
-                SOCKET_PATH.unlink(missing_ok=True)
+            elif alive and force:
+                # Gracefully stop the existing engine, then take over
+                try:
+                    s2 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    s2.settimeout(2.0)
+                    s2.connect(str(SOCKET_PATH))
+                    s2.sendall(b'{"cmd":"stop"}\n')
+                    s2.recv(4096)
+                    s2.close()
+                    time.sleep(0.5)
+                except Exception:
+                    pass
+                # Also kill by PID if stop didn't work
+                self._kill_stale_pid()
+
+            SOCKET_PATH.unlink(missing_ok=True)
+        else:
+            # No socket but maybe a stale PID file
+            self._kill_stale_pid()
 
         self._server_sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self._server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -1062,9 +1091,38 @@ class SessionManager:
         self._server_sock.listen(5)
         self._server_sock.settimeout(1.0)
 
+        # Write PID file for stale detection
+        PID_FILE.write_text(str(os.getpid()))
+
         self._running = True
         self._thread = threading.Thread(target=self._accept_loop, daemon=True, name='uds-accept')
         self._thread.start()
+
+    @staticmethod
+    def _kill_stale_pid() -> None:
+        """Kill a render engine process from a previous run using PID file."""
+        if not PID_FILE.exists():
+            return
+        try:
+            old_pid = int(PID_FILE.read_text().strip())
+            # Verify it's actually a render engine process before killing
+            cmdline_path = Path(f'/proc/{old_pid}/cmdline')
+            if cmdline_path.exists():
+                cmdline = cmdline_path.read_bytes().decode('utf-8', errors='replace')
+                if 'codex_render' in cmdline:
+                    os.kill(old_pid, signal.SIGTERM)
+                    # Wait briefly for clean shutdown
+                    for _ in range(10):
+                        if not cmdline_path.exists():
+                            break
+                        time.sleep(0.1)
+                    # Force kill if still alive
+                    if cmdline_path.exists():
+                        os.kill(old_pid, signal.SIGKILL)
+                        time.sleep(0.2)
+        except (ValueError, ProcessLookupError, PermissionError, OSError):
+            pass
+        PID_FILE.unlink(missing_ok=True)
 
     def stop(self) -> None:
         self._running = False
@@ -1084,6 +1142,7 @@ class SessionManager:
             except Exception:
                 pass
         SOCKET_PATH.unlink(missing_ok=True)
+        PID_FILE.unlink(missing_ok=True)
 
     def notify_all(self, msg: dict) -> None:
         """Send a notification to all connected clients."""
@@ -1795,8 +1854,9 @@ CONTEXT_FILENAMES = {'SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md', 'AGENTS.md
 class CodexRenderEngine:
     """Main render engine process. Foreground, session-scoped."""
 
-    def __init__(self, workspace: Path, test_mode: bool = False):
+    def __init__(self, workspace: Path, test_mode: bool = False, force: bool = False):
         self.workspace = workspace
+        self._force = force
         self.tree = CodexTree(workspace)
         self.diff_engine = DiffEngine(self.tree)
         self.context = ContextAssembler(workspace, self.tree, self.diff_engine)
@@ -1861,7 +1921,7 @@ class CodexRenderEngine:
             self.watcher.start()
 
         # 4. Session server
-        self.sessions.start()
+        self.sessions.start(force=self._force)
 
         # 5. Test mode
         if self.test:
@@ -2035,6 +2095,7 @@ def main():
     parser.add_argument('--buffer', nargs='?', const='dense', help='Get render buffer')
     parser.add_argument('--stop', action='store_true', help='Shutdown running engine')
     parser.add_argument('--workspace', type=str, default=None)
+    parser.add_argument('--force', action='store_true', help='Kill existing engine and take over')
 
     args = parser.parse_args()
 
@@ -2100,7 +2161,8 @@ def main():
 
     # Server mode
     workspace = Path(args.workspace) if args.workspace else WORKSPACE
-    engine = CodexRenderEngine(workspace, test_mode=args.test)
+    force = getattr(args, 'force', False)
+    engine = CodexRenderEngine(workspace, test_mode=args.test, force=force)
     engine.start()
 
 
