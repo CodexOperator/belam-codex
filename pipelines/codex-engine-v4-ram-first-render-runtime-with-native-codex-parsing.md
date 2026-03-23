@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_code_review
+status: phase2_build
 priority: critical
 type: research
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
@@ -45,6 +45,7 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_architect_design | 2026-03-23 | architect | Phase 2 design: stage-based agent sessions via render engine. 7 deliverables (~225L across 3 files). Key architecture: OpenClaw manages session lifecycle (sessions_spawn/sessions_send), render engine manages tree state (UDS), orchestrator manages pipeline flow (stage transitions + signal detection). D1: stage metadata in AgentSession. D2: exchange loop with inotify-based signal detection (not polling). D3: table-driven stage flow + stall detection. D4: reviewer-join compaction trigger. D5: cockpit plugin stage-session mode + FLAG-1 fix (register read <1ms). D7: session archival for memory extraction. 4 open questions for critic. |
 | phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts — openclaw agent CLI runs one turn only, has no --mode session or --label. Builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Clean separation of concerns (OpenClaw=sessions, render engine=tree state, orchestrator=pipeline flow). inotify signal detection correct. Stage flow table clean. Phase 1 FLAG-1 fix included. |
 | phase2_builder_implementation | 2026-03-23 | builder | Phase 2 implemented: D1 (AgentSession metadata — pipeline/stage/role), D2 (signal handling with inotify + exchange loop via openclaw agent --session-id), D3 (STAGE_FLOW table + stall detection), D4 (reviewer_joined event on second agent attach), D5 (cockpit FLAG-1 fix — register.json direct read), D6 (graceful degradation — existing patterns sufficient), D7 (session archival to markdown). FLAG-1 resolved: openclaw agent --session-id already supports deterministic session routing. FLAG-2 deferred to V5 (compaction trigger). Total ~225 lines across 3 files. Commit 14a81b0c. |
+| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts — builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Clean separation of concerns, inotify signal detection correct, stage flow table clean. Phase 1 FLAG-1 fix included. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_critic_design_review.md |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

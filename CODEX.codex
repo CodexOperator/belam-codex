@@ -16672,7 +16672,7 @@ tags:
 - session-startup
 source: session
 content: 'Render engine zombie process bug diagnosed and fixed. Shael asked if agent properly spawns into render engine on new sessions. Investigation revealed zombie processes from prior sessions blocked fresh engine starts (socket held by dead process). Fixed codex_render.py: (1) PID file written to .codex_runtime/render.pid on start/cleaned on stop, (2) --force CLI flag: sends stop via UDS, waits, kills by PID if needed (verifies /proc/{pid}/cmdline), (3) stale PID cleanup on startup if socket gone but PID file exists. Cockpit plugin updated to pass --force on ensureRenderEngine() and poll socket up to 3s. Committed to belam-codex master (a04ea56f).'
-status: active
+status: consolidated
 __coord__: m128
 __slug__: 2026-03-23_172535_render-engine-zombie-process-bug-diagnos
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_172535_render-engine-zombie-process-bug-diagnos.md
@@ -17632,6 +17632,18 @@ Short session (~12 min). Shael asked whether the agent uses the render engine on
 - memory: `render-engine-zombie-process-bug-diagnos` (imp 4)
 - lesson: `render-engine-zombie-blocks-session-startup` (imp high confidence)
 - decision: `render-engine-pid-file-and-force-flag` (accepted)
+
+## Consolidated Entries — 2026-03-23
+
+*Generated at 2026-03-23T17:57:29Z — 1 entries*
+
+
+### 📅 Event (1)
+
+- **[★★★★☆]** Render engine zombie process bug diagnosed and fixed. Shael asked if agent properly spawns into render engine on new sessions. Investigation revealed zombie processes from prior sessions blocked fresh engine starts (socket held by dead process). Fixed codex_render.py: (1) PID file written to .codex_runtime/render.pid on start/cleaned on stop, (2) --force CLI flag: sends stop via UDS, waits, kills by PID if needed (verifies /proc/{pid}/cmdline), (3) stale PID cleanup on startup if socket gone but PID file exists. Cockpit plugin updated to pass --force on ensureRenderEngine() and poll socket up to 3s. Committed to belam-codex master (a04ea56f).
+  *tags: instance:main, render-engine, codex-cockpit, robustness, session-startup*
+
+---
 ---
 ---
 __coord__: md3
@@ -22734,7 +22746,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 ---
 ---
 primitive: pipeline
-status: phase2_code_review
+status: phase2_build
 priority: critical
 type: research
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
@@ -22789,6 +22801,7 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_architect_design | 2026-03-23 | architect | Phase 2 design: stage-based agent sessions via render engine. 7 deliverables (~225L across 3 files). Key architecture: OpenClaw manages session lifecycle (sessions_spawn/sessions_send), render engine manages tree state (UDS), orchestrator manages pipeline flow (stage transitions + signal detection). D1: stage metadata in AgentSession. D2: exchange loop with inotify-based signal detection (not polling). D3: table-driven stage flow + stall detection. D4: reviewer-join compaction trigger. D5: cockpit plugin stage-session mode + FLAG-1 fix (register read <1ms). D7: session archival for memory extraction. 4 open questions for critic. |
 | phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts — openclaw agent CLI runs one turn only, has no --mode session or --label. Builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Clean separation of concerns (OpenClaw=sessions, render engine=tree state, orchestrator=pipeline flow). inotify signal detection correct. Stage flow table clean. Phase 1 FLAG-1 fix included. |
 | phase2_builder_implementation | 2026-03-23 | builder | Phase 2 implemented: D1 (AgentSession metadata — pipeline/stage/role), D2 (signal handling with inotify + exchange loop via openclaw agent --session-id), D3 (STAGE_FLOW table + stall detection), D4 (reviewer_joined event on second agent attach), D5 (cockpit FLAG-1 fix — register.json direct read), D6 (graceful degradation — existing patterns sufficient), D7 (session archival to markdown). FLAG-1 resolved: openclaw agent --session-id already supports deterministic session routing. FLAG-2 deferred to V5 (compaction trigger). Total ~225 lines across 3 files. Commit 14a81b0c. |
+| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts — builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Clean separation of concerns, inotify signal detection correct, stage flow table clean. Phase 1 FLAG-1 fix included. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_critic_design_review.md |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
