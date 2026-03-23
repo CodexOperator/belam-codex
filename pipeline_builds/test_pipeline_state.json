@@ -1,0 +1,11 @@
+{
+  "version": "test_pipeline",
+  "stages": {
+    "test_stage": {
+      "status": "complete",
+      "completed_at": "2026-03-15 20:55",
+      "agent": "test-agent",
+      "notes": "testing auto-repair"
+    }
+  }
+}

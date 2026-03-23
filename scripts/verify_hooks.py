@@ -31,7 +31,8 @@ from pathlib import Path
 # ── Workspace root ────────────────────────────────────────────────────────────
 WORKSPACE_DIR = Path(os.environ.get("OPENCLAW_WORKSPACE", Path.home() / ".openclaw" / "workspace"))
 RESULTS_DIR = WORKSPACE_DIR / "machinelearning" / "snn_applied_finance" / "notebooks" / "local_results" / "research-openclaw-internals"
-PIPELINE_BUILDS_DIR = WORKSPACE_DIR / "machinelearning" / "snn_applied_finance" / "research" / "pipeline_builds"
+PIPELINE_BUILDS_DIR = WORKSPACE_DIR / "pipeline_builds"
+RESEARCH_BUILDS_DIR = WORKSPACE_DIR / "machinelearning" / "snn_applied_finance" / "research" / "pipeline_builds"
 PLUGINS_DIR = PIPELINE_BUILDS_DIR / "openclaw-plugins"
 HOOKS_DIR = WORKSPACE_DIR / "hooks"
 DOCS_DIR = WORKSPACE_DIR / "docs"

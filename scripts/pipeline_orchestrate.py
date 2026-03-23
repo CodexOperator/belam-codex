@@ -50,7 +50,8 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 SCRIPTS = WORKSPACE / 'scripts'
 PIPELINE_UPDATE = SCRIPTS / 'pipeline_update.py'
-BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'pipeline_builds'
+RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 HANDOFFS_DIR = WORKSPACE / 'pipelines' / 'handoffs'
 OPENCLAW_CONFIG = Path(os.path.expanduser('~/.openclaw/openclaw.json'))
@@ -123,8 +124,8 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
         direction_found = False
         for dname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
             # Check both workspace pipeline_builds/ and research pipeline_builds/
-            for base_dir, prefix in ((WORKSPACE / 'pipeline_builds', 'pipeline_builds'),
-                                      (BUILDS_DIR, 'research/pipeline_builds')):
+            for base_dir, prefix in ((BUILDS_DIR, 'pipeline_builds'),
+                                      (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
                 dpath = base_dir / dname
                 if dpath.exists():
                     files_to_read.append(f'{prefix}/{dname}')
@@ -452,7 +453,7 @@ def checkpoint_and_resume(agent: str, version: str, stage: str, notes: str,
     print(f"\n   ⏱️  CHECKPOINT-AND-RESUME (attempt {resume_count + 1}/{AGENT_MAX_RESUMES})")
 
     workspace = AGENT_WORKSPACES.get(agent)
-    builds_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+    builds_dir = BUILDS_DIR
 
     # Step 1: Detect partial work — check for files modified in the last 12 minutes
     partial_files = []
@@ -689,9 +690,8 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     if stage in phase2_entry_stages and not transition:
         # Check for direction file in both workspace and research pipeline_builds/
         direction_note = ''
-        ws_builds = WORKSPACE / 'pipeline_builds'
         for fname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
-            for loc, prefix in ((ws_builds, 'pipeline_builds'), (BUILDS_DIR, 'research/pipeline_builds')):
+            for loc, prefix in ((BUILDS_DIR, 'pipeline_builds'), (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
                 if (loc / fname).exists():
                     direction_note = f' Read direction at {prefix}/{fname}.'
                     break
@@ -836,7 +836,7 @@ def orchestrate_revise(version: str, context: str, revision_num: int = None):
     print(f"{'═' * 70}\n")
 
     # Step 1: Verify pipeline is at phase1_complete
-    state_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_state.json'
+    state_file = BUILDS_DIR / f'{version}_state.json'
     if state_file.exists():
         import json
         with open(state_file) as f:
@@ -853,13 +853,13 @@ def orchestrate_revise(version: str, context: str, revision_num: int = None):
 
     # Step 2: Determine revision number
     if revision_num is None:
-        builds_dir = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+        builds_dir = BUILDS_DIR
         existing = list(builds_dir.glob(f'{version}_phase1_revision_*_architect.md'))
         revision_num = len(existing) + 1
     print(f"   📝 Revision #{revision_num}")
 
     # Step 3: Write revision direction file for the architect
-    direction_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_phase1_revision_{revision_num:02d}_direction.md'
+    direction_file = BUILDS_DIR / f'{version}_phase1_revision_{revision_num:02d}_direction.md'
     direction_content = f"""# Phase 1 Revision #{revision_num} — {version}
 
 ## Coordinator Direction
@@ -942,7 +942,7 @@ def orchestrate_local_run(version: str, dry_run: bool = False, max_retries: int 
     print(f"{'═' * 70}\n")
 
     # Verify pipeline state
-    state_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_state.json'
+    state_file = BUILDS_DIR / f'{version}_state.json'
     if state_file.exists():
         with open(state_file) as f:
             state = json.load(f)
@@ -952,7 +952,7 @@ def orchestrate_local_run(version: str, dry_run: bool = False, max_retries: int 
             print(f"   Proceeding anyway (manual override)")
 
     # Check for already-running experiment
-    pid_file = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds' / f'{version}_experiment.pid'
+    pid_file = BUILDS_DIR / f'{version}_experiment.pid'
     if pid_file.exists():
         import json as _json
         pid_info = _json.loads(pid_file.read_text())

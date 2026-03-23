@@ -33,8 +33,7 @@ export default async (event: any) => {
   const workspaceDir = ctx?.workspaceDir;
   if (!workspaceDir) return;
 
-  const buildsDir = join(workspaceDir, 'machinelearning', 'snn_applied_finance',
-                         'research', 'pipeline_builds');
+  const buildsDir = join(workspaceDir, 'pipeline_builds');
   if (!existsSync(buildsDir)) return;
 
   // Get session end metadata

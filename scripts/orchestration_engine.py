@@ -70,7 +70,8 @@ from typing import Optional, Callable
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 SCRIPTS = WORKSPACE / 'scripts'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
-BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'pipeline_builds'
+RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 ML_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 RESULTS_BASE = ML_DIR / 'notebooks' / 'local_results'
 HANDOFFS_DIR = PIPELINES_DIR / 'handoffs'
@@ -650,21 +651,29 @@ def _files_for_stage(version: str, stage: str, agent: str) -> list[str]:
     is_phase2 = 'phase2' in stage
     phase_prefix = 'phase2_' if is_phase2 else ''
 
+    def _find_build_artifact(filename: str) -> Path | None:
+        """Check workspace pipeline_builds/ first, then research pipeline_builds/."""
+        for d in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+            p = d / filename
+            if p.exists():
+                return p
+        return None
+
     # Previous stage artifacts
     if 'critic' in stage and ('design' in stage or 'review' in stage):
         # Critics review the architect's design
         if is_analysis:
-            design_file = BUILDS_DIR / f'{version}_{phase_prefix}architect_analysis_design.md'
+            design_file = _find_build_artifact(f'{version}_{phase_prefix}architect_analysis_design.md')
         else:
-            design_file = BUILDS_DIR / f'{version}_{phase_prefix}architect_design.md'
-        if design_file.exists():
+            design_file = _find_build_artifact(f'{version}_{phase_prefix}architect_design.md')
+        if design_file:
             base_files.append(str(design_file.relative_to(WORKSPACE)))
 
     if 'builder' in stage or 'implementation' in stage:
         # Builders read design + critic review
         for suffix in [f'{phase_prefix}architect_design.md', f'{phase_prefix}critic_design_review.md']:
-            f = BUILDS_DIR / f'{version}_{suffix}'
-            if f.exists():
+            f = _find_build_artifact(f'{version}_{suffix}')
+            if f:
                 base_files.append(str(f.relative_to(WORKSPACE)))
 
     if 'code_review' in stage:
