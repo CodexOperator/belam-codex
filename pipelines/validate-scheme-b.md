@@ -82,6 +82,7 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2840437, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842043, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842350, mode: supervised) |
+| local_experiment_running | 2026-03-23 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_
