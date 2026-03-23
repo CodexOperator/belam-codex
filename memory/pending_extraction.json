@@ -1,14 +1,13 @@
 {
   "status": "complete",
-  "session": "e9ecf3bb-c122-4c1c-bd20-4e7a1f96bce5",
+  "session": "1224efde-ecfb-4007-9e5d-7fe6d1aa7685",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T17:13:00Z",
+  "completed_at": "2026-03-23T17:26:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_171245_p1-deliverable-verification-codex-engine.md",
-    "lessons/is-coordinate-single-char-prefix-limitation.md",
-    "lessons/dot-syntax-ln-workflow-dispatch-unreachable.md",
-    "decisions/zoom-replaces-supermap-injection-option.md"
+    "memory/entries/2026-03-23_172535_render-engine-zombie-process-bug-diagnos.md",
+    "lessons/render-engine-zombie-blocks-session-startup.md",
+    "decisions/render-engine-pid-file-and-force-flag.md"
   ],
-  "last_run": "2026-03-23T17:13:00Z"
+  "last_run": "2026-03-23T17:26:00Z"
 }
