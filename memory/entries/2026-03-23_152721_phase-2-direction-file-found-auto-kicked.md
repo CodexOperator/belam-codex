@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing, stage:phase1_complete]
 source: "pipeline_update:codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing:phase1_complete"
 content: "Phase 2 direction file found — auto-kicked by sweep | Pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing | Stage: phase1_complete"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

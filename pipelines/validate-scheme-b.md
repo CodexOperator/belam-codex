@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: experiment_complete
+status: local_analysis_in_progress
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -84,6 +84,9 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842350, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
 | local_experiment_running | 2026-03-23 | builder | RESULTS: 14 Phase 2 experiments on real BTC 4H data (3-fold dry-run). Best variant VSB-TURN-03a (EMA smoothing alpha=0.3) with net Sharpe 0.699. TURN-01 penalized loss hurt accuracy. TURN-02/03 reduced turnover. Position sizing marginal. 4 notebook bugs fixed (3-tuple unpacking, regression target dtype, batch mismatch, variable naming). |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/ |
+| local_analysis_architect | 2026-03-23 | architect | Analysis complete: Phase 1+2 combined report. Phase 1 (10 folds): Signal validated — accuracy lift p=0.001, gross Sharpe +2.66 (p<0.0001). Net Sharpe +0.40 but CI includes zero. Turnover explains 92% of net Sharpe variance (r=-0.96). CTRL-01 (Scheme 0) highest accuracy (54.11%) but lower gross Sharpe than Scheme B — accuracy-Sharpe disconnect. Abstention falsified (active accuracy < full accuracy). Phase 2 (3 folds — UNDERPOWERED): TURN-01 destroys accuracy (dead end). TURN-02b (min hold=4) best variant (+0.43 Sharpe, turnover 0.10). TURN-03 misleading (zero turnover = static position). Position sizing ineffective (uncalibrated confidence). Break-even: 40 bps for TURN-02b. 6 scripts specified for deeper analysis. |
+| local_analysis_critic_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (2 MED, 1 LOW). All numbers verified against raw pkl. FLAG-1 MED: Active trading (Sharpe +0.40) UNDERPERFORMS buy-and-hold (Sharpe +0.92) — must state in executive summary. FLAG-2 MED: Phase 2 baseline accuracy drop (53.47→51.33%) unverified against same folds from Phase 1. FLAG-3 LOW: TURN-03 identical results across alpha values — check if raw prediction magnitudes near-degenerate. Key confirmations: turnover-Sharpe r=-0.96 verified, TURN-01 failure confirms shuffled-batch FLAG, POS invariance confirms Kelly FLAG. Proposed regime filter reframe: use SNN as long/flat filter instead of active trader. |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_

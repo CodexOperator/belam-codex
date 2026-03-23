@@ -1,0 +1,15 @@
+{
+  "version": "validate-scheme-b",
+  "completed_stage": "local_analysis_critic_review",
+  "next_stage": "local_analysis_builder",
+  "next_agent": "builder",
+  "timestamp": "2026-03-23T16:02:40.735656+00:00",
+  "pipeline_session_id": "9735d7d6-2807-45fc-a363-0e39db1881c4",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

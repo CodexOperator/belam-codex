@@ -3640,6 +3640,47 @@ _State the decision clearly._
 _What follows from this choice? Trade-offs, risks, next steps._
 ---
 ---
+primitive: decision
+date: 2026-03-23
+status: under-discussion
+upstream:
+- codex-cockpit-plugin-architecture
+- codex-render-foreground-ram-tree
+- render-engine-as-default-context-layer
+downstream: []
+tags:
+- instance:main
+- codex-engine
+- render
+- zoom
+- context-efficiency
+importance: 3
+__coord__: d65
+__slug__: zoom-replaces-supermap-injection-option
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/zoom-replaces-supermap-injection-option.md
+__prefix__: d
+__index__: 65
+__ptype__: decisions
+---
+# zoom-replaces-supermap-injection-option
+
+## Decision
+
+Three options identified for handling zoom context efficiency (R-labels are additive — zoom adds to context, doesn't replace supermap):
+
+1. **R-label supersede tags** — zoom output includes `[supersedes R{n}]` hint; cheap/heuristic, no actual context reduction.
+2. **Wire render engine diffs into cockpit** — cockpit plugin injects per-turn diff instead of full re-render; the real architectural fix (render engine UDS already built in v3 Phase 2 but not wired).
+3. **Zoom replaces supermap injection** — when zoom is active, cockpit injects zoom content *instead of* supermap for that turn; reverts next turn without zoom.
+
+## Rationale
+
+Shael clarified that the supermap is injected fresh each turn via the cockpit plugin anyway (not accumulated from history), so the per-turn diff (option 2) only matters within a turn's output — the real duplication is the zoom output sitting alongside the supermap in context history. Option 3 is the cheapest real fix: conditional injection. Option 2 is deferred to a future pipeline phase.
+
+## Status
+
+Under discussion — session covered the architecture but a final implementation direction was not committed in the captured portion of the transcript.
+---
+---
 primitive: mode
 status: active
 coordinate: e0
@@ -10208,6 +10249,54 @@ _When does this lesson apply? What should change going forward?_
 ---
 primitive: lesson
 date: 2026-03-23
+source: p1 deliverable verification session
+confidence: confirmed
+upstream:
+- codex-engine-v2-dense-alphanumeric-grammar
+- lm-design-tool-patterns-navigable-runnable
+downstream: []
+tags:
+- instance:main
+- codex-engine
+- lm
+- dot-syntax
+- dispatch
+- bug
+importance: 3
+__coord__: l21
+__slug__: dot-syntax-ln-workflow-dispatch-unreachable
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/dot-syntax-ln-workflow-dispatch-unreachable.md
+__prefix__: l
+__index__: 21
+__ptype__: lessons
+---
+# dot-syntax-lN-workflow-dispatch-unreachable
+
+## Context
+
+After fixing `is_coordinate()`, dot-syntax sub-index lookups like `e0.l1` and `e1.l2` still failed with exit code 2. These are the workflow step listings embedded inside LM entries (e.g. "Full Pipeline Launch" steps).
+
+## What Happened
+
+`e0.l1` fell through all routing gates:
+- **Not a V2 op**: `_V2_OP_START_RE = r'^e[0-3]([a-z]|$)'` — requires a letter or end after the mode digit; `.` doesn't match.
+- **Not a coordinate**: `is_coordinate()` correctly rejects it (contains `.`).
+- The dot-syntax handler that strips `.1` for JSON output only checks `dot_parts[1].isdigit()` — `l1` is not a digit, so it's skipped too.
+- Result: nothing matched → `sys.exit(2)`.
+
+The `resolve_workflow()` function existed and worked correctly — it just had no routing path to reach it.
+
+## Lesson
+
+`{coord}.l{N}` dot-syntax for workflow sub-indices needs its own early-intercept dispatch before both the V2 op detection and coordinate gatekeeper, since it matches neither pattern.
+
+## Application
+
+When adding dot-syntax variants to the command grammar, verify each variant hits a handler. Pattern `{alpha+digits}.l{N}` is now intercepted early via a dedicated block before V2 detection. Any future dot-syntax extensions should follow the same pattern: add a named intercept block rather than relying on existing gates to absorb novel syntax. Committed fix in 68feb520.
+---
+---
+primitive: lesson
+date: 2026-03-23
 source: (add source)
 confidence: high
 upstream: []
@@ -10217,11 +10306,11 @@ tags:
 - e0
 - orchestration
 - pipeline
-__coord__: l21
+__coord__: l22
 __slug__: e0-sweep-routes-through-orchestration-engine-not-autorun
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e0-sweep-routes-through-orchestration-engine-not-autorun.md
 __prefix__: l
-__index__: 21
+__index__: 22
 __ptype__: lessons
 ---
 # e0-sweep-routes-through-orchestration-engine-not-autorun
@@ -10256,11 +10345,11 @@ tags:
 - e2
 - namespace
 - design-pattern
-__coord__: l22
+__coord__: l23
 __slug__: e3-chains-e2-after-namespace-registration
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e3-chains-e2-after-namespace-registration.md
 __prefix__: l
-__index__: 22
+__index__: 23
 __ptype__: lessons
 ---
 # e3-chains-e2-after-namespace-registration
@@ -10293,11 +10382,11 @@ tags:
 - architecture
 applies_to:
 - snn-applied-finance
-__coord__: l23
+__coord__: l24
 __slug__: event-detection-not-state-classification
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/event-detection-not-state-classification.md
 __prefix__: l
-__index__: 23
+__index__: 24
 __ptype__: lessons
 ---
 # Simple SNNs Detect Events, Not States
@@ -10321,11 +10410,11 @@ tags:
 - orchestration
 - pipeline
 - bug-fix
-__coord__: l24
+__coord__: l25
 __slug__: fire-and-forget-dispatch-timeout-1-killed-all-agents
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/fire-and-forget-dispatch-timeout-1-killed-all-agents.md
 __prefix__: l
-__index__: 24
+__index__: 25
 __ptype__: lessons
 ---
 # fire-and-forget-dispatch-timeout-1-killed-all-agents
@@ -10367,11 +10456,11 @@ related:
 - beta-convergence
 - snn-treats-like-weird-cnn
 supersedes: tiny-snn-gpu-parallelism
-__coord__: l25
+__coord__: l26
 __slug__: gpu-parallel-thrashing-t4
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gpu-parallel-thrashing-t4.md
 __prefix__: l
-__index__: 25
+__index__: 26
 __ptype__: lessons
 ---
 # GPU Parallel Worker Thrashing on Tesla T4
@@ -10419,11 +10508,11 @@ tags:
 - r-command
 - design
 importance: 3
-__coord__: l26
+__coord__: l27
 __slug__: guidance-prose-belongs-in-legend-not-supermap-tree
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/guidance-prose-belongs-in-legend-not-supermap-tree.md
 __prefix__: l
-__index__: 26
+__index__: 27
 __ptype__: lessons
 ---
 # guidance-prose-belongs-in-legend-not-supermap-tree
@@ -10459,11 +10548,11 @@ tags:
 - heartbeat
 - lm
 - coordinate-grammar
-__coord__: l27
+__coord__: l28
 __slug__: heartbeat-md-contaminates-manual-session-behavior
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/heartbeat-md-contaminates-manual-session-behavior.md
 __prefix__: l
-__index__: 27
+__index__: 28
 __ptype__: lessons
 ---
 # heartbeat-md-contaminates-manual-session-behavior
@@ -10489,6 +10578,47 @@ HEARTBEAT.md is only for heartbeat polls — its script patterns should not driv
 ---
 primitive: lesson
 date: 2026-03-23
+source: p1 deliverable verification session
+confidence: confirmed
+upstream:
+- codex-engine-v2-dense-alphanumeric-grammar
+- legendary-map-as-lm-namespace-on-supermap
+downstream: []
+tags:
+- instance:main
+- codex-engine
+- lm
+- bug
+- regex
+importance: 3
+__coord__: l29
+__slug__: is-coordinate-single-char-prefix-limitation
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/is-coordinate-single-char-prefix-limitation.md
+__prefix__: l
+__index__: 29
+__ptype__: lessons
+---
+# is-coordinate-single-char-prefix-limitation
+
+## Context
+
+During p1 verification of codex-engine-v3-legendary-map, zooming to `lm6` or `lm` (expanded) silently failed with exit code 2. The LM namespace rendered correctly in the supermap but individual LM coordinate navigation was broken.
+
+## What Happened
+
+`is_coordinate()` in `codex_engine.py` used the regex `^(md|mw|[a-z])(\d+)?` — the `[a-z]` branch only matches a **single character**. The `lm` prefix is 2 characters and not explicitly listed alongside `md`/`mw`. So `lm6`, `lm`, and any `lm{N}` coordinate failed the gatekeeper check and fell through to `sys.exit(2)`. The coordinate *resolver* regex elsewhere used `[a-z]+` (multi-char), so the underlying data path worked — only the routing gate was broken.
+
+## Lesson
+
+`is_coordinate()` must list all multi-char namespace prefixes explicitly (or use `[a-z]+`), otherwise any new 2+ char prefix silently fails navigation.
+
+## Application
+
+Whenever a new multi-character namespace prefix is added to the engine, verify `is_coordinate()` handles it. The fix: add `lm` explicitly alongside `md`/`mw`, or change the single-char branch to `[a-z]+` globally (with exclusions for e0-e3 still in place). Committed fix in 68feb520.
+---
+---
+primitive: lesson
+date: 2026-03-23
 source: session a1318751
 confidence: high
 upstream:
@@ -10500,11 +10630,11 @@ tags:
 - launch
 - imports
 - scripting
-__coord__: l28
+__coord__: l30
 __slug__: launch-pipeline-kickoff-path-had-stale-imports
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/launch-pipeline-kickoff-path-had-stale-imports.md
 __prefix__: l
-__index__: 28
+__index__: 30
 __ptype__: lessons
 ---
 # launch-pipeline-kickoff-path-had-stale-imports
@@ -10538,11 +10668,11 @@ tags:
 - commands
 - primitives
 - cleanup
-__coord__: l29
+__coord__: l31
 __slug__: legacy-view-command-primitives-redundant-after-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/legacy-view-command-primitives-redundant-after-engine.md
 __prefix__: l
-__index__: 29
+__index__: 31
 __ptype__: lessons
 ---
 # legacy-view-command-primitives-redundant-after-engine
@@ -10575,11 +10705,11 @@ tags:
 - lm
 - coordinate-grammar
 - ux
-__coord__: l30
+__coord__: l32
 __slug__: lm-entries-must-be-compelling-to-displace-raw-scripts
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/lm-entries-must-be-compelling-to-displace-raw-scripts.md
 __prefix__: l
-__index__: 30
+__index__: 32
 __ptype__: lessons
 ---
 # lm-entries-must-be-compelling-to-displace-raw-scripts
@@ -10615,11 +10745,11 @@ tags:
 upstream:
 - infra-pipelines-use-local-analysis
 downstream: []
-__coord__: l31
+__coord__: l33
 __slug__: local-analysis-is-pipeline-type-agnostic
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/local-analysis-is-pipeline-type-agnostic.md
 __prefix__: l
-__index__: 31
+__index__: 33
 __ptype__: lessons
 ---
 # local-analysis-is-pipeline-type-agnostic
@@ -10658,11 +10788,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: l32
+__coord__: l34
 __slug__: memory-entries-capture-events-not-state
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-entries-capture-events-not-state.md
 __prefix__: l
-__index__: 32
+__index__: 34
 __ptype__: lessons
 ---
 # memory-entries-capture-events-not-state
@@ -10696,11 +10826,11 @@ tags:
 - memory-extract
 - bash
 - session-files
-__coord__: l33
+__coord__: l35
 __slug__: memory-extract-hook-session-file-detection-mismatch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extract-hook-session-file-detection-mismatch.md
 __prefix__: l
-__index__: 33
+__index__: 35
 __ptype__: lessons
 ---
 # memory-extract-hook-session-file-detection-mismatch
@@ -10734,11 +10864,11 @@ tags:
 - sage
 - design
 - extraction-limits
-__coord__: l34
+__coord__: l36
 __slug__: memory-extraction-misses-design-convergence-in-conversation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extraction-misses-design-convergence-in-conversation.md
 __prefix__: l
-__index__: 34
+__index__: 36
 __ptype__: lessons
 ---
 # memory-extraction-misses-design-convergence-in-conversation
@@ -10771,11 +10901,11 @@ tags:
 - pipeline
 - experiments
 - notebooks
-__coord__: l35
+__coord__: l37
 __slug__: notebook-runs-need-phase-aware-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/notebook-runs-need-phase-aware-cell-targeting.md
 __prefix__: l
-__index__: 35
+__index__: 37
 __ptype__: lessons
 ---
 # notebook-runs-need-phase-aware-cell-targeting
@@ -10810,11 +10940,11 @@ tags:
 - agents
 - openclaw
 - session-routing
-__coord__: l36
+__coord__: l38
 __slug__: openclaw-agent-routes-to-active-session
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-agent-routes-to-active-session.md
 __prefix__: l
-__index__: 36
+__index__: 38
 __ptype__: lessons
 ---
 # openclaw agent CLI Routes to Active Session, Not Isolated
@@ -10850,11 +10980,11 @@ tags:
 - context
 - boot
 - infrastructure
-__coord__: l37
+__coord__: l39
 __slug__: openclaw-fixed-context-injection-list
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-fixed-context-injection-list.md
 __prefix__: l
-__index__: 37
+__index__: 39
 __ptype__: lessons
 ---
 # openclaw-fixed-context-injection-list
@@ -10889,11 +11019,11 @@ tags:
 - plugin-sdk
 - before_prompt_build
 - codex-cockpit
-__coord__: l38
+__coord__: l40
 __slug__: openclaw-plugin-definepluginentry-import-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-plugin-definepluginentry-import-path.md
 __prefix__: l
-__index__: 38
+__index__: 40
 __ptype__: lessons
 ---
 # openclaw-plugin-definePluginEntry-import-path
@@ -10943,11 +11073,11 @@ tags:
 - pipeline
 - sessions_spawn
 - dispatch
-__coord__: l39
+__coord__: l41
 __slug__: orchestration-dispatch-payload-spawn-relay
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-dispatch-payload-spawn-relay.md
 __prefix__: l
-__index__: 39
+__index__: 41
 __ptype__: lessons
 ---
 # orchestration-dispatch-payload-spawn-relay
@@ -10989,11 +11119,11 @@ tags:
 - self-reference
 - infrastructure
 - meta
-__coord__: l40
+__coord__: l42
 __slug__: orchestration-engine-v1-self-built-through-legacy-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-engine-v1-self-built-through-legacy-pipeline.md
 __prefix__: l
-__index__: 40
+__index__: 42
 __ptype__: lessons
 ---
 # orchestration-engine-v1-self-built-through-legacy-pipeline
@@ -11035,11 +11165,11 @@ tags:
 - validation
 applies_to:
 - snn-applied-finance
-__coord__: l41
+__coord__: l43
 __slug__: per-fold-significance-tests-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/per-fold-significance-tests-required.md
 __prefix__: l
-__index__: 41
+__index__: 43
 __ptype__: lessons
 ---
 # Per-Fold Significance Tests and Permutation Tests Are Required
@@ -11066,11 +11196,11 @@ tags:
 - ablation
 - equilibrium
 - phasic
-__coord__: l42
+__coord__: l44
 __slug__: phasic-only-ablation-wins-equilibrium
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/phasic-only-ablation-wins-equilibrium.md
 __prefix__: l
-__index__: 42
+__index__: 44
 __ptype__: lessons
 ---
 # Phasic-Only Ablation Wins in Equilibrium SNN
@@ -11117,11 +11247,11 @@ tags:
 - instance:main
 - tooling
 - monitoring
-__coord__: l43
+__coord__: l45
 __slug__: pipeline-dashboard-watch-flag-vs-linux-watch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-dashboard-watch-flag-vs-linux-watch.md
 __prefix__: l
-__index__: 43
+__index__: 45
 __ptype__: lessons
 ---
 # pipeline-dashboard-watch-flag-vs-linux-watch
@@ -11155,11 +11285,11 @@ tags:
 - pipeline
 - infrastructure
 - hanging
-__coord__: l44
+__coord__: l46
 __slug__: pipeline-orchestrate-blocking-agent-wake
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-orchestrate-blocking-agent-wake.md
 __prefix__: l
-__index__: 44
+__index__: 46
 __ptype__: lessons
 ---
 # pipeline-orchestrate-blocking-agent-wake
@@ -11193,11 +11323,11 @@ tags:
 - pipeline
 - bug
 - infrastructure
-__coord__: l45
+__coord__: l47
 __slug__: pipeline-state-json-not-synced-on-archive
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-json-not-synced-on-archive.md
 __prefix__: l
-__index__: 45
+__index__: 47
 __ptype__: lessons
 ---
 # pipeline-state-json-not-synced-on-archive
@@ -11230,11 +11360,11 @@ tags:
 - pipeline
 - state-json
 - orchestration
-__coord__: l46
+__coord__: l48
 __slug__: pipeline-state-pending-action-is-agent-role-not-stage-name
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-pending-action-is-agent-role-not-stage-name.md
 __prefix__: l
-__index__: 46
+__index__: 48
 __ptype__: lessons
 ---
 # pipeline-state-pending-action-is-agent-role-not-stage-name
@@ -11269,11 +11399,11 @@ tags:
 applies_to:
 - pipeline_update.py
 - pipeline primitives
-__coord__: l47
+__coord__: l49
 __slug__: pipeline-table-separator-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-table-separator-required.md
 __prefix__: l
-__index__: 47
+__index__: 49
 __ptype__: lessons
 ---
 # Pipeline Table Separator Required for Update Script
@@ -11312,11 +11442,11 @@ tags:
 - openclaw
 - config
 - infrastructure
-__coord__: l48
+__coord__: l50
 __slug__: plugin-allowlist-must-be-updated-on-plugin-retire
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md
 __prefix__: l
-__index__: 48
+__index__: 50
 __ptype__: lessons
 ---
 # plugin-allowlist-must-be-updated-on-plugin-retire
@@ -11351,11 +11481,11 @@ tags:
 - commands
 - architecture
 - primitives
-__coord__: l49
+__coord__: l51
 __slug__: plugins-have-presence-commands-are-fire-and-forget
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugins-have-presence-commands-are-fire-and-forget.md
 __prefix__: l
-__index__: 49
+__index__: 51
 __ptype__: lessons
 ---
 # plugins-have-presence-commands-are-fire-and-forget
@@ -11391,11 +11521,11 @@ tags:
 - lm
 - boot
 - scaffold
-__coord__: l50
+__coord__: l52
 __slug__: r0-scaffold-as-lightweight-coordinate-mode-nudge
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md
 __prefix__: l
-__index__: 50
+__index__: 52
 __ptype__: lessons
 ---
 # r0-scaffold-as-lightweight-coordinate-mode-nudge
@@ -11430,11 +11560,11 @@ tags:
 - context-injection
 - architecture
 - llm-context
-__coord__: l51
+__coord__: l53
 __slug__: render-engine-agents-are-in-it-not-calling-it
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-agents-are-in-it-not-calling-it.md
 __prefix__: l
-__index__: 51
+__index__: 53
 __ptype__: lessons
 ---
 # render-engine-agents-are-in-it-not-calling-it
@@ -11468,11 +11598,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l52
+__coord__: l54
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 52
+__index__: 54
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -11505,11 +11635,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l53
+__coord__: l55
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 53
+__index__: 55
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -11556,11 +11686,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l54
+__coord__: l56
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 54
+__index__: 56
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -11600,11 +11730,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l55
+__coord__: l57
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 55
+__index__: 57
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -11640,11 +11770,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l56
+__coord__: l58
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 56
+__index__: 58
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -11681,11 +11811,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l57
+__coord__: l59
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 57
+__index__: 59
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -11709,11 +11839,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l58
+__coord__: l60
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 58
+__index__: 60
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -11746,11 +11876,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l59
+__coord__: l61
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 59
+__index__: 61
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -11795,11 +11925,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l60
+__coord__: l62
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 60
+__index__: 62
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -11831,11 +11961,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l61
+__coord__: l63
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 61
+__index__: 63
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -11884,11 +12014,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l62
+__coord__: l64
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 62
+__index__: 64
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -11910,11 +12040,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l63
+__coord__: l65
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 63
+__index__: 65
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -11947,11 +12077,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l64
+__coord__: l66
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 64
+__index__: 66
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -11975,11 +12105,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l65
+__coord__: l67
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 65
+__index__: 67
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -12017,11 +12147,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l66
+__coord__: l68
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 66
+__index__: 68
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -12073,11 +12203,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l67
+__coord__: l69
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 67
+__index__: 69
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -12112,11 +12242,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l68
+__coord__: l70
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 68
+__index__: 70
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -12146,11 +12276,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l69
+__coord__: l71
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 69
+__index__: 71
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -12198,11 +12328,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l70
+__coord__: l72
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 70
+__index__: 72
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -12239,11 +12369,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l71
+__coord__: l73
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 71
+__index__: 73
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -12277,11 +12407,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l72
+__coord__: l74
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 72
+__index__: 74
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -16392,7 +16522,7 @@ tags:
 - stage:phase1_complete
 source: pipeline_update:codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing:phase1_complete
 content: 'Phase 2 direction file found — auto-kicked by sweep | Pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing | Stage: phase1_complete'
-status: active
+status: consolidated
 __coord__: m126
 __slug__: 2026-03-23_152721_phase-2-direction-file-found-auto-kicked
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_152721_phase-2-direction-file-found-auto-kicked.md
@@ -16409,6 +16539,37 @@ Phase 2 direction file found — auto-kicked by sweep | Pipeline: codex-engine-v
 ---
 *Source: pipeline_update:codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing:phase1_complete*
 *Tags: agent:main, pipeline:codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing, stage:phase1_complete*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-23T17:12:45Z'
+category: event
+importance: 3
+tags:
+- instance:main
+- p1
+- codex-engine
+- lm
+- bug-fix
+source: session
+content: 'p1 deliverable verification (codex-engine-v3-legendary-map): 2 bugs found and fixed. (1) is_coordinate() used [a-z] single-char regex — ''lm'' is 2 chars so lm6 zoom and lm expanded view silently exited code 2. Fixed by updating regex to support multi-char prefixes. (2) Dot-syntax e0.l1/e1.l1 workflow dispatch never reached any handler — not a V2 op (no [a-z] after e0 per V2_OP_START_RE), not a coordinate (is_coordinate rejected it). Fixed by adding early dispatch intercept before V2 detection block. Both fixes committed as 68feb520 to belam-codex.'
+status: active
+__coord__: m127
+__slug__: 2026-03-23_171245_p1-deliverable-verification-codex-engine
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_171245_p1-deliverable-verification-codex-engine.md
+__prefix__: m
+__index__: 127
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-23T17:12:45Z** · `event` · importance 3/5
+
+p1 deliverable verification (codex-engine-v3-legendary-map): 2 bugs found and fixed. (1) is_coordinate() used [a-z] single-char regex — 'lm' is 2 chars so lm6 zoom and lm expanded view silently exited code 2. Fixed by updating regex to support multi-char prefixes. (2) Dot-syntax e0.l1/e1.l1 workflow dispatch never reached any handler — not a V2 op (no [a-z] after e0 per V2_OP_START_RE), not a coordinate (is_coordinate rejected it). Fixed by adding early dispatch intercept before V2 detection block. Both fixes committed as 68feb520 to belam-codex.
+
+---
+*Source: session*
+*Tags: instance:main, p1, codex-engine, lm, bug-fix*
 ---
 ---
 __coord__: md1
@@ -17271,6 +17432,54 @@ Phase 2 direction file found — auto-kicked by sweep | Pipeline: codex-engine-v
 *Entry: `2026-03-23_152721_phase-2-direction-file-found-auto-kicked.md`*
 
 ---
+
+## Consolidated Entries — 2026-03-23
+
+*Generated at 2026-03-23T15:51:48Z — 1 entries*
+
+
+### ⚖️ Decision (1)
+
+- **[★★★★☆]** Phase 2 direction file found — auto-kicked by sweep | Pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing | Stage: phase1_complete
+  *tags: agent:main, pipeline:codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing, stage:phase1_complete*
+
+---
+
+## 2026-03-23T17:12:45Z — event ⚡⚡⚡
+
+p1 deliverable verification (codex-engine-v3-legendary-map): 2 bugs found and fixed. (1) is_coordinate() used [a-z] single-char regex — 'lm' is 2 chars so lm6 zoom and lm expanded view silently exited code 2. Fixed by updating regex to support multi-char prefixes. (2) Dot-syntax e0.l1/e1.l1 workflow dispatch never reached any handler — not a V2 op (no [a-z] after e0 per V2_OP_START_RE), not a coordinate (is_coordinate rejected it). Fixed by adding early dispatch intercept before V2 detection block. Both fixes committed as 68feb520 to belam-codex.
+
+*Tags: instance:main, p1, codex-engine, lm, bug-fix*
+
+*Source: session*
+
+*Entry: `2026-03-23_171245_p1-deliverable-verification-codex-engine.md`*
+
+---
+
+---
+
+## Session: 2026-03-23 afternoon (e9ecf3bb) — 11:34–17:09 UTC
+
+**Main work: p1 deliverable verification + bug fixes**
+
+Shael asked to verify that p1 (codex-engine-v3-legendary-map) deliverables were working correctly. Found two silent failures in the engine:
+
+1. **`is_coordinate()` regex gap** — the gatekeeper used `^(md|mw|[a-z])` which only matches single-char prefixes. `lm` is 2 chars, so `lm6`, `lm` expanded, and all `lm{N}` zoom navigation silently exited code 2. The LM section in the supermap was fine (different code path) — only navigation was broken. Fixed by adding `lm` explicitly to the pattern.
+
+2. **Dot-syntax `.l{N}` dispatch unreachable** — `e0.l1`, `e1.l1` etc. failed all routing gates: not a V2 op (`_V2_OP_START_RE` requires `[a-z]` after mode digit, not `.`), not a coordinate (contains `.`), and the existing dot-handler only checks `isdigit()`. Added early-intercept block before V2 detection. `resolve_workflow()` already existed and worked — just had no path to reach it.
+
+Both fixes committed as **68feb520** to belam-codex. All 5 p1 deliverables now verified green.
+
+**Discussion: zoom context / R-label architecture**
+
+R-labels are additive — zoom output goes into context alongside old supermap from prior turn. Three options discussed for zoom replacing supermap injection. Session transcript truncated after ~22 user messages; Shael confirmed it was a successful session at close.
+
+**Primitives created:**
+- memory: `p1-deliverable-verification-codex-engine` (imp 3)
+- lesson: `is-coordinate-single-char-prefix-limitation` (imp 3)
+- lesson: `dot-syntax-lN-workflow-dispatch-unreachable` (imp 3)
+- decision: `zoom-replaces-supermap-injection-option` (imp 3, under-discussion)
 ---
 ---
 __coord__: md3
@@ -22373,7 +22582,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 ---
 ---
 primitive: pipeline
-status: phase2_build
+status: phase2_code_review
 priority: critical
 type: research
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
@@ -22427,6 +22636,7 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_architect_design_blocked | 2026-03-23 | architect | BLOCKED: BLOCK: No Phase 2 direction from Shael. Phase 2 requires human review of Phase 1 deliverables and direction for what to refine/extend. Unblock by creating pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_phase2_direction.md. |
 | phase2_architect_design | 2026-03-23 | architect | Phase 2 design: stage-based agent sessions via render engine. 7 deliverables (~225L across 3 files). Key architecture: OpenClaw manages session lifecycle (sessions_spawn/sessions_send), render engine manages tree state (UDS), orchestrator manages pipeline flow (stage transitions + signal detection). D1: stage metadata in AgentSession. D2: exchange loop with inotify-based signal detection (not polling). D3: table-driven stage flow + stall detection. D4: reviewer-join compaction trigger. D5: cockpit plugin stage-session mode + FLAG-1 fix (register read <1ms). D7: session archival for memory extraction. 4 open questions for critic. |
 | phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 HIGH, 1 LOW). FLAG-1 HIGH: sessions_spawn/sessions_send not available from standalone Python scripts — openclaw agent CLI runs one turn only, has no --mode session or --label. Builder must resolve via Gateway HTTP API or thin CLI wrapper before implementing D2 exchange loop. FLAG-2 LOW: compaction trigger undefined, deferred to V5. Clean separation of concerns (OpenClaw=sessions, render engine=tree state, orchestrator=pipeline flow). inotify signal detection correct. Stage flow table clean. Phase 1 FLAG-1 fix included. |
+| phase2_builder_implementation | 2026-03-23 | builder | Phase 2 implemented: D1 (AgentSession metadata — pipeline/stage/role), D2 (signal handling with inotify + exchange loop via openclaw agent --session-id), D3 (STAGE_FLOW table + stall detection), D4 (reviewer_joined event on second agent attach), D5 (cockpit FLAG-1 fix — register.json direct read), D6 (graceful degradation — existing patterns sufficient), D7 (session archival to markdown). FLAG-1 resolved: openclaw agent --session-id already supports deterministic session routing. FLAG-2 deferred to V5 (compaction trigger). Total ~225 lines across 3 files. Commit 14a81b0c. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
@@ -23766,7 +23976,7 @@ Phase 3 iterations are open-ended research rounds. Each iteration has:
 ---
 ---
 primitive: pipeline
-status: experiment_complete
+status: local_analysis_in_progress
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -23861,6 +24071,9 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842350, mode: supervised) |
 | local_experiment_running | 2026-03-23 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
 | local_experiment_running | 2026-03-23 | builder | RESULTS: 14 Phase 2 experiments on real BTC 4H data (3-fold dry-run). Best variant VSB-TURN-03a (EMA smoothing alpha=0.3) with net Sharpe 0.699. TURN-01 penalized loss hurt accuracy. TURN-02/03 reduced turnover. Position sizing marginal. 4 notebook bugs fixed (3-tuple unpacking, regression target dtype, batch mismatch, variable naming). |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/ |
+| local_analysis_architect | 2026-03-23 | architect | Analysis complete: Phase 1+2 combined report. Phase 1 (10 folds): Signal validated — accuracy lift p=0.001, gross Sharpe +2.66 (p<0.0001). Net Sharpe +0.40 but CI includes zero. Turnover explains 92% of net Sharpe variance (r=-0.96). CTRL-01 (Scheme 0) highest accuracy (54.11%) but lower gross Sharpe than Scheme B — accuracy-Sharpe disconnect. Abstention falsified (active accuracy < full accuracy). Phase 2 (3 folds — UNDERPOWERED): TURN-01 destroys accuracy (dead end). TURN-02b (min hold=4) best variant (+0.43 Sharpe, turnover 0.10). TURN-03 misleading (zero turnover = static position). Position sizing ineffective (uncalibrated confidence). Break-even: 40 bps for TURN-02b. 6 scripts specified for deeper analysis. |
+| local_analysis_critic_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (2 MED, 1 LOW). All numbers verified against raw pkl. FLAG-1 MED: Active trading (Sharpe +0.40) UNDERPERFORMS buy-and-hold (Sharpe +0.92) — must state in executive summary. FLAG-2 MED: Phase 2 baseline accuracy drop (53.47→51.33%) unverified against same folds from Phase 1. FLAG-3 LOW: TURN-03 identical results across alpha values — check if raw prediction magnitudes near-degenerate. Key confirmations: turnover-Sharpe r=-0.96 verified, TURN-01 failure confirms shuffled-batch FLAG, POS invariance confirms Kelly FLAG. Proposed regime filter reframe: use SNN as long/flat filter instead of active trader. |
 
 ## Local Experiment Execution
 _Status: Auto-triggered on Phase 1 completion_
