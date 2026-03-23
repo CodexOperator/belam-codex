@@ -31,3 +31,4 @@ related: [experiment-methodology, financial-encoding, snn-architecture]
 - [→ Daily 2026-03-20](../memory/2026-03-20.md)
 - [→ Daily 2026-03-21](../memory/2026-03-21.md)
 - [→ Daily 2026-03-22](../memory/2026-03-22.md)
+- [→ Daily 2026-03-23](../memory/2026-03-23.md)
