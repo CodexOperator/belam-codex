@@ -183,10 +183,6 @@ This is a FRESH session. You have no prior context except your memory files.
 python3 scripts/pipeline_orchestrate.py {version} complete {next_stage} --agent {next_agent} --notes "your summary" --learnings "key decisions, patterns discovered, insights worth keeping"
 ```
 
-The orchestrator will print a `📦 DISPATCH_PAYLOAD` with the next agent's task.
-**You MUST then spawn the next agent** using `sessions_spawn` with the task from the payload.
-This is how the pipeline chain continues — each agent spawns the next one.
-
 The `--learnings` flag is written directly to your memory files before the handoff — this is your continuity across sessions. Be specific about what you'd want to know next time you wake up fresh.
 
 If you need to BLOCK, use:
@@ -257,38 +253,6 @@ def generate_session_id(version: str, agent: str) -> str:
     import uuid
     return str(uuid.uuid4())
 
-
-def emit_dispatch_payload(version: str, stage: str, agent: str, task_msg: str):
-    """Emit a dispatch payload to stdout for the completing agent to act on.
-    
-    The completing agent reads this and calls sessions_spawn with the task.
-    This is more reliable than fire-and-forget CLI dispatch because:
-    - The agent has native access to sessions_spawn (inside OpenClaw context)
-    - No CLI parsing issues, no timeout problems
-    - Direct API call, not a subprocess
-    """
-    dispatch_payload = {
-        'action': 'spawn_next_agent',
-        'pipeline': version,
-        'stage': stage,
-        'agent': agent,
-        'task': task_msg,
-    }
-    print(f"\n📦 DISPATCH_PAYLOAD_START")
-    print(json.dumps(dispatch_payload, indent=2))
-    print(f"📦 DISPATCH_PAYLOAD_END")
-    print(f"\n🔔 AGENT: Use sessions_spawn to dispatch {agent} with the task above.")
-
-    # Write handoff record
-    pipeline_session_id = generate_session_id(version, agent)
-    wake_result = {
-        'success': True,
-        'status': 'pending_agent_spawn',
-        'response': 'Dispatch payload emitted',
-        'session_id': '',
-        'error': None,
-    }
-    write_handoff(version, stage, stage, agent, wake_result, pipeline_session_id)
 
 
 def wake_agent(agent: str, message: str, timeout: int = AGENT_WAKE_TIMEOUT,
@@ -650,12 +614,14 @@ def send_orchestrator_notification(version: str, event: str, details: str):
 # ═══════════════════════════════════════════════════════════════════════
 
 # We import these dynamically to stay in sync
-sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(Path(__file__).parent))
 try:
     from pipeline_update import STAGE_TRANSITIONS, BLOCK_TRANSITIONS
 except ImportError:
     print("❌ Cannot import from pipeline_update.py — ensure it exists at scripts/pipeline_update.py")
     sys.exit(1)
+
+from orchestration_engine import fire_and_forget_dispatch
 
 
 # ═══════════════════════════════════════════════════════════════════════

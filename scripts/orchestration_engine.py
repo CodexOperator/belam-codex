@@ -1474,6 +1474,7 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
         state['pending_action'] = stage
         state['current_agent'] = agent
         state['last_dispatched'] = datetime.now(timezone.utc).isoformat()
+        state['dispatch_claimed'] = False
         state_file.write_text(json.dumps(state, indent=2))
     except Exception as e:
         return {'success': False, 'pid': None, 'error': f'State write failed: {e}'}
