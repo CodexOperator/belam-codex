@@ -463,8 +463,8 @@ class CodexTree:
                         files.add(str(f))
         return files
 
-    def apply_disk_change(self, filepath: Path) -> DiffEntry | None:
-        """Update a single node from disk. Returns diff entry or None if unchanged."""
+    def apply_disk_change(self, filepath: Path) -> DiffEntry | list[DiffEntry] | None:
+        """Update a single node from disk. Returns diff entry/entries or None if unchanged."""
         fp_str = str(filepath)
 
         with self._lock:
@@ -474,7 +474,8 @@ class CodexTree:
                 # New file — need full namespace reindex
                 prefix = self._filepath_to_prefix(filepath)
                 if prefix:
-                    return self._reindex_single_new(filepath, prefix)
+                    entries = self._reindex_single_new(filepath, prefix)
+                    return entries if entries else None
                 return None
 
             old_node = self.nodes.get(coord)
@@ -585,20 +586,28 @@ class CodexTree:
         self.supermap_cache = None
         return diffs
 
-    def _reindex_single_new(self, filepath: Path, prefix: str) -> DiffEntry | None:
-        """Handle a new file by reindexing its namespace."""
+    def _reindex_single_new(self, filepath: Path, prefix: str) -> list[DiffEntry]:
+        """Handle new file(s) by reindexing namespace. Returns ALL new diffs."""
+        # Snapshot old coords before reindex
+        old_coords = set(c for c, n in self.nodes.items() if n.prefix == prefix)
+        
         # FLAG-3: CREATE events → reindex full namespace
         self.reindex_namespace(prefix)
-        # Find the newly added node
-        fp_str = str(filepath)
-        coord = self._filepath_to_coord.get(fp_str)
-        if coord and coord in self.nodes:
-            node = self.nodes[coord]
-            return DiffEntry(
-                kind='added', coord=coord, slug=node.slug,
-                timestamp=time.time(),
-            )
-        return None
+        
+        # Find ALL newly added nodes (not just the triggering file)
+        new_coords = set(c for c, n in self.nodes.items() if n.prefix == prefix)
+        added_coords = new_coords - old_coords
+        
+        diffs = []
+        now = time.time()
+        for coord in sorted(added_coords):
+            node = self.nodes.get(coord)
+            if node:
+                diffs.append(DiffEntry(
+                    kind='added', coord=coord, slug=node.slug,
+                    timestamp=now, content=node.raw_text or '',
+                ))
+        return diffs
 
     def _filepath_to_prefix(self, filepath: Path) -> str | None:
         """Determine which namespace prefix a filepath belongs to."""
@@ -1337,10 +1346,12 @@ class SessionManager:
             if filepath:
                 p = Path(filepath)
                 if p.exists():
-                    diff = self.tree.apply_disk_change(p)
-                    if diff:
-                        self.diff_engine.record(diff)
-                        self.notify_all({'event': 'change', 'diff': asdict(diff)})
+                    result = self.tree.apply_disk_change(p)
+                    if result:
+                        diffs = result if isinstance(result, list) else [result]
+                        for diff in diffs:
+                            self.diff_engine.record(diff)
+                            self.notify_all({'event': 'change', 'diff': asdict(diff)})
                     return {'ok': True, 'refreshed': filepath}
                 return {'ok': False, 'error': f'file not found: {filepath}'}
             elif prefix:
@@ -2160,21 +2171,15 @@ class CodexRenderEngine:
             # Check if a previous reindex in this flush batch already indexed this file
             existing_coord = self.tree._filepath_to_coord.get(fp_str)
             if existing_coord and existing_coord in self.tree.nodes:
-                # Already indexed — emit an 'added' diff from the existing node
-                node = self.tree.nodes[existing_coord]
-                diff_entry = DiffEntry(
-                    kind='added', coord=existing_coord, slug=node.slug,
-                    timestamp=time.time(), content=node.raw_text or '',
-                )
-                self.diff_engine.record(diff_entry)
-                self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
+                # Already indexed and diffed by a prior reindex — skip
+                pass
             else:
-                # FLAG-3: CREATE → reindex namespace (new file shifts coordinates)
+                # FLAG-3: CREATE → reindex namespace, get ALL new diffs
                 prefix = self.tree._filepath_to_prefix(filepath)
                 if prefix:
-                    diff_entry = self.tree._reindex_single_new(filepath, prefix)
-                    if diff_entry:
-                        self.diff_engine.record(diff_entry, tree=self.tree)
+                    diff_entries = self.tree._reindex_single_new(filepath, prefix)
+                    for diff_entry in diff_entries:
+                        self.diff_engine.record(diff_entry)
                         self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
 
         elif event_type == 'deleted':

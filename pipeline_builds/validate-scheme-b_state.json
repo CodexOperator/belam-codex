@@ -18,14 +18,26 @@
       "completed_at": "2026-03-23 18:14",
       "agent": "builder",
       "notes": "All 3 critic FLAGs addressed + scripts 3-6 implemented and run. FLAG-1: Active trading SR +0.40 vs buy-and-hold SR +0.92 \u2014 gap of -0.52 now stated in executive summary. BH wins 7/10 folds. FLAG-2: Phase 2 baseline drop is synthetic vs real data difference (all 3 folds >1pp gap). FLAG-3: Predictions biased 92-97% positive in 2/3 folds \u2014 synthetic upward drift artifact, confirms TURN-03 identical results expected. Script 3: flip/hold ratio 1.23 (SNN flips on high-vol, good). Script 4: optimal hold N=5 (20h), smooth Sharpe curve. Script 5: TURN-02b break-even at 24 bps (2.4x margin over institutional). Script 6: no temporal trend, turnover dominates. Regime filter analysis: needs real data (biased predictions on synthetic data make L/F = L/S). Updated executive summary and produced critic_followup_report.md."
+    },
+    "local_analysis_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-23 18:22",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 4 FLAGs (1 HIGH, 2 MED, 1 LOW). FLAG-1 HIGH: stored predictions are binary {0,1} not continuous logits \u2014 magnitude diagnostic is trivially degenerate, regime filter = active L/S on this encoding, POS-01 was meaningless. Fix: store raw logits next run. FLAG-2 MED: break-even discrepancy 24 bps (cost sweep) vs 39.9 bps (mean of per-fold break-evens, inflated by 100bps outlier fold). 24 bps is more honest \u2014 still profitable at institutional costs but tighter margin (2.4x over 10bps, not 2.7x over 15bps). FLAG-3 MED: N=5 optimal holding period is 3-fold noise \u2014 spike driven by fold alignment, not smooth curve. Robust finding: mid-range N in [3,7] (12-28h). FLAG-4 LOW: regime filter = active L/S because sign({0,1}) = {0,1}, not because of prediction bias. All 3 original FLAGs resolved. Scripts 3-6 correct. Review at: pipeline_builds/validate-scheme-b_critic_local_analysis_code_review.md"
+    },
+    "local_analysis_report_build": {
+      "status": "complete",
+      "completed_at": "2026-03-23 18:23",
+      "agent": "system",
+      "notes": "LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/validate-scheme-b_report.pdf (555.6 KB)"
     }
   },
   "phase1": {
-    "stage": "local_analysis_builder",
+    "stage": "local_analysis_report_build",
     "started": "2026-03-23"
   },
-  "last_updated": "2026-03-23 18:14",
-  "status": "local_analysis_in_progress",
-  "status_updated": "2026-03-23 15:51",
-  "pending_action": "local_analysis_code_review"
+  "last_updated": "2026-03-23 18:23",
+  "status": "local_analysis_complete",
+  "status_updated": "2026-03-23 18:23",
+  "pending_action": "local_analysis_complete"
 }
