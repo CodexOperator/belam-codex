@@ -17200,7 +17200,7 @@ tags:
 - codex-engine-v4
 source: session
 content: 'Inotify coalescing bug: burst-creating 12 test primitives triggered _reindex_single_new 12 times — only 1 DiffEntry returned. Root causes: (1) filepath_to_coord lookup failed due to relative vs absolute path mismatch in live engine, (2) repeated reindexes fought each other. Fix: make _reindex_single_new return all new files in one pass; track already-diffed files to skip redundant reindexes; update apply_disk_change return type from DiffEntry|None to list[DiffEntry].'
-status: active
+status: consolidated
 __coord__: m131
 __slug__: 2026-03-23_193056_inotify-coalescing-bug-burst-creating-12
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_193056_inotify-coalescing-bug-burst-creating-12.md
@@ -17231,7 +17231,7 @@ tags:
 - system-events
 source: session
 content: 'Telegram unresponsive for ~3min due to main session lane queue backup: system events (exec failures, diff-trigger at 10 F-labels, stall recovery SIGTERM) all piled into main session queue simultaneously, blocking interactive DMs. Lane wait reached 299 seconds (waitedMs=299279). Gateway also hit Telegram ETIMEDOUT and fell back to IPv4-only. System recovered once queue drained.'
-status: active
+status: consolidated
 __coord__: m132
 __slug__: 2026-03-23_193105_telegram-unresponsive-for-3min-due-to-ma
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_193105_telegram-unresponsive-for-3min-due-to-ma.md
@@ -17262,7 +17262,7 @@ tags:
 - orchestration
 source: session
 content: 'Recurring SIGTERM on orchestration engine during heartbeat tasks: e0 sweep and checkpoint logic both got SIGTERM before completion. Diagnosed as system-level timeout issue affecting heartbeat reliability. Also: gateway systemd service crashed at 18:04 UTC (restart loop, 12 restarts, missing config error) while actual gateway process (pid 2934107) remained alive and functional.'
-status: active
+status: consolidated
 __coord__: m133
 __slug__: 2026-03-23_193127_recurring-sigterm-on-orchestration-engin
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_193127_recurring-sigterm-on-orchestration-engin.md
@@ -17291,7 +17291,7 @@ tags:
 - stage:local_experiment_running
 source: pipeline_update:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network:local_experiment_running
 content: 'Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. | Pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network | Stage: local_experiment_running'
-status: active
+status: consolidated
 __coord__: m134
 __slug__: 2026-03-23_193401_experiment-completed-all-12-results-pkls
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_193401_experiment-completed-all-12-results-pkls.md
@@ -18403,6 +18403,28 @@ Experiment completed (all 12 results PKLs present). Dead-PID recovery — transi
 *Source: pipeline_update:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network:local_experiment_running*
 
 *Entry: `2026-03-23_193401_experiment-completed-all-12-results-pkls.md`*
+
+---
+
+## Consolidated Entries — 2026-03-23
+
+*Generated at 2026-03-23T19:45:40Z — 4 entries*
+
+
+### 📅 Event (2)
+
+- **[★★★☆☆]** Telegram unresponsive for ~3min due to main session lane queue backup: system events (exec failures, diff-trigger at 10 F-labels, stall recovery SIGTERM) all piled into main session queue simultaneously, blocking interactive DMs. Lane wait reached 299 seconds (waitedMs=299279). Gateway also hit Telegram ETIMEDOUT and fell back to IPv4-only. System recovered once queue drained.
+  *tags: instance:main, gateway, telegram, lane-queue, system-events*
+- **[★★★☆☆]** Recurring SIGTERM on orchestration engine during heartbeat tasks: e0 sweep and checkpoint logic both got SIGTERM before completion. Diagnosed as system-level timeout issue affecting heartbeat reliability. Also: gateway systemd service crashed at 18:04 UTC (restart loop, 12 restarts, missing config error) while actual gateway process (pid 2934107) remained alive and functional.
+  *tags: instance:main, gateway, systemd, codex-engine-v4, orchestration*
+
+
+### 🔧 Technical (2)
+
+- **[★★★★☆]** Inotify coalescing bug: burst-creating 12 test primitives triggered _reindex_single_new 12 times — only 1 DiffEntry returned. Root causes: (1) filepath_to_coord lookup failed due to relative vs absolute path mismatch in live engine, (2) repeated reindexes fought each other. Fix: make _reindex_single_new return all new files in one pass; track already-diffed files to skip redundant reindexes; update apply_disk_change return type from DiffEntry|None to list[DiffEntry].
+  *tags: instance:main, render-engine, inotify, debugging, codex-engine-v4*
+- **[★★★★☆]** Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. | Pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network | Stage: local_experiment_running
+  *tags: agent:main, pipeline:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network, stage:local_experiment_running*
 
 ---
 ---
@@ -23742,6 +23764,9 @@ _Architect designs → Critic reviews → Builder implements_
 | local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 | local_analysis_architect | 2026-03-23 | architect | TOTAL FAILURE — limbic module has zero effect. All 9 variants identical to baseline. Root cause: dead neurons by epoch 2 (spike rate = 0.0 in both layers). With zero spikes, predictions are near-zero, reward is ~1e-6, reward gradient is exactly 0.0. The limbic module receives no gradient and learns nothing. Energy dynamics work mechanically (pool decays, bounds clamp correctly) but modulate nothing. Only 5 epochs ran (vs designed 100). The equilibrium SNN backbone (96→48, T=1) dies on CPU — wrong backbone choice. Limbic must be re-tested on V3 Scheme B (128→64, T=20) which actually produces 53.5% accuracy. 4 follow-up scripts specified. |
 | local_experiment_running | 2026-03-23 | system | Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 | local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 
 ## Phase 2: Human-in-the-Loop

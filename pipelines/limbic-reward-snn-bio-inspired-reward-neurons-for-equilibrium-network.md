@@ -43,6 +43,8 @@ _Architect designs → Critic reviews → Builder implements_
 | local_experiment_running | 2026-03-23 | system | Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. |
 | local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 | local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
+| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

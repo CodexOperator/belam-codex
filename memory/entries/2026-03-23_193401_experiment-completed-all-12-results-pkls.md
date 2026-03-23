@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network, stage:local_experiment_running]
 source: "pipeline_update:limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network:local_experiment_running"
 content: "Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. | Pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network | Stage: local_experiment_running"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

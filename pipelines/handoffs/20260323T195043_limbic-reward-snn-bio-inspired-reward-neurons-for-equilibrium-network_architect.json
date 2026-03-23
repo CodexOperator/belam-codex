@@ -1,0 +1,15 @@
+{
+  "version": "limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network",
+  "completed_stage": "local_experiment_complete",
+  "next_stage": "local_analysis_architect",
+  "next_agent": "architect",
+  "timestamp": "2026-03-23T19:50:43.655836+00:00",
+  "pipeline_session_id": "6cb5583a-5e97-492c-b7da-d9d8271e85ba",
+  "wake_result": {
+    "success": true,
+    "status": "dispatched",
+    "session_id": "6cb5583a-5e97-492c-b7da-d9d8271e85ba",
+    "response_preview": ""
+  },
+  "verified": true
+}
