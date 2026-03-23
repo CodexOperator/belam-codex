@@ -3146,6 +3146,53 @@ _What follows from this choice? Trade-offs, risks, next steps._
 ---
 ---
 primitive: decision
+status: accepted
+date: 2026-03-23
+context: (add context)
+alternatives: []
+rationale: (add rationale)
+consequences: []
+upstream:
+- decision/codex-cockpit-before-prompt-build-per-turn-injection
+- lesson/render-engine-zombie-blocks-session-startup
+downstream: []
+tags:
+- instance:main
+- render-engine
+- robustness
+- session-startup
+__coord__: d54
+__slug__: render-engine-pid-file-and-force-flag
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-pid-file-and-force-flag.md
+__prefix__: d
+__index__: 54
+__ptype__: decisions
+---
+# render-engine-pid-file-and-force-flag
+
+## Context
+
+Zombie render engine processes were blocking new agent sessions from receiving supermap context via the cockpit plugin. The socket-only existence check was insufficient for stale process detection. Shael asked for robust clean startup so every `/new` session properly spawns into the render engine.
+
+## Options Considered
+
+- **Option A:** Just unlink the stale socket unconditionally on startup (risky — could kill a healthy engine).
+- **Option B:** Add PID file + `--force` flag: UDS stop → PID kill with cmdline verification → fresh start (chosen).
+- **Option C:** Multi-instance render engines (one per agent workspace) — deferred, not needed for main session.
+
+## Decision
+
+Add `--force` startup mode to `codex_render.py`: attempts graceful UDS stop, falls back to PID-file kill (with `/proc/{pid}/cmdline` verification to avoid recycled-PID false kills), then starts fresh. PID file written to `.codex_runtime/render.pid` on start, removed on clean shutdown. Cockpit plugin `ensureRenderEngine()` always passes `--force` and polls socket up to 3s (6 × 500ms). Committed as `a04ea56f` to belam-codex master.
+
+## Consequences
+
+- Every `/new` session gets clean render engine startup with supermap context injection via cockpit plugin.
+- PID file enables future tooling (health checks, monitoring) to locate the engine process.
+- Slight startup overhead (UDS probe + optional kill) is negligible vs. benefit of guaranteed clean state.
+- Cockpit plugin is now the authoritative engine lifecycle manager for the main workspace.
+---
+---
+primitive: decision
 status: proposed
 date: 2026-03-23
 context: (add context)
@@ -3159,11 +3206,11 @@ tags:
 - pipeline
 - run-experiment
 - architecture
-__coord__: d54
+__coord__: d55
 __slug__: run-experiment-phase-flag-for-notebook-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md
 __prefix__: d
-__index__: 54
+__index__: 55
 __ptype__: decisions
 ---
 # run-experiment-phase-flag-for-notebook-cell-targeting
@@ -3204,11 +3251,11 @@ tags:
 - skills
 - knowledge
 - workflow
-__coord__: d55
+__coord__: d56
 __slug__: skill-extraction-from-reports
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-extraction-from-reports.md
 __prefix__: d
-__index__: 55
+__index__: 56
 __ptype__: decisions
 ---
 # Extract Domain Reports Into Skills + Knowledge Files
@@ -3243,11 +3290,11 @@ tags:
 - knowledge-management
 downstream:
 - memory/2026-03-18_192651_convention-established-every-workspace-s
-__coord__: d56
+__coord__: d57
 __slug__: skill-primitive-pairing
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-primitive-pairing.md
 __prefix__: d
-__index__: 56
+__index__: 57
 __ptype__: decisions
 ---
 # Decision: Every Skill Gets a Primitive
@@ -3286,11 +3333,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: d57
+__coord__: d58
 __slug__: stop-auto-logging-pipeline-stage-transitions
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/stop-auto-logging-pipeline-stage-transitions.md
 __prefix__: d
-__index__: 57
+__index__: 58
 __ptype__: decisions
 ---
 # stop-auto-logging-pipeline-stage-transitions
@@ -3329,11 +3376,11 @@ tags:
 - anchor
 - diff
 - cockpit-plugin
-__coord__: d58
+__coord__: d59
 __slug__: supermap-anchor-diff-flags-in-codex-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-anchor-diff-flags-in-codex-engine.md
 __prefix__: d
-__index__: 58
+__index__: 59
 __ptype__: decisions
 ---
 # supermap-anchor-diff-flags-in-codex-engine
@@ -3379,11 +3426,11 @@ tags:
 - legend
 - r-command
 importance: 3
-__coord__: d59
+__coord__: d60
 __slug__: supermap-pure-signal-legend-as-orientation-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-pure-signal-legend-as-orientation-layer.md
 __prefix__: d
-__index__: 59
+__index__: 60
 __ptype__: decisions
 ---
 # supermap-pure-signal-legend-as-orientation-layer
@@ -3430,11 +3477,11 @@ tags:
 - lifecycle
 - boot-optimization
 note: References to embed_primitives.py filtering are stale — codex engine supermap handles boot index filtering
-__coord__: d60
+__coord__: d61
 __slug__: superseded-primitive-lifecycle
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/superseded-primitive-lifecycle.md
 __prefix__: d
-__index__: 60
+__index__: 61
 __ptype__: decisions
 ---
 # Superseded Primitive Lifecycle
@@ -3487,11 +3534,11 @@ tags:
 - experiments
 - builder
 - architecture
-__coord__: d61
+__coord__: d62
 __slug__: supervised-builder-experiments
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supervised-builder-experiments.md
 __prefix__: d
-__index__: 61
+__index__: 62
 __ptype__: decisions
 ---
 # Supervised Builder Agent for Experiment Execution
@@ -3537,11 +3584,11 @@ tags:
 - symbolic-dispatch
 - coordinate-grammar
 - architecture
-__coord__: d62
+__coord__: d63
 __slug__: symbolic-dispatch-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/symbolic-dispatch-architecture.md
 __prefix__: d
-__index__: 62
+__index__: 63
 __ptype__: decisions
 ---
 # symbolic-dispatch-architecture
@@ -3585,11 +3632,11 @@ tags:
 - workflow
 downstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d63
+__coord__: d64
 __slug__: two-phase-backtest-workflow
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/two-phase-backtest-workflow.md
 __prefix__: d
-__index__: 63
+__index__: 64
 __ptype__: decisions
 ---
 # Two-Phase Backtest Workflow
@@ -3613,11 +3660,11 @@ tags:
 - orchestration
 - e0
 - resilience
-__coord__: d64
+__coord__: d65
 __slug__: unclaimed-dispatch-recovery-in-sweep
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/unclaimed-dispatch-recovery-in-sweep.md
 __prefix__: d
-__index__: 64
+__index__: 65
 __ptype__: decisions
 ---
 # unclaimed-dispatch-recovery-in-sweep
@@ -3655,11 +3702,11 @@ tags:
 - zoom
 - context-efficiency
 importance: 3
-__coord__: d65
+__coord__: d66
 __slug__: zoom-replaces-supermap-injection-option
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/zoom-replaces-supermap-injection-option.md
 __prefix__: d
-__index__: 65
+__index__: 66
 __ptype__: decisions
 ---
 # zoom-replaces-supermap-injection-option
@@ -11587,6 +11634,47 @@ _When does this lesson apply? What should change going forward?_
 ---
 ---
 primitive: lesson
+date: 2026-03-23
+source: (add source)
+confidence: high
+upstream:
+- decision/codex-cockpit-before-prompt-build-per-turn-injection
+downstream: []
+tags:
+- instance:main
+- render-engine
+- session-startup
+- robustness
+__coord__: l54
+__slug__: render-engine-zombie-blocks-session-startup
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-zombie-blocks-session-startup.md
+__prefix__: l
+__index__: 54
+__ptype__: lessons
+---
+# render-engine-zombie-blocks-session-startup
+
+## Context
+
+Shael asked whether the agent properly spawns into the render engine context on new sessions. Investigation found the render engine process was running but the cockpit plugin was not getting a live UDS socket — zombie processes from prior sessions held the socket file, blocking fresh engine starts.
+
+## What Happened
+
+`codex_render.py` checked socket existence and tried a test connection; if the socket existed but the process was unresponsive (crash/zombie), it raised `RuntimeError("Another render engine is already running")` and aborted. No PID file existed, so there was no way to identify or kill the stale owner. The cockpit plugin's `ensureRenderEngine()` also only waited 500ms for the socket to appear after starting the engine — too short for warm starts.
+
+## Lesson
+
+Socket existence alone is insufficient for render engine startup guard — you need a PID file and a `--force` takeover mode that can kill a stale owner, otherwise any crash leaves new sessions without supermap context injection.
+
+## Application
+
+- Always pair a UDS socket with a PID file for long-running background engines.
+- On `--force`: send stop via UDS → wait → read PID file → kill if process is confirmed (check `/proc/{pid}/cmdline`) → unlink socket → start fresh.
+- Cockpit plugin must use `--force` on `ensureRenderEngine()` and poll with sufficient timeout (≥3s).
+- Applies to any agent-facing background service gated by a socket file.
+---
+---
+primitive: lesson
 date: 2026-03-20
 source: (add source)
 confidence: high
@@ -11598,11 +11686,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l54
+__coord__: l55
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 54
+__index__: 55
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -11635,11 +11723,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l55
+__coord__: l56
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 55
+__index__: 56
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -11686,11 +11774,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l56
+__coord__: l57
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 56
+__index__: 57
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -11730,11 +11818,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l57
+__coord__: l58
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 57
+__index__: 58
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -11770,11 +11858,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l58
+__coord__: l59
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 58
+__index__: 59
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -11811,11 +11899,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l59
+__coord__: l60
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 59
+__index__: 60
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -11839,11 +11927,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l60
+__coord__: l61
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 60
+__index__: 61
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -11876,11 +11964,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l61
+__coord__: l62
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 61
+__index__: 62
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -11925,11 +12013,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l62
+__coord__: l63
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 62
+__index__: 63
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -11961,11 +12049,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l63
+__coord__: l64
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 63
+__index__: 64
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -12014,11 +12102,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l64
+__coord__: l65
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 64
+__index__: 65
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -12040,11 +12128,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l65
+__coord__: l66
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 65
+__index__: 66
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -12077,11 +12165,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l66
+__coord__: l67
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 66
+__index__: 67
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -12105,11 +12193,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l67
+__coord__: l68
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 67
+__index__: 68
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -12147,11 +12235,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l68
+__coord__: l69
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 68
+__index__: 69
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -12203,11 +12291,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l69
+__coord__: l70
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 69
+__index__: 70
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -12242,11 +12330,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l70
+__coord__: l71
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 70
+__index__: 71
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -12276,11 +12364,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l71
+__coord__: l72
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 71
+__index__: 72
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -12328,11 +12416,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l72
+__coord__: l73
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 72
+__index__: 73
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -12369,11 +12457,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l73
+__coord__: l74
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 73
+__index__: 74
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -12407,11 +12495,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l74
+__coord__: l75
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 74
+__index__: 75
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -16553,7 +16641,7 @@ tags:
 - bug-fix
 source: session
 content: 'p1 deliverable verification (codex-engine-v3-legendary-map): 2 bugs found and fixed. (1) is_coordinate() used [a-z] single-char regex — ''lm'' is 2 chars so lm6 zoom and lm expanded view silently exited code 2. Fixed by updating regex to support multi-char prefixes. (2) Dot-syntax e0.l1/e1.l1 workflow dispatch never reached any handler — not a V2 op (no [a-z] after e0 per V2_OP_START_RE), not a coordinate (is_coordinate rejected it). Fixed by adding early dispatch intercept before V2 detection block. Both fixes committed as 68feb520 to belam-codex.'
-status: active
+status: consolidated
 __coord__: m127
 __slug__: 2026-03-23_171245_p1-deliverable-verification-codex-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_171245_p1-deliverable-verification-codex-engine.md
@@ -16570,6 +16658,37 @@ p1 deliverable verification (codex-engine-v3-legendary-map): 2 bugs found and fi
 ---
 *Source: session*
 *Tags: instance:main, p1, codex-engine, lm, bug-fix*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-23T17:25:35Z'
+category: event
+importance: 4
+tags:
+- instance:main
+- render-engine
+- codex-cockpit
+- robustness
+- session-startup
+source: session
+content: 'Render engine zombie process bug diagnosed and fixed. Shael asked if agent properly spawns into render engine on new sessions. Investigation revealed zombie processes from prior sessions blocked fresh engine starts (socket held by dead process). Fixed codex_render.py: (1) PID file written to .codex_runtime/render.pid on start/cleaned on stop, (2) --force CLI flag: sends stop via UDS, waits, kills by PID if needed (verifies /proc/{pid}/cmdline), (3) stale PID cleanup on startup if socket gone but PID file exists. Cockpit plugin updated to pass --force on ensureRenderEngine() and poll socket up to 3s. Committed to belam-codex master (a04ea56f).'
+status: active
+__coord__: m128
+__slug__: 2026-03-23_172535_render-engine-zombie-process-bug-diagnos
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_172535_render-engine-zombie-process-bug-diagnos.md
+__prefix__: m
+__index__: 128
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-23T17:25:35Z** · `event` · importance 4/5
+
+Render engine zombie process bug diagnosed and fixed. Shael asked if agent properly spawns into render engine on new sessions. Investigation revealed zombie processes from prior sessions blocked fresh engine starts (socket held by dead process). Fixed codex_render.py: (1) PID file written to .codex_runtime/render.pid on start/cleaned on stop, (2) --force CLI flag: sends stop via UDS, waits, kills by PID if needed (verifies /proc/{pid}/cmdline), (3) stale PID cleanup on startup if socket gone but PID file exists. Cockpit plugin updated to pass --force on ensureRenderEngine() and poll socket up to 3s. Committed to belam-codex master (a04ea56f).
+
+---
+*Source: session*
+*Tags: instance:main, render-engine, codex-cockpit, robustness, session-startup*
 ---
 ---
 __coord__: md1
@@ -17480,6 +17599,39 @@ R-labels are additive — zoom output goes into context alongside old supermap f
 - lesson: `is-coordinate-single-char-prefix-limitation` (imp 3)
 - lesson: `dot-syntax-lN-workflow-dispatch-unreachable` (imp 3)
 - decision: `zoom-replaces-supermap-injection-option` (imp 3, under-discussion)
+
+## Consolidated Entries — 2026-03-23
+
+*Generated at 2026-03-23T17:23:37Z — 1 entries*
+
+
+### 📅 Event (1)
+
+- **[★★★☆☆]** p1 deliverable verification (codex-engine-v3-legendary-map): 2 bugs found and fixed. (1) is_coordinate() used [a-z] single-char regex — 'lm' is 2 chars so lm6 zoom and lm expanded view silently exited code 2. Fixed by updating regex to support multi-char prefixes. (2) Dot-syntax e0.l1/e1.l1 workflow dispatch never reached any handler — not a V2 op (no [a-z] after e0 per V2_OP_START_RE), not a coordinate (is_coordinate rejected it). Fixed by adding early dispatch intercept before V2 detection block. Both fixes committed as 68feb520 to belam-codex.
+  *tags: instance:main, p1, codex-engine, lm, bug-fix*
+
+---
+
+## 2026-03-23T17:25:35Z — event ⚡⚡⚡⚡
+
+Render engine zombie process bug diagnosed and fixed. Shael asked if agent properly spawns into render engine on new sessions. Investigation revealed zombie processes from prior sessions blocked fresh engine starts (socket held by dead process). Fixed codex_render.py: (1) PID file written to .codex_runtime/render.pid on start/cleaned on stop, (2) --force CLI flag: sends stop via UDS, waits, kills by PID if needed (verifies /proc/{pid}/cmdline), (3) stale PID cleanup on startup if socket gone but PID file exists. Cockpit plugin updated to pass --force on ensureRenderEngine() and poll socket up to 3s. Committed to belam-codex master (a04ea56f).
+
+*Tags: instance:main, render-engine, codex-cockpit, robustness, session-startup*
+
+*Source: session*
+
+*Entry: `2026-03-23_172535_render-engine-zombie-process-bug-diagnos.md`*
+
+---
+
+## Session Summary — 2026-03-23T17:10–17:22 UTC (render engine robustness)
+
+Short session (~12 min). Shael asked whether the agent uses the render engine on session spawn. Diagnosis found zombie render engine processes blocking new sessions. Fixed `codex_render.py` with PID file + `--force` takeover flag. Updated cockpit plugin to use `--force` and poll socket 3s. Verified clean takeover: old engine gracefully stopped, new engine starts at 354 nodes in <3s. Committed `a04ea56f`. Also noted that inotify watcher monitors namespace directories by prefix — memory extraction disk writes will trigger inotify and surface as diffs (question was cut off, but watcher does watch workspace root + namespace dirs).
+
+**Primitives created:**
+- memory: `render-engine-zombie-process-bug-diagnos` (imp 4)
+- lesson: `render-engine-zombie-blocks-session-startup` (imp high confidence)
+- decision: `render-engine-pid-file-and-force-flag` (accepted)
 ---
 ---
 __coord__: md3

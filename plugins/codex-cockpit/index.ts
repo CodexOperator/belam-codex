@@ -25,6 +25,14 @@ let renderCount = 0;
 let hasAnchor = false;
 let pluginSessionId: string | null = null;
 
+// R-label only agents: coordinator sees summary diffs only.
+// Pipeline agents (architect, critic, builder, sage) see R+F labels.
+const R_LABEL_ONLY_AGENTS = new Set(["main", "cockpit", ""]);
+
+function shouldIncludeContent(agentId: string): boolean {
+  return !R_LABEL_ONLY_AGENTS.has(agentId);
+}
+
 // ── UDS Client ─────────────────────────────────────────────────────────────
 
 /**
@@ -236,13 +244,16 @@ export default function register(api: any) {
 
     // ── Subsequent turns: diff via UDS (S1: my_diff for per-agent anchor) ──
     let diff: string | null = null;
+    const agentId = ctx?.agentId ?? "";
+    const includeContent = shouldIncludeContent(agentId);
 
     if (engineUp) {
       try {
         // S1: Use my_diff for per-session anchor-aware diffs
+        // R+F labels for pipeline agents, R-only for coordinator
         const diffResp = pluginSessionId
-          ? await udsQuery(sockPath, { cmd: 'my_diff', session_id: pluginSessionId })
-          : await udsQuery(sockPath, { cmd: 'diff' });
+          ? await udsQuery(sockPath, { cmd: 'my_diff', session_id: pluginSessionId, include_content: includeContent })
+          : await udsQuery(sockPath, { cmd: 'diff', include_content: includeContent });
 
         if (diffResp?.ok && diffResp.delta) {
           // delta is an array of diff entries — format them

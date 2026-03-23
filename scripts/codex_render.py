@@ -93,6 +93,7 @@ class DiffEntry:
     slug: str
     field_diffs: list = field(default_factory=list)  # [(field, old, new), ...]
     timestamp: float = 0.0
+    content: str = ''  # F-label: full primitive content (populated on record)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -721,12 +722,21 @@ class DiffEngine:
                 ))
                 self._lm_hash = current  # Update so we don't re-emit
 
-    def record(self, entry: DiffEntry) -> None:
+    def record(self, entry: DiffEntry, tree: 'CodexTree | None' = None) -> None:
+        """Record a diff entry. If tree provided, populate F-label content."""
+        if tree and not entry.content:
+            node = tree.get(entry.coord)
+            if node and node.raw_text:
+                entry.content = node.raw_text
         with self._lock:
             self._diffs.append(entry)
 
-    def get_delta(self) -> str:
-        """Render accumulated diffs in Δ/+/− format."""
+    def get_delta(self, include_content: bool = False) -> str:
+        """Render accumulated diffs in Δ/+/− format.
+        
+        Args:
+            include_content: If True, include F-label (full content) after each R-label.
+        """
         with self._lock:
             if not self._diffs:
                 return ''
@@ -750,11 +760,20 @@ class DiffEngine:
                     lines.append(f"  − {d.coord:<5} {d.slug} (removed)")
                 elif d.kind == 'reassigned':
                     lines.append(f"  ↻ {d.coord:<5} {d.slug} (reassigned)")
+                # F-label: append full content if requested
+                if include_content and d.content and d.kind != 'removed':
+                    lines.append(f"    F[{d.coord}]:")
+                    for cl in d.content.split('\n'):
+                        lines.append(f"    | {cl}")
 
             return '\n'.join(lines)
 
-    def get_delta_since(self, timestamp: float) -> str:
-        """Get diffs since a specific timestamp."""
+    def get_delta_since(self, timestamp: float, include_content: bool = False) -> str:
+        """Get diffs since a specific timestamp.
+        
+        Args:
+            include_content: If True, include F-label (full content) after each R-label.
+        """
         with self._lock:
             filtered = [d for d in self._diffs if d.timestamp >= timestamp]
             if not filtered:
@@ -767,7 +786,18 @@ class DiffEngine:
                     lines.append(f"  + {d.coord:<5} {d.slug}")
                 elif d.kind == 'removed':
                     lines.append(f"  − {d.coord:<5} {d.slug}")
+                # F-label: append full content if requested
+                if include_content and d.content and d.kind != 'removed':
+                    lines.append(f"    F[{d.coord}]:")
+                    for cl in d.content.split('\n'):
+                        lines.append(f"    | {cl}")
             return '\n'.join(lines)
+
+    def f_label_count_since(self, timestamp: float) -> int:
+        """Count F-label diffs since timestamp (for heartbeat trigger)."""
+        with self._lock:
+            return sum(1 for d in self._diffs
+                       if d.timestamp >= timestamp and d.content)
 
     def has_changes(self) -> bool:
         with self._lock:
@@ -1285,11 +1315,13 @@ class SessionManager:
             return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
 
         elif cmd == 'diff':
-            return {'ok': True, 'delta': self.diff_engine.get_delta()}
+            include_content = msg.get('include_content', False)
+            return {'ok': True, 'delta': self.diff_engine.get_delta(include_content=include_content)}
 
         elif cmd == 'diff_since':
             ts = msg.get('timestamp', 0.0)
-            return {'ok': True, 'delta': self.diff_engine.get_delta_since(ts)}
+            include_content = msg.get('include_content', False)
+            return {'ok': True, 'delta': self.diff_engine.get_delta_since(ts, include_content=include_content)}
 
         elif cmd == 'anchor_reset':
             self.diff_engine.set_anchor()
@@ -1413,11 +1445,13 @@ class SessionManager:
 
         # ── D3: per-session diff (uses agent's own anchor) ──────────
         elif cmd == 'my_diff':
+            include_content = msg.get('include_content', False)
             with self._lock:
                 session = self._sessions.get(session_id)
             if session:
                 return {'ok': True,
-                        'delta': self.diff_engine.get_delta_since(session.anchor_time)}
+                        'delta': self.diff_engine.get_delta_since(
+                            session.anchor_time, include_content=include_content)}
             return {'ok': False, 'error': 'not attached — call attach first'}
 
         # ── D1: RAM-first write (edit existing node) ────────────────
@@ -1435,7 +1469,8 @@ class SessionManager:
             diff = DiffEntry(kind='modified', coord=coord,
                              slug=node.slug,
                              field_diffs=[(c['field'], c.get('old'), c.get('new')) for c in changes],
-                             timestamp=time.time())
+                             timestamp=time.time(),
+                             content=node.raw_text or '')
             self.diff_engine.record(diff)
             self.notify_all({'event': 'change', 'diff': asdict(diff)})
             self._flush_to_disk(coord)
@@ -1456,7 +1491,8 @@ class SessionManager:
             diff = DiffEntry(kind='added', coord=node.coord,
                              slug=node.slug,
                              field_diffs=[('__created__', None, title)],
-                             timestamp=time.time())
+                             timestamp=time.time(),
+                             content=node.raw_text or '')
             self.diff_engine.record(diff)
             self.notify_all({'event': 'create', 'diff': asdict(diff)})
             self._flush_to_disk(node.coord)
@@ -1851,6 +1887,84 @@ class DashboardServer:
 CONTEXT_FILENAMES = {'SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md', 'AGENTS.md', 'MEMORY.md'}
 
 
+class HeartbeatTrigger:
+    """Monitors diff accumulation and triggers OpenClaw heartbeats via webhook.
+    
+    Checks every `poll_interval_s` seconds. Fires when `threshold` or more
+    F-label diffs have accumulated since the last trigger.
+    """
+
+    def __init__(self, diff_engine: 'DiffEngine',
+                 poll_interval_s: float = 5.0,
+                 threshold: int = 10,
+                 gateway_port: int = 18789,
+                 hook_token: str = ''):
+        self.diff_engine = diff_engine
+        self.poll_interval_s = poll_interval_s
+        self.threshold = threshold
+        self.gateway_port = gateway_port
+        self.hook_token = hook_token
+        self._last_trigger_time: float = 0.0
+        self._running = False
+        self._thread: threading.Thread | None = None
+        self._cooldown_s = 30.0  # min seconds between heartbeat triggers
+
+    def start(self) -> None:
+        if not self.hook_token:
+            return  # No token configured — skip
+        self._last_trigger_time = time.time()
+        self._running = True
+        self._thread = threading.Thread(target=self._poll_loop, daemon=True,
+                                        name='heartbeat-trigger')
+        self._thread.start()
+
+    def stop(self) -> None:
+        self._running = False
+
+    def _poll_loop(self) -> None:
+        while self._running:
+            time.sleep(self.poll_interval_s)
+            if not self._running:
+                break
+            try:
+                self._check_and_trigger()
+            except Exception:
+                pass
+
+    def _check_and_trigger(self) -> None:
+        now = time.time()
+        # Cooldown check
+        if now - self._last_trigger_time < self._cooldown_s:
+            return
+        # Count F-label diffs since last trigger
+        count = self.diff_engine.f_label_count_since(self._last_trigger_time)
+        if count >= self.threshold:
+            self._fire_heartbeat(count)
+            self._last_trigger_time = now
+
+    def _fire_heartbeat(self, diff_count: int) -> None:
+        """POST to /hooks/wake to trigger an immediate heartbeat."""
+        import urllib.request
+        import urllib.error
+        url = f'http://127.0.0.1:{self.gateway_port}/hooks/wake'
+        payload = json.dumps({
+            'text': f'[diff-trigger] {diff_count} F-label changes accumulated',
+            'mode': 'now',
+        }).encode('utf-8')
+        req = urllib.request.Request(
+            url, data=payload,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {self.hook_token}',
+            },
+        )
+        try:
+            resp = urllib.request.urlopen(req, timeout=5)
+            resp.read()
+        except urllib.error.URLError:
+            pass  # Gateway not reachable — skip silently
+
+
 class CodexRenderEngine:
     """Main render engine process. Foreground, session-scoped."""
 
@@ -1865,6 +1979,7 @@ class CodexRenderEngine:
         self.sessions = SessionManager(self.tree, self.diff_engine, self.context)
         self.sessions._engine_ref = self
         self.test: TestMode | None = None
+        self.heartbeat_trigger: HeartbeatTrigger | None = None
         self._running = False
         self._start_time = 0.0
 
@@ -1928,11 +2043,25 @@ class CodexRenderEngine:
             branch = self.test.start()
             print(f"Test mode: branch {branch}")
 
-        # 6. Boot status
+        # 6. Heartbeat trigger (diff-driven)
+        hb_token, hb_port = self._load_hook_config()
+        if hb_token:
+            self.heartbeat_trigger = HeartbeatTrigger(
+                self.diff_engine,
+                poll_interval_s=5.0,
+                threshold=10,
+                gateway_port=hb_port,
+                hook_token=hb_token,
+            )
+            self.heartbeat_trigger.start()
+
+        # 7. Boot status
         print(f"Codex Render Engine started")
         print(f"  Tree: {len(self.tree.nodes)} primitives loaded in {self.tree.load_time:.2f}s")
         print(f"  Watcher: {watcher_type}")
         print(f"  Socket: {SOCKET_PATH}")
+        if self.heartbeat_trigger:
+            print(f"  Heartbeat trigger: {self.heartbeat_trigger.threshold} F-labels / {self.heartbeat_trigger.poll_interval_s}s poll")
         if self.test:
             print(f"  Test mode: {self.test.branch_name}")
 
@@ -1940,6 +2069,23 @@ class CodexRenderEngine:
 
         # 7. Main loop
         self._main_loop()
+
+    @staticmethod
+    def _load_hook_config() -> tuple[str, int]:
+        """Load webhook token and gateway port from openclaw.json."""
+        config_path = Path.home() / '.openclaw' / 'openclaw.json'
+        try:
+            with open(config_path) as f:
+                config = json.load(f)
+            hooks = config.get('hooks', {})
+            token = hooks.get('token', '')
+            enabled = hooks.get('enabled', False)
+            port = config.get('gateway', {}).get('port', 18789)
+            if enabled and token:
+                return token, port
+        except Exception:
+            pass
+        return '', 18789
 
     def _main_loop(self) -> None:
         """Block until SIGINT/SIGTERM."""
@@ -1966,6 +2112,9 @@ class CodexRenderEngine:
 
     def _cleanup(self) -> None:
         """Clean shutdown."""
+        if self.heartbeat_trigger:
+            self.heartbeat_trigger.stop()
+
         if self.test and self.test._overlay:
             print(f"Test mode has {len(self.test._overlay)} uncommitted changes — discarding.")
             self.test.discard()
@@ -2003,7 +2152,7 @@ class CodexRenderEngine:
         if event_type == 'modified':
             diff = self.tree.apply_disk_change(filepath)
             if diff:
-                self.diff_engine.record(diff)
+                self.diff_engine.record(diff, tree=self.tree)
                 self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
 
         elif event_type == 'created':
@@ -2012,13 +2161,13 @@ class CodexRenderEngine:
             if prefix:
                 diff_entry = self.tree._reindex_single_new(filepath, prefix)
                 if diff_entry:
-                    self.diff_engine.record(diff_entry)
+                    self.diff_engine.record(diff_entry, tree=self.tree)
                     self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
 
         elif event_type == 'deleted':
             diff = self.tree.apply_deletion(filepath)
             if diff:
-                self.diff_engine.record(diff)
+                self.diff_engine.record(diff, tree=self.tree)
                 self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
 
     def _print_status(self) -> None:
