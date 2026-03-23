@@ -499,11 +499,14 @@ python3 scripts/pipeline_orchestrate.py {version} complete {stage} --agent {agen
 ```
 """
 
-    # Step 4: Emit dispatch payload with resume context
+    # Step 4: Fire-and-forget dispatch with resume context
     print(f"   🔔 Dispatching {agent} with resume context (fire-and-forget)...")
-    emit_dispatch_payload(version, stage, agent, resume_msg)
-    print(f"   📦 Dispatch payload emitted")
-    return {'success': True, 'status': 'dispatched', 'session_id': ''}
+    result = fire_and_forget_dispatch(version, stage, agent, message=resume_msg)
+    if result.get('success'):
+        print(f"   🔔 Dispatched {agent} (fire-and-forget)")
+    else:
+        print(f"   ⚠️ Dispatch failed: {result.get('error')}")
+    return {'success': result.get('success', False), 'status': 'dispatched', 'session_id': ''}
 
 
 def check_sessions(agent: str = None) -> list:
@@ -700,27 +703,29 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
             f'Approve: <code>R kickoff {version} --phase2 [--direction file.md]</code>')
         return True
 
-    # Step 3: Build handoff message and output dispatch payload
-    # The COMPLETING AGENT reads this output and calls sessions_spawn.
-    # This is more reliable than fire-and-forget CLI dispatch because:
-    # - The agent has native access to sessions_spawn (inside OpenClaw context)
-    # - No CLI parsing issues, no timeout problems
-    # - The spawn is a direct API call, not a subprocess
-
+    # Step 3: Build handoff message
     handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes)
 
-    # Write handoff record
+    # Write preliminary handoff record (updated after dispatch)
     pipeline_session_id = generate_session_id(version, next_agent)
-    wake_result = {
+    pre_wake_result = {
         'success': True,
-        'status': 'pending_agent_spawn',
-        'response': 'Dispatch payload emitted — completing agent will spawn next agent',
+        'status': 'dispatching',
+        'response': '',
         'session_id': '',
         'error': None,
     }
-    handoff_path = write_handoff(version, stage, next_stage, next_agent, wake_result,
+    handoff_path = write_handoff(version, stage, next_stage, next_agent, pre_wake_result,
                                   pipeline_session_id)
     print(f"\n   📝 Handoff record: {handoff_path.relative_to(WORKSPACE)}")
+
+    # Step 4: Fire-and-forget dispatch to next agent
+    print(f"\n   🔔 Dispatching {next_agent} (fire-and-forget)...")
+    result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
+    if result.get('success'):
+        print(f"   🔔 Dispatched {next_agent} (fire-and-forget)")
+    else:
+        print(f"   ⚠️ Dispatch failed: {result.get('error')}")
 
     # Summary
     print(f"\n{'─' * 70}")
@@ -728,24 +733,11 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     print(f"     Pipeline:    {version}")
     print(f"     Completed:   {stage} ({agent})")
     print(f"     Next:        {next_stage} ({next_agent})")
-    print(f"     Handoff:     📦 Dispatch payload below")
+    print(f"     Handoff:     🔔 Fire-and-forget dispatch (PID: {result.get('pid')})")
     print(f"     Telegram:    ✅ Group notified (via pipeline_update.py)")
-
-    # Emit dispatch payload as structured output the agent can act on
-    dispatch_payload = {
-        'action': 'spawn_next_agent',
-        'pipeline': version,
-        'stage': next_stage,
-        'agent': next_agent,
-        'task': handoff_msg,
-    }
-    print(f"\n📦 DISPATCH_PAYLOAD_START")
-    print(json.dumps(dispatch_payload, indent=2))
-    print(f"📦 DISPATCH_PAYLOAD_END")
-    print(f"\n🔔 AGENT: Use sessions_spawn to dispatch {next_agent} with the task above.")
     print(f"{'─' * 70}\n")
 
-    return wake_result['success']
+    return result.get('success', False)
 
 
 def orchestrate_block(version: str, stage: str, agent: str, notes: str,
@@ -790,11 +782,14 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
     handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes, artifact)
 
     print(f"\n   🔔 Dispatching {next_agent} for block fix (fire-and-forget)...")
-    emit_dispatch_payload(version, next_stage, next_agent, handoff_msg)
-    print(f"   📦 Dispatch payload emitted")
+    result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
+    if result.get('success'):
+        print(f"   🔔 Dispatched {next_agent} (fire-and-forget)")
+    else:
+        print(f"   ⚠️ Dispatch failed: {result.get('error')}")
 
     # Write handoff record
-    wake_result = {'success': True, 'status': 'dispatched', 'session_id': pipeline_session_id}
+    wake_result = {'success': result.get('success', False), 'status': 'dispatched', 'session_id': pipeline_session_id}
     write_handoff(version, stage, next_stage, next_agent, wake_result, pipeline_session_id)
 
     return True
@@ -888,10 +883,13 @@ python3 scripts/pipeline_orchestrate.py {version} complete phase1_revision_archi
 ```
 """
 
-    # Step 7: Emit dispatch payload for architect
+    # Step 7: Fire-and-forget dispatch to architect
     print(f"\n   📨 Dispatching to architect (fire-and-forget)...")
-    emit_dispatch_payload(version, 'phase1_revision_architect', 'architect', handoff_msg)
-    print(f"   📦 Dispatch payload emitted")
+    result = fire_and_forget_dispatch(version, 'phase1_revision_architect', 'architect', message=handoff_msg)
+    if result.get('success'):
+        print(f"   🔔 Dispatched architect (fire-and-forget)")
+    else:
+        print(f"   ⚠️ Dispatch failed: {result.get('error')}")
 
     # Step 8: Write handoff file
     wake_result = {'success': True, 'status': 'dispatched', 'session_id': pipeline_session_id}
@@ -1098,13 +1096,16 @@ with statistical tables and plots has been auto-generated. Your job is to:
 
 ⚠️ **Session Protocol:** Fresh session. Read memory files first. Write learnings before completing."""
 
-    # Step 4: Emit dispatch payload for architect
+    # Step 4: Fire-and-forget dispatch to architect
     print(f"\n   🔔 Dispatching architect (fire-and-forget)...")
-    emit_dispatch_payload(version, 'local_analysis_architect', 'architect', handoff_msg)
-    print(f"   📦 Dispatch payload emitted")
+    result = fire_and_forget_dispatch(version, 'local_analysis_architect', 'architect', message=handoff_msg)
+    if result.get('success'):
+        print(f"   🔔 Dispatched architect (fire-and-forget)")
+    else:
+        print(f"   ⚠️ Dispatch failed: {result.get('error')}")
 
     pipeline_session_id = generate_session_id(version, 'architect')
-    wake_result = {'success': True, 'status': 'dispatched', 'session_id': pipeline_session_id}
+    wake_result = {'success': result.get('success', False), 'status': 'dispatched', 'session_id': pipeline_session_id}
 
     # Write handoff record
     write_handoff(version, 'local_experiment_complete', 'local_analysis_architect',
@@ -1234,12 +1235,16 @@ approved analysis report into a professional LaTeX document and compile it to PD
 - Section numbering
 - lmodern fonts"""
 
-    # Emit dispatch payload for builder (LaTeX report)
+    # Fire-and-forget dispatch to builder (LaTeX report)
     session_id = generate_session_id(version, 'builder')
-    emit_dispatch_payload(version, 'local_analysis_report_build', 'builder', report_task)
-    print(f"   📦 Dispatch payload emitted")
+    print(f"\n   🔔 Dispatching builder for LaTeX report (fire-and-forget)...")
+    result = fire_and_forget_dispatch(version, 'local_analysis_report_build', 'builder', message=report_task)
+    if result.get('success'):
+        print(f"   🔔 Dispatched builder (fire-and-forget)")
+    else:
+        print(f"   ⚠️ Dispatch failed: {result.get('error')}")
 
-    wake_result = {'success': True, 'status': 'dispatched', 'session_id': session_id}
+    wake_result = {'success': result.get('success', False), 'status': 'dispatched', 'session_id': session_id}
     write_handoff(version, 'local_analysis_code_review', 'local_analysis_report_build',
                   'builder', wake_result, session_id)
 
@@ -1344,14 +1349,17 @@ def orchestrate_verify(version: str):
                 mark_handoff_verified(path)
                 continue
 
-        # Agent hasn't picked up — retry via emit_dispatch_payload
+        # Agent hasn't picked up — retry via fire_and_forget_dispatch
         print(f"   🔄 Re-dispatching to {next_agent} for {next_stage} (fire-and-forget)...")
         handoff_msg = build_handoff_message(
             version, completed_stage, next_stage, next_agent,
             f"[RETRY] Original handoff was not picked up. Please process {next_stage}."
         )
-        emit_dispatch_payload(version, next_stage, next_agent, handoff_msg)
-        print(f"   📦 Dispatch payload emitted")
+        result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
+        if result.get('success'):
+            print(f"   🔔 Dispatched {next_agent} (fire-and-forget)")
+        else:
+            print(f"   ⚠️ Dispatch failed: {result.get('error')}")
         mark_handoff_verified(path)
 
     return True
