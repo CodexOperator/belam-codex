@@ -868,7 +868,7 @@ PERSONA_CONFIGS = {
     },
 }
 
-SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'c', 'k', 's', 'e', 'i']
+SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'k', 's', 'e', 'i']
 
 
 def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixes=None):
