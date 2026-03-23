@@ -23529,7 +23529,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 ---
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: critical
 type: infrastructure
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
