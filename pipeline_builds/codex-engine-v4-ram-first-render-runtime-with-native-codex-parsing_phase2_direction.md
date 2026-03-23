@@ -10,28 +10,28 @@ Phase 1 delivered the RAM-first render runtime: UDS socket, cockpit plugin with 
 
 ## Session Lifecycle Model
 
-### Stage 1: Architect Design
+### Stage 1: Architect Design → Design Review
 ```
 Session A created by orchestrator
   → architect attaches (solo)
   → architect reads tree, designs, writes design to tree
   → architect signals "ready for review"
-  → session expands: critic joins
-  → critic gets: full tree state + design artifacts
+  → critic joins Session A (architect keeps context — reasoning is valuable for review)
+  → critic gets: full tree state + design artifacts (cold injection)
   → architect ↔ critic ping-pong (revisions, clarifications, FLAG resolution)
   → critic signals APPROVED
   → Session A terminated
 ```
 
-### Stage 2: Builder Implementation
+### Stage 2: Builder Implementation → Code Review
 ```
 Session B created by orchestrator
   → builder attaches (solo)
   → builder reads tree (sees design from Stage 1 — tree persisted)
   → builder implements, writes code to tree
   → builder signals "ready for review"
-  → session expands: critic joins fresh
-  → critic gets: full tree state + implementation diff since design
+  → critic joins Session B (builder keeps context — implementation reasoning valuable)
+  → critic gets: full tree state + implementation diff since design (cold injection)
   → builder ↔ critic ping-pong (FLAG fixes, revision requests)
   → critic signals APPROVED
   → Session B terminated
@@ -39,10 +39,12 @@ Session B created by orchestrator
 ```
 
 ### Key Properties
+- **Option A model:** primary agent (architect/builder) keeps session context; critic always joins cold
+- **Easily convertible to Option B** (fresh session for both) if token debt becomes an issue
 - **2 agents max per session** (architect+critic OR builder+critic)
-- **Critic always joins fresh** — cold context injection per stage (mirrors real code review)
+- **Critic always joins fresh** — cold context injection (mirrors real code review)
 - **Tree is continuity** — design decisions persist in RAM across sessions
-- **Conversation is disposable** — each stage starts clean, no token debt from prior stages
+- **Session resets between stages** — architect's session dies before builder's starts
 - **Orchestrator manages lifecycle** — creates sessions, routes signals, terminates on approval
 
 ## Deliverables
@@ -74,13 +76,14 @@ Replace `fire_and_forget_dispatch()` with stage session orchestration:
 - Approval detection: monitor for APPROVED verdict → terminate → advance to next stage
 - Stall detection: session active >2h with no new messages → alert
 
-### D4: Context Injection per Stage
+### D4: Context Injection per Stage (Option A)
 When an agent joins a session:
 
-- **First agent (solo phase):** full tree render + pipeline spec + relevant design docs from tree
-- **Second agent (review phase):** full tree render + diff since session creation (what the first agent produced) + previous stage verdicts
+- **Primary agent (architect/builder — session creator):** full tree render + pipeline spec at session start. Keeps full conversation context through review phase — their reasoning about "why X over Y" is available when critic asks.
+- **Critic (joins existing session):** full tree render + diff since session creation (what primary agent produced) + previous stage verdicts. Always cold injection — mirrors real code review.
 - No per-turn re-injection — conversation history carries context forward (like main session)
 - Legend scaffold injected once at join
+- **Option B fallback:** if token accumulation from solo phase causes issues, switch to fresh session for both at review boundary (primary agent re-reads own artifacts from tree)
 
 ### D5: Cockpit Plugin Adaptation
 - Persistent sessions use stage session manager (not per-turn supermap injection)
