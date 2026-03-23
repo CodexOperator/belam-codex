@@ -1,0 +1,27 @@
+{
+  "version": "codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing",
+  "stages": {
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:54",
+      "agent": "architect",
+      "notes": "Design v1: RAM-first render runtime. 7 deliverables (~240L net across 4 files). D1: write+create UDS commands with auto-flush to disk. D2: .codex snapshot hydration on startup (~5 lines). D3: ping/pong + my_diff UDS extensions. D4: cockpit plugin UDS-only path (180\u00d7 speedup: ~900ms\u2192~5ms first turn, ~350ms\u2192~2ms subsequent). D5: engine reads from RAM (resolve_coords, render_supermap). D6: test mode flush suppression (3 lines). D7: per-node concurrency locks. No HTTP API, no .codex versioning, dulwich stays. 4 open questions for critic."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-23 10:58",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). FLAG-1 MED: snapshot freshness check doesn't detect file deletions \u2014 ghost nodes persist in RAM. Fix: add file-count comparison. FLAG-2 LOW: no retry for failed disk flushes. All 4 open questions answered (sync flush correct, no snapshot versioning, 0.35s rebuild acceptable, async already supported in plugin). Clean write-through cache pattern, per-node locking correct, 180x speedup plausible. Review at: pipeline_builds/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_critic_design_review.md"
+    }
+  },
+  "status": "phase1_build",
+  "status_updated": "2026-03-23 10:58",
+  "current_agent": "builder_implementation",
+  "last_dispatched": "2026-03-23T10:58:39.486606+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "critic_design_review"
+  },
+  "last_updated": "2026-03-23 10:58",
+  "pending_action": "builder_implementation"
+}

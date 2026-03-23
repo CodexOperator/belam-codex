@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: critical
 created: 2026-03-23
 owner: belam
@@ -8,6 +8,7 @@ depends_on: []
 upstream: [codex-engine-v3-legendary-map, codex-engine-v3-temporal-mcp-autoclave]
 downstream: []
 tags: [codex-engine, v4, render-engine, ram, codex-format, infrastructure]
+pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
 ---
 
 # Codex Engine v4: RAM-First Render Runtime
@@ -97,3 +98,11 @@ D5 revised: NO direct OpenClaw integration. Engine is authoritative for our agen
 ## D6
 
 D6 revised: KEEP dulwich for test mode. Dulwich provides real branch semantics (merge, diff-between-branches, discard) that a simple flush-suppression flag cannot replicate. The render engine already uses dulwich — no changes needed here, just ensure it works with the RAM-first write path.
+
+
+## Phase 2 Notes
+- .codex file YAML parsing fails on some frontmatter blocks — codec needs normalization pass before feeding to yaml.safe_load
+- Use codex_codec.py as canonical parser (it already handles edge cases)
+- Render engine currently falls back to disk scan on .codex parse failure — acceptable for now
+- Systemd service set up: codex-render.service (auto-restart, survives reboots)
+- Stale UDS socket cleanup needed on startup (check and remove before binding)

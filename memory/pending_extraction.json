@@ -1,13 +1,20 @@
 {
   "status": "complete",
-  "session": "07ee7cf1-a260-4503-972c-88032da72b87",
+  "session": "a1318751-3378-436a-8eb1-098781772c69",
   "instance": "main",
   "date": "2026-03-23",
-  "completed_at": "2026-03-23T08:24:50Z",
+  "completed_at": "2026-03-23T11:12:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-23_082450_bug-found-and-fixed-fire-and-forget-disp.md",
-    "lessons/fire-and-forget-dispatch-timeout-1-killed-all-agents.md",
-    "decisions/consolidate-pipeline-state-json-to-workspace-builds-dir.md"
+    "memory/entries/2026-03-23_111203_codex-engine-v3-legendary-map-archived-a.md",
+    "memory/entries/2026-03-23_111211_t1-build-codex-layer-v1-pipeline-launche.md",
+    "memory/entries/2026-03-23_111216_created-t6-lm-v2-coordinate-native-pipel.md",
+    "memory/entries/2026-03-23_111220_pipeline-gate-logic-updated-to-allow-2-c.md",
+    "memory/entries/2026-03-23_111226_t6-lm-v2-coordinate-native-pipeline-laun.md",
+    "lessons/launch-pipeline-kickoff-path-had-stale-imports.md",
+    "lessons/workflow-doc-step-refs-must-match-actual-script-names.md",
+    "lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md",
+    "decisions/max-concurrent-pipelines-increased-to-2.md",
+    "decisions/lm-v2-task-coordinate-native-launch-and-scaffold.md"
   ],
-  "last_run": "2026-03-23T08:24:50Z"
+  "last_run": "2026-03-23T11:12:00Z"
 }

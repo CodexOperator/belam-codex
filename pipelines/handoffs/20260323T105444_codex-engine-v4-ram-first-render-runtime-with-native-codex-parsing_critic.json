@@ -1,0 +1,15 @@
+{
+  "version": "codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-23T10:54:44.557403+00:00",
+  "pipeline_session_id": "ee65b807-dc1f-4a26-b055-8cbe62342fbe",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

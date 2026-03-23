@@ -26,7 +26,8 @@ import { basename } from "path";
 import { homedir } from "os";
 import { join } from "path";
 
-const SOCKET_PATH = join(homedir(), ".belam_render.sock");
+// D4: Socket path moved to .codex_runtime/ under workspace (resolved per-call)
+let SOCKET_PATH = join(homedir(), ".openclaw", "workspace", ".codex_runtime", "render.sock");
 
 // ── Session state ──
 let lastCoords: Map<string, string> | null = null;

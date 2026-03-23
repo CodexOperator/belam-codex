@@ -29,6 +29,31 @@ WORKSPACE = Path(os.environ.get('BELAM_WORKSPACE', Path.home() / '.openclaw/work
 RENDER_STATE_FILE = Path.home() / '.belam_render_state.json'
 EXCLUDED_STATUSES = {'superseded', 'archived'}
 
+
+# ── D5/D1b: UDS helpers for RAM-first engine integration ────────────────────
+def _try_uds_query(cmd: str, **kwargs) -> dict | None:
+    """Send a command to the render engine via UDS. Returns response or None."""
+    try:
+        from codex_render import _signal_render_engine
+        return _signal_render_engine(cmd, **kwargs)
+    except Exception:
+        return None
+
+
+def _try_uds_edit(coord: str, edits: list, body_op: dict | None = None) -> bool:
+    """D1b: Try editing via RAM-first engine. Returns True if successful."""
+    resp = _try_uds_query('write', coord=coord, edits=edits, body_op=body_op)
+    return resp is not None and resp.get('ok', False)
+
+
+def _try_uds_supermap() -> str | None:
+    """D5: Try getting supermap from RAM. Returns content or None."""
+    resp = _try_uds_query('supermap')
+    if resp and resp.get('ok') and resp.get('content'):
+        return resp['content']
+    return None
+
+
 # ── Namespace discovery: scan .namespace marker files ─────────────────────────
 # Each directory with a .namespace file is a namespace.
 # Format: order: N\nprefix: X\nlabel: name[\nspecial: skills|daily]
@@ -919,10 +944,19 @@ SHOW_ORDER = [p for p, _ in sorted(_SCANNED_NS.items(), key=lambda x: x[1][3])]
 def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixes=None):
     """Render the full supermap ASCII tree. Returns string (without R-label).
 
+    D5: Tries RAM-first via UDS engine (if running), falls back to disk scan.
+
     persona: None | 'architect' | 'builder' | 'critic'
     tag_filter: None | str — only show primitives tagged with this string
     since_days: None | int — for memory section, only show entries from last N days
     """
+    # D5: Try RAM-first engine (fast path — no disk scan)
+    if not persona and not tag_filter and not since_days and not only_prefixes:
+        ram_result = _try_uds_supermap()
+        if ram_result:
+            return ram_result
+
+    # Fallback: disk-based render
     now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
     slug_index = build_slug_index()
 

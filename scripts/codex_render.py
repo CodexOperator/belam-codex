@@ -60,6 +60,7 @@ RUNTIME_DIR.mkdir(exist_ok=True)
 SOCKET_PATH = RUNTIME_DIR / 'render.sock'
 PID_FILE = RUNTIME_DIR / 'render.pid'
 TEST_MODE_FLAG = RUNTIME_DIR / 'test_mode'
+CODEX_SNAPSHOT = WORKSPACE / 'CODEX.codex'
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -112,6 +113,9 @@ class CodexTree:
         self._lock = threading.RLock()
         self._filepath_to_coord: dict[str, str] = {}
         self.test_mode: TestMode | None = None
+        # D7: Per-node concurrency locks — two agents editing different coords don't block
+        self._node_locks: dict[str, threading.Lock] = {}
+        self._global_create_lock = threading.Lock()  # serialize node creation/deletion
 
     def load_full(self) -> None:
         """Load entire primitive tree from disk into RAM."""
@@ -212,6 +216,251 @@ class CodexTree:
 
     def get_namespace(self, prefix: str) -> list[PrimitiveNode]:
         return self.by_prefix.get(prefix, [])
+
+    # ── D7: Per-node lock accessor ──────────────────────────────────────────
+    def _get_node_lock(self, coord: str) -> threading.Lock:
+        """Get or create a per-node lock. Thread-safe via global lock."""
+        with self._global_create_lock:
+            if coord not in self._node_locks:
+                self._node_locks[coord] = threading.Lock()
+            return self._node_locks[coord]
+
+    # ── D1: RAM-first write path ────────────────────────────────────────────
+    def apply_edits(self, coord: str, field_edits: list[dict],
+                    body_op: dict | None = None) -> list[dict]:
+        """Apply field edits and/or body operation to a node in RAM.
+
+        Args:
+            coord: coordinate string (e.g. 't5')
+            field_edits: [{'field': 'status', 'value': 'active'}, ...]
+            body_op: {'op': 'replace'|'append'|'line', 'value': '...', 'line': N}
+
+        Returns:
+            List of changes: [{'field': 'status', 'old': ..., 'new': ...}, ...]
+        """
+        with self._get_node_lock(coord):
+            return self._apply_edits_unlocked(coord, field_edits, body_op)
+
+    def _apply_edits_unlocked(self, coord: str, field_edits: list[dict],
+                              body_op: dict | None = None) -> list[dict]:
+        node = self.nodes.get(coord)
+        if not node:
+            raise KeyError(f"No node at {coord}")
+
+        changes = []
+        for edit in field_edits:
+            field_key = edit['field']
+            new_val = edit['value']
+            old_val = node.frontmatter.get(field_key)
+            node.frontmatter[field_key] = new_val
+            changes.append({'field': field_key, 'old': old_val, 'new': new_val})
+
+        if body_op:
+            op = body_op['op']
+            val = body_op['value']
+            if op == 'replace':
+                old_len = len(node.body)
+                node.body = val.split('\n') if isinstance(val, str) else val
+                changes.append({'field': 'body', 'op': 'replace',
+                                'old_len': old_len, 'new_len': len(node.body)})
+            elif op == 'append':
+                added = val.split('\n') if isinstance(val, str) else val
+                node.body.extend(added)
+                changes.append({'field': 'body', 'op': 'append', 'added_len': len(added)})
+            elif op == 'line':
+                line_num = body_op.get('line', len(node.body))
+                lines = node.body
+                if 0 < line_num <= len(lines):
+                    lines[line_num - 1] = val
+                else:
+                    lines.append(val)
+                changes.append({'field': 'body', 'op': 'line', 'line': line_num})
+
+        node.mtime = time.time()
+        # Regenerate raw_text and content_hash
+        node.raw_text = self._serialize_node(node)
+        node.content_hash = hashlib.sha256(
+            node.raw_text.encode('utf-8', errors='replace')).hexdigest()[:16]
+        self.supermap_cache = None  # invalidate
+        return changes
+
+    def create_node(self, namespace: str, title: str,
+                    frontmatter: dict, body: str = '') -> PrimitiveNode:
+        """Create a new primitive in RAM and assign the next coordinate.
+
+        Uses global lock to serialize coordinate allocation.
+        """
+        with self._global_create_lock:
+            prefix = namespace
+            existing = self.by_prefix.get(prefix, [])
+            next_idx = len(existing) + 1
+            coord = f"{prefix}{next_idx}"
+
+            engine = _get_engine()
+            ptype = engine.NAMESPACE.get(prefix, (prefix,))[0]
+
+            fm = dict(frontmatter)
+            fm.setdefault('primitive', ptype)
+            slug = title.lower().replace(' ', '-')
+            fm.setdefault('title', title)
+
+            body_lines = body.split('\n') if isinstance(body, str) else body
+
+            node = PrimitiveNode(
+                coord=coord, prefix=prefix, index=next_idx,
+                slug=slug, filepath='',  # set after flush
+                ptype=ptype, frontmatter=fm, body=body_lines,
+                content_hash='', mtime=time.time(),
+            )
+            node.raw_text = self._serialize_node(node)
+            node.content_hash = hashlib.sha256(
+                node.raw_text.encode('utf-8', errors='replace')).hexdigest()[:16]
+
+            self.nodes[coord] = node
+            self.by_slug[slug] = node
+            if prefix not in self.by_prefix:
+                self.by_prefix[prefix] = []
+            self.by_prefix[prefix].append(node)
+            self.namespace_counts[prefix] = len(self.by_prefix[prefix])
+            self.supermap_cache = None
+            return node
+
+    def next_coord(self, prefix: str) -> str:
+        """Return the next available coordinate for a namespace."""
+        existing = self.by_prefix.get(prefix, [])
+        return f"{prefix}{len(existing) + 1}"
+
+    @staticmethod
+    def _serialize_node(node: PrimitiveNode) -> str:
+        """Serialize a PrimitiveNode to frontmatter + body markdown."""
+        import yaml
+        fm = dict(node.frontmatter)
+        body_str = '\n'.join(node.body) if node.body else ''
+        if fm:
+            fm_text = yaml.dump(fm, default_flow_style=False,
+                                allow_unicode=True, sort_keys=False,
+                                width=float('inf')).rstrip('\n')
+            result = f"---\n{fm_text}\n---\n"
+        else:
+            result = ''
+        if body_str:
+            result += body_str
+        return result
+
+    # ── D2: Snapshot load/save ──────────────────────────────────────────────
+    def save_to_codex(self, path: Path | None = None) -> None:
+        """Write all nodes to a .codex snapshot file for fast hydration."""
+        path = path or CODEX_SNAPSHOT
+        docs = []
+        for coord in sorted(self.nodes.keys(),
+                            key=lambda c: (c.rstrip('0123456789'), int(c.lstrip('abcdefghijklmnopqrstuvwxyz') or '0'))):
+            node = self.nodes[coord]
+            doc = dict(node.frontmatter)
+            doc['__coord__'] = coord
+            doc['__slug__'] = node.slug
+            doc['__filepath__'] = node.filepath
+            doc['__prefix__'] = node.prefix
+            doc['__index__'] = node.index
+            doc['__ptype__'] = node.ptype
+            if node.body:
+                doc['body'] = '\n'.join(node.body)
+            docs.append(doc)
+        from codex_codec import to_codex
+        parts = [to_codex(d) for d in docs]
+        path.write_text('\n---\n'.join(parts), encoding='utf-8')
+
+    def load_from_codex(self, path: Path | None = None) -> bool:
+        """Load tree from .codex snapshot. Returns True if successful."""
+        path = path or CODEX_SNAPSHOT
+        if not path.exists():
+            return False
+        try:
+            import io
+            from codex_codec import codex_to_json_stream
+            content = path.read_text(encoding='utf-8')
+            try:
+                docs = list(codex_to_json_stream(io.StringIO(content)))
+            except Exception:
+                # .codex file malformed — fall back to disk scan
+                return False
+            with self._lock:
+                self.nodes.clear()
+                self.by_slug.clear()
+                self.by_prefix.clear()
+                self.namespace_counts.clear()
+                self._filepath_to_coord.clear()
+
+                for doc in docs:
+                    coord = doc.pop('__coord__', None)
+                    slug = doc.pop('__slug__', '')
+                    filepath = doc.pop('__filepath__', '')
+                    prefix = doc.pop('__prefix__', '')
+                    index = doc.pop('__index__', 0)
+                    ptype = doc.pop('__ptype__', '')
+                    body_str = doc.pop('body', '')
+                    body_lines = body_str.split('\n') if body_str else []
+
+                    if not coord:
+                        continue
+
+                    fm = doc  # remaining keys are frontmatter
+                    raw = self._serialize_node_from_parts(fm, body_lines)
+                    content_hash = hashlib.sha256(
+                        raw.encode('utf-8', errors='replace')).hexdigest()[:16]
+
+                    node = PrimitiveNode(
+                        coord=coord, prefix=prefix, index=index,
+                        slug=slug, filepath=filepath, ptype=ptype,
+                        frontmatter=fm, body=body_lines,
+                        content_hash=content_hash,
+                        mtime=Path(filepath).stat().st_mtime if filepath and Path(filepath).exists() else 0.0,
+                        raw_text=raw,
+                    )
+                    self.nodes[coord] = node
+                    self.by_slug[slug] = node
+                    if filepath:
+                        self._filepath_to_coord[filepath] = coord
+                    if prefix not in self.by_prefix:
+                        self.by_prefix[prefix] = []
+                    self.by_prefix[prefix].append(node)
+
+                for prefix in self.by_prefix:
+                    self.namespace_counts[prefix] = len(self.by_prefix[prefix])
+
+            return True
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return False
+
+    @staticmethod
+    def _serialize_node_from_parts(fm: dict, body_lines: list[str]) -> str:
+        import yaml
+        body_str = '\n'.join(body_lines) if body_lines else ''
+        if fm:
+            fm_text = yaml.dump(fm, default_flow_style=False,
+                                allow_unicode=True, sort_keys=False,
+                                width=float('inf')).rstrip('\n')
+            result = f"---\n{fm_text}\n---\n"
+        else:
+            result = ''
+        if body_str:
+            result += body_str
+        return result
+
+    def _scan_primitive_files(self) -> set[str]:
+        """Scan disk for all primitive file stems (for ghost node detection)."""
+        engine = _get_engine()
+        files = set()
+        for prefix, (_, directory, _) in engine.NAMESPACE.items():
+            if directory is None:
+                continue
+            d = self.workspace / directory
+            if d.is_dir():
+                for f in d.iterdir():
+                    if f.suffix == '.md' and not f.name.startswith('.'):
+                        files.add(str(f))
+        return files
 
     def apply_disk_change(self, filepath: Path) -> DiffEntry | None:
         """Update a single node from disk. Returns diff entry or None if unchanged."""
@@ -807,6 +1056,26 @@ class SessionManager:
                 self._client_conns.pop(sid, None)
                 self._sessions.pop(sid, None)
 
+    # ── D1/D6: Flush a single node from RAM to disk ────────────────────────
+    def _flush_to_disk(self, coord: str) -> None:
+        """Write a single node from RAM to its disk file. Synchronous.
+
+        D6: Suppressed in test mode (dulwich overlay handles writes).
+        FLAG-2 (LOW): logs warning on failure — RAM stays correct.
+        """
+        # D6: Test mode flush suppression
+        if self._engine_ref and self._engine_ref.test and self._engine_ref.test.is_active():
+            return
+        node = self.tree.get(coord)
+        if not node or not node.filepath:
+            return
+        try:
+            content = node.raw_text or CodexTree._serialize_node(node)
+            Path(node.filepath).write_text(content, encoding='utf-8')
+        except Exception as e:
+            import logging
+            logging.getLogger('codex_render').warning(f"Flush failed for {coord}: {e}")
+
     def _accept_loop(self) -> None:
         while self._running:
             try:
@@ -837,6 +1106,13 @@ class SessionManager:
                 while b'\n' in buf:
                     line, buf = buf.split(b'\n', 1)
                     if not line.strip():
+                        continue
+                    # D3: Raw ping support (backwards compat with cockpit plugin)
+                    if line.strip() == b'ping':
+                        try:
+                            conn.sendall(b'pong\n')
+                        except Exception:
+                            pass
                         continue
                     try:
                         msg = json.loads(line)
@@ -1011,6 +1287,63 @@ class SessionManager:
         elif cmd == 'detach':
             return {'ok': True, 'message': 'detached'}
 
+        # ── D3: ping/pong health check ──────────────────────────────
+        elif cmd == 'ping':
+            uptime = time.time() - self._engine_ref._start_time if self._engine_ref else 0
+            return {'ok': True, 'msg': 'pong',
+                    'uptime': uptime, 'nodes': len(self.tree.nodes)}
+
+        # ── D3: per-session diff (uses agent's own anchor) ──────────
+        elif cmd == 'my_diff':
+            with self._lock:
+                session = self._sessions.get(session_id)
+            if session:
+                return {'ok': True,
+                        'delta': self.diff_engine.get_delta_since(session.anchor_time)}
+            return {'ok': False, 'error': 'not attached — call attach first'}
+
+        # ── D1: RAM-first write (edit existing node) ────────────────
+        elif cmd == 'write':
+            coord = msg.get('coord')
+            edits = msg.get('edits', [])
+            body_op = msg.get('body_op')
+            node = self.tree.get(coord)
+            if not node:
+                return {'ok': False, 'error': f'coord {coord} not found'}
+            try:
+                changes = self.tree.apply_edits(coord, edits, body_op)
+            except Exception as e:
+                return {'ok': False, 'error': str(e)}
+            diff = DiffEntry(kind='modified', coord=coord,
+                             slug=node.slug,
+                             field_diffs=[(c['field'], c.get('old'), c.get('new')) for c in changes],
+                             timestamp=time.time())
+            self.diff_engine.record(diff)
+            self.notify_all({'event': 'change', 'diff': asdict(diff)})
+            self._flush_to_disk(coord)
+            return {'ok': True, 'coord': coord, 'changes': len(changes)}
+
+        # ── D1: RAM-first create (new primitive) ────────────────────
+        elif cmd == 'create':
+            namespace = msg.get('namespace')
+            title = msg.get('title', 'untitled')
+            frontmatter = msg.get('frontmatter', {})
+            body = msg.get('body', '')
+            if not namespace:
+                return {'ok': False, 'error': 'namespace required'}
+            try:
+                node = self.tree.create_node(namespace, title, frontmatter, body)
+            except Exception as e:
+                return {'ok': False, 'error': str(e)}
+            diff = DiffEntry(kind='added', coord=node.coord,
+                             slug=node.slug,
+                             field_diffs=[('__created__', None, title)],
+                             timestamp=time.time())
+            self.diff_engine.record(diff)
+            self.notify_all({'event': 'create', 'diff': asdict(diff)})
+            self._flush_to_disk(node.coord)
+            return {'ok': True, 'coord': node.coord, 'title': title}
+
         return {'ok': False, 'error': f'unknown command: {cmd}'}
 
     @staticmethod
@@ -1145,6 +1478,10 @@ class TestMode:
         self._overlay.clear()
         self._deleted.clear()
         self._cleanup_flag()
+
+    def is_active(self) -> bool:
+        """D6: Check if test mode is currently active (has a branch)."""
+        return bool(self.branch_name)
 
     def status(self) -> dict:
         return {
@@ -1420,8 +1757,36 @@ class CodexRenderEngine:
         """Boot sequence."""
         self._start_time = time.time()
 
-        # 1. Load tree
-        self.tree.load_full()
+        # 1. D2: Try .codex snapshot hydration (fast path), fall back to disk scan
+        hydrated = False
+        if CODEX_SNAPSHOT.exists():
+            try:
+                snapshot_mtime = CODEX_SNAPSHOT.stat().st_mtime
+                # Check if any primitive file is newer than snapshot
+                disk_files = self.tree._scan_primitive_files()
+                if disk_files:
+                    latest_disk = max(Path(f).stat().st_mtime for f in disk_files if Path(f).exists())
+                else:
+                    latest_disk = 0
+                if snapshot_mtime >= latest_disk:
+                    if self.tree.load_from_codex(CODEX_SNAPSHOT):
+                        # FLAG-1 (MED): Ghost node detection — compare file count
+                        snapshot_files = {n.filepath for n in self.tree.nodes.values() if n.filepath}
+                        if len(snapshot_files - disk_files) == 0:
+                            hydrated = True
+                        else:
+                            # Ghost nodes detected — rebuild from disk
+                            pass
+            except Exception:
+                pass
+
+        if not hydrated:
+            self.tree.load_full()
+            # Write fresh snapshot for next startup
+            try:
+                self.tree.save_to_codex()
+            except Exception:
+                pass
 
         # 2. Anchor
         self.diff_engine.set_anchor()
@@ -1485,6 +1850,12 @@ class CodexRenderEngine:
         if self.test and self.test._overlay:
             print(f"Test mode has {len(self.test._overlay)} uncommitted changes — discarding.")
             self.test.discard()
+
+        # D2: Save .codex snapshot on shutdown for fast restart
+        try:
+            self.tree.save_to_codex()
+        except Exception:
+            pass
 
         self.sessions.stop()
         if self.watcher:
