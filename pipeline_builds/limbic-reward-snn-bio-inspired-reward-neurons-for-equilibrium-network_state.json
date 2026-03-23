@@ -1,0 +1,21 @@
+{
+  "version": "limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network",
+  "stages": {
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-23 09:39",
+      "agent": "architect",
+      "notes": "Design v1: LimbicRewardModule \u2014 differentiable reward modulation for equilibrium SNN. Energy pool tracks prediction quality, modulates loss landscape (amplify when confident, dampen when exploring) + LIF thresholds (lower when energy-rich, raise when energy-poor). 9 limbic variants + 3 baselines = 120 runs across 10 folds. Targets the dead-output-neuron problem and signal-starved regime. No RL needed \u2014 shaped loss via differentiable energy dynamics. ~6h CPU, ~1.5h GPU. 4 open questions for critic."
+    }
+  },
+  "status": "phase1_review",
+  "status_updated": "2026-03-23 09:39",
+  "current_agent": "critic_design_review",
+  "last_dispatched": "2026-03-23T10:18:26.533046+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "architect_design"
+  },
+  "last_updated": "2026-03-23 09:39",
+  "pending_action": "critic_design_review"
+}

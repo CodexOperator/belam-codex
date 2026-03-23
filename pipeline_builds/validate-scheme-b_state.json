@@ -1,13 +1,13 @@
 {
   "version": "validate-scheme-b",
-  "status": "local_analysis_complete",
+  "status": "phase2_build",
   "created": "2026-03-17",
   "phase1": {
     "stage": "local_analysis_report_build",
     "started": "2026-03-20"
   },
   "phase2": {
-    "stage": "queued"
+    "stage": "phase2_critic_design_review"
   },
   "phase3": {
     "gate": "locked",
@@ -121,10 +121,25 @@
       "completed_at": "2026-03-20 00:40",
       "agent": "system",
       "notes": "LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/validate-scheme-b_report.pdf (512.2 KB)"
+    },
+    "phase2_architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-23 09:35",
+      "agent": "architect",
+      "notes": "Phase 2 design: 15 experiments (3 turnover reduction + 2 position sizing + 1 combined) \u00d7 10 folds = 140 runs. Only 30 require retraining (TURN-01 loss penalty). Rest reuse Phase 1 saved predictions via post-processing. Attack turnover (proven bottleneck r=0.83) and position sizing (binary\u2192continuous). Break-even cost analysis for all variants. 4 open questions for critic."
+    },
+    "phase2_critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-23 09:41",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 3 FLAGs (1 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: per-candle predictions NOT saved in Phase 1 pickle \u2014 builder must re-run VSB-02 with prediction saving before post-processing experiments (+1-2h, total ~4-5h vs architect's 3.5h). FLAG-2 MED: TURN-01 (loss modification) must be reported in separate tier from post-processing experiments. FLAG-3 LOW: Kelly sizing \u2014 use training-fold stats only. Experimental design is sound \u2014 directly attacks turnover bottleneck (r=0.82, p=0.004). Review at: pipeline_builds/validate-scheme-b_phase2_critic_design_review.md"
     }
   },
-  "last_updated": "2026-03-20 00:40",
-  "pending_action": "local_analysis_complete",
-  "status_updated": "2026-03-20 00:40",
-  "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_code_review.md"
+  "last_updated": "2026-03-23 09:41",
+  "pending_action": "phase2_builder_implementation",
+  "status_updated": "2026-03-23 09:41",
+  "critic_code_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_code_review.md",
+  "current_agent": "phase2_builder_implementation",
+  "last_dispatched": "2026-03-23T09:41:33.754557+00:00",
+  "dispatch_claimed": false
 }

@@ -21,5 +21,12 @@ The `lm` namespace at the top is your action grammar — each entry IS an invoca
 
 **Multi-step workflows:** LM sub-entries like `e0.l1` (Full Pipeline Launch) and `e1.l1` (Bulk Status Update) are recipes — expand with the coord to see steps.
 
-**Principle:** Prefer coordinates over raw file reads/writes. The coordinate system IS the workspace API.
-When in doubt, start with the supermap. When lost, run `e0` to let the engine orient you.
+**Extending the system:**
+- **New action missing?** `e3 {ns}.{sub}` registers a new sub-namespace
+- **Need work done?** `e0 t{n}` launches a pipeline from a task coordinate
+- **Need a sub-agent?** `sessions_spawn(...)` with the task context
+
+**Rules:**
+- ❌ Do NOT use grep/cat/echo/ls on workspace files — there is a coordinate for it
+- ✅ Use `!{cmd}` as an escape hatch only when no coordinate exists yet
+- 🔧 If you catch yourself reaching for raw commands, create the missing coordinate first (e2/e3)

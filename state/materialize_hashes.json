@@ -63,8 +63,8 @@
       "slug": "codex-engine-v3-temporal-mcp-autoclave"
     },
     "t5": {
-      "hash": "f1d95adb2122",
-      "slug": "containerize-openclaw-workspace"
+      "hash": "59e8baf7194a",
+      "slug": "limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network"
     },
     "t6": {
       "hash": "3b956fb3bc28",
@@ -1248,5 +1248,5 @@
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-23T08:56:17Z"
+  "last_incremental": "2026-03-23T09:37:11Z"
 }

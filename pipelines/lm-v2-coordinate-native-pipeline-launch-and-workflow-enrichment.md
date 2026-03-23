@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: archived
 priority: high
 type: research
 version: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
@@ -11,6 +11,7 @@ supersedes:
 tags: [codex-engine, legendary-map, lm, infrastructure]
 project: codex
 started: 2026-03-23
+archived: 2026-03-23
 ---
 
 # Implementation Pipeline: LM-V2-COORDINATE-NATIVE-PIPELINE-LAUNCH-AND-WORKFLOW-ENRICHMENT

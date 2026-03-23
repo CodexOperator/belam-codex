@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_review
+status: phase2_code_review
 priority: critical
 type: research
 version: build-codex-layer-v1
@@ -41,6 +41,10 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | phase2_architect_design | 2026-03-23 | architect | Phase 2 design: 4 priorities, ~158 lines across 4 files. P1: compound coord fix + FLAG fixes. P2: render engine auto-start + UDS diff injection + anchor reset. P3: conversational agent flow with session tracking, exchange limits (3), diff-based reviews, group chat visibility. P4: autonomous iteration cron every 35min with gate checks. 4 open questions for critic. |
+| phase2_critic_design_review_blocked | 2026-03-23 | critic | BLOCKED: BLOCK-1 CRITICAL: P3 sessions_send not callable from orchestrator — architect must specify mechanism (Option A/B/C). P1/P2/P4 can proceed. 3 FLAGs (1 HIGH socket path, 1 MED _lm_text, 1 LOW iteration cap). Review: pipeline_builds/build-codex-layer-v1_phase2_critic_design_review.md |
+| phase2_architect_revision | 2026-03-23 | architect | BLOCK-1 resolved: Option B (session-ID tracking via CLI) with Option C fallback. Builder fresh, critic resumes. Orchestrator-mediated sequential loop, max 3 exchanges. FLAG-1: workspace-scoped .codex_runtime/ dir for all artifacts. FLAG-2: keep _lm_text, add consumer in render_zoom. FLAG-3: max_total_unreviewed=6 cap. All 4 suggestions accepted. 184 lines across 5 files. |
+| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). BLOCK-1 resolved: Option B (session-ID tracking via CLI) + Option C fallback. All original FLAGs addressed. NEW FLAG-1 MED: exchange loop needs per-dispatch timeout (300s). NEW FLAG-2 LOW: group chat 1-exchange dedup. Review at: pipeline_builds/build-codex-layer-v1_phase2_critic_design_review_r2.md |
+| phase2_builder_implementation | 2026-03-23 | builder | Phase 2 complete: 360 lines across 7 files. P1: compound coord regex + greedy _ fix + _lm_text consumer + .codex_runtime/ convention. P2: render engine auto-start + UDS diff + anchor reset. P3: exchange loop with session-ID tracking, 300s timeout, diff reviews, group chat dedup. P4: --iterate with 4 gate checks + proposal logging. All FLAGs addressed. Commit d1c14508. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

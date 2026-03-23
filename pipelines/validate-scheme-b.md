@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: local_analysis_complete
+status: phase2_build
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
@@ -95,6 +95,12 @@ Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-tr
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on experiment completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| phase2_architect_design | 2026-03-23 | architect | Phase 2 design: 15 experiments (3 turnover reduction + 2 position sizing + 1 combined) × 10 folds = 140 runs. Only 30 require retraining (TURN-01 loss penalty). Rest reuse Phase 1 saved predictions via post-processing. Attack turnover (proven bottleneck r=0.83) and position sizing (binary→continuous). Break-even cost analysis for all variants. 4 open questions for critic. |
+| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: per-candle predictions NOT saved in Phase 1 pickle — builder must re-run VSB-02 with prediction saving before post-processing experiments (+1-2h, total ~4-5h vs architect's 3.5h). FLAG-2 MED: TURN-01 (loss modification) must be reported in separate tier from post-processing experiments. FLAG-3 LOW: Kelly sizing — use training-fold stats only. Experimental design is sound — directly attacks turnover bottleneck (r=0.82, p=0.004). Review at: pipeline_builds/validate-scheme-b_phase2_critic_design_review.md |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

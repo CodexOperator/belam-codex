@@ -1,8 +1,10 @@
 ---
 primitive: task
-status: in_pipeline
+status: archived
 priority: high
 created: 2026-03-23
+archived: 2026-03-23
+archive_reason: pipeline lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment archived
 owner: belam
 depends_on: [codex-engine-v3-legendary-map]
 upstream: []
