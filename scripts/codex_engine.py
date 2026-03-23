@@ -29,43 +29,60 @@ WORKSPACE = Path(os.environ.get('BELAM_WORKSPACE', Path.home() / '.openclaw/work
 RENDER_STATE_FILE = Path.home() / '.belam_render_state.json'
 EXCLUDED_STATUSES = {'superseded', 'archived'}
 
-# Namespace map: prefix → (type_label, subdirectory_relative_to_workspace, special_mode)
-# special_mode: None | 'skills' | 'daily'
-NAMESPACE = {
-    'p':  ('pipelines',   'pipelines',       None),
-    'w':  ('workspaces',  'projects',        None),
-    't':  ('tasks',       'tasks',           None),
-    'd':  ('decisions',   'decisions',       None),
-    'l':  ('lessons',     'lessons',         None),
-    'c':  ('commands',    'commands',        None),
-    'k':  ('knowledge',   'knowledge',       None),
-    's':  ('skills',      'skills',          'skills'),
-    'm':  ('memory',      'memory/entries',  None),
-    'md': ('daily',       'memory',          'daily'),
-    'mw': ('weekly',      'memory/weekly',   None),
-    'e':  ('modes',       'modes',           None),
-    'i':  ('personas',    'personas',        None),
-    'lm': ('legendary-map', None,             None),   # virtual namespace — no directory
-}
+# ── Namespace discovery: scan .namespace marker files ─────────────────────────
+# Each directory with a .namespace file is a namespace.
+# Format: order: N\nprefix: X\nlabel: name[\nspecial: skills|daily]
+# Virtual/built-in namespaces (memory, lm) are added after scan.
+
+def _scan_namespaces():
+    """Discover namespaces from .namespace marker files in workspace dirs."""
+    ns = {}
+    for d in sorted(WORKSPACE.iterdir()):
+        marker = d / '.namespace'
+        if not marker.is_file():
+            continue
+        meta = {}
+        for line in marker.read_text().strip().splitlines():
+            if ':' in line:
+                k, v = line.split(':', 1)
+                meta[k.strip()] = v.strip()
+        prefix = meta.get('prefix', '')
+        label = meta.get('label', d.name)
+        special = meta.get('special', None)  # None, 'skills', 'daily'
+        order = int(meta.get('order', 99))
+        if prefix:
+            ns[prefix] = (label, d.name, special, order)
+    return ns
+
+_SCANNED_NS = _scan_namespaces()
+
+# Build NAMESPACE dict: prefix → (label, subdir, special_mode)
+NAMESPACE = {p: (v[0], v[1], v[2]) for p, v in _SCANNED_NS.items()}
+
+# Add built-in virtual/special namespaces (not directory-based)
+NAMESPACE['m']  = ('memory',        'memory/entries',  None)
+NAMESPACE['md'] = ('daily',         'memory',          'daily')
+NAMESPACE['mw'] = ('weekly',        'memory/weekly',   None)
+NAMESPACE['lm'] = ('legendary-map', None,              None)   # virtual — no directory
 
 # Sorted prefixes: longer ones first (md/mw before m)
 PREFIXES_SORTED = sorted(NAMESPACE.keys(), key=lambda x: -len(x))
 
-# Map type words found in ref paths to prefixes
-TYPE_WORD_TO_PREFIX = {
-    'pipeline': 'p', 'pipelines': 'p',
+# Map type words found in ref paths to prefixes (auto-generated from namespaces)
+TYPE_WORD_TO_PREFIX = {}
+for _prefix, (_label, _subdir, _special) in NAMESPACE.items():
+    if _label:
+        TYPE_WORD_TO_PREFIX[_label] = _prefix
+        # Add singular form
+        if _label.endswith('s') and len(_label) > 2:
+            TYPE_WORD_TO_PREFIX[_label[:-1]] = _prefix
+    if _subdir and _subdir != _label:
+        TYPE_WORD_TO_PREFIX[_subdir] = _prefix
+# Manual overrides for special mappings
+TYPE_WORD_TO_PREFIX.update({
     'workspace': 'w', 'workspaces': 'w', 'project': 'w', 'projects': 'w',
-    'task': 't', 'tasks': 't',
-    'decision': 'd', 'decisions': 'd',
-    'lesson': 'l', 'lessons': 'l',
-    'command': 'c', 'commands': 'c',
-    'knowledge': 'k',
-    'skill': 's', 'skills': 's',
-    'memory': 'm', 'memory_log': 'm',
-    'daily': 'md',
-    'weekly': 'mw',
-    'mode': 'e', 'modes': 'e',
-}
+    'memory_log': 'm',
+})
 
 # Regex for coordinate args: e.g. t3, t1-t3, md2, mw1, p, m
 COORD_RE = re.compile(r'^(md|mw|[a-z]+)(\d+)?(?:-\d+)?$', re.IGNORECASE)
@@ -868,7 +885,8 @@ PERSONA_CONFIGS = {
     },
 }
 
-SHOW_ORDER = ['p', 't', 'd', 'l', 'w', 'k', 's', 'e', 'i']
+# SHOW_ORDER: auto-generated from .namespace marker 'order' fields
+SHOW_ORDER = [p for p, _ in sorted(_SCANNED_NS.items(), key=lambda x: x[1][3])]
 
 
 def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixes=None):

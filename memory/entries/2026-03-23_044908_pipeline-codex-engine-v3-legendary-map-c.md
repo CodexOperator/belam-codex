@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:belam-main, pipeline:codex-engine-v3-legendary-map, stage:pipeline_created]
 source: "session"
 content: "Pipeline codex-engine-v3-legendary-map: completed pipeline_created. Pipeline created: LM namespace auto-generated action grammar and workflow sub-indices"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

@@ -6,7 +6,7 @@ importance: 3
 tags: [agent:main, pipeline:codex-engine-v3-legendary-map, stage:pipeline_created]
 source: "pipeline_update:codex-engine-v3-legendary-map:pipeline_created"
 content: "Pipeline created: LM namespace auto-generated action grammar and workflow sub-indices | Pipeline: codex-engine-v3-legendary-map | Stage: pipeline_created"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
