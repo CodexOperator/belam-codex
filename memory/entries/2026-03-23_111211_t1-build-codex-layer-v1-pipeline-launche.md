@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, pipeline, build-codex-layer-v1, launch]
 source: "session"
 content: "t1 (build-codex-layer-v1) pipeline launched after t4 dependency cleared. Architect dispatched (pid=2828008). Also fixed stale import errors in launch_pipeline.py kickoff path: update_pipeline_status -> orchestrate_status, notify_group removed."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

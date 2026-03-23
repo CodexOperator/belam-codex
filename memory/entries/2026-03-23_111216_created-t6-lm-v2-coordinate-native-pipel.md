@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, lm, task, e2, infrastructure]
 source: "session"
 content: "Created t6 (lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment) via e2. High priority, depends on codex-engine-v3-legendary-map (archived). Scope: coordinate-native launch e0 t{n}, workflow step concreteness, pipeline lifecycle coords, task-pipeline linking, richer LM descriptions, R0 scaffold mode nudge at boot."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

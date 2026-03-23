@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, pipeline, legendary-map, archive]
 source: "session"
 content: "codex-engine-v3-legendary-map archived at phase2_complete; t4 auto-archived alongside it. Cleared upstream dependency for t1 (build-codex-layer-v1)."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
