@@ -1,8 +1,8 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: critical
-type: research
+type: infrastructure
 version: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
 spec_file: machinelearning/snn_applied_finance/specs/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing.ipynb
