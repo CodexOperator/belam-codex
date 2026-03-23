@@ -1,7 +1,8 @@
 ---
 primitive: task
-status: open
-priority: high
+status: in_pipeline
+priority: critical
+pipeline: codex-engine-v3-legendary-map
 created: 2026-03-22
 owner: belam
 depends_on: [codex-engine-v3-temporal-mcp-autoclave]
@@ -115,8 +116,17 @@ This is novel because it places the action space *inside* the state space the mo
 - [ ] Total LM payload ≤ 1KB for current action set
 - [ ] Agent can use `lm{n}` coordinates to navigate to action descriptions
 
-## Open Questions
+## Resolved Questions (2026-03-23)
 
-1. Should the LM also include tool-call patterns (memory_search, sessions_spawn) or only codex-native operations?
-2. Should `lm` entries be navigable (`lm3` shows full syntax + examples) or display-only?
-3. Workflow compositions — should multi-step patterns get their own `lm` entries? (e.g., "pipeline lifecycle: e2 p → e0p{n} → e1p{n} status archived")
+1. **Include tool-call patterns** — YES. Every pattern in the LM is one fewer thing needing external doc injection. Directly feeds the offload-from-openclaw goal. Include memory_search, sessions_spawn, exec patterns, etc.
+
+2. **Navigable AND runnable** — YES. `lm3` shows expanded view (syntax, params, examples). The pattern IS the command — description is the invocation. Recursive property: you're not reading *about* it, you're reading *it*.
+
+3. **Complex workflows via hierarchical sub-indices** — YES, but structured:
+   - `e0.l1` = first complex e0 workflow (sub-index, execute)
+   - `e1.l3` = third e1 workflow
+   - `.v.l2` = second view workflow
+   - `l` at root stays lessons. `.l` as sub-index = LM workflow for that coordinate type.
+   - Dot-syntax disambiguates: positional, no ambiguity, 2 chars shorter than `lm` in hot path.
+   - Top-level LM structured by coordinate type: e0-e3, .v, others as needed.
+   - Complex workflows called through root coordinate: `e0.l1` calls first complex e0 workflow regardless of its absolute index in the flat LM list.

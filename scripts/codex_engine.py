@@ -45,6 +45,7 @@ NAMESPACE = {
     'mw': ('weekly',      'memory/weekly',   None),
     'e':  ('modes',       'modes',           None),
     'i':  ('personas',    'personas',        None),
+    'lm': ('legendary-map', None,             None),   # virtual namespace — no directory
 }
 
 # Sorted prefixes: longer ones first (md/mw before m)
@@ -214,6 +215,8 @@ def get_primitives(prefix, active_only=True):
     active_only=False: return all files (used for graph loading, slug-index lookups).
     """
     _, directory, special = NAMESPACE[prefix]
+    if directory is None:
+        return []  # virtual namespace (e.g. 'lm') — no filesystem primitives
     base = WORKSPACE / directory
 
     if special == 'skills':

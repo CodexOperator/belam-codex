@@ -518,17 +518,29 @@ def main():
                          pipeline_type=args.type)
     
     if args.kickoff or args.start:
-        print(f"\n🚀 Kicking off via orchestrator...")
-        import subprocess as sp
-        result = sp.run(
-            [sys.executable, str(Path(__file__).parent / 'pipeline_orchestrate.py'),
-             args.version, 'complete', 'pipeline_created',
-             '--agent', 'belam-main',
-             '--notes', f'Pipeline created: {args.desc}'],
-            text=True,
-        )
-        if result.returncode != 0:
-            print(f"   ⚠️  Orchestrator returned exit code {result.returncode}")
+        print(f"\n🚀 Kicking off (fire-and-forget)...")
+        # Import and use fire_and_forget_dispatch directly — no blocking
+        sys.path.insert(0, str(Path(__file__).parent))
+        from orchestration_engine import fire_and_forget_dispatch
+        from pipeline_orchestrate import update_pipeline_status, notify_group
+
+        # 1. State transition: pipeline_created → architect_design
+        update_pipeline_status(args.version, 'architect_design')
+        print(f"   ✅ State: architect_design")
+
+        # 2. Notify group chat
+        try:
+            notify_group(f"🚀 Pipeline {args.version} kicked off → architect_design")
+        except Exception:
+            pass  # Non-critical
+
+        # 3. Fire-and-forget dispatch architect (returns immediately)
+        result = fire_and_forget_dispatch(args.version, 'architect_design', 'architect')
+        if result['success']:
+            print(f"   ✅ Architect dispatched (pid={result['pid']})")
+        else:
+            print(f"   ⚠️  Dispatch failed: {result['error']}")
+            print(f"   Manual fallback: python3 scripts/orchestration_engine.py dispatch {args.version}")
     else:
         print(f"\n🚀 Pipeline created. Kick off with:")
         print(f"   belam kickoff {args.version}")

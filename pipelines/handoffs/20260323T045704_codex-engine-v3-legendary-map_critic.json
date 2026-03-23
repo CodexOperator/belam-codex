@@ -1,0 +1,15 @@
+{
+  "version": "codex-engine-v3-legendary-map",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-23T04:57:04.358897+00:00",
+  "pipeline_session_id": "5bb4ea0b-159f-4478-9e7e-fdfe31f58831",
+  "wake_result": {
+    "success": false,
+    "status": "parse_error",
+    "session_id": "",
+    "response_preview": "[plugins] [agent-end-telemetry] Registered agent_end telemetry hook\n[plugins] [agent-turn-logger] Re"
+  },
+  "verified": false
+}

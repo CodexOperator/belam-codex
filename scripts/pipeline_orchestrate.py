@@ -498,37 +498,30 @@ python3 scripts/pipeline_orchestrate.py {version} complete {stage} --agent {agen
 ```
 """
 
-    # Step 4: Reset session + fresh wake
-    print(f"   🔄 Resetting {agent} session for fresh context...")
-    reset_agent_session(agent)
-    fresh_session_id = generate_session_id(version, agent)
-    print(f"   🔄 Waking {agent} with fresh session {fresh_session_id[:8]}...")
+    # Step 4: Fire-and-forget dispatch with resume context
+    print(f"   🔔 Dispatching {agent} with resume context (fire-and-forget)...")
+    from orchestration_engine import fire_and_forget_dispatch
+    dispatch_result = fire_and_forget_dispatch(version, stage, agent, message=resume_msg)
 
-    wake_result = wake_agent(agent, resume_msg, timeout=AGENT_WAKE_TIMEOUT,
-                              session_id=fresh_session_id)
+    wake_result = {
+        'success': dispatch_result['success'],
+        'status': 'dispatched' if dispatch_result['success'] else 'failed',
+        'response': f"pid={dispatch_result.get('pid', 'none')}",
+        'session_id': '',
+        'error': dispatch_result.get('error'),
+    }
 
-    if wake_result['success']:
-        print(f"   ✅ {agent} responded on resume (session: {wake_result['session_id'][:8]}...)")
-        response_preview = (wake_result.get('response', '') or '')[:100]
-        if response_preview:
-            print(f"   📝 Response: {response_preview}")
-        return wake_result
-    elif wake_result['status'] == 'timeout' and resume_count + 1 < AGENT_MAX_RESUMES:
-        # Recursive checkpoint-and-resume
-        print(f"   ⏱️  Timed out again — checkpointing and resuming...")
-        return checkpoint_and_resume(agent, version, stage, notes, resume_count + 1)
+    if dispatch_result['success']:
+        print(f"   ✅ {agent} dispatched for resume (pid={dispatch_result['pid']})")
     else:
-        # Max resumes exceeded or non-timeout failure
-        if resume_count + 1 >= AGENT_MAX_RESUMES:
-            print(f"   ❌ Max resume attempts ({AGENT_MAX_RESUMES}) exceeded for {agent}")
-            send_orchestrator_notification(
-                version,
-                f"❌ Agent {agent} exceeded max resumes",
-                f"Pipeline <b>{version}</b> stage <code>{stage}</code>: "
-                f"{agent} timed out {AGENT_MAX_RESUMES + 1} times. "
-                f"Partial work may exist in pipeline_builds/. Manual intervention needed."
-            )
-        return wake_result
+        print(f"   ❌ {agent} dispatch failed: {dispatch_result['error']}")
+        send_orchestrator_notification(
+            version,
+            f"❌ Agent {agent} resume dispatch failed",
+            f"Pipeline <b>{version}</b> stage <code>{stage}</code>: "
+            f"Could not dispatch {agent} for resume. Manual intervention needed."
+        )
+    return wake_result
 
 
 def check_sessions(agent: str = None) -> list:
@@ -742,67 +735,39 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
             f'Approve: <code>belam kickoff {version} --phase2 [--direction file.md]</code>')
         return True
 
-    # Step 3: Reset agent session for fresh context
-    print(f"\n   🔄 Resetting {next_agent} session for fresh context...")
-    reset_agent_session(next_agent)
+    # Step 3: Fire-and-forget dispatch to next agent (non-blocking)
+    # Import from orchestration_engine for the modern dispatch path
+    sys.path.insert(0, str(Path(__file__).parent))
+    from orchestration_engine import fire_and_forget_dispatch
 
-    # Step 4: Generate isolated session ID for this pipeline
-    pipeline_session_id = generate_session_id(version, next_agent)
-    print(f"   🆔 Pipeline session: {pipeline_session_id[:8]}...")
-
-    # Step 5: Build rich handoff message
+    print(f"\n   🔔 Dispatching {next_agent} (fire-and-forget)...")
     handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes)
+    dispatch_result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
 
-    # Step 6: Wake the next agent with isolated session
-    print(f"\n   🔔 Waking {next_agent}...")
-    wake_result = wake_agent(next_agent, handoff_msg, timeout=AGENT_WAKE_TIMEOUT,
-                             session_id=pipeline_session_id)
-
-    if wake_result['success']:
-        print(f"   ✅ {next_agent} responded (session: {wake_result['session_id'][:8]}...)")
-        response_preview = (wake_result.get('response', '') or '')[:100]
-        if response_preview:
-            print(f"   📝 Response: {response_preview}")
-    elif wake_result['status'] == 'timeout':
-        # Timeout — checkpoint and resume with fresh session
-        print(f"   ⏱️  {next_agent} timed out — initiating checkpoint-and-resume...")
-        wake_result = checkpoint_and_resume(
-            next_agent, version, next_stage, notes, resume_count=0
-        )
+    if dispatch_result['success']:
+        print(f"   ✅ {next_agent} dispatched (pid={dispatch_result['pid']})")
     else:
-        # Non-timeout failure — simple retry
-        print(f"   ⚠️  First wake attempt failed: {wake_result.get('error', 'unknown')}")
-        if AGENT_WAKE_RETRIES > 0:
-            print(f"   🔄 Retrying wake...")
-            time.sleep(3)
-            fresh_id = generate_session_id(version, next_agent)
-            wake_result = wake_agent(next_agent, handoff_msg, timeout=AGENT_WAKE_TIMEOUT,
-                                     session_id=fresh_id)
-            if wake_result['success']:
-                print(f"   ✅ {next_agent} responded on retry")
-            elif wake_result['status'] == 'timeout':
-                # Timed out on retry — checkpoint and resume
-                print(f"   ⏱️  Timed out on retry — initiating checkpoint-and-resume...")
-                wake_result = checkpoint_and_resume(
-                    next_agent, version, next_stage, notes, resume_count=0
-                )
-            else:
-                print(f"   ❌ {next_agent} failed after retry: {wake_result.get('error', 'unknown')}")
+        print(f"   ⚠️  Dispatch failed: {dispatch_result['error']}")
+        send_orchestrator_notification(
+            version,
+            f"⚠️ Handoff dispatch failed",
+            f"Stage <code>{stage}</code> completed by {agent}, "
+            f"but dispatch to <b>{next_agent}</b> for <code>{next_stage}</code> failed. "
+            f"Error: {dispatch_result.get('error', 'unknown')}"
+        )
 
-    # Step 7: Write handoff record
+    # Step 4: Write handoff record
+    wake_result = {
+        'success': dispatch_result['success'],
+        'status': 'dispatched' if dispatch_result['success'] else 'failed',
+        'response': f"pid={dispatch_result.get('pid', 'none')}",
+        'session_id': '',
+        'error': dispatch_result.get('error'),
+    }
+    pipeline_session_id = generate_session_id(version, next_agent)
     handoff_path = write_handoff(version, stage, next_stage, next_agent, wake_result,
                                   pipeline_session_id)
     print(f"\n   📝 Handoff record: {handoff_path.relative_to(WORKSPACE)}")
-
-    # Step 8: Send orchestrator notification if wake ultimately failed
-    if not wake_result['success']:
-        send_orchestrator_notification(
-            version,
-            f"⚠️ Handoff delivery issue",
-            f"Stage <code>{stage}</code> completed by {agent}, "
-            f"but <b>{next_agent}</b> did not confirm pickup for <code>{next_stage}</code>. "
-            f"Error: {wake_result.get('error', 'unknown')}"
-        )
 
     # Summary
     print(f"\n{'─' * 70}")
@@ -810,7 +775,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     print(f"     Pipeline:    {version}")
     print(f"     Completed:   {stage} ({agent})")
     print(f"     Next:        {next_stage} ({next_agent})")
-    print(f"     Handoff:     {'✅ Delivered' if wake_result['success'] else '⚠️ Pending verification'}")
+    print(f"     Handoff:     {'✅ Dispatched' if dispatch_result['success'] else '⚠️ Failed'}")
     print(f"     Telegram:    ✅ Group notified (via pipeline_update.py)")
     print(f"{'─' * 70}\n")
 
@@ -855,46 +820,35 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
     # Step 4: Generate isolated session ID for this pipeline
     pipeline_session_id = generate_session_id(version, next_agent)
 
-    # Step 5: Build handoff message
+    # Step 5: Build handoff message and fire-and-forget dispatch
     handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes, artifact)
 
-    # Step 6: Wake the fix agent with isolated session
-    print(f"\n   🔔 Waking {next_agent} for block fix...")
-    wake_result = wake_agent(next_agent, handoff_msg, timeout=AGENT_WAKE_TIMEOUT,
-                             session_id=pipeline_session_id)
+    print(f"\n   🔔 Dispatching {next_agent} for block fix (fire-and-forget)...")
+    from orchestration_engine import fire_and_forget_dispatch
+    dispatch_result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
 
-    if wake_result['success']:
-        print(f"   ✅ {next_agent} responded")
-    elif wake_result['status'] == 'timeout':
-        print(f"   ⏱️  {next_agent} timed out — initiating checkpoint-and-resume...")
-        wake_result = checkpoint_and_resume(
-            next_agent, version, next_stage, notes, resume_count=0
-        )
+    wake_result = {
+        'success': dispatch_result['success'],
+        'status': 'dispatched' if dispatch_result['success'] else 'failed',
+        'response': f"pid={dispatch_result.get('pid', 'none')}",
+        'session_id': '',
+        'error': dispatch_result.get('error'),
+    }
+
+    if dispatch_result['success']:
+        print(f"   ✅ {next_agent} dispatched (pid={dispatch_result['pid']})")
     else:
-        print(f"   ⚠️  Wake failed: {wake_result.get('error', 'unknown')}")
-        if AGENT_WAKE_RETRIES > 0:
-            print(f"   🔄 Retrying...")
-            time.sleep(3)
-            fresh_id = generate_session_id(version, next_agent)
-            wake_result = wake_agent(next_agent, handoff_msg, timeout=AGENT_WAKE_TIMEOUT,
-                                     session_id=fresh_id)
-            if wake_result['status'] == 'timeout':
-                print(f"   ⏱️  Timed out on retry — initiating checkpoint-and-resume...")
-                wake_result = checkpoint_and_resume(
-                    next_agent, version, next_stage, notes, resume_count=0
-                )
-            elif not wake_result['success']:
-                print(f"   ❌ {next_agent} failed to respond after retry")
+        print(f"   ⚠️  Dispatch failed: {dispatch_result['error']}")
 
     # Write handoff record
     write_handoff(version, stage, next_stage, next_agent, wake_result, pipeline_session_id)
 
-    if not wake_result['success']:
+    if not dispatch_result['success']:
         send_orchestrator_notification(
             version,
             f"⚠️ Block handoff issue",
             f"Stage <code>{stage}</code> BLOCKED by {agent}, "
-            f"but <b>{next_agent}</b> did not confirm pickup. "
+            f"but dispatch to <b>{next_agent}</b> failed. "
             f"Error: {wake_result.get('error', 'unknown')}"
         )
 
@@ -989,9 +943,11 @@ python3 scripts/pipeline_orchestrate.py {version} complete phase1_revision_archi
 ```
 """
 
-    # Step 7: Wake the architect
-    print(f"\n   📨 Dispatching to architect...")
-    success = wake_agent('architect', handoff_msg, session_id=pipeline_session_id)
+    # Step 7: Fire-and-forget dispatch architect
+    print(f"\n   📨 Dispatching to architect (fire-and-forget)...")
+    from orchestration_engine import fire_and_forget_dispatch
+    dispatch_result = fire_and_forget_dispatch(version, 'phase1_revision_architect', 'architect', message=handoff_msg)
+    success = dispatch_result['success']
 
     # Step 8: Write handoff file
     wake_result = {'success': success, 'status': 'dispatched' if success else 'failed', 'session_id': pipeline_session_id}
@@ -1201,26 +1157,24 @@ with statistical tables and plots has been auto-generated. Your job is to:
 
 ⚠️ **Session Protocol:** Fresh session. Read memory files first. Write learnings before completing."""
 
-    # Step 4: Wake architect with reasoning
-    print(f"\n   🔄 Resetting architect session for fresh context...")
-    reset_agent_session('architect')
+    # Step 4: Fire-and-forget dispatch architect
+    print(f"\n   🔔 Dispatching architect (fire-and-forget)...")
+    from orchestration_engine import fire_and_forget_dispatch
+    dispatch_result = fire_and_forget_dispatch(version, 'local_analysis_architect', 'architect', message=handoff_msg)
 
     pipeline_session_id = generate_session_id(version, 'architect')
-    print(f"   🆔 Pipeline session: {pipeline_session_id[:8]}...")
+    wake_result = {
+        'success': dispatch_result['success'],
+        'status': 'dispatched' if dispatch_result['success'] else 'failed',
+        'response': f"pid={dispatch_result.get('pid', 'none')}",
+        'session_id': '',
+        'error': dispatch_result.get('error'),
+    }
 
-    print(f"\n   🔔 Waking architect (with reasoning)...")
-    wake_result = wake_agent('architect', handoff_msg, timeout=AGENT_WAKE_TIMEOUT,
-                             session_id=pipeline_session_id)
-
-    if wake_result['success']:
-        print(f"   ✅ Architect responded")
-    elif wake_result['status'] == 'timeout':
-        print(f"   ⏱️  Architect timed out — checkpoint-and-resume...")
-        wake_result = checkpoint_and_resume(
-            'architect', version, 'local_analysis_architect', '', resume_count=0
-        )
+    if dispatch_result['success']:
+        print(f"   ✅ Architect dispatched (pid={dispatch_result['pid']})")
     else:
-        print(f"   ❌ Architect wake failed: {wake_result.get('error', 'unknown')}")
+        print(f"   ❌ Architect dispatch failed: {dispatch_result['error']}")
 
     # Write handoff record
     write_handoff(version, 'local_experiment_complete', 'local_analysis_architect',
@@ -1350,20 +1304,23 @@ approved analysis report into a professional LaTeX document and compile it to PD
 - Section numbering
 - lmodern fonts"""
 
-    # Wake builder for LaTeX
-    reset_agent_session('builder')
+    # Fire-and-forget dispatch builder for LaTeX
+    from orchestration_engine import fire_and_forget_dispatch
     session_id = generate_session_id(version, 'builder')
-    wake_result = wake_agent('builder', report_task, timeout=AGENT_WAKE_TIMEOUT,
-                             session_id=session_id)
+    dispatch_result = fire_and_forget_dispatch(version, 'local_analysis_report_build', 'builder', message=report_task)
 
-    if wake_result['success']:
-        print(f"   ✅ Builder responded — building LaTeX report")
-    elif wake_result['status'] == 'timeout':
-        wake_result = checkpoint_and_resume(
-            'builder', version, 'local_analysis_report_build', '', resume_count=0
-        )
+    wake_result = {
+        'success': dispatch_result['success'],
+        'status': 'dispatched' if dispatch_result['success'] else 'failed',
+        'response': f"pid={dispatch_result.get('pid', 'none')}",
+        'session_id': '',
+        'error': dispatch_result.get('error'),
+    }
+
+    if dispatch_result['success']:
+        print(f"   ✅ Builder dispatched for LaTeX report (pid={dispatch_result['pid']})")
     else:
-        print(f"   ❌ Builder failed: {wake_result.get('error', 'unknown')}")
+        print(f"   ❌ Builder dispatch failed: {dispatch_result['error']}")
 
     write_handoff(version, 'local_analysis_code_review', 'local_analysis_report_build',
                   'builder', wake_result, session_id)
@@ -1469,22 +1426,23 @@ def orchestrate_verify(version: str):
                 mark_handoff_verified(path)
                 continue
 
-        # Agent hasn't picked up — retry
-        print(f"   🔄 Re-dispatching to {next_agent} for {next_stage}...")
+        # Agent hasn't picked up — retry via fire-and-forget
+        print(f"   🔄 Re-dispatching to {next_agent} for {next_stage} (fire-and-forget)...")
         handoff_msg = build_handoff_message(
             version, completed_stage, next_stage, next_agent,
             f"[RETRY] Original handoff was not picked up. Please process {next_stage}."
         )
-        wake_result = wake_agent(next_agent, handoff_msg)
-        if wake_result['success']:
-            print(f"   ✅ {next_agent} responded on retry")
+        from orchestration_engine import fire_and_forget_dispatch
+        dispatch_result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
+        if dispatch_result['success']:
+            print(f"   ✅ {next_agent} re-dispatched (pid={dispatch_result['pid']})")
             mark_handoff_verified(path)
         else:
-            print(f"   ❌ {next_agent} still not responding: {wake_result.get('error')}")
+            print(f"   ❌ {next_agent} dispatch failed: {dispatch_result.get('error')}")
             send_orchestrator_notification(
                 version,
                 f"❌ Handoff retry failed",
-                f"<b>{next_agent}</b> not responding for <code>{next_stage}</code>. Manual intervention needed."
+                f"Dispatch to <b>{next_agent}</b> failed for <code>{next_stage}</code>. Manual intervention needed."
             )
 
     return True
