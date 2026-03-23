@@ -637,7 +637,10 @@ except ImportError:
     print("❌ Cannot import from pipeline_update.py — ensure it exists at scripts/pipeline_update.py")
     sys.exit(1)
 
-from orchestration_engine import fire_and_forget_dispatch
+def fire_and_forget_dispatch(version, stage, agent, message=''):
+    """Lazy wrapper to avoid circular import with orchestration_engine."""
+    from orchestration_engine import fire_and_forget_dispatch as _dispatch
+    return _dispatch(version, stage, agent, message=message)
 
 
 # ═══════════════════════════════════════════════════════════════════════
