@@ -417,3 +417,5 @@
 2026-03-23T18:12:02.350Z [info] Sage spawn dispatched via codex engine {"pid":2958066}
 2026-03-23T18:25:04.338Z [warn] No workspaceDir in context
 2026-03-23T18:25:17.237Z [warn] No workspaceDir in context
+2026-03-23T18:33:50.072Z [warn] No workspaceDir in context
+2026-03-23T18:33:58.085Z [warn] No workspaceDir in context
