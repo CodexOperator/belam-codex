@@ -47,8 +47,8 @@
   "status": "phase2_review",
   "status_updated": "2026-03-23 15:30",
   "current_agent": "critic",
-  "last_dispatched": "2026-03-23T18:38:18.144556+00:00",
-  "dispatch_claimed": false,
+  "last_dispatched": null,
+  "dispatch_claimed": true,
   "phase1": {
     "stage": "phase1_complete"
   },
