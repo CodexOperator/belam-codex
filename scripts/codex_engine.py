@@ -4155,6 +4155,9 @@ def _parse_e0_args(op_args):
             elif action == 'archive':
                 result['op'] = 'archive'
                 remaining = remaining[1:]
+            elif action == 'phase2':
+                result['op'] = 'phase2_direction'
+                remaining = remaining[1:]
             else:
                 # No recognized action → pipeline status
                 result['op'] = 'pipeline_status'
@@ -4464,6 +4467,98 @@ def _dispatch_e0(op_args, tracker):
                 print(out.stdout.strip())
             if out.returncode != 0 and out.stderr.strip():
                 print(out.stderr.strip())
+
+        elif spec['op'] == 'phase2_direction':
+            # Create Phase 2 direction scaffold for a pipeline
+            if not spec['pipeline']:
+                print("e0 phase2: specify a pipeline (e.g., e0 p1 phase2)")
+                return 1
+            resolved = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            if not resolved:
+                print(f"e0 phase2: pipeline '{spec['pipeline']}' not found")
+                return 1
+
+            # Check pipeline is at the right stage for Phase 2 direction
+            state = orch.load_state_json(resolved) if hasattr(orch, 'load_state_json') else {}
+            pending = state.get('pending_action', '')
+            status = state.get('status', '')
+            # Allow if: no state yet, or at phase1_complete (waiting for direction)
+            # Reject if: already past phase1 (phase2_*, phase3_*, archived)
+            already_past = any(x in (pending + status) for x in ('phase2', 'phase3', 'archived'))
+            at_phase1 = 'phase1_complete' in pending or 'phase1_complete' in status
+            if already_past and not at_phase1:
+                print(f"e0 phase2: {resolved} is already at '{pending or status}' — Phase 2 direction not needed")
+                return 1
+
+            # Build scaffold
+            builds_dir = WORKSPACE / 'pipeline_builds' / resolved
+            builds_dir.mkdir(parents=True, exist_ok=True)
+            direction_file = builds_dir / 'phase2_direction.md'
+
+            if direction_file.exists():
+                print(f"e0 phase2: direction file already exists → {direction_file.relative_to(WORKSPACE)}")
+                # Show existing content
+                content = direction_file.read_text(encoding='utf-8')
+                _, output = tracker.track_render(content)
+                print(output)
+                return 0
+
+            # Read Phase 1 artifacts to populate scaffold context
+            phase1_design = builds_dir / 'architect_design.md'
+            phase1_review = builds_dir / 'critic_code_review.md'
+
+            phase1_summary = ""
+            if phase1_design.exists():
+                # Extract first 5 non-empty lines after frontmatter
+                lines = phase1_design.read_text(encoding='utf-8').split('\n')
+                in_fm = False
+                summary_lines = []
+                for line in lines:
+                    if line.strip() == '---':
+                        in_fm = not in_fm
+                        continue
+                    if not in_fm and line.strip() and len(summary_lines) < 5:
+                        summary_lines.append(f"  {line.strip()}")
+                if summary_lines:
+                    phase1_summary = "\n".join(summary_lines)
+
+            flags_summary = ""
+            if phase1_review.exists():
+                text = phase1_review.read_text(encoding='utf-8')
+                flag_lines = [l.strip() for l in text.split('\n') if 'FLAG' in l and ('MED' in l or 'HIGH' in l)]
+                if flag_lines:
+                    flags_summary = "\n".join(f"  - {fl}" for fl in flag_lines[:5])
+
+            scaffold = f"""# Phase 2 Direction: {resolved}
+
+## Phase 1 Summary
+{phase1_summary or '  (no Phase 1 design found — add summary here)'}
+
+## Outstanding FLAGs from Phase 1
+{flags_summary or '  (none detected — verify manually)'}
+
+## Phase 2 Goal
+
+**[DESCRIBE: What should Phase 2 accomplish?]**
+
+## Deliverables
+
+### D1: [Name]
+[Description]
+
+### D2: [Name]
+[Description]
+
+## Open Questions for Architect
+1. [Question]
+"""
+            direction_file.write_text(scaffold, encoding='utf-8')
+
+            if f_label:
+                print(f"{f_label} Δ {spec['pipeline']}.phase2_direction CREATED")
+            print(f"Scaffold written → {direction_file.relative_to(WORKSPACE)}")
+            _, output = tracker.track_render(scaffold)
+            print(output)
 
         elif spec['op'] == 'next':
             # Show next action for a pipeline

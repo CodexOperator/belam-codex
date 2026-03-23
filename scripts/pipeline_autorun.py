@@ -83,7 +83,10 @@ def load_pipeline_frontmatter(path: Path) -> dict:
 
 
 def load_state_json(version: str) -> dict:
-    """Load the pipeline state JSON."""
+    """Load the pipeline state JSON (checks subdirectory first, then legacy flat)."""
+    state_file = BUILDS_DIR / version / '_state.json'
+    if state_file.exists():
+        return json.load(open(state_file))
     state_file = BUILDS_DIR / f'{version}_state.json'
     if state_file.exists():
         return json.load(open(state_file))

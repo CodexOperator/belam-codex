@@ -72,6 +72,7 @@ _MODE_ENTRIES = [
     # v2 entries: coordinate-native pipeline operations
     LMEntry(verb='launch',      syntax='e0 t{n}',               description='launch pipeline from task (auto-create + dispatch)',      source='mode'),
     LMEntry(verb='pipe-status', syntax='e0 p{n}',               description='pipeline state, or e0 p{n} archive/complete/block',      source='mode'),
+    LMEntry(verb='phase2',      syntax='e0 p{n} phase2',        description='create Phase 2 direction scaffold (auto-named, auto-placed)',  source='mode'),
     LMEntry(verb='pipe-list',   syntax='e0 l',                   description='list all pipelines with current states',                 source='mode'),
 ]
 
