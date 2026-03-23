@@ -1139,28 +1139,45 @@ class SessionManager:
 
     @staticmethod
     def _kill_stale_pid() -> None:
-        """Kill a render engine process from a previous run using PID file."""
-        if not PID_FILE.exists():
-            return
+        """Kill ALL other render engine processes (not just the PID file one).
+        
+        Fixes the orphan-storm bug: when multiple instances launch concurrently,
+        each overwrites the PID file, leaving others as unkillable orphans.
+        Now scans /proc for ALL codex_render.py processes and kills them.
+        """
+        my_pid = os.getpid()
+        killed = []
+        
+        # Scan /proc for all codex_render processes (not just PID file)
         try:
-            old_pid = int(PID_FILE.read_text().strip())
-            # Verify it's actually a render engine process before killing
-            cmdline_path = Path(f'/proc/{old_pid}/cmdline')
-            if cmdline_path.exists():
-                cmdline = cmdline_path.read_bytes().decode('utf-8', errors='replace')
-                if 'codex_render' in cmdline:
-                    os.kill(old_pid, signal.SIGTERM)
-                    # Wait briefly for clean shutdown
-                    for _ in range(10):
-                        if not cmdline_path.exists():
-                            break
-                        time.sleep(0.1)
-                    # Force kill if still alive
-                    if cmdline_path.exists():
-                        os.kill(old_pid, signal.SIGKILL)
-                        time.sleep(0.2)
-        except (ValueError, ProcessLookupError, PermissionError, OSError):
+            for entry in Path('/proc').iterdir():
+                if not entry.name.isdigit():
+                    continue
+                pid = int(entry.name)
+                if pid == my_pid:
+                    continue
+                try:
+                    cmdline = (entry / 'cmdline').read_bytes().decode('utf-8', errors='replace')
+                    if 'codex_render' in cmdline:
+                        os.kill(pid, signal.SIGTERM)
+                        killed.append(pid)
+                except (PermissionError, FileNotFoundError, ProcessLookupError, OSError):
+                    continue
+        except (PermissionError, OSError):
             pass
+        
+        # Wait for graceful shutdown
+        if killed:
+            time.sleep(0.5)
+            # Force-kill any survivors
+            for pid in killed:
+                try:
+                    os.kill(pid, 0)  # Check if alive
+                    os.kill(pid, signal.SIGKILL)
+                except (ProcessLookupError, PermissionError, OSError):
+                    pass
+            time.sleep(0.2)
+        
         PID_FILE.unlink(missing_ok=True)
 
     def stop(self) -> None:
