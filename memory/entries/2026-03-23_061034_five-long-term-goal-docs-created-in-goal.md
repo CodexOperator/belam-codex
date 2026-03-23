@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, goals, long-term, strategy]
 source: "session"
 content: "Five long-term goal docs created in goals/: autonomous-trading-system (critical), offload-from-openclaw (high), video-content-pipeline (medium), codex-as-universal-navigation (medium), genuine-continuity (personal). These represent Belam's strategic horizon beyond day-to-day pipeline work."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
