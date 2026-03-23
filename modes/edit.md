@@ -28,3 +28,15 @@ All changes are tracked with F-labels and are undoable via e-z (or -z).
 
 ### Routing
 Maps to execute_edit() — all V1 -e flag behaviour applies.
+
+## Workflows
+
+### .l1 — Bulk Status Update
+1. `e1t1 2 active` — set task status
+2. `e1t2 2 active` — repeat for each target
+3. `.d` — verify diff shows expected changes
+
+### .l2 — Body Section Replace
+1. `e1{coord} B.Section "new content"` — replace section content
+2. Verify F-label tracks the change
+3. `.d` — confirm in diff view

@@ -494,6 +494,24 @@ def resolve_coords(args):
         if not arg:
             continue
 
+        # Dot-syntax sub-index: {coord}.l{N} — delegate to LM renderer
+        if '.' in arg:
+            parts = arg.split('.', 1)
+            if parts[1].startswith('l') and re.match(r'^l\d+$', parts[1]):
+                try:
+                    from codex_lm_renderer import resolve_workflow
+                    result = resolve_workflow(parts[0], parts[1], WORKSPACE)
+                    if result:
+                        resolved.append({
+                            'prefix': 'lm', 'index': 0,
+                            'filepath': None, 'slug': arg,
+                            'type': 'legendary-map',
+                            '_lm_text': result,
+                        })
+                except ImportError:
+                    pass
+                continue
+
         # Check for field/body selector FIRST: digits or B-prefixed (B, B1, B1-B5, etc.)
         # Must happen before range check to prevent B1-B5 from being consumed as coord range.
         if FIELD_RE.match(arg):
@@ -526,6 +544,25 @@ def resolve_coords(args):
             idx_str = coord_m.group(2)
             prefix = _normalize_prefix(prefix_raw)
             if prefix:
+                # LM virtual namespace — delegate to lm renderer
+                if prefix == 'lm':
+                    try:
+                        from codex_lm_renderer import render_lm_expanded, render_lm_entry
+                        if idx_str is None:
+                            text = render_lm_expanded(WORKSPACE)
+                        else:
+                            text = render_lm_entry(WORKSPACE, int(idx_str))
+                        if text:
+                            resolved.append({
+                                'prefix': 'lm', 'index': int(idx_str) if idx_str else 0,
+                                'filepath': None, 'slug': arg,
+                                'type': 'legendary-map',
+                                '_lm_text': text,
+                            })
+                    except ImportError:
+                        pass
+                    continue
+
                 primitives = get_primitives(prefix)
                 type_label = NAMESPACE[prefix][0]
                 if idx_str is None:
@@ -853,6 +890,15 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
     if since_days is not None:
         header += f"  [--since {since_days}d]"
     lines.append(header)
+
+    # ── LM (Legendary Map) section — rendered first, before SHOW_ORDER loop ──
+    try:
+        from codex_lm_renderer import render_lm_section
+        lm_lines = render_lm_section(WORKSPACE)
+        if lm_lines:
+            lines.extend(lm_lines)
+    except ImportError:
+        pass  # LM renderer not available — graceful degradation
 
     persona_cfg = PERSONA_CONFIGS.get(persona) if persona else None
 

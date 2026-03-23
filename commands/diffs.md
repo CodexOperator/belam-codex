@@ -7,6 +7,7 @@ description: Read accumulated live diffs since the last check (read-and-clear)
 usage: belam diffs
 script: codex_watch.py
 tags: [codex-engine, live-diffs, v3]
+lm_include: true
 ---
 
 # diffs — Read Accumulated Live Diffs

@@ -5,6 +5,7 @@ aliases: []
 description: "Build a notebook version"
 category: pipeline
 tags: [build, notebook, execution]
+lm_include: true
 ---
 
 # belam build

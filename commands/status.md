@@ -5,6 +5,7 @@ aliases: ["belam s"]
 description: "Full overview: pipelines + tasks + memory + git"
 category: infrastructure
 tags: [overview, dashboard, status]
+lm_include: true
 ---
 
 # belam status

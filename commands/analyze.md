@@ -5,6 +5,7 @@ aliases: ["belam a <ver>"]
 description: "Run experiment analysis (auto-finds pipeline)"
 category: analysis
 tags: [analysis, experiment, phase2]
+lm_include: true
 ---
 
 # belam analyze

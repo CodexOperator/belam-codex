@@ -5,6 +5,7 @@ aliases: []
 description: "Quick memory entry, optionally tagged"
 category: memory
 tags: [memory, log, quick-entry]
+lm_include: true
 ---
 
 # belam log

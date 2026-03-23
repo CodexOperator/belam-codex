@@ -65,3 +65,15 @@ Routes operations to the orchestration engine for pipeline and task management.
 ### Routing
 Maps to orchestration_engine.py when available, falls back to legacy scripts.
 View modifiers (-g, --depth, --as) compose orthogonally with e0 operations.
+
+## Workflows
+
+### .l1 — Full Pipeline Launch
+1. `belam pipeline launch {ver} --desc "..." --kickoff`
+2. Wait for architect handoff (auto-dispatched)
+3. Monitor via `belam pipelines` or `e0l`
+
+### .l2 — Emergency Pipeline Block
+1. `python3 scripts/pipeline_orchestrate.py {ver} block {stage} --agent {role} --notes "reason"`
+2. Post context to group chat
+3. Check `e0g {pipeline}` for gate status

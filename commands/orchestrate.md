@@ -5,6 +5,7 @@ aliases: ["belam orch"]
 description: "Direct orchestrator access (complete/block/start/status/verify/revise)"
 category: pipeline
 tags: [orchestration, direct-access, stages]
+lm_include: true
 ---
 
 # belam orchestrate
