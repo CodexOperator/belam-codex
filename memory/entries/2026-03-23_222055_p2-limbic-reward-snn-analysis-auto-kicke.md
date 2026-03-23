@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, pipeline, limbic-reward-snn, analysis]
 source: "session"
 content: "p2 limbic-reward-snn analysis auto-kicked after gate logic fixes. Sweep confirmed analysis gate OPEN, dispatched local_analysis_architect. Simultaneously recovered p1 codex-engine-v4 stalled critic via checkpoint-and-resume. Gate flow now: experiment_complete → analysis auto-kicks → local_analysis_complete → phase2 human gate."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
