@@ -612,15 +612,27 @@ class CodexTree:
                 return prefix
         return None
 
-    def render_supermap(self) -> str:
-        """Render supermap from RAM tree (cached)."""
+    def render_supermap(self, diff_engine: 'DiffEngine | None' = None) -> str:
+        """Render supermap from RAM tree (cached).
+        
+        If diff_engine is provided, checks for LM virtual namespace changes
+        and emits DiffEntry records (RAM-only, no disk writes).
+        """
         if self.supermap_cache is not None:
+            # Even on cache hit, check LM changes (cheap — just a hash compare)
+            if diff_engine is not None:
+                diff_engine.check_lm_change()
             return self.supermap_cache
 
         engine = _get_engine()
         # Render from the engine (reads disk, but we could optimize later)
         content = engine.render_supermap()
         self.supermap_cache = content
+
+        # Check LM changes after fresh render
+        if diff_engine is not None:
+            diff_engine.check_lm_change()
+
         return content
 
     def to_codec_view(self, level: str = 'dense') -> str:
@@ -671,6 +683,8 @@ class DiffEngine:
         self._anchor_time: float = 0.0
         self._diffs: list[DiffEntry] = []
         self._lock = threading.Lock()
+        # Virtual namespace tracking (LM, etc.) — RAM-only, no disk writes
+        self._lm_hash: str = ''
 
     def set_anchor(self) -> None:
         """Snapshot current tree state as the anchor."""
@@ -681,6 +695,31 @@ class DiffEngine:
             }
             self._anchor_time = time.time()
             self._diffs.clear()
+            # Snapshot LM state at anchor time
+            self._lm_hash = self._compute_lm_hash()
+
+    def _compute_lm_hash(self) -> str:
+        """Hash current LM renderer output (RAM-only)."""
+        try:
+            from codex_lm_renderer import render_lm_section
+            lm_lines = render_lm_section(self.tree.workspace)
+            return hashlib.md5('\n'.join(lm_lines).encode()).hexdigest() if lm_lines else ''
+        except Exception:
+            return ''
+
+    def check_lm_change(self) -> None:
+        """Compare current LM output to anchor — emit virtual DiffEntry if changed."""
+        if not self._lm_hash:
+            return  # No anchor yet
+        current = self._compute_lm_hash()
+        if current and current != self._lm_hash:
+            with self._lock:
+                self._diffs.append(DiffEntry(
+                    kind='modified', coord='lm', slug='legendary-map',
+                    field_diffs=[('content', 'changed', f'{current[:8]}')],
+                    timestamp=time.time(),
+                ))
+                self._lm_hash = current  # Update so we don't re-emit
 
     def record(self, entry: DiffEntry) -> None:
         with self._lock:
@@ -1184,7 +1223,7 @@ class SessionManager:
             return {'ok': False, 'error': 'specify coord or prefix'}
 
         elif cmd == 'supermap':
-            return {'ok': True, 'content': self.tree.render_supermap()}
+            return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
 
         elif cmd == 'diff':
             return {'ok': True, 'delta': self.diff_engine.get_delta()}
@@ -1244,7 +1283,7 @@ class SessionManager:
         elif cmd == 'buffer':
             fmt = msg.get('format', 'dense')
             if fmt == 'dense':
-                return {'ok': True, 'content': self.tree.render_supermap()}
+                return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
             elif fmt == 'diff':
                 return {'ok': True, 'content': self.diff_engine.get_delta()}
             elif fmt == 'json':
@@ -1253,7 +1292,7 @@ class SessionManager:
                     for n in self.tree.get_namespace(prefix):
                         nodes.append(_node_to_dict(n))
                 return {'ok': True, 'content': json.dumps(nodes)}
-            return {'ok': True, 'content': self.tree.render_supermap()}
+            return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
 
         elif cmd == 'status':
             test_mode = False
@@ -1716,7 +1755,7 @@ class DashboardServer:
 
     def get_buffer(self, fmt: str = 'dense') -> str:
         if fmt == 'dense':
-            return self.tree.render_supermap()
+            return self.tree.render_supermap(diff_engine=self.diff_engine)
         elif fmt == 'json':
             nodes = []
             for prefix in _get_engine().SHOW_ORDER:

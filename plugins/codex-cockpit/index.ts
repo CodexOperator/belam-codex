@@ -102,7 +102,7 @@ async function ensureRenderEngine(cwd: string): Promise<string> {
   // Start render engine in background
   try {
     execSync(
-      `nohup python3 scripts/codex_render.py --daemon > /dev/null 2>&1 &`,
+      `nohup python3 scripts/codex_render.py > /dev/null 2>&1 &`,
       { cwd, stdio: "ignore", timeout: 3000 }
     );
     // Brief wait for socket to appear
