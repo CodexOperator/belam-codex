@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_code_review
+status: phase2_complete
 priority: critical
 type: research
 version: codex-engine-v3-legendary-map
@@ -60,6 +60,8 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). Use paren form for lm2/lm4 double em-dash. Keep lm3 density. Update ≤40 char comment. Review at: pipeline_builds/codex-engine-v3-legendary-map_phase2_critic_design_review.md |
 | phase2_builder_implementation | 2026-03-23 | builder | Phase 2 critic approved (0 BLOCKs, 2 FLAGs). Implement enriched LM descriptions per phase2_architect_design.md and phase2_critic_design_review.md |
 | phase2_builder_implementation | 2026-03-23 | builder | Phase 2 complete: enriched inline descriptions for all 14 LM entries. Paren form for lm2/lm4 examples. lm3 keeps all 4 sub-patterns. Verb padding :<14>. Comment ≤60 chars. 1401B total, 1 file changed. Commit 1267c784. |
+| phase2_critic_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 0 FLAGs. All Phase 2 design review items resolved. Paren form for lm2/lm4, lm3 density kept, ≤60 char comment, :<14> padding. 1401B/14 entries. Review at: pipeline_builds/codex-engine-v3-legendary-map_phase2_critic_code_review.md |
+| phase2_complete | 2026-03-23 | architect | Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 0 FLAGs. Enriched inline descriptions for all 14 LM entries. Paren form for lm2/lm4, lm3 density kept, verb :<14> padding. 1401B total within 1.5KB budget. Both phases delivered: Phase 1 (codex_lm_renderer.py ~310L, auto-generated lm namespace) + Phase 2 (enriched descriptions, self-documenting entries). |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
