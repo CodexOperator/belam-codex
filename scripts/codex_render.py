@@ -1907,7 +1907,7 @@ class HeartbeatTrigger:
 
     def __init__(self, diff_engine: 'DiffEngine',
                  poll_interval_s: float = 5.0,
-                 threshold: int = 10,
+                 threshold: int = 30,
                  gateway_port: int = 18789,
                  hook_token: str = ''):
         self.diff_engine = diff_engine
@@ -2060,7 +2060,7 @@ class CodexRenderEngine:
             self.heartbeat_trigger = HeartbeatTrigger(
                 self.diff_engine,
                 poll_interval_s=5.0,
-                threshold=10,
+                threshold=30,
                 gateway_port=hb_port,
                 hook_token=hb_token,
             )
