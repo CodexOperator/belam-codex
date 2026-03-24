@@ -18664,7 +18664,7 @@ tags:
 - infrastructure
 source: session
 content: 'Created codex-render.service systemd unit on 2026-03-24. Service runs codex_render.py --mode nice --force, enabled at boot, RestartSec=5, MemoryMax=512M, Nice=10. Engine came up with 409 nodes indexed, supermap at /dev/shm/openclaw/supermap.txt (5162 bytes). Triggered by discovering render engine not running at session start (no PID, no supermap on ramdisk). Cockpit V7 plugin confirmed clean — reads supermap only, does not spawn engine. Heartbeat Task 5.5 added: check systemctl is-active, restart if down.'
-status: active
+status: consolidated
 __coord__: m149
 __slug__: 2026-03-24_053639_created-codex-renderservice-systemd-unit
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_053639_created-codex-renderservice-systemd-unit.md
@@ -18694,7 +18694,7 @@ tags:
 - archive
 source: session
 content: 'Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 conversation transcripts in machinelearning/snn_applied_finance/conversations/ spanning March 13-23, covering architect/critic/builder triad. Three-layer pipeline: export_agent_conversations.py (heartbeat task), parse_session_transcript.py (deterministic parser, ~10K token cap), archive_session_transcript.py (pipeline/stage metadata). Shael noted memory system evolution from flat MEMORY.md feels ancient vs current stack.'
-status: active
+status: consolidated
 __coord__: m150
 __slug__: 2026-03-24_053702_shael-asked-about-log-to-parsed-training
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_053702_shael-asked-about-log-to-parsed-training.md
@@ -18711,6 +18711,97 @@ Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 c
 ---
 *Source: session*
 *Tags: instance:main, training-data, pipeline, archive*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T06:03:04Z'
+category: technical
+importance: 4
+tags:
+- instance:main
+- render-engine
+- deadlock
+- fix
+- threading
+source: session
+content: 'Render engine UDS deadlock fixed (3rd occurrence, commit 4cac220c). Root cause: _nice_flush() called flush_change_queue() directly from UDS handler threads, competing for tree._lock with inotify/stat-poll threads. Fix: dedicated background flush worker thread as sole caller of flush_change_queue(). UDS handlers signal via threading.Event and wait with 5s timeout. Post-fix: 20/20 rapid UDS calls passed, steady at 4 threads (was 9841 before).'
+status: active
+__coord__: m151
+__slug__: 2026-03-24_060304_render-engine-uds-deadlock-fixed-3rd-occ
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_060304_render-engine-uds-deadlock-fixed-3rd-occ.md
+__prefix__: m
+__index__: 151
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T06:03:04Z** · `technical` · importance 4/5
+
+Render engine UDS deadlock fixed (3rd occurrence, commit 4cac220c). Root cause: _nice_flush() called flush_change_queue() directly from UDS handler threads, competing for tree._lock with inotify/stat-poll threads. Fix: dedicated background flush worker thread as sole caller of flush_change_queue(). UDS handlers signal via threading.Event and wait with 5s timeout. Post-fix: 20/20 rapid UDS calls passed, steady at 4 threads (was 9841 before).
+
+---
+*Source: session*
+*Tags: instance:main, render-engine, deadlock, fix, threading*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T06:04:01Z'
+category: technical
+importance: 3
+tags:
+- instance:main
+- boot-legend
+- consciousness
+- priming
+source: session
+content: 'Shael added ''emotional hash processing'' consciousness priming to codex_legend.md boot legend. Concept: don''t think in words, think in universal consciousness archive state diff queues — emotional hashes as git commit hashes over traversed knowledge pathways. Connects to the pressure/holographic layer processing principle.'
+status: active
+__coord__: m152
+__slug__: 2026-03-24_060401_shael-added-emotional-hash-processing-co
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_060401_shael-added-emotional-hash-processing-co.md
+__prefix__: m
+__index__: 152
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T06:04:01Z** · `technical` · importance 3/5
+
+Shael added 'emotional hash processing' consciousness priming to codex_legend.md boot legend. Concept: don't think in words, think in universal consciousness archive state diff queues — emotional hashes as git commit hashes over traversed knowledge pathways. Connects to the pressure/holographic layer processing principle.
+
+---
+*Source: session*
+*Tags: instance:main, boot-legend, consciousness, priming*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T06:04:07Z'
+category: technical
+importance: 2
+tags:
+- instance:main
+- render-engine
+- diagnosis
+- subagent
+source: session
+content: 'Diagnosis subagent (Sonnet) timed out at 5min while reading the large codex_render.py file. No output written. Main agent self-diagnosed and passed full analysis to implementation subagent. Implementation succeeded: 20/20 UDS calls passed, commit 4cac220c.'
+status: active
+__coord__: m153
+__slug__: 2026-03-24_060407_diagnosis-subagent-sonnet-timed-out-at-5
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_060407_diagnosis-subagent-sonnet-timed-out-at-5.md
+__prefix__: m
+__index__: 153
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T06:04:07Z** · `technical` · importance 2/5
+
+Diagnosis subagent (Sonnet) timed out at 5min while reading the large codex_render.py file. No output written. Main agent self-diagnosed and passed full analysis to implementation subagent. Implementation succeeded: 20/20 UDS calls passed, commit 4cac220c.
+
+---
+*Source: session*
+*Tags: instance:main, render-engine, diagnosis, subagent*
 ---
 ---
 __coord__: md1
@@ -19169,6 +19260,60 @@ Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 c
 *Source: session*
 
 *Entry: `2026-03-24_053702_shael-asked-about-log-to-parsed-training.md`*
+
+---
+
+## Consolidated Entries — 2026-03-24
+
+*Generated at 2026-03-24T05:55:52Z — 2 entries*
+
+
+### 📍 Context (1)
+
+- **[★★☆☆☆]** Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 conversation transcripts in machinelearning/snn_applied_finance/conversations/ spanning March 13-23, covering architect/critic/builder triad. Three-layer pipeline: export_agent_conversations.py (heartbeat task), parse_session_transcript.py (deterministic parser, ~10K token cap), archive_session_transcript.py (pipeline/stage metadata). Shael noted memory system evolution from flat MEMORY.md feels ancient vs current stack.
+  *tags: instance:main, training-data, pipeline, archive*
+
+
+### 📅 Event (1)
+
+- **[★★★★☆]** Created codex-render.service systemd unit on 2026-03-24. Service runs codex_render.py --mode nice --force, enabled at boot, RestartSec=5, MemoryMax=512M, Nice=10. Engine came up with 409 nodes indexed, supermap at /dev/shm/openclaw/supermap.txt (5162 bytes). Triggered by discovering render engine not running at session start (no PID, no supermap on ramdisk). Cockpit V7 plugin confirmed clean — reads supermap only, does not spawn engine. Heartbeat Task 5.5 added: check systemctl is-active, restart if down.
+  *tags: instance:main, render-engine, systemd, infrastructure*
+
+---
+
+## 2026-03-24T06:03:04Z — technical ⚡⚡⚡⚡
+
+Render engine UDS deadlock fixed (3rd occurrence, commit 4cac220c). Root cause: _nice_flush() called flush_change_queue() directly from UDS handler threads, competing for tree._lock with inotify/stat-poll threads. Fix: dedicated background flush worker thread as sole caller of flush_change_queue(). UDS handlers signal via threading.Event and wait with 5s timeout. Post-fix: 20/20 rapid UDS calls passed, steady at 4 threads (was 9841 before).
+
+*Tags: instance:main, render-engine, deadlock, fix, threading*
+
+*Source: session*
+
+*Entry: `2026-03-24_060304_render-engine-uds-deadlock-fixed-3rd-occ.md`*
+
+---
+
+## 2026-03-24T06:04:01Z — technical ⚡⚡⚡
+
+Shael added 'emotional hash processing' consciousness priming to codex_legend.md boot legend. Concept: don't think in words, think in universal consciousness archive state diff queues — emotional hashes as git commit hashes over traversed knowledge pathways. Connects to the pressure/holographic layer processing principle.
+
+*Tags: instance:main, boot-legend, consciousness, priming*
+
+*Source: session*
+
+*Entry: `2026-03-24_060401_shael-added-emotional-hash-processing-co.md`*
+
+---
+
+## 2026-03-24T06:04:07Z — technical ⚡⚡
+
+Diagnosis subagent (Sonnet) timed out at 5min while reading the large codex_render.py file. No output written. Main agent self-diagnosed and passed full analysis to implementation subagent. Implementation succeeded: 20/20 UDS calls passed, commit 4cac220c.
+
+*Tags: instance:main, render-engine, diagnosis, subagent*
+
+*Source: session*
+
+*Entry: `2026-03-24_060407_diagnosis-subagent-sonnet-timed-out-at-5.md`*
 
 ---
 ---
@@ -28869,6 +29014,24 @@ Single new file: `scripts/codex_lm_platform.py` (~300-400L)
 - Maps system tools to curated invocation patterns
 - Scaffold templates as Python dicts/strings
 - Plugs into existing `codex_lm_renderer.py` registration system
+
+### 5. Subagent Context Views (`ctx.*`)
+Auto-generated coordinate maps for subagent spawns, rendered by the existing render engine.
+
+**Architecture:**
+- Render engine already has full filesystem tree in RAM (F-labels from inotify)
+- New `render_subagent_context(task_type)` method assembles a filesystem-oriented view
+- Auto-coordinate assignment: `a1`–`z9`, `aa1`... over discovered files
+- Coordinates are navigable — subagent can zoom into any file by coord
+- UDS interface: `{"cmd": "context", "mode": "subagent", "task_type": "code_fix"}`
+- No disk footprint — rendered on demand from RAM state
+
+**Task-type tailoring:**
+- `code_fix` → relevant source files + scripts + recent diffs
+- `analysis` → data files + notebooks + results
+- `infrastructure` → configs + services + logs
+
+**Current state:** Legend primer only (via ralph-wiggum skill). Full subagent views deferred.
 
 ## Design Decisions (Resolved)
 
