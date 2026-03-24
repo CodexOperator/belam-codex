@@ -6,7 +6,7 @@ importance: 2
 tags: [instance:main, relationship-mapper, tasks, coordinates]
 source: "session"
 content: "Shael confirmed task build-incremental-relationship-mapper is complete — the cron runs every 15 min via system crontab. Task was marked done in the primitive. Note: t1 in the coordinate system maps to build-codex-layer-v1 (archived), not the relationship mapper which had no numbered coordinate assigned."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
