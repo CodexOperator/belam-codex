@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: architect_design
+status: phase1_review
 priority: high
 type: infrastructure
 version: container-build-and-test
@@ -27,6 +27,7 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-24 | belam-main | Pipeline instance created |
+| architect_design | 2026-03-24 | architect | Design v1: Container build and disaster recovery validation. 5 deliverables (~210L, 4-5 files). D1: Docker install script (requires sudo). D2: 11-test validation script (build→start→health→mounts→deps→CLI). D3: disaster recovery runbook (15-30 min recovery from complete VM loss). D4: container update workflow. D5: Dockerfile fixes discovered during build. Docker NOT installed on host — D1 is the gate. Builder must either have sudo or Shael installs Docker manually. 13 tests total. 4 open questions for critic. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

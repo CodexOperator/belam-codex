@@ -1,0 +1,15 @@
+{
+  "version": "container-build-and-test",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-24T15:51:15.686869+00:00",
+  "pipeline_session_id": "e9f3b084-88c2-4fb9-8025-582ed845cb45",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
