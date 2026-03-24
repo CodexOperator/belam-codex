@@ -1,11 +1,16 @@
 {
   "status": "complete",
-  "session": "ac5f9321-0146-42bf-822d-d6d3e4e900aa",
+  "session": "f8384151-6535-4ce2-8d9e-19d3e4ab48c0",
   "instance": "main",
   "date": "2026-03-24",
-  "completed_at": "2026-03-24T03:02:47Z",
+  "completed_at": "2026-03-24T04:55:30Z",
   "primitives_created": [
-    "memory/entries/2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2.md"
+    "memory/entries/2026-03-24_045512_codex-cockpit-plugin-v7-rewrite-discover.md",
+    "memory/entries/2026-03-24_045518_added-anchor-triggered-fresh-render-code.md",
+    "lessons/appendsystemcontext-not-reliable-use-prependsystemcontext.md",
+    "lessons/supermap-injection-order-supermap-legend-scaffold.md",
+    "lessons/render-engine-uds-supermap-command-triggers-file-write.md",
+    "decisions/codex-cockpit-v7-single-prepend-block-architecture.md"
   ],
-  "last_run": "2026-03-24T03:02:47Z"
+  "last_run": "2026-03-24T04:55:30Z"
 }
