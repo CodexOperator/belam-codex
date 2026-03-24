@@ -37,7 +37,8 @@
 
 3. If no pipeline is running, find next eligible infra task:
    - `ls tasks/*.md` — look for `status: open` + `tags:` containing `infrastructure`
-   - Check `depends_on` are satisfied
+   - **Sort by priority:** high → medium → low. Within same priority, prefer tasks with no unmet `depends_on`
+   - Check `depends_on` AND `upstream` are satisfied (upstream tasks must be `done` or `archived`)
    - Launch: `python3 scripts/launch_pipeline.py {slug} --desc "..." --type infrastructure --kickoff`
    - Update task status to `in_pipeline`
 

@@ -6,8 +6,9 @@ created: 2026-03-23
 owner: belam
 depends_on: []
 upstream: [codex-engine-v3-legendary-map, codex-engine-v3-temporal-mcp-autoclave]
-downstream: []
+downstream: [ram-git-worktree-bootstrap, ram-git-diff-pipeline, ram-git-sync-daemon, ram-git-undo-primitive, ram-git-pipeline-signaling]
 tags: [codex-engine, render-engine, ram, codex-format, research]
+notes: D7 deliverables extracted into 5 standalone sub-tasks (2026-03-24). This task retains D1-D6 (RAM-first render runtime). D7.4 (agent branch isolation) deferred to Phase 3.
 pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
 ---
 

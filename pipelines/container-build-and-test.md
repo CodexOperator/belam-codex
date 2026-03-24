@@ -1,6 +1,8 @@
 ---
 primitive: pipeline
-status: phase1_review
+status: archived
+archived: 2026-03-24
+archive_reason: Pipeline caused gateway shutdown and PATH loss. Stopped by Shael.
 priority: high
 type: infrastructure
 version: container-build-and-test
@@ -28,6 +30,7 @@ _Architect designs → Critic reviews → Builder implements_
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-24 | belam-main | Pipeline instance created |
 | architect_design | 2026-03-24 | architect | Design v1: Container build and disaster recovery validation. 5 deliverables (~210L, 4-5 files). D1: Docker install script (requires sudo). D2: 11-test validation script (build→start→health→mounts→deps→CLI). D3: disaster recovery runbook (15-30 min recovery from complete VM loss). D4: container update workflow. D5: Dockerfile fixes discovered during build. Docker NOT installed on host — D1 is the gate. Builder must either have sudo or Shael installs Docker manually. 13 tests total. 4 open questions for critic. |
+| critic_design_review | 2026-03-24 | critic | APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 2 MED FLAGs, 1 LOW FLAG. FLAG-1 HIGH: systemd gateway on port 18789 — validation must stop it before container start and restart after tests. Use trap for cleanup on failure. FLAG-2 HIGH: openclaw.json NOT in git (verified) — disaster recovery runbook incorrectly assumes it's preserved. Config at ~/.openclaw/openclaw.json is outside workspace, not tracked. Document separate backup requirement. FLAG-3 MED: docker compose exec tests need running-container guard. FLAG-4 MED: sleep 10 may not be enough for ARM64 cold start — use retry loop. FLAG-5 LOW: install script idempotency. Sudo works without password. openclaw gateway run confirmed correct. Q1: sudo OK. Q2: gateway run exists. Q3: non-destructive validation. Q4: CLI verify only, no dispatch. Review at: pipeline_builds/container-build-and-test_critic_design_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

@@ -6,16 +6,22 @@
       "completed_at": "2026-03-24 15:51",
       "agent": "architect",
       "notes": "Design v1: Container build and disaster recovery validation. 5 deliverables (~210L, 4-5 files). D1: Docker install script (requires sudo). D2: 11-test validation script (build\u2192start\u2192health\u2192mounts\u2192deps\u2192CLI). D3: disaster recovery runbook (15-30 min recovery from complete VM loss). D4: container update workflow. D5: Dockerfile fixes discovered during build. Docker NOT installed on host \u2014 D1 is the gate. Builder must either have sudo or Shael installs Docker manually. 13 tests total. 4 open questions for critic."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 15:53",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 2 MED FLAGs, 1 LOW FLAG. FLAG-1 HIGH: systemd gateway on port 18789 \u2014 validation must stop it before container start and restart after tests. Use trap for cleanup on failure. FLAG-2 HIGH: openclaw.json NOT in git (verified) \u2014 disaster recovery runbook incorrectly assumes it's preserved. Config at ~/.openclaw/openclaw.json is outside workspace, not tracked. Document separate backup requirement. FLAG-3 MED: docker compose exec tests need running-container guard. FLAG-4 MED: sleep 10 may not be enough for ARM64 cold start \u2014 use retry loop. FLAG-5 LOW: install script idempotency. Sudo works without password. openclaw gateway run confirmed correct. Q1: sudo OK. Q2: gateway run exists. Q3: non-destructive validation. Q4: CLI verify only, no dispatch. Review at: pipeline_builds/container-build-and-test_critic_design_review.md"
     }
   },
-  "status": "phase1_review",
-  "status_updated": "2026-03-24 15:51",
-  "current_agent": "critic_design_review",
-  "last_dispatched": "2026-03-24T15:51:15.704920+00:00",
+  "status": "phase1_build",
+  "status_updated": "2026-03-24 15:53",
+  "current_agent": "builder_implementation",
+  "last_dispatched": "2026-03-24T15:53:06.935409+00:00",
   "dispatch_claimed": false,
   "phase1": {
-    "stage": "architect_design"
+    "stage": "critic_design_review"
   },
-  "last_updated": "2026-03-24 15:51",
-  "pending_action": "critic_design_review"
+  "last_updated": "2026-03-24 15:53",
+  "pending_action": "builder_implementation"
 }

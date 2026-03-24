@@ -1,7 +1,8 @@
 ---
 primitive: task
-status: open
+status: superseded
 priority: high
+superseded_by: [coordinate-first-boot-convention, primitive-access-compliance-tracking, persona-filtered-supermap-views]
 created: 2026-03-20
 owner: belam
 depends_on: []  # build-codex-engine doesn't exist as a task; engine is live
