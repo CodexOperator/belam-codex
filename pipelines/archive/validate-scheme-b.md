@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: local_analysis_complete
+status: archived
 priority: high
 version: validate-scheme-b
 spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml

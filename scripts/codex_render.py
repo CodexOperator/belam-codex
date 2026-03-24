@@ -2119,6 +2119,9 @@ class CodexRenderEngine:
         # 2. Anchor
         self.diff_engine.set_anchor()
 
+        # 2a. Write initial supermap file for sync plugin reads
+        self._write_supermap_file()
+
         # 3. File watcher
         watcher_type = 'poll'
         try:
@@ -2289,6 +2292,10 @@ class CodexRenderEngine:
                 if self.mode == self.MODE_GREEDY:
                     self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
 
+        # Write supermap file after every greedy-mode change
+        if self.mode == self.MODE_GREEDY:
+            self._write_supermap_file()
+
     def flush_change_queue(self) -> int:
         """Process all queued file changes (nice mode). Returns count processed."""
         count = 0
@@ -2299,7 +2306,25 @@ class CodexRenderEngine:
         # Also check LM changes after flush
         if count > 0:
             self.diff_engine.check_lm_change()
+            self._write_supermap_file()
         return count
+
+    def _write_supermap_file(self) -> None:
+        """Atomically write the current supermap to /dev/shm/openclaw/supermap.txt.
+
+        Uses RAM-backed tmpfs (/dev/shm) to keep ephemeral output isolated from
+        workspace disk files. Write-to-tmp + os.rename for atomic replacement.
+        The cockpit plugin reads this file synchronously.
+        """
+        try:
+            shm_dir = Path('/dev/shm/openclaw')
+            shm_dir.mkdir(parents=True, exist_ok=True)
+            content = self.tree.render_supermap()
+            tmp_path = shm_dir / '.supermap.txt.tmp'
+            tmp_path.write_text(content, encoding='utf-8')
+            os.rename(str(tmp_path), str(shm_dir / 'supermap.txt'))
+        except Exception:
+            pass
 
     def _print_status(self) -> None:
         uptime = time.time() - self._start_time

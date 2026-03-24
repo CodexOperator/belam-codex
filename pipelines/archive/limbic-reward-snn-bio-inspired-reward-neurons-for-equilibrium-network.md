@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: local_analysis_in_progress
+status: archived
 priority: high
 type: research
 version: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network

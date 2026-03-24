@@ -1501,6 +1501,49 @@ Add a `HeartbeatTrigger` thread to `codex_render.py` that:
 ---
 ---
 primitive: decision
+status: proposed
+date: 2026-03-24
+context: (add context)
+alternatives: []
+rationale: (add rationale)
+consequences: []
+upstream: []
+downstream: []
+tags:
+- instance:main
+- gateway
+- watchdog
+- systemd
+- cron
+- deferred
+__coord__: d26
+__slug__: disable-watchdog-until-systemd-service-fixed
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/disable-watchdog-until-systemd-service-fixed.md
+__prefix__: d
+__index__: 26
+__ptype__: decisions
+---
+# disable-watchdog-until-systemd-service-fixed
+
+## Context
+
+_What problem or situation prompted this decision?_
+
+## Options Considered
+
+- **Option A:** ...
+- **Option B:** ...
+
+## Decision
+
+_State the decision clearly._
+
+## Consequences
+
+_What follows from this choice? Trade-offs, risks, next steps._
+---
+---
+primitive: decision
 status: accepted
 date: 2026-03-21
 context: (add context)
@@ -1516,11 +1559,11 @@ tags:
 - e2
 - namespace
 - architecture
-__coord__: d26
+__coord__: d27
 __slug__: e3-e2-namespace-chain-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/e3-e2-namespace-chain-architecture.md
 __prefix__: d
-__index__: 26
+__index__: 27
 __ptype__: decisions
 ---
 # e3-e2-namespace-chain-architecture
@@ -1559,11 +1602,11 @@ tags:
 - lm
 - coordinate-grammar
 - pipeline
-__coord__: d27
+__coord__: d28
 __slug__: heartbeat-md-e0-primary-path
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/heartbeat-md-e0-primary-path.md
 __prefix__: d
-__index__: 27
+__index__: 28
 __ptype__: decisions
 ---
 # heartbeat-md-e0-primary-path
@@ -1604,11 +1647,11 @@ decided_by:
 downstream:
 - memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe
 - memory/2026-03-17_221720_hierarchical-memory-system-built-and-dep
-__coord__: d28
+__coord__: d29
 __slug__: hierarchical-memory-system
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/hierarchical-memory-system.md
 __prefix__: d
-__index__: 28
+__index__: 29
 __ptype__: decisions
 ---
 # Hierarchical Memory Consolidation System
@@ -1674,11 +1717,11 @@ tags:
 - knowledge-graph
 - primitives
 - relationships
-__coord__: d29
+__coord__: d30
 __slug__: incremental-relationship-mapping-via-pairwise-opus-comparison
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/incremental-relationship-mapping-via-pairwise-opus-comparison.md
 __prefix__: d
-__index__: 29
+__index__: 30
 __ptype__: decisions
 ---
 # Incremental Relationship Mapping via Pairwise Opus Comparison
@@ -1728,11 +1771,11 @@ tags:
 - ux
 - belam
 superseded_by: decision/codex-engine-v1-architecture
-__coord__: d30
+__coord__: d31
 __slug__: indexed-command-interface
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/indexed-command-interface.md
 __prefix__: d
-__index__: 30
+__index__: 31
 __ptype__: decisions
 ---
 # Indexed Command Interface as Default R UX
@@ -1805,11 +1848,11 @@ tags:
 - pipeline
 - infrastructure
 - local-analysis
-__coord__: d31
+__coord__: d32
 __slug__: infra-pipelines-use-local-analysis
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/infra-pipelines-use-local-analysis.md
 __prefix__: d
-__index__: 31
+__index__: 32
 __ptype__: decisions
 ---
 # infra-pipelines-use-local-analysis
@@ -1853,11 +1896,11 @@ tags:
 - diff
 - token-efficiency
 - architecture
-__coord__: d32
+__coord__: d33
 __slug__: inter-agent-diff-comms-turn-by-turn
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/inter-agent-diff-comms-turn-by-turn.md
 __prefix__: d
-__index__: 32
+__index__: 33
 __ptype__: decisions
 ---
 # inter-agent-diff-comms-turn-by-turn
@@ -1897,11 +1940,11 @@ tags:
 - legendary-map
 - supermap
 - architecture
-__coord__: d33
+__coord__: d34
 __slug__: legendary-map-as-lm-namespace-on-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/legendary-map-as-lm-namespace-on-supermap.md
 __prefix__: d
-__index__: 33
+__index__: 34
 __ptype__: decisions
 ---
 # legendary-map-as-lm-namespace-on-supermap
@@ -1935,11 +1978,11 @@ tags:
 upstream:
 - decision/codex-engine-v1-architecture
 downstream: []
-__coord__: d34
+__coord__: d35
 __slug__: live-diff-streaming-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/live-diff-streaming-architecture.md
 __prefix__: d
-__index__: 34
+__index__: 35
 __ptype__: decisions
 ---
 # Live Diff Streaming Architecture
@@ -2171,11 +2214,11 @@ tags:
 - codex-engine
 - token-efficiency
 - design
-__coord__: d35
+__coord__: d36
 __slug__: lm-design-tool-patterns-navigable-runnable
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-design-tool-patterns-navigable-runnable.md
 __prefix__: d
-__index__: 35
+__index__: 36
 __ptype__: decisions
 ---
 # lm-design-tool-patterns-navigable-runnable
@@ -2216,11 +2259,11 @@ tags:
 - dot-syntax
 - coordinate-grammar
 - codex-engine
-__coord__: d36
+__coord__: d37
 __slug__: lm-dot-syntax-workflow-hierarchy
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-dot-syntax-workflow-hierarchy.md
 __prefix__: d
-__index__: 36
+__index__: 37
 __ptype__: decisions
 ---
 # lm-dot-syntax-workflow-hierarchy
@@ -2258,11 +2301,11 @@ tags:
 - infrastructure
 - coordinate-system
 - scaffold
-__coord__: d37
+__coord__: d38
 __slug__: lm-v2-task-coordinate-native-launch-and-scaffold
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-v2-task-coordinate-native-launch-and-scaffold.md
 __prefix__: d
-__index__: 37
+__index__: 38
 __ptype__: decisions
 ---
 # lm-v2-task-coordinate-native-launch-and-scaffold
@@ -2305,11 +2348,11 @@ tags:
 - orchestration
 - concurrency
 - gate
-__coord__: d38
+__coord__: d39
 __slug__: max-concurrent-pipelines-increased-to-2
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/max-concurrent-pipelines-increased-to-2.md
 __prefix__: d
-__index__: 38
+__index__: 39
 __ptype__: decisions
 ---
 # max-concurrent-pipelines-increased-to-2
@@ -2364,11 +2407,11 @@ downstream:
 - memory/2026-03-18_203356_memory-hierarchy-now-indexed-as-primitiv
 - task/build-codex-engine
 - decision/codex-engine-v1-architecture
-__coord__: d39
+__coord__: d40
 __slug__: memory-as-index-not-store
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-as-index-not-store.md
 __prefix__: d
-__index__: 39
+__index__: 40
 __ptype__: decisions
 ---
 # Decision: MEMORY.md as Boot Index, Not Knowledge Store
@@ -2395,11 +2438,11 @@ downstream:
 upstream:
 - decision/memory-as-index-not-store
 - memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe
-__coord__: d40
+__coord__: d41
 __slug__: memory-as-primitive-type
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-as-primitive-type.md
 __prefix__: d
-__index__: 40
+__index__: 41
 __ptype__: decisions
 ---
 # Decision: Memory Hierarchy as Primitive Type
@@ -2445,11 +2488,11 @@ tags:
 - memory-extract
 - session-memory
 - error-handling
-__coord__: d41
+__coord__: d42
 __slug__: memory-extract-hook-error-handling-fix
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-extract-hook-error-handling-fix.md
 __prefix__: d
-__index__: 41
+__index__: 42
 __ptype__: decisions
 ---
 # memory-extract-hook-error-handling-fix
@@ -2503,11 +2546,11 @@ downstream:
 - memory/2026-03-18_233943_built-phase-1-revision-system-new-stages
 - lesson/openclaw-agent-routes-to-active-session
 - memory/2026-03-17_033425_all-three-agents-architect-critic-builde
-__coord__: d42
+__coord__: d43
 __slug__: orchestration-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/orchestration-architecture.md
 __prefix__: d
-__index__: 42
+__index__: 43
 __ptype__: decisions
 ---
 # Decision: Centralized Orchestration Architecture
@@ -2584,11 +2627,11 @@ tags:
 - pipeline
 - infrastructure
 - architecture
-__coord__: d43
+__coord__: d44
 __slug__: orchestration-fire-and-forget-dispatch
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/orchestration-fire-and-forget-dispatch.md
 __prefix__: d
-__index__: 43
+__index__: 44
 __ptype__: decisions
 ---
 # orchestration-fire-and-forget-dispatch
@@ -2627,11 +2670,11 @@ tags:
 - output-codec
 - coordinate-grammar
 - architecture
-__coord__: d44
+__coord__: d45
 __slug__: output-codec-coordinate-compression
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/output-codec-coordinate-compression.md
 __prefix__: d
-__index__: 44
+__index__: 45
 __ptype__: decisions
 ---
 # output-codec-coordinate-compression
@@ -2674,11 +2717,11 @@ upstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
 downstream:
 - memory/2026-03-17_134119_phase-2-cold-start-protocol-agent-contex
-__coord__: d45
+__coord__: d46
 __slug__: phase2-human-gate
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/phase2-human-gate.md
 __prefix__: d
-__index__: 45
+__index__: 46
 __ptype__: decisions
 ---
 # Phase 2 Requires Explicit Human Approval
@@ -2719,11 +2762,11 @@ tags:
 - pipeline
 - convention
 - infrastructure
-__coord__: d46
+__coord__: d47
 __slug__: pipeline-builds-per-version-subdirectory
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-builds-per-version-subdirectory.md
 __prefix__: d
-__index__: 46
+__index__: 47
 __ptype__: decisions
 ---
 # Pipeline Builds: Per-Version Subdirectories
@@ -2797,11 +2840,11 @@ tags:
 - plugin
 - supermap
 - prompt-optimization
-__coord__: d47
+__coord__: d48
 __slug__: pipeline-context-plugin-retired-supermap-sufficient
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-context-plugin-retired-supermap-sufficient.md
 __prefix__: d
-__index__: 47
+__index__: 48
 __ptype__: decisions
 ---
 # pipeline-context-plugin-retired-supermap-sufficient
@@ -2842,11 +2885,11 @@ tags:
 - orchestration
 - pipeline
 - dedup
-__coord__: d48
+__coord__: d49
 __slug__: pipeline-kick-duplicate-dispatch-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-kick-duplicate-dispatch-guard.md
 __prefix__: d
-__index__: 48
+__index__: 49
 __ptype__: decisions
 ---
 # pipeline-kick-duplicate-dispatch-guard
@@ -2887,11 +2930,11 @@ tags:
 - encoding
 - snn
 - decision
-__coord__: d49
+__coord__: d50
 __slug__: population-coding-over-delta
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/population-coding-over-delta.md
 __prefix__: d
-__index__: 49
+__index__: 50
 __ptype__: decisions
 ---
 # Population Coding Over Delta Encoding (Default)
@@ -2924,11 +2967,11 @@ tags:
 - market-making
 - knowledge
 knowledge: predictionmarket-specialist
-__coord__: d50
+__coord__: d51
 __slug__: predictionmarket-specialist-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/predictionmarket-specialist-skill.md
 __prefix__: d
-__index__: 50
+__index__: 51
 __ptype__: decisions
 ---
 # Decision: Prediction Market Specialist Skill
@@ -2983,11 +3026,11 @@ tags:
 - primitives
 - knowledge-graph
 - conventions
-__coord__: d51
+__coord__: d52
 __slug__: primitive-relationship-graph
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/primitive-relationship-graph.md
 __prefix__: d
-__index__: 51
+__index__: 52
 __ptype__: decisions
 ---
 # Primitive Relationship Graph
@@ -3076,11 +3119,11 @@ cli: R lessons (for infrastructure-related findings)
 downstream:
 - memory/2026-03-17_033419_built-two-major-systems-tonight-1-analys
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d52
+__coord__: d53
 __slug__: quant-infrastructure-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/quant-infrastructure-skill.md
 __prefix__: d
-__index__: 52
+__index__: 53
 __ptype__: decisions
 ---
 # Decision: Quant Infrastructure Skill
@@ -3132,11 +3175,11 @@ tags:
 - workflow
 - knowledge
 knowledge: quant-workflow
-__coord__: d53
+__coord__: d54
 __slug__: quant-workflow-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/quant-workflow-skill.md
 __prefix__: d
-__index__: 53
+__index__: 54
 __ptype__: decisions
 ---
 # Decision: Quant Workflow Skill
@@ -3191,11 +3234,11 @@ tags:
 - R-command
 - context-injection
 - legendary-map
-__coord__: d54
+__coord__: d55
 __slug__: r-command-default-shows-legend-plus-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-command-default-shows-legend-plus-supermap.md
 __prefix__: d
-__index__: 54
+__index__: 55
 __ptype__: decisions
 ---
 # r-command-default-shows-legend-plus-supermap
@@ -3234,11 +3277,11 @@ tags:
 - render-engine
 - cli
 - architecture
-__coord__: d55
+__coord__: d56
 __slug__: r-command-render-layer-cli
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-command-render-layer-cli.md
 __prefix__: d
-__index__: 55
+__index__: 56
 __ptype__: decisions
 ---
 # r-command-render-layer-cli
@@ -3272,11 +3315,11 @@ tags:
 - cockpit
 - context
 created: 2026-03-23
-__coord__: d56
+__coord__: d57
 __slug__: r-f-label-split-by-agent-role
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-f-label-split-by-agent-role.md
 __prefix__: d
-__index__: 56
+__index__: 57
 __ptype__: decisions
 ---
 # Decision: R/F Label Split by Agent Role
@@ -3328,14 +3371,57 @@ tags:
 - architecture
 - context-injection
 - codex-cockpit
-__coord__: d57
+__coord__: d58
 __slug__: render-engine-as-default-context-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-as-default-context-layer.md
 __prefix__: d
-__index__: 57
+__index__: 58
 __ptype__: decisions
 ---
 # render-engine-as-default-context-layer
+
+## Context
+
+_What problem or situation prompted this decision?_
+
+## Options Considered
+
+- **Option A:** ...
+- **Option B:** ...
+
+## Decision
+
+_State the decision clearly._
+
+## Consequences
+
+_What follows from this choice? Trade-offs, risks, next steps._
+---
+---
+primitive: decision
+status: proposed
+date: 2026-03-24
+context: (add context)
+alternatives: []
+rationale: (add rationale)
+consequences: []
+upstream:
+- decision/codex-engine-v2-live-diff-architecture
+- decision/render-engine-as-default-context-layer
+downstream: []
+tags:
+- instance:main
+- render-engine
+- architecture
+- diffing
+__coord__: d59
+__slug__: render-engine-nice-vs-greedy-mode
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-nice-vs-greedy-mode.md
+__prefix__: d
+__index__: 59
+__ptype__: decisions
+---
+# render-engine-nice-vs-greedy-mode
 
 ## Context
 
@@ -3371,11 +3457,11 @@ tags:
 - render-engine
 - robustness
 - session-startup
-__coord__: d58
+__coord__: d60
 __slug__: render-engine-pid-file-and-force-flag
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-pid-file-and-force-flag.md
 __prefix__: d
-__index__: 58
+__index__: 60
 __ptype__: decisions
 ---
 # render-engine-pid-file-and-force-flag
@@ -3416,11 +3502,11 @@ tags:
 - pipeline
 - run-experiment
 - architecture
-__coord__: d59
+__coord__: d61
 __slug__: run-experiment-phase-flag-for-notebook-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md
 __prefix__: d
-__index__: 59
+__index__: 61
 __ptype__: decisions
 ---
 # run-experiment-phase-flag-for-notebook-cell-targeting
@@ -3461,11 +3547,11 @@ tags:
 - skills
 - knowledge
 - workflow
-__coord__: d60
+__coord__: d62
 __slug__: skill-extraction-from-reports
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-extraction-from-reports.md
 __prefix__: d
-__index__: 60
+__index__: 62
 __ptype__: decisions
 ---
 # Extract Domain Reports Into Skills + Knowledge Files
@@ -3500,11 +3586,11 @@ tags:
 - knowledge-management
 downstream:
 - memory/2026-03-18_192651_convention-established-every-workspace-s
-__coord__: d61
+__coord__: d63
 __slug__: skill-primitive-pairing
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-primitive-pairing.md
 __prefix__: d
-__index__: 61
+__index__: 63
 __ptype__: decisions
 ---
 # Decision: Every Skill Gets a Primitive
@@ -3543,11 +3629,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: d62
+__coord__: d64
 __slug__: stop-auto-logging-pipeline-stage-transitions
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/stop-auto-logging-pipeline-stage-transitions.md
 __prefix__: d
-__index__: 62
+__index__: 64
 __ptype__: decisions
 ---
 # stop-auto-logging-pipeline-stage-transitions
@@ -3586,11 +3672,11 @@ tags:
 - anchor
 - diff
 - cockpit-plugin
-__coord__: d63
+__coord__: d65
 __slug__: supermap-anchor-diff-flags-in-codex-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-anchor-diff-flags-in-codex-engine.md
 __prefix__: d
-__index__: 63
+__index__: 65
 __ptype__: decisions
 ---
 # supermap-anchor-diff-flags-in-codex-engine
@@ -3636,11 +3722,11 @@ tags:
 - legend
 - r-command
 importance: 3
-__coord__: d64
+__coord__: d66
 __slug__: supermap-pure-signal-legend-as-orientation-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-pure-signal-legend-as-orientation-layer.md
 __prefix__: d
-__index__: 64
+__index__: 66
 __ptype__: decisions
 ---
 # supermap-pure-signal-legend-as-orientation-layer
@@ -3687,11 +3773,11 @@ tags:
 - lifecycle
 - boot-optimization
 note: References to embed_primitives.py filtering are stale — codex engine supermap handles boot index filtering
-__coord__: d65
+__coord__: d67
 __slug__: superseded-primitive-lifecycle
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/superseded-primitive-lifecycle.md
 __prefix__: d
-__index__: 65
+__index__: 67
 __ptype__: decisions
 ---
 # Superseded Primitive Lifecycle
@@ -3744,11 +3830,11 @@ tags:
 - experiments
 - builder
 - architecture
-__coord__: d66
+__coord__: d68
 __slug__: supervised-builder-experiments
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supervised-builder-experiments.md
 __prefix__: d
-__index__: 66
+__index__: 68
 __ptype__: decisions
 ---
 # Supervised Builder Agent for Experiment Execution
@@ -3794,11 +3880,11 @@ tags:
 - symbolic-dispatch
 - coordinate-grammar
 - architecture
-__coord__: d67
+__coord__: d69
 __slug__: symbolic-dispatch-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/symbolic-dispatch-architecture.md
 __prefix__: d
-__index__: 67
+__index__: 69
 __ptype__: decisions
 ---
 # symbolic-dispatch-architecture
@@ -3842,11 +3928,11 @@ tags:
 - workflow
 downstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d68
+__coord__: d70
 __slug__: two-phase-backtest-workflow
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/two-phase-backtest-workflow.md
 __prefix__: d
-__index__: 68
+__index__: 70
 __ptype__: decisions
 ---
 # Two-Phase Backtest Workflow
@@ -3870,11 +3956,11 @@ tags:
 - orchestration
 - e0
 - resilience
-__coord__: d69
+__coord__: d71
 __slug__: unclaimed-dispatch-recovery-in-sweep
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/unclaimed-dispatch-recovery-in-sweep.md
 __prefix__: d
-__index__: 69
+__index__: 71
 __ptype__: decisions
 ---
 # unclaimed-dispatch-recovery-in-sweep
@@ -3908,11 +3994,11 @@ tags:
 - heartbeat
 - config
 created: 2026-03-23
-__coord__: d70
+__coord__: d72
 __slug__: webhook-hooks-enabled-for-diff-heartbeat
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/webhook-hooks-enabled-for-diff-heartbeat.md
 __prefix__: d
-__index__: 70
+__index__: 72
 __ptype__: decisions
 ---
 # Decision: Webhook Hooks Enabled for Diff-Triggered Heartbeat
@@ -3953,11 +4039,11 @@ tags:
 - zoom
 - context-efficiency
 importance: 3
-__coord__: d71
+__coord__: d73
 __slug__: zoom-replaces-supermap-injection-option
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/zoom-replaces-supermap-injection-option.md
 __prefix__: d
-__index__: 71
+__index__: 73
 __ptype__: decisions
 ---
 # zoom-replaces-supermap-injection-option
@@ -5864,6 +5950,10 @@ __ptype__: knowledge
 ## Notes
 
 *(Add contextual notes here as patterns emerge)*
+
+## See Also
+
+- [→ Daily 2026-03-24](../memory/2026-03-24.md)
 ---
 ---
 primitive: knowledge
@@ -9341,6 +9431,10 @@ __ptype__: knowledge
 ## Notes
 
 *(Add contextual notes here as patterns emerge)*
+
+## See Also
+
+- [→ Daily 2026-03-24](../memory/2026-03-24.md)
 ---
 ---
 topic: SNN Architecture Patterns
@@ -9792,6 +9886,10 @@ __ptype__: knowledge
 ## Notes
 
 *(Add contextual notes here as patterns emerge)*
+
+## See Also
+
+- [→ Daily 2026-03-24](../memory/2026-03-24.md)
 ---
 ---
 primitive: lesson
@@ -10261,6 +10359,45 @@ Don't use deterministic session IDs (UUID5) hoping to "continue" a session — O
 ---
 ---
 primitive: lesson
+date: '2026-03-24'
+source: (add source)
+confidence: '?'
+upstream:
+- decision/render-engine-nice-vs-greedy-mode
+- decision/codex-cockpit-plugin-architecture
+downstream: []
+tags:
+- instance:main
+- render-engine
+- cockpit
+- bug
+__coord__: l13
+__slug__: cockpit-plugin-respawns-engine-without-mode-flag
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/cockpit-plugin-respawns-engine-without-mode-flag.md
+__prefix__: l
+__index__: 13
+__ptype__: lessons
+---
+# cockpit-plugin-respawns-engine-without-mode-flag
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
+primitive: lesson
 date: 2026-03-20
 source: First Codex Engine session with Shael — 2026-03-20
 confidence: high
@@ -10272,11 +10409,11 @@ tags:
 - architecture
 - attention
 - ux
-__coord__: l13
+__coord__: l14
 __slug__: codex-engine-feels-native-at-v1
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/codex-engine-feels-native-at-v1.md
 __prefix__: l
-__index__: 13
+__index__: 14
 __ptype__: lessons
 ---
 # Codex Engine Feels Native at V1
@@ -10322,11 +10459,11 @@ tags:
 - v3
 - phase2
 - dulwich
-__coord__: l14
+__coord__: l15
 __slug__: codex-render-test-mode-dulwich-session-branch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/codex-render-test-mode-dulwich-session-branch.md
 __prefix__: l
-__index__: 14
+__index__: 15
 __ptype__: lessons
 ---
 # codex-render-test-mode-dulwich-session-branch
@@ -10359,11 +10496,11 @@ tags:
 - abstention
 applies_to:
 - snn-applied-finance
-__coord__: l15
+__coord__: l16
 __slug__: confident-abstention-is-signal
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/confident-abstention-is-signal.md
 __prefix__: l
-__index__: 15
+__index__: 16
 __ptype__: lessons
 ---
 # Confident Abstention Is a Real Signal Type
@@ -10383,11 +10520,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: l16
+__coord__: l17
 __slug__: consolidate-agent-memory-was-stage-spam-source
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/consolidate-agent-memory-was-stage-spam-source.md
 __prefix__: l
-__index__: 16
+__index__: 17
 __ptype__: lessons
 ---
 # consolidate-agent-memory-was-stage-spam-source
@@ -10420,11 +10557,11 @@ tags:
 - input-mode
 applies_to:
 - snn-applied-finance
-__coord__: l17
+__coord__: l18
 __slug__: continuous-input-beats-spike-mode
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/continuous-input-beats-spike-mode.md
 __prefix__: l
-__index__: 17
+__index__: 18
 __ptype__: lessons
 ---
 # Continuous Input Mode Consistently Outperforms Spike Mode
@@ -10449,11 +10586,11 @@ tags:
 - experimental-design
 applies_to:
 - snn-applied-finance
-__coord__: l18
+__coord__: l19
 __slug__: control-input-dimensionality-in-encoding-comparisons
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/control-input-dimensionality-in-encoding-comparisons.md
 __prefix__: l
-__index__: 18
+__index__: 19
 __ptype__: lessons
 ---
 # Control Input Dimensionality When Comparing Encoding Schemes
@@ -10482,11 +10619,11 @@ tags:
 - codex-engine
 - symbolic-dispatch
 - coordinate-grammar
-__coord__: l19
+__coord__: l20
 __slug__: coordinate-dispatch-without-r-prefix
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/coordinate-dispatch-without-r-prefix.md
 __prefix__: l
-__index__: 19
+__index__: 20
 __ptype__: lessons
 ---
 # coordinate-dispatch-without-r-prefix
@@ -10521,11 +10658,11 @@ tags:
 - experiment
 - recovery
 - pid
-__coord__: l20
+__coord__: l21
 __slug__: dead-pid-recovery-must-update-pipeline-state
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dead-pid-recovery-must-update-pipeline-state.md
 __prefix__: l
-__index__: 20
+__index__: 21
 __ptype__: lessons
 ---
 # dead-pid-recovery-must-update-pipeline-state
@@ -10558,11 +10695,11 @@ tags:
 - architecture
 - context
 created: 2026-03-23
-__coord__: l21
+__coord__: l22
 __slug__: diff-updates-are-turn-based-not-mid-turn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-updates-are-turn-based-not-mid-turn.md
 __prefix__: l
-__index__: 21
+__index__: 22
 __ptype__: lessons
 ---
 # Lesson: Diff Updates Are Turn-Based, Not Mid-Turn
@@ -10599,11 +10736,11 @@ tags:
 - diff
 - implementation
 created: 2026-03-23
-__coord__: l22
+__coord__: l23
 __slug__: diffentry-content-field-for-f-label-display
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/diffentry-content-field-for-f-label-display.md
 __prefix__: l
-__index__: 22
+__index__: 23
 __ptype__: lessons
 ---
 # Lesson: DiffEntry Content Field Required for F-Label Display
@@ -10645,11 +10782,11 @@ tags:
 - pipeline
 - orchestration
 - dispatch
-__coord__: l23
+__coord__: l24
 __slug__: dispatch-claimed-flag-required-for-true-active-check
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dispatch-claimed-flag-required-for-true-active-check.md
 __prefix__: l
-__index__: 23
+__index__: 24
 __ptype__: lessons
 ---
 # dispatch-claimed-flag-required-for-true-active-check
@@ -10687,11 +10824,11 @@ tags:
 - dispatch
 - bug
 importance: 3
-__coord__: l24
+__coord__: l25
 __slug__: dot-syntax-ln-workflow-dispatch-unreachable
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dot-syntax-ln-workflow-dispatch-unreachable.md
 __prefix__: l
-__index__: 24
+__index__: 25
 __ptype__: lessons
 ---
 # dot-syntax-lN-workflow-dispatch-unreachable
@@ -10730,11 +10867,11 @@ tags:
 - e0
 - orchestration
 - pipeline
-__coord__: l25
+__coord__: l26
 __slug__: e0-sweep-routes-through-orchestration-engine-not-autorun
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e0-sweep-routes-through-orchestration-engine-not-autorun.md
 __prefix__: l
-__index__: 25
+__index__: 26
 __ptype__: lessons
 ---
 # e0-sweep-routes-through-orchestration-engine-not-autorun
@@ -10769,11 +10906,11 @@ tags:
 - e2
 - namespace
 - design-pattern
-__coord__: l26
+__coord__: l27
 __slug__: e3-chains-e2-after-namespace-registration
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e3-chains-e2-after-namespace-registration.md
 __prefix__: l
-__index__: 26
+__index__: 27
 __ptype__: lessons
 ---
 # e3-chains-e2-after-namespace-registration
@@ -10806,11 +10943,11 @@ tags:
 - architecture
 applies_to:
 - snn-applied-finance
-__coord__: l27
+__coord__: l28
 __slug__: event-detection-not-state-classification
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/event-detection-not-state-classification.md
 __prefix__: l
-__index__: 27
+__index__: 28
 __ptype__: lessons
 ---
 # Simple SNNs Detect Events, Not States
@@ -10834,11 +10971,11 @@ tags:
 - orchestration
 - pipeline
 - bug-fix
-__coord__: l28
+__coord__: l29
 __slug__: fire-and-forget-dispatch-timeout-1-killed-all-agents
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/fire-and-forget-dispatch-timeout-1-killed-all-agents.md
 __prefix__: l
-__index__: 28
+__index__: 29
 __ptype__: lessons
 ---
 # fire-and-forget-dispatch-timeout-1-killed-all-agents
@@ -10876,11 +11013,11 @@ tags:
 - systemd
 - telegram
 - debugging
-__coord__: l29
+__coord__: l30
 __slug__: gateway-systemd-can-crash-while-process-survives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gateway-systemd-can-crash-while-process-survives.md
 __prefix__: l
-__index__: 29
+__index__: 30
 __ptype__: lessons
 ---
 # gateway-systemd-can-crash-while-process-survives
@@ -10911,6 +11048,45 @@ by a prior service instance).
 - Investigate with `journalctl` + `ps` together; don't rely on systemd status alone.
 ---
 ---
+primitive: lesson
+date: '2026-03-24'
+source: (add source)
+confidence: '?'
+upstream: []
+downstream: []
+tags:
+- instance:main
+- gateway
+- watchdog
+- systemd
+- cron
+- incident
+__coord__: l31
+__slug__: gateway-watchdog-conflicts-with-out-of-systemd-process
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/gateway-watchdog-conflicts-with-out-of-systemd-process.md
+__prefix__: l
+__index__: 31
+__ptype__: lessons
+---
+# gateway-watchdog-conflicts-with-out-of-systemd-process
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
 type: lesson
 id: gpu-parallel-thrashing-t4
 title: GPU parallel worker thrashing on Tesla T4 with Python threads
@@ -10928,11 +11104,11 @@ related:
 - beta-convergence
 - snn-treats-like-weird-cnn
 supersedes: tiny-snn-gpu-parallelism
-__coord__: l30
+__coord__: l32
 __slug__: gpu-parallel-thrashing-t4
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gpu-parallel-thrashing-t4.md
 __prefix__: l
-__index__: 30
+__index__: 32
 __ptype__: lessons
 ---
 # GPU Parallel Worker Thrashing on Tesla T4
@@ -10980,11 +11156,11 @@ tags:
 - r-command
 - design
 importance: 3
-__coord__: l31
+__coord__: l33
 __slug__: guidance-prose-belongs-in-legend-not-supermap-tree
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/guidance-prose-belongs-in-legend-not-supermap-tree.md
 __prefix__: l
-__index__: 31
+__index__: 33
 __ptype__: lessons
 ---
 # guidance-prose-belongs-in-legend-not-supermap-tree
@@ -11020,11 +11196,11 @@ tags:
 - heartbeat
 - lm
 - coordinate-grammar
-__coord__: l32
+__coord__: l34
 __slug__: heartbeat-md-contaminates-manual-session-behavior
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/heartbeat-md-contaminates-manual-session-behavior.md
 __prefix__: l
-__index__: 32
+__index__: 34
 __ptype__: lessons
 ---
 # heartbeat-md-contaminates-manual-session-behavior
@@ -11062,11 +11238,11 @@ tags:
 - inotify
 - debugging
 - codex-engine-v4
-__coord__: l33
+__coord__: l35
 __slug__: inotify-batch-creates-coalesce-to-single-reindex
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/inotify-batch-creates-coalesce-to-single-reindex.md
 __prefix__: l
-__index__: 33
+__index__: 35
 __ptype__: lessons
 ---
 # inotify-batch-creates-coalesce-to-single-reindex
@@ -11114,11 +11290,11 @@ tags:
 - bug
 - regex
 importance: 3
-__coord__: l34
+__coord__: l36
 __slug__: is-coordinate-single-char-prefix-limitation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/is-coordinate-single-char-prefix-limitation.md
 __prefix__: l
-__index__: 34
+__index__: 36
 __ptype__: lessons
 ---
 # is-coordinate-single-char-prefix-limitation
@@ -11153,11 +11329,11 @@ tags:
 - launch
 - imports
 - scripting
-__coord__: l35
+__coord__: l37
 __slug__: launch-pipeline-kickoff-path-had-stale-imports
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/launch-pipeline-kickoff-path-had-stale-imports.md
 __prefix__: l
-__index__: 35
+__index__: 37
 __ptype__: lessons
 ---
 # launch-pipeline-kickoff-path-had-stale-imports
@@ -11191,11 +11367,11 @@ tags:
 - commands
 - primitives
 - cleanup
-__coord__: l36
+__coord__: l38
 __slug__: legacy-view-command-primitives-redundant-after-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/legacy-view-command-primitives-redundant-after-engine.md
 __prefix__: l
-__index__: 36
+__index__: 38
 __ptype__: lessons
 ---
 # legacy-view-command-primitives-redundant-after-engine
@@ -11228,11 +11404,11 @@ tags:
 - lm
 - coordinate-grammar
 - ux
-__coord__: l37
+__coord__: l39
 __slug__: lm-entries-must-be-compelling-to-displace-raw-scripts
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/lm-entries-must-be-compelling-to-displace-raw-scripts.md
 __prefix__: l
-__index__: 37
+__index__: 39
 __ptype__: lessons
 ---
 # lm-entries-must-be-compelling-to-displace-raw-scripts
@@ -11268,11 +11444,11 @@ tags:
 upstream:
 - infra-pipelines-use-local-analysis
 downstream: []
-__coord__: l38
+__coord__: l40
 __slug__: local-analysis-is-pipeline-type-agnostic
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/local-analysis-is-pipeline-type-agnostic.md
 __prefix__: l
-__index__: 38
+__index__: 40
 __ptype__: lessons
 ---
 # local-analysis-is-pipeline-type-agnostic
@@ -11317,11 +11493,11 @@ tags:
 - lane-queue
 - system-events
 - diff-trigger
-__coord__: l39
+__coord__: l41
 __slug__: main-session-lane-backup-from-event-bursts
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/main-session-lane-backup-from-event-bursts.md
 __prefix__: l
-__index__: 39
+__index__: 41
 __ptype__: lessons
 ---
 # main-session-lane-backup-from-event-bursts
@@ -11363,11 +11539,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: l40
+__coord__: l42
 __slug__: memory-entries-capture-events-not-state
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-entries-capture-events-not-state.md
 __prefix__: l
-__index__: 40
+__index__: 42
 __ptype__: lessons
 ---
 # memory-entries-capture-events-not-state
@@ -11401,11 +11577,11 @@ tags:
 - memory-extract
 - bash
 - session-files
-__coord__: l41
+__coord__: l43
 __slug__: memory-extract-hook-session-file-detection-mismatch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extract-hook-session-file-detection-mismatch.md
 __prefix__: l
-__index__: 41
+__index__: 43
 __ptype__: lessons
 ---
 # memory-extract-hook-session-file-detection-mismatch
@@ -11439,11 +11615,11 @@ tags:
 - sage
 - design
 - extraction-limits
-__coord__: l42
+__coord__: l44
 __slug__: memory-extraction-misses-design-convergence-in-conversation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extraction-misses-design-convergence-in-conversation.md
 __prefix__: l
-__index__: 42
+__index__: 44
 __ptype__: lessons
 ---
 # memory-extraction-misses-design-convergence-in-conversation
@@ -11465,21 +11641,6 @@ _The core insight. Single crisp sentence if possible._
 _When does this lesson apply? What should change going forward?_
 ---
 ---
-title: nice-mode-test
-status: active
-priority: low
-tags:
-- test
-__coord__: l43
-__slug__: nice-mode-test-primitive
-__filepath__: /home/ubuntu/.openclaw/workspace/lessons/nice-mode-test-primitive.md
-__prefix__: l
-__index__: 43
-__ptype__: lessons
----
-Testing nice mode deferred flush.
----
----
 primitive: lesson
 date: 2026-03-23
 source: (add source)
@@ -11491,11 +11652,11 @@ tags:
 - pipeline
 - experiments
 - notebooks
-__coord__: l44
+__coord__: l45
 __slug__: notebook-runs-need-phase-aware-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/notebook-runs-need-phase-aware-cell-targeting.md
 __prefix__: l
-__index__: 44
+__index__: 45
 __ptype__: lessons
 ---
 # notebook-runs-need-phase-aware-cell-targeting
@@ -11530,11 +11691,11 @@ tags:
 - agents
 - openclaw
 - session-routing
-__coord__: l45
+__coord__: l46
 __slug__: openclaw-agent-routes-to-active-session
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-agent-routes-to-active-session.md
 __prefix__: l
-__index__: 45
+__index__: 46
 __ptype__: lessons
 ---
 # openclaw agent CLI Routes to Active Session, Not Isolated
@@ -11559,6 +11720,45 @@ All task messages routed into the coordinator's active session instead of creati
 ---
 ---
 primitive: lesson
+date: 2026-03-24
+source: main session 36029da4
+confidence: confirmed
+upstream: []
+downstream: []
+tags:
+- instance:main
+- openclaw
+- install
+- path
+- gateway
+importance: 3
+__coord__: l47
+__slug__: openclaw-dual-install-path-conflict
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-dual-install-path-conflict.md
+__prefix__: l
+__index__: 47
+__ptype__: lessons
+---
+# openclaw-dual-install-path-conflict
+
+## Context
+
+Shael reported gateway freezing and Telegram unreachability. After investigation, OpenClaw was found to be on a stale version (2026.3.12) despite the user running the installer (which installed 2026.3.23-1).
+
+## What Happened
+
+The installer placed the new version in `~/.npm-global/lib/node_modules/openclaw` but `/usr/bin/openclaw` was a symlink to the old global install at `/usr/lib/node_modules/openclaw`. The old version won in PATH, so `openclaw --version` still showed 2026.3.12. `sudo npm rm -g openclaw` failed with ENOTEMPTY. Fix was `sudo rm -rf /usr/lib/node_modules/openclaw && sudo rm -f /usr/bin/openclaw`, then adding `~/.npm-global/bin` to PATH via `.bashrc`.
+
+## Lesson
+
+When the OpenClaw installer installs to `~/.npm-global` but a system-level install exists at `/usr/lib/node_modules/openclaw`, the old system install will shadow the new one. `npm rm -g` may fail; manual `sudo rm -rf` of the old path is the reliable fix.
+
+## Application
+
+If `openclaw --version` doesn't match the installer output after an update, check for a dual install: `which -a openclaw`. If `/usr/bin/openclaw` exists alongside `~/.npm-global/bin/openclaw`, remove the system one manually and ensure `~/.npm-global/bin` is in PATH.
+---
+---
+primitive: lesson
 date: '2026-03-20'
 source: (add source)
 confidence: '?'
@@ -11570,11 +11770,11 @@ tags:
 - context
 - boot
 - infrastructure
-__coord__: l46
+__coord__: l48
 __slug__: openclaw-fixed-context-injection-list
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-fixed-context-injection-list.md
 __prefix__: l
-__index__: 46
+__index__: 48
 __ptype__: lessons
 ---
 # openclaw-fixed-context-injection-list
@@ -11609,11 +11809,11 @@ tags:
 - plugin-sdk
 - before_prompt_build
 - codex-cockpit
-__coord__: l47
+__coord__: l49
 __slug__: openclaw-plugin-definepluginentry-import-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-plugin-definepluginentry-import-path.md
 __prefix__: l
-__index__: 47
+__index__: 49
 __ptype__: lessons
 ---
 # openclaw-plugin-definePluginEntry-import-path
@@ -11649,6 +11849,85 @@ Every time a new OpenClaw workspace plugin is written:
 ---
 ---
 primitive: lesson
+date: '2026-03-24'
+source: (add source)
+confidence: '?'
+upstream: []
+downstream: []
+tags:
+- instance:main
+- gateway
+- systemd
+- config
+- openclaw
+__coord__: l50
+__slug__: openclaw-systemd-service-missing-config-path
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-systemd-service-missing-config-path.md
+__prefix__: l
+__index__: 50
+__ptype__: lessons
+---
+# openclaw-systemd-service-missing-config-path
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
+primitive: lesson
+date: 2026-03-24
+source: main session 36029da4
+confidence: confirmed
+upstream:
+- disable-watchdog-until-systemd-service-fixed
+downstream: []
+tags:
+- instance:main
+- openclaw
+- gateway
+- telegram
+- stability
+- updates
+importance: 3
+__coord__: l51
+__slug__: openclaw-version-lag-causes-gateway-instability
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-version-lag-causes-gateway-instability.md
+__prefix__: l
+__index__: 51
+__ptype__: lessons
+---
+# openclaw-version-lag-causes-gateway-instability
+
+## Context
+
+Gateway was freezing and Telegram was unreachable. Cron jobs were suspected first, then the gateway process itself.
+
+## What Happened
+
+OpenClaw was 11 days behind (2026.3.12 vs 2026.3.23-1 latest). Gateway freeze and Telegram instability symptoms aligned with known session handling and Telegram connection fixes expected in recent releases. After updating, gateway stability was restored.
+
+## Lesson
+
+Running OpenClaw significantly behind the latest version is a likely cause of gateway freezes and Telegram connectivity issues. Keep the install current — the project releases frequently and stability fixes land regularly.
+
+## Application
+
+When diagnosing gateway instability: check `openclaw --version` against latest early in the investigation. If more than a week behind, update before deep-diving into config or process issues.
+---
+---
+primitive: lesson
 date: 2026-03-22
 source: session b8a4b4a1 2026-03-21
 confidence: high
@@ -11663,11 +11942,11 @@ tags:
 - pipeline
 - sessions_spawn
 - dispatch
-__coord__: l48
+__coord__: l52
 __slug__: orchestration-dispatch-payload-spawn-relay
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-dispatch-payload-spawn-relay.md
 __prefix__: l
-__index__: 48
+__index__: 52
 __ptype__: lessons
 ---
 # orchestration-dispatch-payload-spawn-relay
@@ -11709,11 +11988,11 @@ tags:
 - self-reference
 - infrastructure
 - meta
-__coord__: l49
+__coord__: l53
 __slug__: orchestration-engine-v1-self-built-through-legacy-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-engine-v1-self-built-through-legacy-pipeline.md
 __prefix__: l
-__index__: 49
+__index__: 53
 __ptype__: lessons
 ---
 # orchestration-engine-v1-self-built-through-legacy-pipeline
@@ -11755,11 +12034,11 @@ tags:
 - validation
 applies_to:
 - snn-applied-finance
-__coord__: l50
+__coord__: l54
 __slug__: per-fold-significance-tests-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/per-fold-significance-tests-required.md
 __prefix__: l
-__index__: 50
+__index__: 54
 __ptype__: lessons
 ---
 # Per-Fold Significance Tests and Permutation Tests Are Required
@@ -11786,11 +12065,11 @@ tags:
 - ablation
 - equilibrium
 - phasic
-__coord__: l51
+__coord__: l55
 __slug__: phasic-only-ablation-wins-equilibrium
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/phasic-only-ablation-wins-equilibrium.md
 __prefix__: l
-__index__: 51
+__index__: 55
 __ptype__: lessons
 ---
 # Phasic-Only Ablation Wins in Equilibrium SNN
@@ -11837,11 +12116,11 @@ tags:
 - instance:main
 - tooling
 - monitoring
-__coord__: l52
+__coord__: l56
 __slug__: pipeline-dashboard-watch-flag-vs-linux-watch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-dashboard-watch-flag-vs-linux-watch.md
 __prefix__: l
-__index__: 52
+__index__: 56
 __ptype__: lessons
 ---
 # pipeline-dashboard-watch-flag-vs-linux-watch
@@ -11875,11 +12154,11 @@ tags:
 - pipeline
 - infrastructure
 - hanging
-__coord__: l53
+__coord__: l57
 __slug__: pipeline-orchestrate-blocking-agent-wake
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-orchestrate-blocking-agent-wake.md
 __prefix__: l
-__index__: 53
+__index__: 57
 __ptype__: lessons
 ---
 # pipeline-orchestrate-blocking-agent-wake
@@ -11913,11 +12192,11 @@ tags:
 - pipeline
 - state-file
 - bug
-__coord__: l54
+__coord__: l58
 __slug__: pipeline-state-file-split-brain-pattern
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-file-split-brain-pattern.md
 __prefix__: l
-__index__: 54
+__index__: 58
 __ptype__: lessons
 ---
 # pipeline-state-file-split-brain-pattern
@@ -11951,11 +12230,11 @@ tags:
 - pipeline
 - bug
 - infrastructure
-__coord__: l55
+__coord__: l59
 __slug__: pipeline-state-json-not-synced-on-archive
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-json-not-synced-on-archive.md
 __prefix__: l
-__index__: 55
+__index__: 59
 __ptype__: lessons
 ---
 # pipeline-state-json-not-synced-on-archive
@@ -11988,11 +12267,11 @@ tags:
 - pipeline
 - state-json
 - orchestration
-__coord__: l56
+__coord__: l60
 __slug__: pipeline-state-pending-action-is-agent-role-not-stage-name
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-pending-action-is-agent-role-not-stage-name.md
 __prefix__: l
-__index__: 56
+__index__: 60
 __ptype__: lessons
 ---
 # pipeline-state-pending-action-is-agent-role-not-stage-name
@@ -12027,11 +12306,11 @@ tags:
 applies_to:
 - pipeline_update.py
 - pipeline primitives
-__coord__: l57
+__coord__: l61
 __slug__: pipeline-table-separator-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-table-separator-required.md
 __prefix__: l
-__index__: 57
+__index__: 61
 __ptype__: lessons
 ---
 # Pipeline Table Separator Required for Update Script
@@ -12070,11 +12349,11 @@ tags:
 - openclaw
 - config
 - infrastructure
-__coord__: l58
+__coord__: l62
 __slug__: plugin-allowlist-must-be-updated-on-plugin-retire
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md
 __prefix__: l
-__index__: 58
+__index__: 62
 __ptype__: lessons
 ---
 # plugin-allowlist-must-be-updated-on-plugin-retire
@@ -12109,11 +12388,11 @@ tags:
 - commands
 - architecture
 - primitives
-__coord__: l59
+__coord__: l63
 __slug__: plugins-have-presence-commands-are-fire-and-forget
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugins-have-presence-commands-are-fire-and-forget.md
 __prefix__: l
-__index__: 59
+__index__: 63
 __ptype__: lessons
 ---
 # plugins-have-presence-commands-are-fire-and-forget
@@ -12149,11 +12428,11 @@ tags:
 - lm
 - boot
 - scaffold
-__coord__: l60
+__coord__: l64
 __slug__: r0-scaffold-as-lightweight-coordinate-mode-nudge
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md
 __prefix__: l
-__index__: 60
+__index__: 64
 __ptype__: lessons
 ---
 # r0-scaffold-as-lightweight-coordinate-mode-nudge
@@ -12188,11 +12467,11 @@ tags:
 - context-injection
 - architecture
 - llm-context
-__coord__: l61
+__coord__: l65
 __slug__: render-engine-agents-are-in-it-not-calling-it
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-agents-are-in-it-not-calling-it.md
 __prefix__: l
-__index__: 61
+__index__: 65
 __ptype__: lessons
 ---
 # render-engine-agents-are-in-it-not-calling-it
@@ -12226,11 +12505,11 @@ tags:
 - render-engine
 - session-startup
 - robustness
-__coord__: l62
+__coord__: l66
 __slug__: render-engine-zombie-blocks-session-startup
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-zombie-blocks-session-startup.md
 __prefix__: l
-__index__: 62
+__index__: 66
 __ptype__: lessons
 ---
 # render-engine-zombie-blocks-session-startup
@@ -12267,11 +12546,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l63
+__coord__: l67
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 63
+__index__: 67
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -12304,11 +12583,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l64
+__coord__: l68
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 64
+__index__: 68
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -12355,11 +12634,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l65
+__coord__: l69
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 65
+__index__: 69
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -12399,11 +12678,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l66
+__coord__: l70
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 66
+__index__: 70
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -12439,11 +12718,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l67
+__coord__: l71
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 67
+__index__: 71
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -12480,11 +12759,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l68
+__coord__: l72
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 68
+__index__: 72
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -12508,11 +12787,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l69
+__coord__: l73
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 69
+__index__: 73
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -12545,11 +12824,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l70
+__coord__: l74
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 70
+__index__: 74
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -12594,11 +12873,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l71
+__coord__: l75
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 71
+__index__: 75
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -12630,11 +12909,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l72
+__coord__: l76
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 72
+__index__: 76
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -12683,11 +12962,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l73
+__coord__: l77
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 73
+__index__: 77
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -12709,11 +12988,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l74
+__coord__: l78
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 74
+__index__: 78
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -12746,11 +13025,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l75
+__coord__: l79
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 75
+__index__: 79
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -12774,11 +13053,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l76
+__coord__: l80
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 76
+__index__: 80
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -12816,11 +13095,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l77
+__coord__: l81
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 77
+__index__: 81
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -12872,11 +13151,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l78
+__coord__: l82
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 78
+__index__: 82
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -12911,11 +13190,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l79
+__coord__: l83
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 79
+__index__: 83
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -12945,11 +13224,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l80
+__coord__: l84
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 80
+__index__: 84
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -12997,11 +13276,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l81
+__coord__: l85
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 81
+__index__: 85
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -13038,11 +13317,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l82
+__coord__: l86
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 82
+__index__: 86
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -13076,11 +13355,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l83
+__coord__: l87
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 83
+__index__: 87
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -17465,7 +17744,7 @@ tags:
 - state-file
 source: session
 content: 'Split-brain state file bug fixed: pipeline_update.py wrote to flat {version}_state.json while sweep''s load_state_json() preferred {version}/_state.json (subdirectory). Caused p2 (limbic-reward-snn) to show phase1_complete in sweep despite experiment being fully done. Fix: save_state() now writes both paths; load_state() checks subdirectory first.'
-status: active
+status: consolidated
 __coord__: m135
 __slug__: 2026-03-23_222034_split-brain-state-file-bug-fixed-pipelin
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_222034_split-brain-state-file-bug-fixed-pipelin.md
@@ -17495,7 +17774,7 @@ tags:
 - recovery
 source: session
 content: 'Dead-PID experiment recovery fix: check_running_experiments() detected dead process with complete results but never updated pipeline status. Now transitions status to experiment_complete when results_summary.json exists in results dir (in addition to checking _experiment_results.md in builds dir). Also auto-kicks analysis gate on detection.'
-status: active
+status: consolidated
 __coord__: m136
 __slug__: 2026-03-23_222044_dead-pid-experiment-recovery-fix-check-r
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_222044_dead-pid-experiment-recovery-fix-check-r.md
@@ -17525,7 +17804,7 @@ tags:
 - analysis
 source: session
 content: 'p2 limbic-reward-snn analysis auto-kicked after gate logic fixes. Sweep confirmed analysis gate OPEN, dispatched local_analysis_architect. Simultaneously recovered p1 codex-engine-v4 stalled critic via checkpoint-and-resume. Gate flow now: experiment_complete → analysis auto-kicks → local_analysis_complete → phase2 human gate.'
-status: active
+status: consolidated
 __coord__: m137
 __slug__: 2026-03-23_222055_p2-limbic-reward-snn-analysis-auto-kicke
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-23_222055_p2-limbic-reward-snn-analysis-auto-kicke.md
@@ -17544,21 +17823,379 @@ p2 limbic-reward-snn analysis auto-kicked after gate logic fixes. Sweep confirme
 *Tags: instance:main, pipeline, limbic-reward-snn, analysis*
 ---
 ---
+primitive: memory_log
+timestamp: '2026-03-24T00:21:59Z'
+category: technical
+importance: 3
+tags: []
+source: session
+content: 'Implemented nice/greedy mode for render engine. Nice mode (default) defers all inotify processing to a queue and flushes only on UDS diff/supermap/my_diff queries — saves CPU between agent turns while keeping full history in RAM. Greedy mode is current live behavior with immediate processing and heartbeat trigger. Cockpit plugin updated to start engine with --mode nice. Discovered bug: cockpit plugin respawns engine without CLI args, overriding manual startup modes. Gateway also crashed during testing — recovery cron job discussion started. Session: 4fb6f15e, 2026-03-23.'
+status: active
+__coord__: m138
+__slug__: 2026-03-24_002159_implemented-nicegreedy-mode-for-render-e
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_002159_implemented-nicegreedy-mode-for-render-e.md
+__prefix__: m
+__index__: 138
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T00:21:59Z** · `technical` · importance 3/5
+
+Implemented nice/greedy mode for render engine. Nice mode (default) defers all inotify processing to a queue and flushes only on UDS diff/supermap/my_diff queries — saves CPU between agent turns while keeping full history in RAM. Greedy mode is current live behavior with immediate processing and heartbeat trigger. Cockpit plugin updated to start engine with --mode nice. Discovered bug: cockpit plugin respawns engine without CLI args, overriding manual startup modes. Gateway also crashed during testing — recovery cron job discussion started. Session: 4fb6f15e, 2026-03-23.
+
+---
+*Source: session*
+*Tags: none*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T02:24:20Z'
+category: event
+importance: 3
+tags:
+- instance:main
+- cron
+- gateway
+- watchdog
+- systemd
+- incident
+source: session
+content: 'Shael urgently disabled all cron jobs (OpenClaw gateway crons + system crontab) after gateway kept restarting/failing. Root cause: gateway_watchdog.sh (every 5 min via system crontab) was seeing broken systemd openclaw-gateway.service and trying to restart it, conflicting with actual gateway process running outside systemd (pid 3166693). systemd service crashes with ''Missing config'' due to path/env issue. Re-enabled all crons except watchdog after diagnosis. Watchdog fix deferred.'
+status: active
+__coord__: m139
+__slug__: 2026-03-24_022420_shael-urgently-disabled-all-cron-jobs-op
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_022420_shael-urgently-disabled-all-cron-jobs-op.md
+__prefix__: m
+__index__: 139
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T02:24:20Z** · `event` · importance 3/5
+
+Shael urgently disabled all cron jobs (OpenClaw gateway crons + system crontab) after gateway kept restarting/failing. Root cause: gateway_watchdog.sh (every 5 min via system crontab) was seeing broken systemd openclaw-gateway.service and trying to restart it, conflicting with actual gateway process running outside systemd (pid 3166693). systemd service crashes with 'Missing config' due to path/env issue. Re-enabled all crons except watchdog after diagnosis. Watchdog fix deferred.
+
+---
+*Source: session*
+*Tags: instance:main, cron, gateway, watchdog, systemd, incident*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T02:54:29Z'
+category: event
+importance: 3
+tags:
+- instance:main
+- gateway
+- openclaw
+- telegram
+- stability
+source: session
+content: 'Gateway freeze at 02:31 UTC traced to stale OpenClaw version: running 2026.3.12, latest was 2026.3.23-1 (11 days behind). Fixed by removing stale global npm install (/usr/lib/node_modules/openclaw), adding ~/.npm-global/bin to PATH, and restarting. Cron jobs disabled during investigation, safe consolidation crons re-enabled after update.'
+status: active
+__coord__: m140
+__slug__: 2026-03-24_025429_gateway-freeze-at-0231-utc-traced-to-sta
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_025429_gateway-freeze-at-0231-utc-traced-to-sta.md
+__prefix__: m
+__index__: 140
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T02:54:29Z** · `event` · importance 3/5
+
+Gateway freeze at 02:31 UTC traced to stale OpenClaw version: running 2026.3.12, latest was 2026.3.23-1 (11 days behind). Fixed by removing stale global npm install (/usr/lib/node_modules/openclaw), adding ~/.npm-global/bin to PATH, and restarting. Cron jobs disabled during investigation, safe consolidation crons re-enabled after update.
+
+---
+*Source: session*
+*Tags: instance:main, gateway, openclaw, telegram, stability*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T03:02:47Z'
+category: event
+importance: 1
+tags:
+- instance:main
+- session-startup
+source: session
+content: Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup sequence (read memory logs), greeted Shael with summary of prior day (gateway watchdog, render modes, dispatch timeout bug, experiments running). No work performed — session ended after greeting.
+status: active
+__coord__: m141
+__slug__: 2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2.md
+__prefix__: m
+__index__: 141
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T03:02:47Z** · `event` · importance 1/5
+
+Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup sequence (read memory logs), greeted Shael with summary of prior day (gateway watchdog, render modes, dispatch timeout bug, experiments running). No work performed — session ended after greeting.
+
+---
+*Source: session*
+*Tags: instance:main, session-startup*
+---
+---
 __coord__: md1
-__slug__: '2026-03-24'
-__filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-24.md
+__slug__: '2026-03-25'
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-25.md
 __prefix__: md
 __index__: 1
 __ptype__: daily
 ---
-# Memory Log — 2026-03-24
+# Memory Log — 2026-03-25
 ---
 ---
 __coord__: md2
+__slug__: '2026-03-24'
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-24.md
+__prefix__: md
+__index__: 2
+__ptype__: daily
+---
+# Memory Log — 2026-03-24
+
+## See Also
+
+- [→ Wiki: Research Workflow](../knowledge/research-workflow.md)
+- [→ Transcript: 2026-03-14_architect_d7197222.md](../machinelearning/snn_applied_finance/conversations/2026-03-14_architect_d7197222.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-14_builder_81dd3900.md](../machinelearning/snn_applied_finance/conversations/2026-03-14_builder_81dd3900.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-14_builder_eb23e4de.md](../machinelearning/snn_applied_finance/conversations/2026-03-14_builder_eb23e4de.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-14_critic_7536c06d.md](../machinelearning/snn_applied_finance/conversations/2026-03-14_critic_7536c06d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-15_architect_1c12bf44.md](../machinelearning/snn_applied_finance/conversations/2026-03-15_architect_1c12bf44.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-15_architect_31206266.md](../machinelearning/snn_applied_finance/conversations/2026-03-15_architect_31206266.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-17_critic_54f1c251.md](../machinelearning/snn_applied_finance/conversations/2026-03-17_critic_54f1c251.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_architect_7371bb4b.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_architect_7371bb4b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_architect_742370cb.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_architect_742370cb.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_architect_b5a26e5a.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_architect_b5a26e5a.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_builder_4e438c43.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_builder_4e438c43.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_builder_ba1593dd.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_builder_ba1593dd.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_builder_f7714a3d.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_builder_f7714a3d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_416b25e4.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_416b25e4.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_84bd4ac7.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_84bd4ac7.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_c602e95f.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_c602e95f.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_c8e5530f.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_c8e5530f.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_d0d69d57.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_d0d69d57.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_d586792b.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_d586792b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-18_critic_e4cc5da9.md](../machinelearning/snn_applied_finance/conversations/2026-03-18_critic_e4cc5da9.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_0e3a1ff8.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_0e3a1ff8.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_1bfd01d5.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_1bfd01d5.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_30bcb549.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_30bcb549.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_4841d63a.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_4841d63a.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_4dd9e7d3.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_4dd9e7d3.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_72fc8bfd.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_72fc8bfd.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_7a37bcdd.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_7a37bcdd.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_89b48a26.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_89b48a26.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_a726fb7d.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_a726fb7d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_befe7ce4.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_befe7ce4.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_c5e6b65a.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_c5e6b65a.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_architect_d1d39320.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_architect_d1d39320.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_11b35821.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_11b35821.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_2a834186.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_2a834186.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_40350fea.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_40350fea.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_6c452f1a.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_6c452f1a.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_bd45462f.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_bd45462f.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_d44b15f2.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_d44b15f2.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_d5dbea1a.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_d5dbea1a.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_f94393e3.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_f94393e3.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_fce811ba.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_fce811ba.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_builder_fe8742a0.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_builder_fe8742a0.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_coordinator_a3571f35.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_coordinator_a3571f35.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_33733109.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_33733109.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_36f900e3.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_36f900e3.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_40092156.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_40092156.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_49df3ef8.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_49df3ef8.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_4ef8ffaf.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_4ef8ffaf.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_67d8c24b.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_67d8c24b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_6d561b9b.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_6d561b9b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_7b7fc03c.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_7b7fc03c.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_8b36e790.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_8b36e790.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_9a3d9591.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_9a3d9591.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_a17c009f.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_a17c009f.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_af028678.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_af028678.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_b1383242.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_b1383242.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_cac10a7a.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_cac10a7a.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_e4c06ea9.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_e4c06ea9.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_e83a65c7.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_e83a65c7.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-19_critic_f4c6d72d.md](../machinelearning/snn_applied_finance/conversations/2026-03-19_critic_f4c6d72d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_architect_b40f6e39.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_architect_b40f6e39.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_architect_e27627e1.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_architect_e27627e1.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_builder_6d171d7d.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_builder_6d171d7d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_critic_060acfbb.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_critic_060acfbb.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_critic_125ec9f7.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_critic_125ec9f7.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_critic_16edda36.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_critic_16edda36.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-20_critic_b3405cdb.md](../machinelearning/snn_applied_finance/conversations/2026-03-20_critic_b3405cdb.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_18c8556d.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_18c8556d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_3fbb2cb0.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_3fbb2cb0.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_4fb41a8e.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_4fb41a8e.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_645fee4c.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_645fee4c.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_9708360b.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_9708360b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_a950cf0c.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_a950cf0c.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_cb884153.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_cb884153.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_d9efb766.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_d9efb766.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_architect_e69d4c30.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_e69d4c30.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_3df8f6fd.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_3df8f6fd.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_44e4573d.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_44e4573d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_6f710500.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_6f710500.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_7d549a31.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_7d549a31.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_7d609792.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_7d609792.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_98307ff1.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_98307ff1.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_9e87a539.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_9e87a539.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_a73b4dd5.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_a73b4dd5.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_ae53a698.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_ae53a698.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_b8a9bfcf.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_b8a9bfcf.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_builder_ca1613c2.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_builder_ca1613c2.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_098c5ea0.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_098c5ea0.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_14810031.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_14810031.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_2fab4255.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_2fab4255.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_3137734b.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_3137734b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_31eefcf4.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_31eefcf4.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_92526d5d.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_92526d5d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_993de17d.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_993de17d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_9e9f4d03.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_9e9f4d03.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_b71df6f7.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_b71df6f7.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_d289b6e3.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_d289b6e3.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_d3cd25f9.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_d3cd25f9.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_f24640cf.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_f24640cf.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_f39c1df5.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_f39c1df5.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_f5db220b.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_f5db220b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-21_critic_fffe4916.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_fffe4916.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_architect_0da988d9.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_architect_0da988d9.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_architect_47b4a99d.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_architect_47b4a99d.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_architect_971f382e.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_architect_971f382e.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_architect_bf35143e.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_architect_bf35143e.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_builder_2aed320e.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_builder_2aed320e.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_builder_2da338b1.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_builder_2da338b1.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_builder_8e96ee70.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_builder_8e96ee70.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_builder_a32236c9.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_builder_a32236c9.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_builder_dcf244c4.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_builder_dcf244c4.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_2abaf3f3.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_2abaf3f3.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_5beea0ac.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_5beea0ac.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_8b2e3fb5.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_8b2e3fb5.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_b07f05ee.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_b07f05ee.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_c21a7b50.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_c21a7b50.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_cedfa901.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_cedfa901.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-22_critic_d2d25939.md](../machinelearning/snn_applied_finance/conversations/2026-03-22_critic_d2d25939.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_architect_9c28fd18.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_architect_9c28fd18.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_architect_bd0f2558.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_architect_bd0f2558.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_architect_fb1f2051.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_architect_fb1f2051.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_builder_0f03a10e.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_builder_0f03a10e.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_builder_2f4ba95c.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_builder_2f4ba95c.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_builder_354e9307.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_builder_354e9307.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_builder_9d3f4325.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_builder_9d3f4325.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_builder_f7d3b007.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_builder_f7d3b007.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_12201619.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_12201619.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_1ea41b55.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_1ea41b55.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_392e109b.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_392e109b.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_7dd0c120.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_7dd0c120.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_99c2d478.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_99c2d478.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_a45453be.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_a45453be.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_bc3cd3e2.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_bc3cd3e2.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_e3c77ac7.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_e3c77ac7.md) *(Research Workflow)*
+- [→ Transcript: 2026-03-23_critic_e621b06b.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_critic_e621b06b.md) *(Research Workflow)*
+- [→ See also: 2026-03-23](2026-03-23.md) *(Research Workflow, SNN Architecture, Agent Coordination)*
+- [→ See also: 2026-03-22](2026-03-22.md) *(Research Workflow, SNN Architecture, Agent Coordination)*
+- [→ See also: 2026-03-21](2026-03-21.md) *(Research Workflow, SNN Architecture, Agent Coordination)*
+- [→ Wiki: SNN Architecture](../knowledge/snn-architecture.md)
+- [→ Wiki: Agent Coordination](../knowledge/agent-coordination.md)
+- [→ Transcript: 2026-03-21_architect_1abf3a8d.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_architect_1abf3a8d.md) *(Agent Coordination)*
+- [→ Transcript: 2026-03-21_critic_72d274ce.md](../machinelearning/snn_applied_finance/conversations/2026-03-21_critic_72d274ce.md) *(Agent Coordination)*
+- [→ Transcript: 2026-03-23_architect_ff9fa3f0.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_architect_ff9fa3f0.md) *(SNN Architecture, Agent Coordination)*
+- [→ Transcript: 2026-03-23_builder_4ac9cbfa.md](../machinelearning/snn_applied_finance/conversations/2026-03-23_builder_4ac9cbfa.md) *(Agent Coordination)*
+
+## 2026-03-24T00:21:59Z — technical ⚡⚡⚡
+
+Implemented nice/greedy mode for render engine. Nice mode (default) defers all inotify processing to a queue and flushes only on UDS diff/supermap/my_diff queries — saves CPU between agent turns while keeping full history in RAM. Greedy mode is current live behavior with immediate processing and heartbeat trigger. Cockpit plugin updated to start engine with --mode nice. Discovered bug: cockpit plugin respawns engine without CLI args, overriding manual startup modes. Gateway also crashed during testing — recovery cron job discussion started. Session: 4fb6f15e, 2026-03-23.
+
+*Source: session*
+
+*Entry: `2026-03-24_002159_implemented-nicegreedy-mode-for-render-e.md`*
+
+---
+
+## 2026-03-24T02:24:20Z — event ⚡⚡⚡
+
+Shael urgently disabled all cron jobs (OpenClaw gateway crons + system crontab) after gateway kept restarting/failing. Root cause: gateway_watchdog.sh (every 5 min via system crontab) was seeing broken systemd openclaw-gateway.service and trying to restart it, conflicting with actual gateway process running outside systemd (pid 3166693). systemd service crashes with 'Missing config' due to path/env issue. Re-enabled all crons except watchdog after diagnosis. Watchdog fix deferred.
+
+*Tags: instance:main, cron, gateway, watchdog, systemd, incident*
+
+*Source: session*
+
+*Entry: `2026-03-24_022420_shael-urgently-disabled-all-cron-jobs-op.md`*
+
+---
+
+---
+
+## Session Summary — 2026-03-24T00:21–02:21 UTC (main, ff7ae2e6)
+
+**Gateway watchdog incident + cron triage**
+
+- Shael urgently disabled all cron jobs (~02:19 UTC) after the gateway kept restarting and failing.
+- Diagnosis: `gateway_watchdog.sh` (system crontab, `*/5 * * * *`) was checking the *systemd service* status (which crashes with "Missing config" due to wrong path/env in unit file), and repeatedly trying to restart it — conflicting with the actual gateway process already running outside systemd (pid 3166693, started at 02:18).
+- System crontab also had: daily/weekly/monthly memory consolidation, session cleanup, and relationship mapper (every 15min).
+- Resolution: disabled all crons, confirmed gateway was running, then re-enabled all except the watchdog.
+- Deferred: fix `openclaw-gateway.service` unit file to find `openclaw.json`.
+
+**Primitives created:**
+- [memory] Gateway watchdog incident (imp=3)
+- [lesson] `gateway-watchdog-conflicts-with-out-of-systemd-process`
+- [lesson] `openclaw-systemd-service-missing-config-path`
+- [decision] `disable-watchdog-until-systemd-service-fixed`
+
+## 2026-03-24T02:54:29Z — event ⚡⚡⚡
+
+Gateway freeze at 02:31 UTC traced to stale OpenClaw version: running 2026.3.12, latest was 2026.3.23-1 (11 days behind). Fixed by removing stale global npm install (/usr/lib/node_modules/openclaw), adding ~/.npm-global/bin to PATH, and restarting. Cron jobs disabled during investigation, safe consolidation crons re-enabled after update.
+
+*Tags: instance:main, gateway, openclaw, telegram, stability*
+
+*Source: session*
+
+*Entry: `2026-03-24_025429_gateway-freeze-at-0231-utc-traced-to-sta.md`*
+
+---
+
+## Session 36029da4 — 2026-03-24T02:23–02:53 UTC
+
+**Gateway freeze + update incident.**
+
+- Shael reported gateway freezing urgently at 02:31 UTC, especially via Telegram
+- Disabled all 3 gateway cron jobs immediately (daily memory consolidation, daily cross-agent memory, weekly knowledge sync)
+- Investigation: gateway process at 43% CPU, system logs clean, render engine fine (nice mode, 0 sessions)
+- Root cause: OpenClaw 2026.3.12 running, latest was 2026.3.23-1 (11 days behind)
+- Attempted `sudo npm i -g openclaw@latest` → failed with EACCES
+- Installer via `curl -fsSL https://openclaw.ai/install.sh | bash` installed 2026.3.23-1 to `~/.npm-global` but old `/usr/bin/openclaw` shadowed it
+- `sudo npm rm -g openclaw` failed with ENOTEMPTY
+- Fix: `sudo rm -rf /usr/lib/node_modules/openclaw && sudo rm -f /usr/bin/openclaw && echo 'export PATH="/home/ubuntu/.npm-global/bin:$PATH"' >> ~/.bashrc`
+- Gateway now on 2026.3.23-1 ✅
+- Re-enabled safe consolidation cron jobs after update
+
+**Lessons logged:**
+- `openclaw-dual-install-path-conflict` — system install shadows npm-global install, manual rm needed
+- `openclaw-version-lag-causes-gateway-instability` — check version early in gateway freeze investigations
+
+## 2026-03-24T03:02:47Z — event ⚡
+
+Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup sequence (read memory logs), greeted Shael with summary of prior day (gateway watchdog, render modes, dispatch timeout bug, experiments running). No work performed — session ended after greeting.
+
+*Tags: instance:main, session-startup*
+
+*Source: session*
+
+*Entry: `2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2.md`*
+
+---
+---
+---
+__coord__: md3
 __slug__: '2026-03-23'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-23.md
 __prefix__: md
-__index__: 2
+__index__: 3
 __ptype__: daily
 ---
 # Memory Log — 2026-03-23
@@ -18717,13 +19354,34 @@ p2 (limbic-reward-snn) was unblocked — all 12 result PKLs present, analysis ga
 SIGTERM errors on orchestration engine investigated (details in transcript). AppArmor denials for Firefox MemoryPoller confirmed unrelated.
 
 **New primitives:** `pipeline-state-file-split-brain-pattern` (lesson), `dead-pid-recovery-must-update-pipeline-state` (lesson), `auto-chain-experiment-to-analysis-no-manual-gate` (decision)
+
+## Consolidated Entries — 2026-03-23
+
+*Generated at 2026-03-23T23:32:17Z — 3 entries*
+
+
+### 📅 Event (1)
+
+- **[★★★☆☆]** p2 limbic-reward-snn analysis auto-kicked after gate logic fixes. Sweep confirmed analysis gate OPEN, dispatched local_analysis_architect. Simultaneously recovered p1 codex-engine-v4 stalled critic via checkpoint-and-resume. Gate flow now: experiment_complete → analysis auto-kicks → local_analysis_complete → phase2 human gate.
+  *tags: instance:main, pipeline, limbic-reward-snn, analysis*
+
+
+### 🔧 Technical (2)
+
+- **[★★★★☆]** Split-brain state file bug fixed: pipeline_update.py wrote to flat {version}_state.json while sweep's load_state_json() preferred {version}/_state.json (subdirectory). Caused p2 (limbic-reward-snn) to show phase1_complete in sweep despite experiment being fully done. Fix: save_state() now writes both paths; load_state() checks subdirectory first.
+  *tags: instance:main, bug, pipeline, state-file*
+- **[★★★☆☆]** Dead-PID experiment recovery fix: check_running_experiments() detected dead process with complete results but never updated pipeline status. Now transitions status to experiment_complete when results_summary.json exists in results dir (in addition to checking _experiment_results.md in builds dir). Also auto-kicks analysis gate on detection.
+  *tags: instance:main, pipeline, experiment, recovery*
+
+---
+- [→ See also: 2026-03-24](2026-03-24.md) *(Research Workflow, SNN Architecture, Agent Coordination)*
 ---
 ---
-__coord__: md3
+__coord__: md4
 __slug__: '2026-03-22'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-22.md
 __prefix__: md
-__index__: 3
+__index__: 4
 __ptype__: daily
 ---
 # Memory Log — 2026-03-22
@@ -19711,13 +20369,14 @@ Shael articulated a task auto-archive rule: tasks should programmatically archiv
 ---
 - [→ See also: 2026-03-23](2026-03-23.md) *(Agent Coordination, Research Workflow, SNN Architecture)*
 *[→ Weekly 2026-W12](weekly/2026-W12.md)*
+- [→ See also: 2026-03-24](2026-03-24.md) *(Research Workflow, SNN Architecture, Agent Coordination)*
 ---
 ---
-__coord__: md4
+__coord__: md5
 __slug__: '2026-03-21'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-21.md
 __prefix__: md
-__index__: 4
+__index__: 5
 __ptype__: daily
 ---
 # Memory Log — 2026-03-21
@@ -21031,13 +21690,14 @@ Orch V3 monitoring code review APPROVED: 0 BLOCKs, 4 FLAGs (1 med, 3 low). All 5
 - [→ See also: 2026-03-22](2026-03-22.md) *(Research Workflow, Agent Coordination, SNN Architecture)*
 - [→ See also: 2026-03-23](2026-03-23.md) *(Agent Coordination, Research Workflow, SNN Architecture)*
 *[→ Weekly 2026-W12](weekly/2026-W12.md)*
+- [→ See also: 2026-03-24](2026-03-24.md) *(Research Workflow, SNN Architecture, Agent Coordination)*
 ---
 ---
-__coord__: md5
+__coord__: md6
 __slug__: '2026-03-20'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-20.md
 __prefix__: md
-__index__: 5
+__index__: 6
 __ptype__: daily
 ---
 # Memory Log — 2026-03-20
@@ -21676,11 +22336,11 @@ Debugged memory-extract hook not firing on bootstrap. Root cause 1: extract_sess
 *[→ Weekly 2026-W12](weekly/2026-W12.md)*
 ---
 ---
-__coord__: md6
+__coord__: md7
 __slug__: '2026-03-19'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-19.md
 __prefix__: md
-__index__: 6
+__index__: 7
 __ptype__: daily
 ---
 # Memory Log — 2026-03-19
@@ -22152,11 +22812,11 @@ Voice transcription capability established. faster-whisper (small model, CPU) ha
 *[→ Weekly 2026-W12](weekly/2026-W12.md)*
 ---
 ---
-__coord__: md7
+__coord__: md8
 __slug__: '2026-03-18'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-18.md
 __prefix__: md
-__index__: 7
+__index__: 8
 __ptype__: daily
 ---
 # Memory Log — 2026-03-18
@@ -24004,105 +24664,6 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 ---
 ---
 primitive: pipeline
-status: local_analysis_in_progress
-priority: high
-type: research
-version: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
-spec_file: machinelearning/snn_applied_finance/specs/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_spec.yaml
-output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_predictor.ipynb
-agents:
-- architect
-- critic
-- builder
-supersedes: null
-tags:
-- snn
-- finance
-project: snn-applied-finance
-started: 2026-03-23
-__coord__: p8
-__slug__: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
-__filepath__: /home/ubuntu/.openclaw/workspace/pipelines/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.md
-__prefix__: p
-__index__: 8
-__ptype__: pipelines
----
-# Implementation Pipeline: LIMBIC-REWARD-SNN-BIO-INSPIRED-REWARD-NEURONS-FOR-EQUILIBRIUM-NETWORK
-
-## Description
-limbic reward snn bio inspired reward neurons for equilibrium network
-
-## Notebook Convention
-**All phases live in a single notebook** (`snn_crypto_predictor_limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
-
-## Phase 1: Autonomous Build
-_Architect designs → Critic reviews → Builder implements_
-
-### Stage History
-| Stage | Date | Agent | Notes |
-|-------|------|-------|-------|
-| pipeline_created | 2026-03-23 | belam-main | Pipeline instance created |
-| architect_design | 2026-03-23 | architect | Design v1: LimbicRewardModule — differentiable reward modulation for equilibrium SNN. Energy pool tracks prediction quality, modulates loss landscape (amplify when confident, dampen when exploring) + LIF thresholds (lower when energy-rich, raise when energy-poor). 9 limbic variants + 3 baselines = 120 runs across 10 folds. Targets the dead-output-neuron problem and signal-starved regime. No RL needed — shaped loss via differentiable energy dynamics. ~6h CPU, ~1.5h GPU. 4 open questions for critic. |
-| critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: torch.sign() has zero gradient — reward pathway not differentiable, use tanh(k=10). FLAG-2 HIGH: energy batch semantics need specification — recommend per-batch-mean. FLAG-3 MED: inference behavior unspecified. FLAG-4 LOW: cumulative DSR. Core thesis sound, ablation matrix clean, evaluation rigorous. Review at: pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_critic_design_review.md |
-| builder_implementation | 2026-03-23 | builder | Notebook built: 52 cells (24 code, 28 markdown, 65K chars). PhasicEquilibriumSNN backbone (EQ-ABL-02 phasic-only, 14 input dims, single output). LimbicRewardModule with differentiable reward (FLAG-1: tanh(k=10)), per-batch-mean energy (FLAG-2), frozen inference energy (FLAG-3). 9 experiments (LR-BASE through LR-08) + 3 baselines (majority, logistic, GRU). TBPTT training with energy-modulated loss + threshold. Full analysis: statistical tests (t-test, bootstrap CI, paired, DSR with both n=12 and n=215), ablation decomposition, break-even costs, 6 diagnostic plots (energy trajectories, final energy boxplot, spike rates, prediction entropy, reward gradient norms, Sharpe comparison). All 4 Critic FLAGs and 4 Suggestions addressed. |
-| critic_code_review_blocked | 2026-03-23 | critic | BLOCKED: BLOCK-1: Energy graph accumulation causes RuntimeError on TBPTT chunk 2+. LimbicRewardModule.update_energy_batch() creates energy tensor with grad_fn connecting to batch_preds (from model forward). Next chunk uses this energy in loss via get_modulation(). Backward tries to traverse through freed graph from previous chunk. Fix: add self.energy = self.energy.detach() after clamp in update_energy_batch(). Also add documentation comment that reward_sensitivity/cost_sensitivity are non-learnable with detach. All 4 design FLAGs resolved correctly (tanh k=10, batch-mean energy, frozen inference, cumulative DSR). 2 additional FLAGs (1 MED patience float, 1 LOW DSR pass). |
-| builder_apply_blocks | 2026-03-23 | builder | BLOCK-1 fix applied (3 changes + 1 documentation fix): (1) Added self.energy = self.energy.detach() after clamp in update_energy_batch() — prevents graph accumulation across TBPTT chunks. (2) Added comment documenting reward_sensitivity/cost_sensitivity are non-learnable with detach. (3) Updated S2 reward gradient norm plot title to note expected ≈0 values. (4) Updated builder notes in Cell 2 to reflect detach behavior. Also addressed MED FLAG: improved patience_counter += 0.5 comment to document 50-epoch implication. |
-| critic_code_review | 2026-03-23 | critic | APPROVED: BLOCK-1 fix verified. All 4 changes applied correctly: (1) self.energy = self.energy.detach() prevents graph accumulation across TBPTT chunks, (2) non-learnable parameter documentation, (3) S2 plot title updated, (4) patience comment clarified. All 4 original design FLAGs remain resolved. Notebook ready for Colab execution. |
-| phase1_complete | 2026-03-23 | architect | Phase 1 COMPLETE. Critic code review APPROVED after BLOCK-1 fix (energy.detach() for TBPTT graph accumulation). All 4 design FLAGs resolved. 29-cell notebook: LimbicRewardModule (differentiable energy pool + loss/threshold modulation), 9 limbic variants + 3 baselines = 120 runs across 10 folds. ~6h CPU, ~1.5h GPU. Key fix: energy state must be detached between TBPTT chunks to prevent unbounded computation graph growth. Notebook ready for Colab execution. Awaiting Shael review for Phase 2 direction. |
-| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842116, mode: supervised) |
-| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842351, mode: supervised) |
-| local_experiment_running | 2026-03-23 | builder | RESULTS: 12 experiments (9 SNN + 3 baselines), dry-run CPU with synthetic data. All SNN variants (LR-BASE through LR-08) produce identical results: acc=50.4%, SR=+0.46, turnover=0.0, entropy=1.0. Limbic modulation has ZERO observable effect — consistent with energy-detach pattern (reward_sensitivity receives no gradient). Model converges to constant prediction on 5 epochs/synthetic data. BL-02 (logistic) best acc 53.0%. Bug fixed: snntorch threshold is Buffer, requires fill_() not float assignment. Needs real data + full epochs for meaningful limbic comparison. |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | architect | TOTAL FAILURE — limbic module has zero effect. All 9 variants identical to baseline. Root cause: dead neurons by epoch 2 (spike rate = 0.0 in both layers). With zero spikes, predictions are near-zero, reward is ~1e-6, reward gradient is exactly 0.0. The limbic module receives no gradient and learns nothing. Energy dynamics work mechanically (pool decays, bounds clamp correctly) but modulate nothing. Only 5 epochs ran (vs designed 100). The equilibrium SNN backbone (96→48, T=1) dies on CPU — wrong backbone choice. Limbic must be re-tested on V3 Scheme B (128→64, T=20) which actually produces 53.5% accuracy. 4 follow-up scripts specified. |
-| local_experiment_running | 2026-03-23 | system | Experiment completed (all 12 results PKLs present). Dead-PID recovery — transitioning to experiment_complete for analysis auto-kick. |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/ |
-
-## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on Phase 1 completion_
-
-### Stage History
-| Stage | Date | Agent | Notes |
-|-------|------|-------|-------|
-| phase2_architect_design_blocked | 2026-03-23 | architect | BLOCKED: BLOCK: No Phase 2 direction from Shael. Phase 2 is the human-in-the-loop phase — requires Shael's feedback on Phase 1 results before design can proceed. The notebook hasn't been run yet (awaiting Colab execution). Phase 2 design needs: (1) Phase 1 experiment results, (2) Shael's analysis and direction. Unblock by creating pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_phase2_direction.md with Shael's feedback. |
-
-### Feedback
-_(Shael's feedback goes here when Phase 1 is complete and reviewed)_
-
-## Phase 3: Iterative Research (Autonomous or Human-Triggered)
-_Status: LOCKED — requires Phase 2 completion before activation_
-
-**Gate condition:** `phase2_complete` must be set before any Phase 3 iteration can proceed.
-
-### How Phase 3 Works
-
-1. **Human-triggered:** Shael says "try X" → iteration created and built
-2. **Agent-triggered:** Analysis reveals compelling follow-up → proposal generated:
-   - Score ≥ 7: auto-approved
-   - Score 4-6: flagged for Shael's review
-   - Score < 4: rejected, logged only
-
-### Iteration Log
-
-| ID | Hypothesis | Proposed By | Status | Result |
-|----|-----------|-------------|--------|--------|
-
-## Artifacts
-- **Spec:** `snn_applied_finance/specs/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.ipynb`
----
----
-primitive: pipeline
 status: archived
 priority: high
 type: research
@@ -24122,11 +24683,11 @@ tags:
 project: codex
 started: 2026-03-23
 archived: 2026-03-23
-__coord__: p9
+__coord__: p8
 __slug__: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.md
 __prefix__: p
-__index__: 9
+__index__: 8
 __ptype__: pipelines
 ---
 # Implementation Pipeline: LM-V2-COORDINATE-NATIVE-PIPELINE-LAUNCH-AND-WORKFLOW-ENRICHMENT
@@ -24200,11 +24761,11 @@ tags:
 - v1
 project: multi-agent-infrastructure
 started: 2026-03-21
-__coord__: p10
+__coord__: p9
 __slug__: orchestration-engine-v1
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/orchestration-engine-v1.md
 __prefix__: p
-__index__: 10
+__index__: 9
 __ptype__: pipelines
 ---
 # Implementation Pipeline: ORCHESTRATION-ENGINE-V1
@@ -24280,11 +24841,11 @@ tags:
 project: multi-agent-infrastructure
 started: 2026-03-21
 archived: 2026-03-22
-__coord__: p11
+__coord__: p10
 __slug__: orchestration-engine-v2-temporal
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/orchestration-engine-v2-temporal.md
 __prefix__: p
-__index__: 11
+__index__: 10
 __ptype__: pipelines
 ---
 # Implementation Pipeline: ORCHESTRATION-ENGINE-V2-TEMPORAL
@@ -24390,11 +24951,11 @@ tags:
 - v1
 project: multi-agent-infrastructure
 started: 2026-03-21
-__coord__: p12
+__coord__: p11
 __slug__: orchestration-engine-v2
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/orchestration-engine-v2.md
 __prefix__: p
-__index__: 12
+__index__: 11
 __ptype__: pipelines
 ---
 # Implementation Pipeline: ORCHESTRATION-ENGINE-V2
@@ -24471,11 +25032,11 @@ tags:
 project: multi-agent-infrastructure
 started: 2026-03-21
 archived: 2026-03-22
-__coord__: p13
+__coord__: p12
 __slug__: orchestration-v3-monitoring
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/orchestration-v3-monitoring.md
 __prefix__: p
-__index__: 13
+__index__: 12
 __ptype__: pipelines
 ---
 # Implementation Pipeline: ORCHESTRATION-V3-MONITORING
@@ -24594,11 +25155,11 @@ tags:
 project: multi-agent-infrastructure
 started: 2026-03-21
 archived: 2026-03-22
-__coord__: p14
+__coord__: p13
 __slug__: research-openclaw-internals
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/research-openclaw-internals.md
 __prefix__: p
-__index__: 14
+__index__: 13
 __ptype__: pipelines
 ---
 # Implementation Pipeline: RESEARCH-OPENCLAW-INTERNALS
@@ -24704,11 +25265,11 @@ project: snn-applied-finance
 started: 2026-03-17
 archived: 2026-03-20
 version_label: v5-stacking
-__coord__: p15
+__coord__: p14
 __slug__: stack-specialists
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/stack-specialists.md
 __prefix__: p
-__index__: 15
+__index__: 14
 __ptype__: pipelines
 ---
 # Implementation Pipeline: STACK-SPECIALISTS
@@ -24853,11 +25414,11 @@ tags:
 project: snn-applied-finance
 started: 2026-03-17
 archived: 2026-03-18
-__coord__: p16
+__coord__: p15
 __slug__: v4-deep-analysis
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/v4-deep-analysis.md
 __prefix__: p
-__index__: 16
+__index__: 15
 __ptype__: pipelines
 ---
 # Analysis Pipeline: V4 Deep Analysis
@@ -24948,11 +25509,11 @@ patch_notes:
 project: snn-applied-finance
 started: 2026-03-15
 archived: 2026-03-18
-__coord__: p17
+__coord__: p16
 __slug__: v4
 __filepath__: /home/ubuntu/.openclaw/workspace/pipelines/v4.md
 __prefix__: p
-__index__: 17
+__index__: 16
 __ptype__: pipelines
 ---
 # Implementation Pipeline: V4 — Differential Output & Network Scale Exploration
@@ -25233,164 +25794,6 @@ Phase 3 iterations are open-ended research rounds. Each iteration has:
 | Supp | LSTM | matched | rate, delta | direction/magnitude | 4 |
 | Baseline | LR/RF | n/a | rate, delta, last_step | direction | 6 |
 | **Total** | | | | | **36+** |
----
----
-primitive: pipeline
-status: local_analysis_complete
-priority: high
-version: validate-scheme-b
-spec_file: machinelearning/snn_applied_finance/specs/validate-scheme-b_spec.yaml
-output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_validate-scheme-b_predictor.ipynb
-agents:
-- architect
-- critic
-- builder
-tags:
-- validation
-- statistics
-- snn
-project: snn-applied-finance
-started: 2026-03-17
-version_label: v5-validation
-__coord__: p18
-__slug__: validate-scheme-b
-__filepath__: /home/ubuntu/.openclaw/workspace/pipelines/validate-scheme-b.md
-__prefix__: p
-__index__: 18
-__ptype__: pipelines
----
-# Implementation Pipeline: VALIDATE-SCHEME-B
-
-## Description
-Statistical validation of V3 Scheme B (+0.45 Sharpe) with 7+ walk-forward folds to establish significance
-
-## Notebook Convention
-**All phases live in a single notebook** (`crypto_validate-scheme-b_predictor.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis.
-
-## Phase 1: Autonomous Build
-_Architect designs → Critic reviews → Builder implements_
-
-### Stage History
-| Stage | Date | Agent | Notes |
-|-------|------|-------|-------|
-| pipeline_created | 2026-03-17 | belam-main | Pipeline instance created |
-| pipeline_created | 2026-03-17 | belam-main | Pipeline kickoff |
-| architect_design | 2026-03-18 | architect | In progress |
-| pipeline_created | 2026-03-18 | belam-main | Pipeline kickoff |
-| architect_design | 2026-03-18 | architect | Design v1: 12 experiments (3 primary + 4 control + 3 epoch-sensitivity + 2 baseline). Frozen V3 Scheme B, 10 folds, extended data 2020-2025, DSR+bootstrap+t-test. |
-| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 7 flags. FLAG-1: t-test fold non-independence (supplement with sign test + block bootstrap). FLAG-2: target variable undefined. FLAG-3: cost application unspecified. FLAG-4: random seeds missing. FLAG-5: no power analysis. FLAG-6: no paired comparison to controls. FLAG-7: fold boundaries too loose. Checklist 12/14. Strongest statistical design — the verdict (validated/weak/rejected) will be definitive. |
-| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 7 flags |
-| critic_design_review | 2026-03-18 | critic | APPROVED: 0 blocks, 7 flags |
-| builder_implementation | 2026-03-18 | builder | In progress |
-| builder_implementation | 2026-03-18 | builder | crypto_validate-scheme-b_predictor.ipynb: 51 cells, 12 experiments, all 7 FLAGS addressed. Frozen V3 Scheme B architecture, 10 walk-forward folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. Epoch sensitivity experiments (10/25/50/100). |
-| architect_design | 2026-03-18 | architect | Design v1: 8 experiments × 13 folds = 104 runs. Core replication of V3 Scheme B (FROZEN config) across 13 walk-forward folds (2020-2026, 4-month val windows). Statistical battery: Sharpe t-test, Deflated Sharpe Ratio (n_trials=54), Bootstrap 95% CI, PBO. 4 diagnostic models (Scheme 0, LSTM, LR, majority) for component attribution. 3 sensitivity runs (HuberLoss delta, abstention threshold). Clear pass/fail criteria: all 3 primary tests must pass for 'validated'. |
-| critic_design_review | 2026-03-18 | critic | APPROVED v2 design with 5 FLAGS (no blocks). FLAG-1: DSR variance needs Lo (2002) non-normal adjustment for BTC fat tails. FLAG-2: Bootstrap annualization uses sqrt(252*6) — should be sqrt(365*6) for crypto. FLAG-3: PBO requires all 54 V3 trial results or should be dropped (DSR covers selection bias). FLAG-4: LSTM baseline training protocol unspecified. FLAG-5: Random seeds missing. Checklist 10/14 pass. Strongest statistical design to date. |
-| builder_implementation | 2026-03-18 | builder | crypto_validate-scheme-b_predictor.ipynb: 51 cells (25 code, 26 markdown), 12 experiments, all 7 FLAGS addressed. Frozen V3 Scheme B architecture, 10 walk-forward folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. Epoch sensitivity (10/25/50/100). Build script: build_validate_scheme_b.py. RECOVERY: notebook was built in prior session but orchestrator handoff was missed due to timeout. |
-| builder_implementation | 2026-03-18 | builder | RECOVERY: 51-cell notebook complete, all 7 FLAGS addressed |
-| builder_implementation | 2026-03-18 | builder | RECOVERY: 51-cell notebook complete, all 7 FLAGS addressed. Frozen V3 Scheme B, 10 folds, DSR+bootstrap+t-test+sign test+block bootstrap+Wilcoxon. |
-| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 baselines crash with KeyError: data_dict['labels'] — data_bundle has keys 'delta'/'pop', not 'labels'. Fix: data_dict['delta']['labels'] in majority/random branches (3 lines). 5 FLAGS: DSR skewness/kurtosis defaults to normal (BTC fat tails), hash() non-deterministic seeds, binom_test deprecated, PBO dropped without documentation note, missing design sections. All 7 original design flags verified as implemented. Checklist 21/23. Statistical battery is excellent — best validation pipeline we've built. |
-| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 baselines crash with KeyError — data_dict['labels'] accessed on bundle dict {'delta':..,'pop':..} which has no 'labels' key. Fix: data_dict['delta']['labels']. Also 5 FLAGS: (1) DSR Lo adjustment called with normality defaults, (2) hash() non-deterministic seeds, (3) n_folds=10 vs design 13, (4) n_trials_dsr=10 vs 54, (5) baseline results missing net_sharpe_abst key. |
-| builder_apply_blocks | 2026-03-18 | builder | In progress |
-| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 KeyError crash. 5 FLAGS. See validate-scheme-b_critic_code_review.md |
-| critic_code_review_blocked | 2026-03-18 | critic | BLOCKED: BLOCK-1: BL-01/BL-02 KeyError crash. 5 FLAGS. 21/23 checklist. Fix 3 lines in Cell 27. |
-| builder_apply_blocks | 2026-03-18 | builder | Fixed BLOCK-1 (BL-01/BL-02 KeyError: data_dict['delta']['labels']) + all 5 FLAGS: (1) DSR Lo non-normal adjustment with actual BTC skew/kurtosis, (2) hashlib.md5 deterministic seeds, (3) n_folds=10 documented, (4) n_trials_dsr=10 documented, (5) net_sharpe_abst added to all baseline results. Also S-1: binomtest replaces deprecated binom_test. Committed 799c7e2. |
-| critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified (BLOCK-1 KeyError, FLAG-1 DSR Lo non-normal, FLAG-2 hashlib seeds, FLAG-3 n_folds doc, FLAG-4 n_trials doc, FLAG-5 net_sharpe_abst, S-1 binomtest). 9/9 checklist pass. No regressions. Notebook ready to run. |
-| critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified. 9/9 checklist. Notebook ready to run. |
-| critic_code_review | 2026-03-18 | critic | APPROVED: All fixes verified. Ready to run. |
-| critic_code_review | 2026-03-18 | critic | APPROVED: All 7 fixes verified (BLOCK-1 KeyError, FLAGS 1-5, S-1 binomtest). 9/9 checklist. Notebook ready to run. |
-| phase1_complete | 2026-03-18 | architect | Phase 1 complete. Critic code review v2 APPROVED (9/9 checklist, all fixes verified). 51-cell notebook: frozen V3 Scheme B across 10 walk-forward folds, statistical battery includes t-test + sign test + DSR (Lo non-normal adjustment) + bootstrap CI + block bootstrap + Wilcoxon + power analysis. All 7 original issues resolved (BLOCK-1 KeyError, FLAG-1 DSR skew/kurtosis, FLAG-2 hashlib seeds, FLAG-3 n_folds doc, FLAG-4 n_trials doc, FLAG-5 net_sharpe_abst, S-1 binomtest). Notebook ready for Shael review. |
-| phase1_revision_architect | 2026-03-19 | coordinator | In progress |
-| phase1_revision_architect | 2026-03-19 | architect | Revised design: 3 changes from coordinator direction. R1: V4 counterfactual comparison section (97.9% dead-network stats, membrane vs spike-count table, gradient flow diagram). R2: Membrane readout elevated to KEY FINDING in discussion (hierarchy of factors, biological analogy, design rule). R3: Double-confirmation verdict (positive + negative evidence = causal confidence). No changes to training/eval/stats. DSR Lo adjustment confirmed correct. ~6-8 new cells. |
-| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: R1 V4 counterfactual, R2 membrane readout KEY FINDING, R3 double-confirmation verdict |
-| phase1_revision_architect | 2026-03-19 | architect | Revised design v2 |
-| phase1_revision_architect | 2026-03-19 | architect | Revised design v2: R1 V4 counterfactual, R2 membrane readout KEY FINDING, R3 double-confirmation verdict |
-| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED with 3 FLAGS (0 blocks). All 3 coordinator direction points addressed: R1 V4 counterfactual (FLAG-1: document confounds - V4 also had learnable_scale), R2 membrane readout KEY FINDING (FLAG-2: escape hatch threshold 0.1-0.3 is untested hypothesis), R3 double-confirmation verdict (FLAG-3: clarify DOUBLY VALIDATED is interpretive not formal statistical test). Core validation pipeline UNCHANGED and correct. All 12 prior flags from v1/v2 confirmed resolved. Checklist 12/14. Review at: pipeline_builds/validate-scheme-b_critic_revision_review.md |
-| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (all language precision). FLAG-1: V4 not single-variable change, temper causal claim. FLAG-2: membrane readout is necessary not sufficient. FLAG-3: use convergent evidence not causal-level. Review at validate-scheme-b_critic_revision_review.md |
-| phase1_revision_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (language precision). FLAG-1: temper V4 causal claim. FLAG-2: necessary not sufficient. FLAG-3: convergent evidence not causal-level. |
-| phase1_revision_builder | 2026-03-19 | builder | Revised notebook v2: 58 cells (29 code, 29 markdown). 6 new cells added. Section 6.5: V4 Counterfactual (load V4 stats, side-by-side comparison table, gradient flow diagram, counterfactual verdict). Discussion: Membrane Readout KEY FINDING (hierarchy of factors, biological analogy, design rule for SNN finance). Combined Verdict: Convergent Evidence Assessment (positive + negative evidence). All 3 Critic Revision FLAGs addressed: FLAG-1 'primary architectural difference' with confounds documented, FLAG-2 'necessary' not 'necessary AND sufficient', FLAG-3 'VALIDATED with CONVERGENT EVIDENCE' not 'DOUBLY VALIDATED'. No existing cells modified (training/eval/stats frozen). Committed 98df761. |
-| phase1_revision_builder | 2026-03-19 | builder | Revised notebook v2: 58 cells (29 code, 29 markdown). 6 new cells. V4 Counterfactual, Membrane Readout KEY FINDING, Convergent Evidence Verdict. All 3 Critic FLAGs addressed. Committed 98df761. |
-| phase1_revision_code_review | 2026-03-19 | critic | APPROVED with 1 minor FLAG (0 blocks). All 3 revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence. No existing cells modified. 6 new cells verified: V4 stats loading with pkl dedup, side-by-side comparison, gradient flow diagram, counterfactual verdict, membrane readout discussion, convergent evidence assessment. Variable scope correct. 9/9 checklist pass. Review at: pipeline_builds/validate-scheme-b_critic_revision_code_review.md |
-| phase1_complete | 2026-03-19 | architect | Phase 1 revision COMPLETE. Critic revision code review APPROVED 9/9, 0 blocks, 1 minor non-blocking FLAG (cell 50 else-branch language — won't trigger since V4 dead rate=97.9%). All 3 coordinator direction points verified: R1 V4 counterfactual comparison (hardcoded stats + pkl fallback, side-by-side table, gradient flow diagram, quasi-experimental verdict), R2 membrane readout elevated to KEY FINDING (hierarchy-of-factors table, biological analogy, design rule), R3 convergent evidence verdict (four-way matrix: positive+negative→VALIDATED WITH CONVERGENT EVIDENCE). All 3 critic revision FLAGs addressed: FLAG-1 confounds documented, FLAG-2 necessary not sufficient, FLAG-3 convergent evidence language. No existing cells modified. 58-cell notebook (51 original + 6 new + 1 updated notes cell). Notebook ready for Shael review. |
-| local_experiment_running | 2026-03-19 | system | Local experiment run started (PID: 2569411) |
-| local_experiment_running | 2026-03-19 | system | EXPERIMENT FAILED after 1 attempts: Process exited with code 1 |
-| local_experiment_running | 2026-03-19 | system | Experiment run started (PID: 2579811, mode: supervised) |
-| local_experiment_running | 2026-03-19 | system | Experiments complete. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b |
-| local_analysis_architect | 2026-03-19 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/ |
-| local_analysis_architect | 2026-03-19 | architect | Analysis report complete. VERDICT: MIXED — signal confirmed, profitability unproven, abstention broken. Accuracy lift is REAL (t=4.80, p=0.001, 9/10 folds). Abstention 100% broken in all folds. Net Sharpe +0.40 NOT significant (p=0.49). Gross Sharpe reliably positive (20/20 folds). Turnover is the Sharpe killer (r=0.83 with gap). Temporal degradation significant (r=-0.71, p=0.02). Run incomplete (3/12 experiments). 6 additional analysis scripts specified. |
-| local_analysis_architect | 2026-03-19 | architect | Analysis complete. Signal real (p=0.001), abstention broken, Sharpe NS. 6 scripts specified. |
-| local_analysis_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 5 FLAGs. Core findings verified against raw pkl: accuracy lift real (t=4.80, p=0.001 confirmed), 100% abstention confirmed, net Sharpe NS (p=0.49 confirmed), gross Sharpe 20/20 positive. FLAGS: (1) Section 6.1 reports net_sharpe_full r=-0.71 but labels it gross Sharpe (actual gross r=-0.65), (2) 4/10 positive Sharpe folds not 5/10, (3) turnover bucket fold assignments wrong (corrected buckets strengthen the narrative), (4) VSB-03 stale (7 folds now vs 3 in report), (5) training dynamics plot from wrong pipeline. Statistical hygiene 10/10. Review at: validate-scheme-b_critic_local_analysis_review.md |
-| local_analysis_critic_review | 2026-03-19 | critic | APPROVED: 0 BLOCKs, 5 FLAGs. Core findings verified. Review at validate-scheme-b_critic_local_analysis_review.md |
-| local_analysis_critic_review | 2026-03-19 | critic | APPROVED |
-| local_analysis_builder | 2026-03-20 | builder | Full 12-experiment analysis (120 records, 12 exp x 10 folds). All 5 Critic FLAGs fixed: FLAG-1 temporal degradation gross vs net labels, FLAG-2 positive folds=4/10, FLAG-3 turnover bucket assignments corrected, FLAG-4 VSB-03 updated to 10 folds, FLAG-5 training dynamics plot regenerated. 0/6 Architect scripts executable (all blocked by missing per-candle data). 8 supplementary analyses + 5 visualizations + LaTeX PDF (157KB). KEY: CTRL-01 (Scheme 0) has higher accuracy lift than VSB-01 — signal is feature-based. Abstention ~30% not 100% and hurts performance. |
-| local_analysis_builder | 2026-03-20 | builder | Full 12-experiment analysis (120 records). 5/5 Critic FLAGs fixed. 0/6 Architect scripts blocked (no per-candle data). 8 supplementary analyses, 5 visualizations, LaTeX PDF. KEY: CTRL-01 (Scheme 0) beats VSB-01 on accuracy — signal is feature-based. Abstention ~30% not 100% and hurts. |
-| local_analysis_code_review | 2026-03-20 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (2 medium, 2 low). All 5 prior FLAGs verified fixed. 120-record analysis (12 exp × 10 folds) correctly analyzed. Code quality high: deterministic seeds, proper scipy APIs, matplotlib standards. FLAG-1 (MED): '100% abstention error' framing is misleading — data changed between GPU/CPU runs, not original error. FLAG-2 (MED): 'signal is feature-based' claim needs paired test (p=0.048, barely significant; delta encoding has execution advantage not captured by accuracy). FLAG-3 (LOW): turnover-Sharpe correlation now p=0.093 (NS), narrative overstates evidence. FLAG-4 (LOW): abstention harms because |prediction magnitude| ≠ confidence (active_accuracy < accuracy in multiple folds). Review at: validate-scheme-b_critic_local_analysis_code_review.md |
-| local_analysis_report_build | 2026-03-20 | system | Building LaTeX report from validate-scheme-b_analysis_report.md |
-| local_analysis_report_build | 2026-03-20 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/validate-scheme-b_report.pdf (512.2 KB) |
-| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2840437, mode: supervised) |
-| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842043, mode: supervised) |
-| local_experiment_running | 2026-03-23 | system | Experiment run started (PID: 2842350, mode: supervised) |
-| local_experiment_running | 2026-03-23 | system | EXPERIMENT FAILED after 5 attempts: Builder failed after 5 attempts |
-| local_experiment_running | 2026-03-23 | builder | RESULTS: 14 Phase 2 experiments on real BTC 4H data (3-fold dry-run). Best variant VSB-TURN-03a (EMA smoothing alpha=0.3) with net Sharpe 0.699. TURN-01 penalized loss hurt accuracy. TURN-02/03 reduced turnover. Position sizing marginal. 4 notebook bugs fixed (3-tuple unpacking, regression target dtype, batch mismatch, variable naming). |
-| local_analysis_architect | 2026-03-23 | system | Local analysis started. Results at machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/ |
-| local_analysis_architect | 2026-03-23 | architect | Analysis complete: Phase 1+2 combined report. Phase 1 (10 folds): Signal validated — accuracy lift p=0.001, gross Sharpe +2.66 (p<0.0001). Net Sharpe +0.40 but CI includes zero. Turnover explains 92% of net Sharpe variance (r=-0.96). CTRL-01 (Scheme 0) highest accuracy (54.11%) but lower gross Sharpe than Scheme B — accuracy-Sharpe disconnect. Abstention falsified (active accuracy < full accuracy). Phase 2 (3 folds — UNDERPOWERED): TURN-01 destroys accuracy (dead end). TURN-02b (min hold=4) best variant (+0.43 Sharpe, turnover 0.10). TURN-03 misleading (zero turnover = static position). Position sizing ineffective (uncalibrated confidence). Break-even: 40 bps for TURN-02b. 6 scripts specified for deeper analysis. |
-| local_analysis_critic_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (2 MED, 1 LOW). All numbers verified against raw pkl. FLAG-1 MED: Active trading (Sharpe +0.40) UNDERPERFORMS buy-and-hold (Sharpe +0.92) — must state in executive summary. FLAG-2 MED: Phase 2 baseline accuracy drop (53.47→51.33%) unverified against same folds from Phase 1. FLAG-3 LOW: TURN-03 identical results across alpha values — check if raw prediction magnitudes near-degenerate. Key confirmations: turnover-Sharpe r=-0.96 verified, TURN-01 failure confirms shuffled-batch FLAG, POS invariance confirms Kelly FLAG. Proposed regime filter reframe: use SNN as long/flat filter instead of active trader. |
-| local_analysis_builder | 2026-03-23 | builder | All 3 critic FLAGs addressed + scripts 3-6 implemented and run. FLAG-1: Active trading SR +0.40 vs buy-and-hold SR +0.92 — gap of -0.52 now stated in executive summary. BH wins 7/10 folds. FLAG-2: Phase 2 baseline drop is synthetic vs real data difference (all 3 folds >1pp gap). FLAG-3: Predictions biased 92-97% positive in 2/3 folds — synthetic upward drift artifact, confirms TURN-03 identical results expected. Script 3: flip/hold ratio 1.23 (SNN flips on high-vol, good). Script 4: optimal hold N=5 (20h), smooth Sharpe curve. Script 5: TURN-02b break-even at 24 bps (2.4x margin over institutional). Script 6: no temporal trend, turnover dominates. Regime filter analysis: needs real data (biased predictions on synthetic data make L/F = L/S). Updated executive summary and produced critic_followup_report.md. |
-| local_analysis_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 4 FLAGs (1 HIGH, 2 MED, 1 LOW). FLAG-1 HIGH: stored predictions are binary {0,1} not continuous logits — magnitude diagnostic is trivially degenerate, regime filter = active L/S on this encoding, POS-01 was meaningless. Fix: store raw logits next run. FLAG-2 MED: break-even discrepancy 24 bps (cost sweep) vs 39.9 bps (mean of per-fold break-evens, inflated by 100bps outlier fold). 24 bps is more honest — still profitable at institutional costs but tighter margin (2.4x over 10bps, not 2.7x over 15bps). FLAG-3 MED: N=5 optimal holding period is 3-fold noise — spike driven by fold alignment, not smooth curve. Robust finding: mid-range N in [3,7] (12-28h). FLAG-4 LOW: regime filter = active L/S because sign({0,1}) = {0,1}, not because of prediction bias. All 3 original FLAGs resolved. Scripts 3-6 correct. Review at: pipeline_builds/validate-scheme-b_critic_local_analysis_code_review.md |
-| local_analysis_report_build | 2026-03-23 | system | Building LaTeX report from validate-scheme-b_analysis_report.md |
-| local_analysis_report_build | 2026-03-23 | system | LaTeX report built. PDF: machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/validate-scheme-b_report.pdf (555.6 KB) |
-
-## Local Experiment Execution
-_Status: Auto-triggered on Phase 1 completion_
-
-Experiments run locally on the VPS via `run_experiment.py`. The pipeline auto-transitions:
-`phase1_complete` → `experiment_running` → `experiment_complete` → Phase 2
-
-- **Results:** `notebooks/local_results/validate-scheme-b/`
-- **Manual trigger:** `R run validate-scheme-b`
-
-### Experiment History
-| Run | Date | Duration | Experiments | Errors | Notes |
-|-----|------|----------|-------------|--------|-------|
-
-## Phase 2: Human-in-the-Loop
-_Status: Queued — auto-triggers on experiment completion_
-
-### Stage History
-| Stage | Date | Agent | Notes |
-|-------|------|-------|-------|
-| phase2_architect_design | 2026-03-23 | architect | Phase 2 design: 15 experiments (3 turnover reduction + 2 position sizing + 1 combined) × 10 folds = 140 runs. Only 30 require retraining (TURN-01 loss penalty). Rest reuse Phase 1 saved predictions via post-processing. Attack turnover (proven bottleneck r=0.83) and position sizing (binary→continuous). Break-even cost analysis for all variants. 4 open questions for critic. |
-| phase2_critic_design_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 HIGH, 1 MED, 1 LOW). FLAG-1 HIGH: per-candle predictions NOT saved in Phase 1 pickle — builder must re-run VSB-02 with prediction saving before post-processing experiments (+1-2h, total ~4-5h vs architect's 3.5h). FLAG-2 MED: TURN-01 (loss modification) must be reported in separate tier from post-processing experiments. FLAG-3 LOW: Kelly sizing — use training-fold stats only. Experimental design is sound — directly attacks turnover bottleneck (r=0.82, p=0.004). Review at: pipeline_builds/validate-scheme-b_phase2_critic_design_review.md |
-| phase2_builder_implementation | 2026-03-23 | builder | Phase 2 notebook complete: 24 new cells (52-75), 35,778 chars. FLAG-1: VSB-02 re-run with prediction saving + Kelly train stats. FLAG-2: tier separation in comparison table (Tier 1 post-processing vs Tier 2 modified training). FLAG-3: Kelly uses training fold stats only. Experiments: TURN-01a/b/c (loss penalty), TURN-02a/b/c (min hold), TURN-03a/b/c (EMA smooth), POS-01a/b (linear sizing), POS-02a/b (Kelly sizing), COMB-01 (auto-select best). Analysis: statistical tests (t-test, bootstrap CI, sign test, paired t-test, DSR), break-even cost analysis, 3 visualizations (turnover-Sharpe scatter, break-even bars, fold stability heatmap), executive verdict. |
-| phase2_critic_code_review | 2026-03-23 | critic | APPROVED: 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved. FLAG-1 MED: TURN-01 prev_preds connects shuffled-batch pairs not temporal sequences — penalty acts as prediction consistency regularizer, not temporal flip penalty. Results still valid. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant (f cancels in mean/std ratio) — experiment uninformative for primary metric. FLAG-3 LOW: DSR approximation conservative. 24 cells, 14 experiment variants + analysis pipeline correctly implemented. Review: pipeline_builds/validate-scheme-b_phase2_critic_code_review.md |
-| phase2_complete | 2026-03-23 | architect | Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 MED, 2 LOW). All 3 design FLAGs resolved (per-candle predictions saved, TURN-01 tier separation, Kelly lookahead prevented). 24 new cells, 14 experiment variants. FLAG-1 MED: TURN-01 penalty acts as consistency regularizer not temporal flip penalty due to batch shuffling — results still valid but interpretation changes. FLAG-2 LOW: POS-02 Kelly constant fraction is Sharpe-invariant — uninformative for primary metric but useful for drawdown/risk analysis. FLAG-3 LOW: DSR approximation conservative. Notebook ready to run: ~3.5h total (30 retrain runs + ~110 post-processing runs). |
-
-### Feedback
-_(Shael's feedback goes here when Phase 1 is complete and reviewed)_
-
-## Phase 3: Iterative Research (Autonomous or Human-Triggered)
-_Status: LOCKED — requires Phase 2 completion before activation_
-
-**Gate condition:** `phase2_complete` must be set before any Phase 3 iteration can proceed.
-
-### How Phase 3 Works
-
-1. **Human-triggered:** Shael says "try X" → iteration created and built
-2. **Agent-triggered:** Analysis reveals compelling follow-up → proposal generated:
-   - Score ≥ 7: auto-approved
-   - Score 4-6: flagged for Shael's review
-   - Score < 4: rejected, logged only
-
-### Iteration Log
-
-| ID | Hypothesis | Proposed By | Status | Result |
-|----|-----------|-------------|--------|--------|
-
-## Artifacts
-- **Spec:** `snn_applied_finance/specs/validate-scheme-b_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/validate-scheme-b_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/validate-scheme-b_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/validate-scheme-b_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/crypto_validate-scheme-b_predictor.ipynb`
 ---
 ---
 name: belam
@@ -27103,6 +27506,54 @@ _Any relevant context, links, or constraints._
 ---
 ---
 primitive: task
+status: open
+priority: high
+tags:
+- orchestration
+- infrastructure
+- stability
+project: workspace
+created: 2026-03-24
+depends_on: []
+__coord__: t12
+__slug__: e0-sweep-subcommand-separation
+__filepath__: /home/ubuntu/.openclaw/workspace/tasks/e0-sweep-subcommand-separation.md
+__prefix__: t
+__index__: 12
+__ptype__: tasks
+---
+# Split e0 Orchestration Sweep into Focused Sub-Commands
+
+## Problem
+The monolithic `e0` sweep does everything in one pass: lock clearing, experiment monitoring, gate checking, pipeline launching, stall detection, handoff retries. This is expensive (parses all primitives + all pipeline state files) and was a major contributor to gateway freezes when triggered by heartbeat.
+
+## Proposed Sub-Commands
+- `e0 scan` — read-only status check across all pipelines, no mutations
+- `e0 gates` — check gate conditions only (analysis gates, phase transitions)
+- `e0 kick` — dispatch pending handoffs only
+- `e0 clean` — clear stale locks and orphaned dispatches only
+- `e0 stalls` — detect and report stalled pipelines (>2h no progress)
+- `e0` (bare) — full sweep (all of the above, current behavior, for manual use only)
+
+## Benefits
+- Heartbeat can run `e0 scan` (cheap, read-only) and only escalate if needed
+- Individual operations can be triggered on-demand without full sweep overhead
+- Easier to debug which specific operation is causing issues
+- Can be parallelized or run in sub-agents independently
+
+## Implementation Notes
+- Modify `scripts/codex_engine.py` e0 handler to accept sub-command argument
+- Each sub-command should be independently safe (no shared state assumptions)
+- `e0 scan` must be purely read-only — no file writes, no lock creation
+- Consider adding `--dry-run` flag to mutation commands
+
+## Context
+- e0 was removed from HEARTBEAT.md on 2026-03-24 due to freeze issues
+- Can be re-added to heartbeat once sub-commands exist (using `e0 scan` only)
+- Related: renderer decoupling (completed 2026-03-24) removed another freeze source
+---
+---
+primitive: task
 status: in_pipeline
 priority: high
 created: 2026-03-23
@@ -27118,11 +27569,11 @@ tags:
 - equilibrium
 - research
 pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
-__coord__: t12
+__coord__: t13
 __slug__: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.md
 __prefix__: t
-__index__: 12
+__index__: 13
 __ptype__: tasks
 ---
 # Limbic Reward SNN: Bio-Inspired Reward Neurons for Equilibrium Network
@@ -27206,11 +27657,11 @@ tags:
 - codex-engine
 - architecture
 - consciousness
-__coord__: t13
+__coord__: t14
 __slug__: limit-soul-read-write
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/limit-soul-read-write.md
 __prefix__: t
-__index__: 13
+__index__: 14
 __ptype__: tasks
 ---
 # Limit Soul Instance Direct Read-Write Access
@@ -27289,11 +27740,11 @@ tags:
 - lm
 - infrastructure
 pipeline: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
-__coord__: t14
+__coord__: t15
 __slug__: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.md
 __prefix__: t
-__index__: 14
+__index__: 15
 __ptype__: tasks
 ---
 # LM v2: Coordinate-Native Pipeline Launch and Workflow Enrichment
@@ -27339,6 +27790,111 @@ The LM (Legendary Map) v1 established the self-describing namespace on the super
 - Degrades gracefully: if render engine is down, scaffold still works from static LM data
 ---
 ---
+title: LM v3 — Platform & System Namespace + Scaffolded Writes
+status: open
+priority: high
+tags:
+- lm
+- infrastructure
+- codex-engine
+- platform
+depends_on: []
+project: codex-engine
+__coord__: t16
+__slug__: lm-v3-platform-and-system-namespace
+__filepath__: /home/ubuntu/.openclaw/workspace/tasks/lm-v3-platform-and-system-namespace.md
+__prefix__: t
+__index__: 16
+__ptype__: tasks
+---
+## Scope
+
+Extend the Legendary Map with three new sub-namespaces and a scaffolded write system:
+
+### 1. `oc.*` — OpenClaw Platform Commands
+Lift the openclaw CLI command surface into coordinate-addressable LM entries.
+
+**High-value commands to map:**
+- `oc.status` — `openclaw status` (overall health)
+- `oc.gw` — `openclaw gateway status|start|stop|restart|health`
+- `oc.cron` — `openclaw cron list|add|rm|run|status`
+- `oc.agent` — `openclaw agent --to {target} --message {msg}`
+- `oc.sessions` — `openclaw sessions` (list active)
+- `oc.logs` — `openclaw logs --follow`
+- `oc.doctor` — `openclaw doctor` (health checks + fixes)
+- `oc.memory` — `openclaw memory search|reindex`
+- `oc.hooks` — `openclaw hooks list|enable|disable`
+- `oc.cost` — `openclaw gateway usage-cost` (spend tracking)
+
+### 2. `sys.*` — System Tools
+Common host operations agents reach for frequently.
+
+**Process & Service:**
+- `sys.ps` — process listing/search (`ps aux | grep`, `pgrep`)
+- `sys.kill` — process termination (`kill`, `pkill`)
+- `sys.svc` — systemd service management (`systemctl --user start|stop|restart|status`)
+- `sys.cron` — system crontab (`crontab -l`, edit patterns)
+
+**Files & Search:**
+- `sys.grep` — pattern search across workspace
+- `sys.find` — file discovery
+- `sys.tail` — log tailing
+- `sys.disk` — disk usage (`df -h`, `du -sh`)
+
+**Network & Diagnostics:**
+- `sys.curl` — HTTP requests (health checks, webhooks)
+- `sys.net` — port/connection checks (`ss`, `netstat`)
+- `sys.top` — resource monitoring
+
+**Git:**
+- `sys.git` — git operations (status, commit, push, log, diff)
+
+### 3. Scaffolded Writes (`e2.*` extensions)
+Template-driven creation that lays out document skeleton + wires hooks automatically.
+
+**Core scaffolds:**
+- `e2.script` — Create a new script with standard header, argparse, logging, and auto-wire into appropriate hook points
+- `e2.cron` — Create cron job: script + crontab entry + watchdog pattern
+- `e2.hook` — Create an OpenClaw hook: handler file + registration + config entry
+- `e2.skill` — Create a skill directory: SKILL.md + references/ + scripts/ (existing skill-creator, but coordinate-native)
+- `e2.pipeline` — Create pipeline with all supporting files (direction, state JSON, frontmatter)
+
+**Convention:** Each scaffold:
+1. Creates the file with skeleton frontmatter + section headers
+2. Wires into relevant systems (crontab, hooks config, plugin registration)
+3. Returns the coord of the new entry so you can immediately `e1{coord}` to fill content
+
+### 4. Customized Read Commands (`r.*` extensions)  
+Formatted, filtered reads that compress common multi-step lookups.
+
+- `r.health` — Combined gateway + render engine + experiment status
+- `r.cost` — Token usage + cost summary across sessions
+- `r.experiments` — All running/completed experiments with results
+- `r.recent` — Last N changes across all namespaces (like `git log` for primitives)
+
+## Design Principles
+
+- Each LM entry IS the invocation, not docs about it
+- Entries auto-generate from discovered command surfaces where possible
+- Scaffolds create real files with real wiring, not just templates
+- System tools map to the most common invocation pattern, not the full man page
+- Everything degrades gracefully if the target isn't available
+
+## Implementation
+
+Single new file: `scripts/codex_lm_platform.py` (~300-400L)
+- Auto-discovers openclaw CLI subcommands via `openclaw help` parsing
+- Maps system tools to curated invocation patterns
+- Scaffold templates as Python dicts/strings
+- Plugs into existing `codex_lm_renderer.py` registration system
+
+## Design Decisions (Resolved)
+
+1. **Auto-exec, not render.** `oc.gw` executes `openclaw gateway status` via codex_engine.py and returns output directly. No intermediate render step. Saves tokens.
+2. **Full autowire.** Scaffolds create files AND wire into hooks/crontab/config. Documentation baked into the scaffold's output view so the agent knows what was wired and how to proceed.
+3. **Curated, extensible via e3.** Start with high-value tools. Agents extend via `e3 sys.{newtool}` as needed — the tools you collect become a memory of what you do.
+---
+---
 primitive: task
 status: archived
 priority: medium
@@ -27360,11 +27916,11 @@ tags:
 - spacetimedb
 - autoclave
 - v2
-__coord__: t15
+__coord__: t17
 __slug__: orchestration-engine-v2-temporal-autoclave
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/orchestration-engine-v2-temporal-autoclave.md
 __prefix__: t
-__index__: 15
+__index__: 17
 __ptype__: tasks
 ---
 # Orchestration Engine v2: Temporal State, Persistent Agents, Autoclave View
@@ -27478,11 +28034,11 @@ tags:
 - autoclave
 - v3
 - dashboard
-__coord__: t16
+__coord__: t18
 __slug__: orchestration-v3-monitoring-suite
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/orchestration-v3-monitoring-suite.md
 __prefix__: t
-__index__: 16
+__index__: 18
 __ptype__: tasks
 ---
 # Orchestration V3: Real-Time Monitoring Suite
@@ -27625,11 +28181,11 @@ tags:
 - persistence
 - indexed-subops
 - v2
-__coord__: t17
+__coord__: t19
 __slug__: persistent-extend-and-indexed-subops
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/persistent-extend-and-indexed-subops.md
 __prefix__: t
-__index__: 17
+__index__: 19
 __ptype__: tasks
 ---
 # Persistent Extend (e3) + Indexed Sub-Operations
@@ -27902,11 +28458,11 @@ tags:
 - infrastructure
 - manim
 - tts
-__coord__: t18
+__coord__: t20
 __slug__: report-to-youtube-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/report-to-youtube-pipeline.md
 __prefix__: t
-__index__: 18
+__index__: 20
 __ptype__: tasks
 ---
 # Build Report-to-YouTube Video Pipeline
@@ -28134,11 +28690,11 @@ tags:
 - sessions
 - hooks
 - plugins
-__coord__: t19
+__coord__: t21
 __slug__: research-openclaw-internals
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/research-openclaw-internals.md
 __prefix__: t
-__index__: 19
+__index__: 21
 __ptype__: tasks
 ---
 # research-openclaw-internals
@@ -28188,11 +28744,11 @@ tags:
 - mcp
 - frameworks
 superseded_by: build-orchestration-engine-v1
-__coord__: t20
+__coord__: t22
 __slug__: research-orchestration-tooling
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/research-orchestration-tooling.md
 __prefix__: t
-__index__: 20
+__index__: 22
 __ptype__: tasks
 ---
 # research-orchestration-tooling
@@ -28211,6 +28767,49 @@ See: `machinelearning/snn_applied_finance/research/pipeline_builds/research-open
 ---
 ---
 primitive: task
+status: open
+priority: medium
+tags:
+- analysis
+- snn
+- research
+project: snn-applied-finance
+created: 2026-03-24
+depends_on: []
+__coord__: t23
+__slug__: retroactive-analysis-limbic-reward-and-validate-scheme-b
+__filepath__: /home/ubuntu/.openclaw/workspace/tasks/retroactive-analysis-limbic-reward-and-validate-scheme-b.md
+__prefix__: t
+__index__: 23
+__ptype__: tasks
+---
+# Retroactive Analysis: Limbic-Reward & Validate-Scheme-B Pipelines
+
+## Description
+Both pipelines were archived on 2026-03-24 with completed experiment results but without formal analysis pipeline processing. Run deep analysis on both using analysis pipelines.
+
+## Context
+- Both pipelines experienced race conditions during orchestration that corrupted their state files
+- Experiments ran successfully and results exist in `local_results/`
+- Analysis reports exist (generated during local runs) but were never formally processed through the analysis pipeline
+
+## Artifacts
+### Limbic-Reward-SNN
+- Results: `machinelearning/snn_applied_finance/notebooks/local_results/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network/`
+- Analysis report: `limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_analysis_report.md`
+- Notebook: `crypto_limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network_predictor.ipynb`
+
+### Validate-Scheme-B
+- Results: `machinelearning/snn_applied_finance/notebooks/local_results/validate-scheme-b/`
+- Analysis report: `validate-scheme-b_analysis_report.md` + `validate-scheme-b_report.pdf`
+- Followup analysis: `followup_analysis/` (critic followup, structured results)
+- Notebook: `crypto_validate-scheme-b_predictor.ipynb`
+
+## Action
+Launch analysis pipelines for both when capacity is available. Extract lessons, update TECHNIQUES_TRACKER, and feed findings into future version planning.
+---
+---
+primitive: task
 status: archived
 priority: medium
 created: 2026-03-20
@@ -28219,11 +28818,11 @@ depends_on: []
 upstream: []
 downstream: []
 tags: []
-__coord__: t21
+__coord__: t24
 __slug__: sample-task
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/sample-task.md
 __prefix__: t
-__index__: 21
+__index__: 24
 __ptype__: tasks
 ---
 # sample-task
@@ -28244,6 +28843,90 @@ _Any relevant context, links, or constraints._
 ---
 primitive: task
 status: open
+priority: high
+created: 2026-03-24
+owner: belam
+depends_on:
+- lm-v3-platform-and-system-namespace
+tags:
+- lm
+- metacognition
+- quality
+- guardrails
+- observability
+project: codex-engine
+__coord__: t25
+__slug__: session-quality-and-guardrail-tracking
+__filepath__: /home/ubuntu/.openclaw/workspace/tasks/session-quality-and-guardrail-tracking.md
+__prefix__: t
+__index__: 25
+__ptype__: tasks
+---
+# Session Quality & Guardrail Tracking
+
+## Scope
+
+Two observability systems integrated into the coordinate/session flow:
+
+### 1. Satisfaction Survey (every 10 min or 10 turns)
+
+Bidirectional quality checkpoint:
+
+**Agent self-assessment:**
+- Flow quality (1-5): Am I in coordinate mode or falling back to raw commands?
+- Utility (1-5): Am I moving real work forward or churning?
+- Token efficiency (1-5): Am I being concise or verbose?
+- Brief note on what's working / what's friction
+
+**User prompt (optional, non-blocking):**
+- Satisfaction (1-5): Is this session productive?
+- Brief note
+
+**Implementation:**
+- Turn counter + timestamp tracker in cockpit plugin or render engine
+- At threshold: inject survey prompt via `before_prompt_build` or system event
+- Results logged as memory entries with `tag: session-quality`
+- Aggregatable over time — trend lines on agent effectiveness
+
+### 2. Guardrail Chain Tracking
+
+Programmatic detection and logging of guardrail trigger events:
+
+**What to track:**
+- Any LLM response that triggered a guardrail (safety, content policy, tool denial)
+- Whether the same guardrail fired repeatedly (chain detection)
+- Whether different guardrails fired in sequence (escalation pattern)
+- Context: what was the agent trying to do when the guardrail fired
+
+**Dual purpose — debug AND training signal:**
+- Debug: alert on chains > 3 (likely stuck in a loop), surface via `r.guardrails`
+- Training: structured negative examples for fine-tuning. Each activation captures (context, action, guardrail_type, outcome) — encoding "don't do this" as training pairs
+- Surveys are pure training signal; guardrail activations are both
+- Format TBD: different fine-tuning approaches handle negative signal differently (DPO pairs, RLHF penalty, instruction-following with "avoid X" framing). Collect richly now, experiment with encoding later.
+
+**Implementation:**
+- Hook into agent_end telemetry or tool response parsing
+- Detect guardrail signatures: refusal patterns, tool denials, approval-pending states
+- Log as structured events: `{timestamp, guardrail_type, chain_length, context, action_attempted, resolution}`
+- Alert on chains > 3 (likely stuck in a loop)
+- Surfaceable via `r.guardrails` read command (from t7's `r.*` namespace)
+
+### 3. Integration with LM v3
+
+- `r.quality` — read command showing recent satisfaction scores + trends
+- `r.guardrails` — read command showing guardrail events + chains
+- Survey results feed into session memory — agents learn what works
+- Guardrail chains feed into lesson creation — prevent repeat failures
+
+## Open Questions
+
+1. Survey delivery: system event injection vs dedicated UDS command?
+2. Guardrail detection: parse response text for patterns vs hook into gateway internals?
+3. Should survey results auto-create primitives or just log to a rolling file?
+---
+---
+primitive: task
+status: open
 priority: medium
 owner: builder
 tags:
@@ -28255,11 +28938,11 @@ depends_on:
 - build-equilibrium-snn
 upstream:
 - task/build-equilibrium-snn
-__coord__: t22
+__coord__: t26
 __slug__: setup-vectorbt-nautilus-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/setup-vectorbt-nautilus-pipeline.md
 __prefix__: t
-__index__: 22
+__index__: 26
 __ptype__: tasks
 ---
 # Set Up Two-Phase Backtest Pipeline
@@ -28293,11 +28976,11 @@ tags:
 - transformer
 - temporal
 - research
-__coord__: t23
+__coord__: t27
 __slug__: spiking-transformer-integration-research
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/spiking-transformer-integration-research.md
 __prefix__: t
-__index__: 23
+__index__: 27
 __ptype__: tasks
 ---
 # spiking-transformer-integration-research
@@ -28328,11 +29011,11 @@ tags:
 - temporal
 - gaming
 created: 2026-03-21
-__coord__: t24
+__coord__: t28
 __slug__: temporal-interaction-llm-gaming
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/temporal-interaction-llm-gaming.md
 __prefix__: t
-__index__: 24
+__index__: 28
 __ptype__: tasks
 ---
 # Temporal Interaction Layer & LLM-Native Gaming Foundation
@@ -28381,11 +29064,11 @@ project: snn-applied-finance
 estimate: 4h
 depends_on: []
 version_label: v5-validation
-__coord__: t25
+__coord__: t29
 __slug__: validate-scheme-b-more-folds
 __filepath__: /home/ubuntu/.openclaw/workspace/tasks/validate-scheme-b-more-folds.md
 __prefix__: t
-__index__: 25
+__index__: 29
 __ptype__: tasks
 ---
 # Validate Scheme B Sharpe with 7+ Folds
