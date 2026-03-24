@@ -21,6 +21,12 @@
 ## ~~Task 5: Pipeline Archival~~ (REMOVED 2026-03-24)
 > **Removed:** Part of pipeline automation. All active pipelines archived manually on 2026-03-24.
 
+## Task 5.5: Render Engine Health Check
+
+1. `systemctl is-active codex-render.service` — if not `active`, run `sudo systemctl restart codex-render.service`
+2. Verify socket responds: `python3 scripts/codex_render.py --status`
+3. If both fail, log a warning and continue — don't block heartbeat
+
 ## Task 6: Git Commits (Both Repos)
 
 **Lesson:** `lessons/always-back-up-workspace-to-github.md` — if it's not pushed, it doesn't exist.

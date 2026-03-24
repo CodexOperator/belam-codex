@@ -11840,6 +11840,56 @@ _When does this lesson apply? What should change going forward?_
 ---
 ---
 primitive: lesson
+date: 2026-03-24
+source: session cbf498a2 — render engine debug
+confidence: high
+upstream:
+- decision/render-engine-nice-vs-greedy-mode
+downstream: []
+tags:
+- instance:main
+- render-engine
+- nice-mode
+- bug
+- locking
+__coord__: l48
+__slug__: nice-mode-flush-supermap-command-ordering
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/nice-mode-flush-supermap-command-ordering.md
+__prefix__: l
+__index__: 48
+__ptype__: lessons
+---
+# nice-mode-flush-supermap-command-ordering
+
+## Context
+
+The render engine's nice mode defers all file change processing until an explicit query. The `supermap` UDS command is supposed to trigger a flush before rendering, ensuring the returned supermap is current.
+
+## What Happened
+
+Code analysis confirmed the ordering:
+```
+supermap cmd → _nice_flush() → flush_change_queue() → _process_file_change() × N → render_supermap()
+```
+
+`_nice_flush` calls `_engine_ref.flush_change_queue()`, which pops from `_change_queue` and calls `_process_file_change`. That function calls `tree.apply_disk_change()` and `diff_engine.record()`, both of which acquire the tree's `RLock`. If the session dispatch thread already holds the lock (or another thread does), this deadlocks.
+
+Additionally, `flush_change_queue` also calls `self._write_supermap_file()` after processing — writing to disk while potentially under lock pressure.
+
+The `/dev/shm/openclaw/supermap.txt` file written at engine startup (04:47 UTC) was valid and readable, but the UDS `supermap` command path was broken.
+
+## Lesson
+
+The nice-mode design has a hidden ordering hazard: the flush that makes the supermap current is also the thing most likely to deadlock, because it runs file I/O and tree mutations on the same thread that's handling the UDS request — which may already be holding locks.
+
+## Application
+
+- The shm file (`/dev/shm/openclaw/supermap.txt`) written at startup is the reliable fallback — it's always at least as fresh as boot time.
+- Cockpit plugin should read the shm file directly as primary path (V7 already does this on subsequent turns via mtime check). On first turn, if UDS query times out, fall back to shm file immediately.
+- Longer term: flush should happen in a dedicated background thread that is never on the UDS dispatch path.
+---
+---
+primitive: lesson
 date: 2026-03-23
 source: (add source)
 confidence: high
@@ -11850,11 +11900,11 @@ tags:
 - pipeline
 - experiments
 - notebooks
-__coord__: l48
+__coord__: l49
 __slug__: notebook-runs-need-phase-aware-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/notebook-runs-need-phase-aware-cell-targeting.md
 __prefix__: l
-__index__: 48
+__index__: 49
 __ptype__: lessons
 ---
 # notebook-runs-need-phase-aware-cell-targeting
@@ -11889,11 +11939,11 @@ tags:
 - agents
 - openclaw
 - session-routing
-__coord__: l49
+__coord__: l50
 __slug__: openclaw-agent-routes-to-active-session
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-agent-routes-to-active-session.md
 __prefix__: l
-__index__: 49
+__index__: 50
 __ptype__: lessons
 ---
 # openclaw agent CLI Routes to Active Session, Not Isolated
@@ -11930,11 +11980,11 @@ tags:
 - path
 - gateway
 importance: 3
-__coord__: l50
+__coord__: l51
 __slug__: openclaw-dual-install-path-conflict
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-dual-install-path-conflict.md
 __prefix__: l
-__index__: 50
+__index__: 51
 __ptype__: lessons
 ---
 # openclaw-dual-install-path-conflict
@@ -11968,11 +12018,11 @@ tags:
 - context
 - boot
 - infrastructure
-__coord__: l51
+__coord__: l52
 __slug__: openclaw-fixed-context-injection-list
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-fixed-context-injection-list.md
 __prefix__: l
-__index__: 51
+__index__: 52
 __ptype__: lessons
 ---
 # openclaw-fixed-context-injection-list
@@ -12007,11 +12057,11 @@ tags:
 - plugin-sdk
 - before_prompt_build
 - codex-cockpit
-__coord__: l52
+__coord__: l53
 __slug__: openclaw-plugin-definepluginentry-import-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-plugin-definepluginentry-import-path.md
 __prefix__: l
-__index__: 52
+__index__: 53
 __ptype__: lessons
 ---
 # openclaw-plugin-definePluginEntry-import-path
@@ -12058,11 +12108,11 @@ tags:
 - systemd
 - config
 - openclaw
-__coord__: l53
+__coord__: l54
 __slug__: openclaw-systemd-service-missing-config-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-systemd-service-missing-config-path.md
 __prefix__: l
-__index__: 53
+__index__: 54
 __ptype__: lessons
 ---
 # openclaw-systemd-service-missing-config-path
@@ -12099,11 +12149,11 @@ tags:
 - stability
 - updates
 importance: 3
-__coord__: l54
+__coord__: l55
 __slug__: openclaw-version-lag-causes-gateway-instability
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-version-lag-causes-gateway-instability.md
 __prefix__: l
-__index__: 54
+__index__: 55
 __ptype__: lessons
 ---
 # openclaw-version-lag-causes-gateway-instability
@@ -12140,11 +12190,11 @@ tags:
 - pipeline
 - sessions_spawn
 - dispatch
-__coord__: l55
+__coord__: l56
 __slug__: orchestration-dispatch-payload-spawn-relay
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-dispatch-payload-spawn-relay.md
 __prefix__: l
-__index__: 55
+__index__: 56
 __ptype__: lessons
 ---
 # orchestration-dispatch-payload-spawn-relay
@@ -12186,11 +12236,11 @@ tags:
 - self-reference
 - infrastructure
 - meta
-__coord__: l56
+__coord__: l57
 __slug__: orchestration-engine-v1-self-built-through-legacy-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-engine-v1-self-built-through-legacy-pipeline.md
 __prefix__: l
-__index__: 56
+__index__: 57
 __ptype__: lessons
 ---
 # orchestration-engine-v1-self-built-through-legacy-pipeline
@@ -12232,11 +12282,11 @@ tags:
 - validation
 applies_to:
 - snn-applied-finance
-__coord__: l57
+__coord__: l58
 __slug__: per-fold-significance-tests-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/per-fold-significance-tests-required.md
 __prefix__: l
-__index__: 57
+__index__: 58
 __ptype__: lessons
 ---
 # Per-Fold Significance Tests and Permutation Tests Are Required
@@ -12263,11 +12313,11 @@ tags:
 - ablation
 - equilibrium
 - phasic
-__coord__: l58
+__coord__: l59
 __slug__: phasic-only-ablation-wins-equilibrium
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/phasic-only-ablation-wins-equilibrium.md
 __prefix__: l
-__index__: 58
+__index__: 59
 __ptype__: lessons
 ---
 # Phasic-Only Ablation Wins in Equilibrium SNN
@@ -12314,11 +12364,11 @@ tags:
 - instance:main
 - tooling
 - monitoring
-__coord__: l59
+__coord__: l60
 __slug__: pipeline-dashboard-watch-flag-vs-linux-watch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-dashboard-watch-flag-vs-linux-watch.md
 __prefix__: l
-__index__: 59
+__index__: 60
 __ptype__: lessons
 ---
 # pipeline-dashboard-watch-flag-vs-linux-watch
@@ -12352,11 +12402,11 @@ tags:
 - pipeline
 - infrastructure
 - hanging
-__coord__: l60
+__coord__: l61
 __slug__: pipeline-orchestrate-blocking-agent-wake
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-orchestrate-blocking-agent-wake.md
 __prefix__: l
-__index__: 60
+__index__: 61
 __ptype__: lessons
 ---
 # pipeline-orchestrate-blocking-agent-wake
@@ -12390,11 +12440,11 @@ tags:
 - pipeline
 - state-file
 - bug
-__coord__: l61
+__coord__: l62
 __slug__: pipeline-state-file-split-brain-pattern
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-file-split-brain-pattern.md
 __prefix__: l
-__index__: 61
+__index__: 62
 __ptype__: lessons
 ---
 # pipeline-state-file-split-brain-pattern
@@ -12428,11 +12478,11 @@ tags:
 - pipeline
 - bug
 - infrastructure
-__coord__: l62
+__coord__: l63
 __slug__: pipeline-state-json-not-synced-on-archive
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-json-not-synced-on-archive.md
 __prefix__: l
-__index__: 62
+__index__: 63
 __ptype__: lessons
 ---
 # pipeline-state-json-not-synced-on-archive
@@ -12465,11 +12515,11 @@ tags:
 - pipeline
 - state-json
 - orchestration
-__coord__: l63
+__coord__: l64
 __slug__: pipeline-state-pending-action-is-agent-role-not-stage-name
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-pending-action-is-agent-role-not-stage-name.md
 __prefix__: l
-__index__: 63
+__index__: 64
 __ptype__: lessons
 ---
 # pipeline-state-pending-action-is-agent-role-not-stage-name
@@ -12504,11 +12554,11 @@ tags:
 applies_to:
 - pipeline_update.py
 - pipeline primitives
-__coord__: l64
+__coord__: l65
 __slug__: pipeline-table-separator-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-table-separator-required.md
 __prefix__: l
-__index__: 64
+__index__: 65
 __ptype__: lessons
 ---
 # Pipeline Table Separator Required for Update Script
@@ -12547,11 +12597,11 @@ tags:
 - openclaw
 - config
 - infrastructure
-__coord__: l65
+__coord__: l66
 __slug__: plugin-allowlist-must-be-updated-on-plugin-retire
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md
 __prefix__: l
-__index__: 65
+__index__: 66
 __ptype__: lessons
 ---
 # plugin-allowlist-must-be-updated-on-plugin-retire
@@ -12586,11 +12636,11 @@ tags:
 - commands
 - architecture
 - primitives
-__coord__: l66
+__coord__: l67
 __slug__: plugins-have-presence-commands-are-fire-and-forget
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugins-have-presence-commands-are-fire-and-forget.md
 __prefix__: l
-__index__: 66
+__index__: 67
 __ptype__: lessons
 ---
 # plugins-have-presence-commands-are-fire-and-forget
@@ -12626,11 +12676,11 @@ tags:
 - lm
 - boot
 - scaffold
-__coord__: l67
+__coord__: l68
 __slug__: r0-scaffold-as-lightweight-coordinate-mode-nudge
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md
 __prefix__: l
-__index__: 67
+__index__: 68
 __ptype__: lessons
 ---
 # r0-scaffold-as-lightweight-coordinate-mode-nudge
@@ -12665,11 +12715,11 @@ tags:
 - context-injection
 - architecture
 - llm-context
-__coord__: l68
+__coord__: l69
 __slug__: render-engine-agents-are-in-it-not-calling-it
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-agents-are-in-it-not-calling-it.md
 __prefix__: l
-__index__: 68
+__index__: 69
 __ptype__: lessons
 ---
 # render-engine-agents-are-in-it-not-calling-it
@@ -12692,6 +12742,57 @@ _When does this lesson apply? What should change going forward?_
 ---
 ---
 primitive: lesson
+date: 2026-03-24
+source: session cbf498a2 — render engine debug
+confidence: high
+upstream:
+- decision/render-engine-nice-vs-greedy-mode
+downstream: []
+tags:
+- instance:main
+- render-engine
+- nice-mode
+- threading
+- architecture
+- bug
+__coord__: l70
+__slug__: render-engine-thread-per-connection-deadlock
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-thread-per-connection-deadlock.md
+__prefix__: l
+__index__: 70
+__ptype__: lessons
+---
+# render-engine-thread-per-connection-deadlock
+
+## Context
+
+Investigating why the cockpit plugin was injecting an empty supermap (0 chars) into agent context. The render engine was running in nice mode (PID 3182639, started 04:47 UTC) and reported 400 tree nodes + 10 queued changes via `status` command.
+
+## What Happened
+
+The `supermap` UDS command timed out — never returned a response. The engine had accumulated **9841 threads** (confirmed via `/proc/<pid>/status`) and was locked on a futex. Root cause chain:
+
+1. SessionManager uses a **thread-per-connection** model: each `accept()` spawns `threading.Thread(target=_handle_client)`.
+2. In `_handle_client`, `_dispatch()` is called while holding the session lock. `_dispatch('supermap')` calls `_nice_flush()`, which calls `flush_change_queue()`, which processes file changes and writes to disk — while potentially contending with the tree's `RLock`.
+3. When `_dispatch` deadlocks, the thread blocks indefinitely. The client (cockpit plugin's `execFileSync`) times out and the connection closes, but the thread remains stuck.
+4. The cockpit plugin fires a **new UDS connection on every agent turn**. Each hung turn creates another stuck thread.
+5. Over many turns, this produces unbounded thread accumulation → OS-level futex exhaustion → full engine lockup.
+
+The engine was responsive to `status` early in the session (returns quickly without touching the flush path) but hung on `supermap` and `flush` commands.
+
+## Lesson
+
+Thread-per-connection models are unsafe when dispatch handlers can deadlock: stuck threads accumulate silently until the process becomes inoperable. In nice mode, the combination of deferred flushing + per-turn reconnects is particularly dangerous.
+
+## Application
+
+- Fix: use a **bounded thread pool** (e.g., `ThreadPoolExecutor`) instead of unbounded `Thread` spawning.
+- Alternative: move `_nice_flush` off the locked dispatch path (flush in a background thread, dispatch reads already-flushed state).
+- Monitor: add thread count to the `status` response so runaway accumulation is visible early.
+- The supermap file at `/dev/shm/openclaw/supermap.txt` is a reliable fallback — cockpit plugin V7 already uses it. If UDS hangs, the plugin should fall back to the shm file immediately rather than blocking.
+---
+---
+primitive: lesson
 date: '2026-03-24'
 source: (add source)
 confidence: '?'
@@ -12704,11 +12805,11 @@ tags:
 - nice-mode
 - supermap
 - anchor
-__coord__: l69
+__coord__: l71
 __slug__: render-engine-uds-supermap-command-triggers-file-write
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-uds-supermap-command-triggers-file-write.md
 __prefix__: l
-__index__: 69
+__index__: 71
 __ptype__: lessons
 ---
 # render-engine-uds-supermap-command-triggers-file-write
@@ -12742,11 +12843,11 @@ tags:
 - render-engine
 - session-startup
 - robustness
-__coord__: l70
+__coord__: l72
 __slug__: render-engine-zombie-blocks-session-startup
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-zombie-blocks-session-startup.md
 __prefix__: l
-__index__: 70
+__index__: 72
 __ptype__: lessons
 ---
 # render-engine-zombie-blocks-session-startup
@@ -12782,11 +12883,11 @@ tags:
 - renderer
 - codex-cockpit
 - gateway
-__coord__: l71
+__coord__: l73
 __slug__: renderer-process-blocks-gateway-kill
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/renderer-process-blocks-gateway-kill.md
 __prefix__: l
-__index__: 71
+__index__: 73
 __ptype__: lessons
 ---
 # renderer-process-blocks-gateway-kill
@@ -12820,11 +12921,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l72
+__coord__: l74
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 72
+__index__: 74
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -12857,11 +12958,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l73
+__coord__: l75
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 73
+__index__: 75
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -12908,11 +13009,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l74
+__coord__: l76
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 74
+__index__: 76
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -12952,11 +13053,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l75
+__coord__: l77
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 75
+__index__: 77
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -12992,11 +13093,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l76
+__coord__: l78
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 76
+__index__: 78
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -13033,11 +13134,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l77
+__coord__: l79
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 77
+__index__: 79
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -13061,11 +13162,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l78
+__coord__: l80
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 78
+__index__: 80
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -13098,11 +13199,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l79
+__coord__: l81
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 79
+__index__: 81
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -13147,11 +13248,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l80
+__coord__: l82
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 80
+__index__: 82
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -13183,11 +13284,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l81
+__coord__: l83
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 81
+__index__: 83
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -13236,11 +13337,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l82
+__coord__: l84
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 82
+__index__: 84
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -13262,11 +13363,11 @@ tags:
 - supermap
 - injection-order
 - context
-__coord__: l83
+__coord__: l85
 __slug__: supermap-injection-order-supermap-legend-scaffold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-injection-order-supermap-legend-scaffold.md
 __prefix__: l
-__index__: 83
+__index__: 85
 __ptype__: lessons
 ---
 # supermap-injection-order-supermap-legend-scaffold
@@ -13300,11 +13401,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l84
+__coord__: l86
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 84
+__index__: 86
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -13337,11 +13438,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l85
+__coord__: l87
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 85
+__index__: 87
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -13365,11 +13466,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l86
+__coord__: l88
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 86
+__index__: 88
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -13407,11 +13508,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l87
+__coord__: l89
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 87
+__index__: 89
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -13463,11 +13564,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l88
+__coord__: l90
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 88
+__index__: 90
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -13502,11 +13603,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l89
+__coord__: l91
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 89
+__index__: 91
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -13536,11 +13637,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l90
+__coord__: l92
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 90
+__index__: 92
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -13588,11 +13689,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l91
+__coord__: l93
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 91
+__index__: 93
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -13629,11 +13730,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l92
+__coord__: l94
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 92
+__index__: 94
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -13667,11 +13768,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l93
+__coord__: l95
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 93
+__index__: 95
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -18438,6 +18539,38 @@ Added anchor-triggered fresh render: codex_render.py supermap UDS handler now ca
 *Tags: instance:main, codex-cockpit, render-engine, anchor, uds, supermap*
 ---
 ---
+primitive: memory_log
+timestamp: '2026-03-24T05:13:30Z'
+category: technical
+importance: 4
+tags:
+- instance:main
+- render-engine
+- nice-mode
+- threading
+- bug
+- deadlock
+source: session
+content: 'Render engine (nice mode, PID 3182639) accumulated 9841 threads and deadlocked on a futex on 2026-03-24 ~05:00 UTC. Symptom: ''supermap'' UDS command timed out (0 bytes returned), cockpit plugin injected nothing into context. Root cause: thread-per-connection model — each UDS connect spawns a daemon thread; when _dispatch hangs (lock contention during _nice_flush), thread never exits. Cockpit plugin fires execFileSync each turn, creating new stuck threads per turn. Engine had 10 queued file changes unprocessed. CPU 18.9%, VSZ 83GB at time of detection.'
+status: active
+__coord__: m148
+__slug__: 2026-03-24_051330_render-engine-nice-mode-pid-3182639-accu
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_051330_render-engine-nice-mode-pid-3182639-accu.md
+__prefix__: m
+__index__: 148
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T05:13:30Z** · `technical` · importance 4/5
+
+Render engine (nice mode, PID 3182639) accumulated 9841 threads and deadlocked on a futex on 2026-03-24 ~05:00 UTC. Symptom: 'supermap' UDS command timed out (0 bytes returned), cockpit plugin injected nothing into context. Root cause: thread-per-connection model — each UDS connect spawns a daemon thread; when _dispatch hangs (lock contention during _nice_flush), thread never exits. Cockpit plugin fires execFileSync each turn, creating new stuck threads per turn. Engine had 10 queued file changes unprocessed. CPU 18.9%, VSZ 83GB at time of detection.
+
+---
+*Source: session*
+*Tags: instance:main, render-engine, nice-mode, threading, bug, deadlock*
+---
+---
 __coord__: md1
 __slug__: '2026-03-25'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-25.md
@@ -18798,6 +18931,45 @@ Added anchor-triggered fresh render: codex_render.py supermap UDS handler now ca
 - lesson: supermap-injection-order-supermap-legend-scaffold
 - lesson: render-engine-uds-supermap-command-triggers-file-write
 - decision: codex-cockpit-v7-single-prepend-block-architecture
+
+## 2026-03-24T05:13:30Z — technical ⚡⚡⚡⚡
+
+Render engine (nice mode, PID 3182639) accumulated 9841 threads and deadlocked on a futex on 2026-03-24 ~05:00 UTC. Symptom: 'supermap' UDS command timed out (0 bytes returned), cockpit plugin injected nothing into context. Root cause: thread-per-connection model — each UDS connect spawns a daemon thread; when _dispatch hangs (lock contention during _nice_flush), thread never exits. Cockpit plugin fires execFileSync each turn, creating new stuck threads per turn. Engine had 10 queued file changes unprocessed. CPU 18.9%, VSZ 83GB at time of detection.
+
+*Tags: instance:main, render-engine, nice-mode, threading, bug, deadlock*
+
+*Source: session*
+
+*Entry: `2026-03-24_051330_render-engine-nice-mode-pid-3182639-accu.md`*
+
+---
+
+## Session cbf498a2 — 04:54–05:12 UTC (main)
+
+**Topic:** Render engine supermap injection failure — thread exhaustion debug
+
+Shael asked about supermap injection and memory update status on this turn. Investigated why cockpit plugin was injecting empty supermap (0 chars).
+
+**Findings:**
+- Engine running (nice mode, PID 3182639, started 04:47 UTC, 400 tree nodes, 10 queued changes)
+- `/dev/shm/openclaw/supermap.txt` existed and was valid (5142 bytes, content looked correct)
+- UDS `supermap` command **timed out** — returned 0 bytes
+- Process had accumulated **9841 threads** (VSZ 83GB, futex deadlock)
+- Root cause: thread-per-connection model + nice-mode flush deadlock + cockpit plugin reconnecting every turn
+
+**Root cause chain:**
+1. `SessionManager.accept()` spawns a daemon thread per UDS connection
+2. `_dispatch('supermap')` calls `_nice_flush()` → `flush_change_queue()` → tree lock contention
+3. Thread deadlocks but never exits; client (cockpit plugin `execFileSync`) times out and returns
+4. Cockpit plugin reconnects next turn → another stuck thread
+5. Over N turns → 9841 threads → OS futex exhaustion → full engine lockup
+
+**Primitives created:**
+- `lesson/render-engine-thread-per-connection-deadlock` (imp 4)
+- `lesson/nice-mode-flush-supermap-command-ordering` (imp 3)
+- `memory/render-engine-nice-mode-pid-3182639-accu` (imp 4)
+
+**Status at session end:** Fix approach identified — bounded thread pool or background flush thread. Session ended before fix was applied.
 ---
 ---
 __coord__: md3
