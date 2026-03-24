@@ -1,8 +1,9 @@
 ---
 title: LM v3 — Platform & System Namespace + Scaffolded Writes
-status: open
+status: in_pipeline
 priority: high
 tags: [lm, infrastructure, codex-engine, platform]
+pipeline: lm-v3-platform-and-system-namespace
 depends_on: []
 project: codex-engine
 ---
