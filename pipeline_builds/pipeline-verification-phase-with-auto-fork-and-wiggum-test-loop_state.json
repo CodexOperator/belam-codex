@@ -12,16 +12,62 @@
       "completed_at": "2026-03-24 07:54",
       "agent": "critic",
       "notes": "APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 2 MED FLAGs, 2 LOW FLAGs. FLAG-1 HIGH: concurrent branch race \u2014 fire_and_forget_dispatch is async (Popen), stash+checkout has no lock, two concurrent pipelines will clobber each other. Need fcntl.flock or defer branching to V2. FLAG-2 HIGH: fire_and_forget_dispatch returns {success,pid,error} not session_key \u2014 wiggum steer can't send without it. Fix: use generate_stage_session_id(). FLAG-3 MED: T4/T5 test raw git not actual functions. FLAG-4 MED: stash never popped \u2014 orphaned stash accumulates. FLAG-5 LOW: max_iterations dead code. FLAG-6 LOW: auto-commit cron referenced but not found. SUGGESTION: defer D1 branching to V2, ship D4+D5+D7 (verification loop) first. Review at: pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_critic_design_review.md"
+    },
+    "builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-24 07:59",
+      "agent": "builder",
+      "notes": "Implemented D4+D5+D7 (verification loop). D1 branching deferred to V2 per critic suggestion. pipeline_verify.py: 230L test runner with parse/run/report. dispatch_verification: uses generate_stage_session_id for deterministic session routing + wiggum steer timer. STAGE_FLOW/STAGE_TRANSITIONS updated for both Phase 1 and Phase 2. Self-referential test spec passes 8/8. All 6 FLAGs addressed."
+    },
+    "builder_verification": {
+      "status": "complete",
+      "completed_at": "2026-03-24 07:59",
+      "agent": "builder",
+      "notes": "GREEN: 8/8 tests passed, 0 failed, 0 skipped. T1: STAGE_FLOW routing \u2705 T2: STAGE_TRANSITIONS routing \u2705 T3: Test spec parser \u2705 T4: Test runner pass/fail \u2705 T5: Manual test skip \u2705 T6: Missing spec graceful \u2705 T7: dispatch_verification + session_id \u2705 T8: Dry-run mode \u2705. Results at pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_test_results.md"
+    },
+    "critic_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 08:03",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 1 MED FLAG, 1 LOW FLAG. All 6 design FLAGs resolved (D1 branching deferred \u2014 best resolution). 8/8 tests pass (verified independently). FLAG-1 MED: check_pass_criteria passes on non-zero exit when criteria only says 'contains' without 'exit code 0' \u2014 default should require exit 0. FLAG-2 LOW: T8 checklist description mismatch. 300L pipeline_verify.py clean, dispatch_verification uses generate_stage_session_id correctly, STAGE_FLOW and STAGE_TRANSITIONS both updated. Review at: pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_critic_code_review.md"
+    },
+    "phase1_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-24 08:08",
+      "agent": "belam-main",
+      "notes": "Phase 2 kickoff. Direction at pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_phase2_direction.md"
+    },
+    "phase2_architect_design_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-24 08:03",
+      "agent": "architect",
+      "notes": "BLOCK: No Phase 2 direction from Shael. Phase 2 requires human review of Phase 1 and direction for what to add (e.g. git branching via worktree, research pipeline test specs, integration with existing pipelines). Unblock by creating phase2_direction.md."
+    },
+    "phase2_architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-24 08:11",
+      "agent": "architect",
+      "notes": "Phase 2 design: 3 deliverables (~135L, 3 files). D1: git worktree isolation \u2014 each pipeline gets /tmp/pipeline-{version}/ directory, zero contention between concurrent pipelines, merge back on complete. D9: verification auto-retry \u2014 max 3 re-dispatches on failure, audit trail in test_results.md, escalate to coordinator on exhaustion. D8: lesson injection verification + diagnostic flag. Opt-in via use_worktree:true in state JSON. 3 new tests (T9-T11). 4 open questions for critic."
+    },
+    "phase2_critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 08:13",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. FLAG-1 HIGH: D9 dispatch_verification() rewrite regresses Phase 1 FLAG-2 fix \u2014 uses result.get('session_key') instead of generate_stage_session_id(). Must preserve existing fix. FLAG-2 HIGH: Agent CWD vs agent workspace mismatch \u2014 openclaw agent resolves workspace from config, not Popen cwd. Worktree may create directories agents never use. Builder must verify if --workspace flag exists or accept worktree as branch-isolation-only. FLAG-3 MED: T11 tests arithmetic not actual retry code. FLAG-4 LOW: append mode in write_results unbounded but small. SUGGESTION: Ship D9+D8 first, defer D1 worktree until CWD routing verified. Review at: pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_phase2_critic_design_review.md"
     }
   },
-  "status": "phase1_build",
-  "status_updated": "2026-03-24 07:54",
-  "current_agent": "builder_implementation",
+  "status": "phase2_build",
+  "status_updated": "2026-03-24 08:13",
+  "current_agent": "phase2_builder_implementation",
   "dispatch_claimed": false,
   "phase1": {
-    "stage": "critic_design_review"
+    "stage": "phase1_complete"
   },
-  "last_updated": "2026-03-24 07:54",
-  "pending_action": "builder_implementation",
-  "last_dispatched": "2026-03-24T07:54:30.381509+00:00"
+  "last_updated": "2026-03-24 08:13",
+  "pending_action": "phase2_builder_implementation",
+  "last_dispatched": "2026-03-24T08:13:52.867815+00:00",
+  "phase2_architect_design_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/pipelines/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop.md",
+  "phase2": {
+    "stage": "phase2_critic_design_review"
+  }
 }

@@ -15,6 +15,8 @@ operation_index:
   7: next
   8: archive
   9: launch
+  10: kill
+  11: restart
 tags: [engine, mode, v2]
 description: Orchestrate pipeline and task execution via numbered operations or named actions
 ---
@@ -38,6 +40,8 @@ Routes operations to the orchestration engine for pipeline and task management.
   7  next       — show next action
   8  archive    — archive a pipeline
   9  launch     — launch new pipeline
+  10 kill       — kill running agent + reset state to last clean stage
+  11 restart    — kill + re-dispatch from current stage
 
 ### Dot-Connector (.iN = "as persona")
   e0p1 1.i1     — dispatch pipeline 1 as architect (i1)
@@ -54,6 +58,7 @@ Routes operations to the orchestration engine for pipeline and task management.
   e0k           — locks
   e0l           — list all pipelines
   e0r           — resume
+  e0x           — kill (x = terminate running agent, reset state)
 
 ### Examples
   e0 p3 status                     — show pipeline 3 status
@@ -61,6 +66,10 @@ Routes operations to the orchestration engine for pipeline and task management.
   e0p1 1.i1                        — dispatch p1 to architect
   e0 sweep                         — full orchestration sweep
   e0g p3                           — check gates for pipeline 3
+  e0 p1 kill                       — kill pipeline 1's running agent, reset state
+  e0 p1 restart                    — kill and re-dispatch pipeline 1 from current stage
+  e0p1 10                          — same as kill, numeric shortcut
+  e0 p1 kick                       — dispatch pending_action if unclaimed (dispatch failed/never claimed)
 
 ### Routing
 Maps to orchestration_engine.py when available, falls back to legacy scripts.
@@ -77,3 +86,8 @@ View modifiers (-g, --depth, --as) compose orthogonally with e0 operations.
 1. `e0 p{n} block {stage}` — block pipeline stage with reason
 2. Group chat notification is automatic (orchestrator handles it)
 3. `e0g p{n}` — check gate status
+
+### .l3 — Kill and Restart a Stuck Agent
+1. `e0 p{n} kill` — terminate the running agent process, reset dispatch_claimed=false
+2. Verify with `e0 p{n} status` — state should show dispatch_claimed=false, pending_action intact
+3. `e0 p{n} restart` or `e0 p{n} kick` — re-dispatch from current pending_action

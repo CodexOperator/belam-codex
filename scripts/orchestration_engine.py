@@ -56,6 +56,7 @@ V2-temporal overlay integration (orchestration-engine-v2-temporal):
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import time
@@ -1702,6 +1703,125 @@ def pipeline_handoff(version: str, from_agent: str, to_agent: str, notes: str = 
 
     # Use orchestrate_complete for the full handoff chain
     return orchestrate_complete(version, pending, from_agent, notes)
+
+
+def kill_pipeline(version: str) -> bool:
+    """Kill a running pipeline agent and reset dispatch state.
+
+    Returns True if a process was killed or state was reset.
+    """
+    version = resolve_pipeline(version) or version
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
+    status = state.get('status', 'unknown')
+
+    # Find and kill the running agent process
+    killed = False
+    try:
+        result = subprocess.run(
+            ['pgrep', '-f', f'openclaw.*agent.*{version}'],
+            capture_output=True, text=True, timeout=5
+        )
+        pids = [int(p) for p in result.stdout.strip().split('\n') if p.strip()]
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+                print(f'  ✓ Killed agent process {pid}')
+                killed = True
+            except ProcessLookupError:
+                pass
+    except Exception:
+        pass
+
+    if not killed:
+        print(f'  ⚠ No running agent process found for {version}')
+
+    # Reset dispatch state (but keep status and pending_action intact)
+    for state_path in _state_file_paths(version):
+        if state_path.exists():
+            try:
+                s = json.loads(state_path.read_text())
+                s['dispatch_claimed'] = False
+                s.pop('last_dispatched', None)
+                state_path.write_text(json.dumps(s, indent=2))
+            except Exception:
+                pass
+
+    print(f'  ✓ Pipeline {version} dispatch state reset (status: {status}, pending: {pending})')
+    return True
+
+
+def restart_pipeline(version: str) -> bool:
+    """Kill running agent and re-dispatch the current pending stage.
+
+    Returns True if re-dispatch was successful.
+    """
+    version = resolve_pipeline(version) or version
+    kill_pipeline(version)
+
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
+
+    if pending in HUMAN_ACTIONS or pending == 'none':
+        print(f'  ⚠ Pipeline {version} at human gate or idle ({pending}) — nothing to restart')
+        return False
+
+    agent = _agent_from_action(pending)
+    if agent in ('unknown', 'none', 'system'):
+        print(f'  ⚠ Cannot determine agent for {pending}')
+        return False
+
+    print(f'  → Re-dispatching {agent} for {pending}...')
+    result = fire_and_forget_dispatch(version, pending, agent)
+    if result.get('success'):
+        print(f'  ✓ {agent} dispatched (pid={result["pid"]})')
+        return True
+    else:
+        print(f'  ✗ Dispatch failed: {result.get("error")}')
+        return False
+
+
+def kick_pipeline(version: str) -> bool:
+    """Dispatch the pending action if it's unclaimed (failed or never started).
+
+    Unlike restart, this does NOT kill anything — just dispatches.
+    Returns True if dispatch was successful.
+    """
+    version = resolve_pipeline(version) or version
+    state = load_state_json(version)
+    pending = state.get('pending_action', 'none')
+    claimed = state.get('dispatch_claimed', False)
+
+    if pending in HUMAN_ACTIONS or pending == 'none':
+        print(f'  ⚠ Pipeline {version} at human gate or idle ({pending}) — nothing to kick')
+        return False
+
+    if claimed:
+        print(f'  ⚠ Pipeline {version} dispatch already claimed for {pending} — use restart to force')
+        return False
+
+    agent = _agent_from_action(pending)
+    if agent in ('unknown', 'none', 'system'):
+        print(f'  ⚠ Cannot determine agent for {pending}')
+        return False
+
+    print(f'  → Kicking {agent} for unclaimed {pending}...')
+    result = fire_and_forget_dispatch(version, pending, agent)
+    if result.get('success'):
+        print(f'  ✓ {agent} dispatched (pid={result["pid"]})')
+        return True
+    else:
+        print(f'  ✗ Dispatch failed: {result.get("error")}')
+        return False
+
+
+def _state_file_paths(version: str) -> list:
+    """Return all possible state file paths for a version (both conventions)."""
+    paths = []
+    for base in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+        paths.append(base / version / '_state.json')
+        paths.append(base / f'{version}_state.json')
+    return paths
 
 
 def pipeline_resume(version: str) -> bool:

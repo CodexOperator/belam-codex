@@ -702,6 +702,28 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         print(f"\n❌ pipeline_update.py failed — aborting handoff")
         return False
 
+    # Step 1.5 (D9): Check if verification stage needs retry instead of advancing
+    verification_result = check_verification_result(version, stage, notes)
+    if verification_result == 'retry':
+        print(f"\n   🔄 Verification RED — re-dispatching builder (auto-retry)...")
+        result = dispatch_verification(version)
+        if result.get('success'):
+            print(f"   🔔 Re-dispatched builder for retry #{result.get('retry_count', '?')}")
+        else:
+            print(f"   ⚠️ Re-dispatch failed: {result.get('error')}")
+        print(f"\n{'─' * 70}")
+        print(f"  📊 Orchestration Summary:")
+        print(f"     Pipeline:    {version}")
+        print(f"     Completed:   {stage} ({agent}) — RED")
+        print(f"     Action:      🔄 Auto-retry dispatch")
+        print(f"{'─' * 70}\n")
+        return result.get('success', False)
+    elif verification_result == 'exhausted':
+        print(f"\n   🚨 Verification exhausted {VERIFICATION_MAX_RETRIES} retries — "
+              f"escalating to coordinator")
+        escalate_verification_failure(version, load_pipeline_state(version))
+        return False
+
     # Step 2: Determine next agent from transition map
     transition = STAGE_TRANSITIONS.get(stage)
 
@@ -1641,13 +1663,32 @@ def generate_stage_session_id(version: str, stage: str) -> str:
     return f"pipeline:{version}:{stage}"
 
 
-# ─── Verification Dispatch (D5) ─────────────────────────────────────────────
+# ─── Verification Dispatch (D5 + D9 auto-retry) ────────────────────────────
 
-VERIFICATION_TIMEOUT = 600     # 10 min total
-VERIFICATION_STEER_AT = 420   # 7 min steer warning
+VERIFICATION_TIMEOUT = 600       # 10 min total
+VERIFICATION_STEER_AT = 420     # 7 min steer warning
+VERIFICATION_MAX_RETRIES = 3    # D9: max retries before escalation
 
-def build_verification_message(version: str) -> str:
+
+def build_verification_message(version: str, retry_count: int = 0) -> str:
     """Build the dispatch message for builder verification stage."""
+    if retry_count > 0:
+        # Include previous failure context for retry
+        results_path = RESEARCH_BUILDS_DIR / f'{version}_test_results.md'
+        if not results_path.exists():
+            results_path = BUILDS_DIR / f'{version}_test_results.md'
+        failure_report = ''
+        if results_path.exists():
+            failure_report = results_path.read_text(encoding='utf-8')[:2000]
+        return (
+            f"⚠️ Verification RETRY {retry_count}/{VERIFICATION_MAX_RETRIES} "
+            f"for {version}.\n\n"
+            f"Previous test failures:\n```\n{failure_report}\n```\n\n"
+            f"Fix the failing tests and re-run: "
+            f"python3 scripts/pipeline_verify.py {version}\n\n"
+            f"If all GREEN → complete the stage. If still failing, fix and re-run. "
+            f"If unfixable, block the stage with details."
+        )
     return f"""Run the verification loop for pipeline {version}:
 
 1. Run: python3 scripts/pipeline_verify.py {version}
@@ -1659,19 +1700,8 @@ The test spec is at: pipeline_builds/{version}_test_spec.md
 Test results will be written to: pipeline_builds/{version}_test_results.md"""
 
 
-def dispatch_verification(version: str) -> dict:
-    """Dispatch builder for verification with wiggum steer timer.
-
-    Uses generate_stage_session_id() for deterministic session routing (FLAG-2 fix).
-    """
-    stage = 'builder_verification'
-    session_id = generate_stage_session_id(version, stage)
-    message = build_verification_message(version)
-
-    # Dispatch builder
-    result = fire_and_forget_dispatch(version, stage, 'builder', message=message)
-
-    # Start steer timer (background) — uses session_id not result.session_key
+def _start_steer_timer(session_id: str) -> None:
+    """Start wiggum steer timer in background."""
     steer_script = WORKSPACE / 'skills' / 'ralph-wiggum' / 'scripts' / 'steer_timer.sh'
     if steer_script.exists():
         try:
@@ -1690,8 +1720,95 @@ def dispatch_verification(version: str) -> dict:
     else:
         print(f"   ⚠️ Steer timer script not found: {steer_script}")
 
+
+def dispatch_verification(version: str) -> dict:
+    """Dispatch builder for verification with wiggum steer timer and auto-retry.
+
+    Uses generate_stage_session_id() for deterministic session routing.
+    Reads verification_retries from pipeline state for retry context.
+    """
+    stage = 'builder_verification'
+    session_id = generate_stage_session_id(version, stage)
+
+    # D9: Read retry count from state
+    state = load_pipeline_state(version)
+    retry_count = state.get('verification_retries', 0)
+
+    if retry_count >= VERIFICATION_MAX_RETRIES:
+        escalate_verification_failure(version, state)
+        return {'success': False, 'error': 'max_retries_exhausted',
+                'session_id': session_id}
+
+    message = build_verification_message(version, retry_count=retry_count)
+
+    # Increment retry counter BEFORE dispatch
+    state['verification_retries'] = retry_count + 1
+    save_pipeline_state(version, state)
+
+    # Dispatch builder
+    result = fire_and_forget_dispatch(version, stage, 'builder', message=message)
+
+    # Start steer timer — uses session_id not result.session_key
+    _start_steer_timer(session_id)
+
     result['session_id'] = session_id
+    result['retry_count'] = retry_count
     return result
+
+
+def escalate_verification_failure(version: str, state: dict) -> None:
+    """Alert coordinator after max retries exhausted. D9 escalation."""
+    results_path = RESEARCH_BUILDS_DIR / f'{version}_test_results.md'
+    if not results_path.exists():
+        results_path = BUILDS_DIR / f'{version}_test_results.md'
+    failure_summary = ''
+    if results_path.exists():
+        failure_summary = results_path.read_text(encoding='utf-8')[:500]
+
+    msg = (f"⚠️ {version} verification FAILED after "
+           f"{VERIFICATION_MAX_RETRIES} retries.\n"
+           f"{failure_summary}\n"
+           f"Escalating to coordinator.")
+
+    # Post to group chat
+    try:
+        from pipeline_update import send_telegram
+        send_telegram(msg)
+        print(f"   📢 Escalation posted to group chat")
+    except Exception as e:
+        print(f"   ⚠️ Failed to post escalation: {e}")
+
+    print(f"   🚨 ESCALATION: {version} verification exhausted "
+          f"{VERIFICATION_MAX_RETRIES} retries")
+
+
+def check_verification_result(version: str, stage: str, notes: str) -> str:
+    """D9: Check if verification passed or needs retry.
+
+    Returns:
+        'pass' — continue to next stage
+        'retry' — re-dispatch verification
+        'exhausted' — max retries reached, block
+    """
+    VERIFICATION_STAGES = {'builder_verification', 'phase2_builder_verification'}
+    if stage not in VERIFICATION_STAGES:
+        return 'pass'
+
+    # Check if GREEN
+    notes_lower = notes.lower()
+    if 'green' in notes_lower or 'all pass' in notes_lower or '8/8' in notes_lower:
+        # Reset retry counter on success
+        state = load_pipeline_state(version)
+        state['verification_retries'] = 0
+        save_pipeline_state(version, state)
+        return 'pass'
+
+    # RED — check retry budget
+    state = load_pipeline_state(version)
+    retry_count = state.get('verification_retries', 0)
+    if retry_count >= VERIFICATION_MAX_RETRIES:
+        return 'exhausted'
+    return 'retry'
 
 
 def orchestrate_signal(version: str, stage: str, agent: str, signal: str, notes: str = ''):
@@ -1924,6 +2041,29 @@ def check_stalled_sessions(max_idle_seconds: int = 7200):
                 pass
 
 
+# ─── D8: Lesson Injection Diagnostic ────────────────────────────────────────
+
+def show_lessons(version: str) -> None:
+    """Show which lessons would be injected for a given pipeline stage."""
+    try:
+        from orchestration_engine import _files_for_stage
+    except ImportError:
+        print("  ⚠️ orchestration_engine._files_for_stage not available")
+        return
+
+    for stage, agent in [('architect_design', 'architect'),
+                         ('builder_implementation', 'builder'),
+                         ('critic_code_review', 'critic')]:
+        try:
+            files = _files_for_stage(version, stage, agent)
+            lesson_files = [f for f in files if 'lesson' in f.lower()]
+            print(f"\n  {stage} ({agent}): {len(lesson_files)} lessons")
+            for lf in lesson_files:
+                print(f"    - {lf}")
+        except Exception as e:
+            print(f"\n  {stage} ({agent}): error — {e}")
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -1944,6 +2084,9 @@ def main():
 
     if action == 'show':
         orchestrate_show(version)
+
+    elif action == 'show-lessons':
+        show_lessons(version)
 
     elif action == 'complete':
         stage = positional[0] if positional else flags.get('stage')
