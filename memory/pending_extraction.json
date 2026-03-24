@@ -1,11 +1,11 @@
 {
   "status": "complete",
-  "session": "a894056e-2bd1-42fc-8cb3-a972fb51a53f",
+  "session": "200ecd0b-cd0f-47a4-a307-71593c0e02c4",
   "date": "2026-03-24",
-  "completed_at": "2026-03-24T20:36:30Z",
+  "completed_at": "2026-03-24T22:12:00Z",
   "primitives_created": {
-    "memories": 3,
-    "lessons": 1,
-    "decisions": 0
+    "memories": 4,
+    "lessons": 2,
+    "decisions": 1
   }
 }
