@@ -817,6 +817,88 @@ def get_render_tracker():
 
 # ─── Supermap Renderer ──────────────────────────────────────────────────────────
 
+def _pipeline_state_suffix(slug: str) -> str:
+    """Read pipeline state JSON and return a bracketed live-state suffix.
+
+    Checks both workspace/pipeline_builds/{slug}_state.json and the SNN research
+    path.  Returns empty string if no state found or state is idle/complete.
+
+    Suffix format:
+      [agent running Xm ago]      — dispatched + claimed
+      [agent dispatched Xm ago]   — dispatched but not yet claimed
+      [awaiting direction]        — at a human gate (phase1_complete etc.)
+      (empty)                     — idle / complete / no state file
+    """
+    import datetime as _dt
+    import json as _json
+
+    state_dirs = [
+        WORKSPACE / 'pipeline_builds',
+        WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds',
+    ]
+
+    state = None
+    for d in state_dirs:
+        candidate = d / f'{slug}_state.json'
+        if candidate.exists():
+            try:
+                state = _json.loads(candidate.read_text(encoding='utf-8'))
+                break
+            except Exception:
+                pass
+
+    if state is None:
+        return ''
+
+    status = str(state.get('status', ''))
+    pending_action = str(state.get('pending_action', ''))
+    last_dispatched = state.get('last_dispatched', '')
+    dispatch_claimed = bool(state.get('dispatch_claimed', False))
+
+    # Human gate statuses — no dispatched agent, awaiting direction
+    HUMAN_GATES = {'phase1_complete', 'phase2_review', 'analysis_phase1_complete'}
+    if status in HUMAN_GATES or 'phase1_complete' in status or 'phase2_review' in status:
+        return '  [awaiting direction]'
+
+    # No pending action means idle/complete
+    if not pending_action or status in ('complete', 'archived', ''):
+        return ''
+
+    # Compute relative time from last_dispatched
+    rel_time = ''
+    if last_dispatched:
+        try:
+            dispatched_dt = _dt.datetime.fromisoformat(last_dispatched.replace('Z', '+00:00'))
+            now_dt = _dt.datetime.now(_dt.timezone.utc)
+            delta_s = int((now_dt - dispatched_dt).total_seconds())
+            if delta_s < 60:
+                rel_time = f'{delta_s}s ago'
+            elif delta_s < 3600:
+                rel_time = f'{delta_s // 60}m ago'
+            else:
+                rel_time = f'{delta_s // 3600}h ago'
+        except Exception:
+            pass
+
+    # Extract agent name from pending_action (e.g. phase2_critic_design_review → critic)
+    agent = 'agent'
+    for role in ('architect', 'builder', 'critic', 'belam'):
+        if role in pending_action:
+            agent = role
+            break
+
+    if rel_time:
+        if dispatch_claimed:
+            return f'  [{agent} running {rel_time}]'
+        else:
+            return f'  [{agent} dispatched {rel_time}]'
+    else:
+        if dispatch_claimed:
+            return f'  [{agent} running]'
+        else:
+            return f'  [{agent} dispatched]'
+
+
 def _supermap_summary(prefix, slug, filepath, slug_index):
     """Generate a compact one-line summary for a primitive in the supermap."""
     # Load frontmatter quickly
@@ -888,6 +970,11 @@ def _supermap_summary(prefix, slug, filepath, slug_index):
     summary = slug
     if parts:
         summary = slug + '  ' + '  '.join(parts)
+
+    # Pipeline state enrichment: append live state suffix for pipeline primitives
+    if prefix == 'p':
+        summary += _pipeline_state_suffix(slug)
+
     return summary
 
 

@@ -877,6 +877,15 @@ class InotifyWatcher:
         # Also watch workspace root for context files (SOUL.md, AGENTS.md, etc.)
         watched_dirs.add(self.workspace)
 
+        # Also watch pipeline_builds/ for state JSON changes so supermap re-renders
+        # when pipeline_update.py writes new state (state JSONs aren't in a namespace dir).
+        for pb_dir in [
+            self.workspace / 'pipeline_builds',
+            self.workspace / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds',
+        ]:
+            if pb_dir.exists() and pb_dir.is_dir():
+                watched_dirs.add(pb_dir)
+
         for dirpath in watched_dirs:
             wd = self._inotify_add_watch(
                 self._fd,
@@ -1025,6 +1034,18 @@ class StatPoller:
                     current[str(fp)] = fp.stat().st_mtime
                 except OSError:
                     pass
+        # Pipeline state JSONs — tracked so supermap re-renders on state changes
+        for pb_dir in [
+            self.workspace / 'pipeline_builds',
+            self.workspace / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds',
+        ]:
+            if pb_dir.exists() and pb_dir.is_dir():
+                for f in pb_dir.iterdir():
+                    if f.is_file() and f.name.endswith('_state.json'):
+                        try:
+                            current[str(f)] = f.stat().st_mtime
+                        except OSError:
+                            pass
         return current
 
     def _poll_loop(self) -> None:
@@ -2284,6 +2305,19 @@ class CodexRenderEngine:
         FLAG-2: Explicit context file invalidation.
         FLAG-3: CREATE/DELETE → reindex_namespace, MODIFY → apply_disk_change.
         """
+        # Handle pipeline state JSON changes: force supermap re-render without
+        # tree reindex (state JSON is not a primitive — just invalidate the cache
+        # so the next render picks up fresh state data from _pipeline_state_suffix).
+        if filepath.suffix == '.json' and '_state.json' in filepath.name:
+            # Invalidate supermap cache so next render re-reads state JSONs
+            self.tree.supermap_cache = None
+            if self.mode == self.MODE_NICE:
+                # Queue a sentinel so the flush worker knows to re-render
+                self._change_queue.append((filepath, '_pipeline_state_change'))
+            else:
+                self._write_supermap_file()
+            return
+
         # Only care about .md files and .codex files
         if filepath.suffix not in ('.md', '.codex'):
             return
@@ -2298,6 +2332,11 @@ class CodexRenderEngine:
 
     def _process_file_change(self, filepath: Path, event_type: str) -> None:
         """Actually process a file change — shared by nice flush and greedy callback."""
+        # Pipeline state JSON sentinel: cache already invalidated in _on_file_change.
+        # Nothing more to do here — the flush worker will call _write_supermap_file().
+        if event_type == '_pipeline_state_change':
+            return
+
         # FLAG-2: Check if this is a context file and invalidate cache
         if filepath.name in CONTEXT_FILENAMES:
             self.context.invalidate_context_file(filepath.name)
