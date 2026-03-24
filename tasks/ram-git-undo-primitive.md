@@ -23,11 +23,16 @@ Extracted from V4 task deliverable D7.6.
 
 1. `e1 undo` → roll back last turn (HEAD~1) in RAM repo
 2. `e1 undo N` → roll back N turns
-3. Undo is RAM-only until next sync — disk stays clean as confirmation boundary
-4. Adds to coordinate grammar as a first-class action
+3. `e1 undo F{n}` → revert the specific change identified by F label `n` from diff history. Wraps `git revert` on the RAM worktree targeting the commit that produced that F label.
+4. Undo is RAM-only until next sync — disk stays clean as confirmation boundary
+5. Adds to coordinate grammar as a first-class action in the e1 suite
+
+## Design Note (d84)
+Per decision `scrap-r-labels-keep-f-labels-as-raw-git-diff`: F labels are now raw git diff output. Each F label maps 1:1 to a commit in the RAM git tree, making `e1 undo F{n}` a direct `git revert <commit>` — no lookup table needed, just the commit history.
 
 ## Success Criteria
 
 - [ ] `e1 undo` rolls back last turn in <10ms
 - [ ] Multi-turn undo works cleanly
+- [ ] `e1 undo F{n}` reverts the specific F-label change cleanly
 - [ ] Disk remains at pre-undo state until sync confirms
