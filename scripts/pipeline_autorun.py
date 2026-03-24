@@ -53,7 +53,7 @@ RATE_LIMIT_DIR = BUILDS_DIR / '.rate_limits'
 KICKOFF_DELAY_SECONDS = 10
 
 # Max concurrent pipelines with active agent work.
-MAX_CONCURRENT_PIPELINES = 2
+MAX_CONCURRENT_PIPELINES = 1
 # A pipeline is "active" if its last_updated is within this window
 # and it has a pending agent action (not human-gated).
 ACTIVE_WINDOW_MINUTES = STALL_THRESHOLD_MINUTES  # Same as stall threshold

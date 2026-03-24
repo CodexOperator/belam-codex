@@ -2501,7 +2501,7 @@ def sweep(dry_run: bool = False) -> list[str]:
     # 3. Check gates
     print(f'\n--- Gate Check ---\n')
     gates = check_gates(dry_run=dry_run)
-    MAX_CONCURRENT = 2  # Max pipelines with active agent work
+    MAX_CONCURRENT = 1  # Max pipelines with active agent work
     kicked = 0
     for g in gates:
         status_label = g['status'].upper()
