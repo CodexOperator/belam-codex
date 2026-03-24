@@ -238,14 +238,18 @@ If you need to BLOCK, use:
 python3 scripts/pipeline_orchestrate.py {version} block {next_stage} --agent {next_agent} --notes "BLOCK reason" --artifact your_review_file.md --learnings "what I found, why it's blocked, what the fix should look like"
 ```
 
+Stage transitions are posted to the group chat automatically by the orchestrator script. You can post additional updates if you have something worth sharing."""
+
+    # Only architects can declare a task fully complete — critics decide block vs pass-to-architect
+    if next_agent == 'architect':
+        msg += f"""
+
 If the task is **fully complete** and needs no further pipeline phases, use:
 ```
-python3 scripts/pipeline_orchestrate.py {version} complete-task --agent {next_agent} --notes "Task complete — reason"
+python3 scripts/pipeline_orchestrate.py {version} complete-task --agent architect --notes "Task complete — reason"
 ```
 This archives the pipeline and marks the parent task as done. Use this when the implementation
-fully satisfies the task requirements and no Phase 2/3 is needed.
-
-Stage transitions are posted to the group chat automatically by the orchestrator script. You can post additional updates if you have something worth sharing."""
+fully satisfies the task requirements and no Phase 2/3 is needed."""
 
     return msg
 
@@ -758,8 +762,9 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         print(f"\n   ℹ️  No auto-transition for '{stage}' — no handoff needed")
         return True
 
-    next_stage, next_agent, _ = transition
-    print(f"\n   📋 Transition: {stage} → {next_stage} ({next_agent})")
+    next_stage, next_agent = transition[0], transition[1]
+    session_mode = transition[3] if len(transition) > 3 else 'fresh'
+    print(f"\n   📋 Transition: {stage} → {next_stage} ({next_agent}) [session: {session_mode}]")
 
     # Special case: local_analysis_code_review → report build (process stage, not agent)
     if stage == 'local_analysis_code_review':
@@ -786,8 +791,15 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     # Step 3: Build handoff message
     handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes)
 
+    # Step 3.5: Session mode — fresh resets the agent session, continue reuses it
+    if session_mode == 'fresh':
+        pipeline_session_id = generate_session_id(version, next_agent)
+    else:
+        # 'continue' — reuse existing session, skip reset
+        pipeline_session_id = None
+        print(f"   🔄 Session mode: continue — reusing existing agent session")
+
     # Write preliminary handoff record (updated after dispatch)
-    pipeline_session_id = generate_session_id(version, next_agent)
     pre_wake_result = {
         'success': True,
         'status': 'dispatching',
@@ -796,7 +808,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         'error': None,
     }
     handoff_path = write_handoff(version, stage, next_stage, next_agent, pre_wake_result,
-                                  pipeline_session_id)
+                                  pipeline_session_id or '')
     print(f"\n   📝 Handoff record: {handoff_path.relative_to(WORKSPACE)}")
 
     # Step 4: Fire-and-forget dispatch to next agent
@@ -806,7 +818,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         print(f"\n   🔔 Dispatching {next_agent} for VERIFICATION (with wiggum steer)...")
         result = dispatch_verification(version)
     else:
-        print(f"\n   🔔 Dispatching {next_agent} (fire-and-forget)...")
+        print(f"\n   🔔 Dispatching {next_agent} (fire-and-forget, session: {session_mode})...")
         result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
     if result.get('success'):
         print(f"   🔔 Dispatched {next_agent} (fire-and-forget)")
@@ -819,6 +831,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     print(f"     Pipeline:    {version}")
     print(f"     Completed:   {stage} ({agent})")
     print(f"     Next:        {next_stage} ({next_agent})")
+    print(f"     Session:     {session_mode}")
     print(f"     Handoff:     🔔 Fire-and-forget dispatch (PID: {result.get('pid')})")
     print(f"     Telegram:    ✅ Group notified (via pipeline_update.py)")
     print(f"{'─' * 70}\n")

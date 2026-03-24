@@ -1914,7 +1914,11 @@ def pipeline_dispatch(version: str, agent: str, stage: str = None,
                 return orchestrate_complete(version, 'pipeline_created', 'belam-main',
                                              f'Dispatched by orchestration_engine (fallback)')
             else:
-                reset_agent_session(agent)
+                # Check session mode from STAGE_TRANSITIONS (4th element)
+                _transition = STAGE_TRANSITIONS.get(stage)
+                _session_mode = _transition[3] if _transition and len(_transition) > 3 else 'fresh'
+                if _session_mode == 'fresh':
+                    reset_agent_session(agent)
                 session_id = generate_session_id(version, agent)
                 handoff_msg = build_handoff_message(version, '', stage, agent,
                                                      f'Dispatched by orchestration engine for {stage}')

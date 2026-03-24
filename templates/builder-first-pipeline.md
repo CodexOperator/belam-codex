@@ -63,19 +63,21 @@ pipeline_fields:
 
 transitions:
   # Phase 1 — builder-first
-  pipeline_created:        [builder_implement,    builder, "Task spec ready. Implement per task file and success criteria."]
-  builder_implement:       [builder_bugfix,       builder, "Implementation done. Review code, fix bugs, add edge case coverage."]
-  builder_bugfix:          [critic_review,        critic,  "Code complete + bugfixed. Review implementation against task spec."]
-  critic_review:           [phase1_complete,      system,  "Phase 1 review passed. Ready for human review or Phase 2.", gate: human]
+  # session: fresh = reset agent session (cross-agent or after gate)
+  # session: continue = keep same session (same-agent sequential stages)
+  pipeline_created:        [builder_implement,    builder, "Task spec ready. Implement per task file and success criteria.", session: fresh]
+  builder_implement:       [builder_bugfix,       builder, "Implementation done. Review code, fix bugs, add edge case coverage.", session: continue]
+  builder_bugfix:          [critic_review,        critic,  "Code complete + bugfixed. Review implementation against task spec.", session: fresh]
+  critic_review:           [phase1_complete,      system,  "Phase 1 review passed. Ready for human review or Phase 2.", gate: human, session: fresh]
   # Phase 1 blocks — critic sends back to builder
-  builder_apply_blocks:    [critic_review,        critic,  "Blocks fixed. Re-review implementation."]
+  builder_apply_blocks:    [critic_review,        critic,  "Blocks fixed. Re-review implementation.", session: fresh]
 
   # Phase 2 — same flow with architect drafting direction first
-  phase2_architect_design:        [phase2_builder_implement,    builder, "Phase 2 direction ready. Implement changes per phase2 spec."]
-  phase2_builder_implement:       [phase2_builder_bugfix,       builder, "Phase 2 implementation done. Fix bugs and edge cases."]
-  phase2_builder_bugfix:          [phase2_critic_review,        critic,  "Phase 2 code complete. Review against phase2 spec."]
-  phase2_critic_review:           [phase2_complete,             system,  "Phase 2 review passed. Pipeline complete.", gate: human]
-  phase2_builder_apply_blocks:    [phase2_critic_review,        critic,  "Phase 2 blocks fixed. Re-review."]
+  phase2_architect_design:        [phase2_builder_implement,    builder, "Phase 2 direction ready. Implement changes per phase2 spec.", session: fresh]
+  phase2_builder_implement:       [phase2_builder_bugfix,       builder, "Phase 2 implementation done. Fix bugs and edge cases.", session: continue]
+  phase2_builder_bugfix:          [phase2_critic_review,        critic,  "Phase 2 code complete. Review against phase2 spec.", session: fresh]
+  phase2_critic_review:           [phase2_complete,             system,  "Phase 2 review passed. Pipeline complete.", gate: human, session: fresh]
+  phase2_builder_apply_blocks:    [phase2_critic_review,        critic,  "Phase 2 blocks fixed. Re-review.", session: fresh]
 
 status_bumps:
   builder_implement:               phase1_build

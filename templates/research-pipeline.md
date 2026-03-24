@@ -103,59 +103,62 @@ pipeline_fields:
   stages: [architect_design, critic_design_review, builder_implementation, builder_verification, critic_code_review, phase1_complete, phase2_architect_design, phase2_critic_design_review, phase2_builder_implementation, phase2_builder_verification, phase2_critic_code_review, phase2_complete, phase3_architect_design, phase3_critic_review, phase3_builder_implementation, phase3_critic_code_review, phase3_complete]
 
 transitions:
+  # session: fresh = reset agent session (cross-agent or after gate)
+  # session: continue = keep same session (same-agent sequential stages)
+
   # ── Kickoff ──────────────────────────────────────────────────────
-  pipeline_created:                      [architect_design,                    architect, "New pipeline created. Design the notebook architecture per pipelines/{v}.md"]
+  pipeline_created:                      [architect_design,                    architect, "New pipeline created. Design the notebook architecture per pipelines/{v}.md", session: fresh]
 
   # ── Phase 1 — Design → Build → Review ───────────────────────────
-  architect_design:                      [critic_design_review,                critic,    "Design ready for review at pipeline_builds/{v}_architect_design.md"]
-  critic_design_review:                  [builder_implementation,              builder,   "Design approved. Build spec at pipeline_builds/{v}_architect_design.md"]
-  architect_design_revision:             [critic_design_review,                critic,    "Design revised, re-review at pipeline_builds/{v}_architect_design.md"]
-  builder_implementation:                [builder_verification,                builder,   "Implementation done. Run verification: python3 scripts/pipeline_verify.py {v}"]
-  builder_verification:                  [critic_code_review,                  critic,    "Verification passed. Review the notebook."]
-  critic_code_review:                    [phase1_complete,                     architect, "Phase 1 code review passed. Triggering local experiment."]
-  phase1_complete:                       [local_experiment_running,            system,    "Phase 1 complete. Starting local experiment run."]
+  architect_design:                      [critic_design_review,                critic,    "Design ready for review at pipeline_builds/{v}_architect_design.md", session: fresh]
+  critic_design_review:                  [builder_implementation,              builder,   "Design approved. Build spec at pipeline_builds/{v}_architect_design.md", session: fresh]
+  architect_design_revision:             [critic_design_review,                critic,    "Design revised, re-review at pipeline_builds/{v}_architect_design.md", session: fresh]
+  builder_implementation:                [builder_verification,                builder,   "Implementation done. Run verification: python3 scripts/pipeline_verify.py {v}", session: continue]
+  builder_verification:                  [critic_code_review,                  critic,    "Verification passed. Review the notebook.", session: fresh]
+  critic_code_review:                    [phase1_complete,                     architect, "Phase 1 code review passed. Triggering local experiment.", session: fresh]
+  phase1_complete:                       [local_experiment_running,            system,    "Phase 1 complete. Starting local experiment run.", session: fresh]
   # Phase 1 blocks
-  builder_apply_blocks:                  [critic_code_review,                  critic,    "Blocks fixed. Re-review the notebook."]
+  builder_apply_blocks:                  [critic_code_review,                  critic,    "Blocks fixed. Re-review the notebook.", session: fresh]
 
   # ── Phase 1 Revisions (coordinator-triggered) ───────────────────
-  phase1_revision_architect:             [phase1_revision_critic_review,       critic,    "Revision design ready at pipeline_builds/{v}_phase1_revision_architect.md"]
-  phase1_revision_critic_review:         [phase1_revision_builder,             builder,   "Revision design approved. Build per pipeline_builds/{v}_phase1_revision_architect.md"]
-  phase1_revision_builder:               [phase1_revision_code_review,         critic,    "Revision implementation done. Review the notebook."]
-  phase1_revision_code_review:           [phase1_complete,                     architect, "Phase 1 revision code review passed. Back to phase1_complete."]
+  phase1_revision_architect:             [phase1_revision_critic_review,       critic,    "Revision design ready at pipeline_builds/{v}_phase1_revision_architect.md", session: fresh]
+  phase1_revision_critic_review:         [phase1_revision_builder,             builder,   "Revision design approved. Build per pipeline_builds/{v}_phase1_revision_architect.md", session: fresh]
+  phase1_revision_builder:               [phase1_revision_code_review,         critic,    "Revision implementation done. Review the notebook.", session: fresh]
+  phase1_revision_code_review:           [phase1_complete,                     architect, "Phase 1 revision code review passed. Back to phase1_complete.", session: fresh]
   # Phase 1 revision blocks
-  phase1_revision_architect_fix:         [phase1_revision_critic_review,       critic,    "Revision design revised, re-review at pipeline_builds/{v}_phase1_revision_architect.md"]
-  phase1_revision_builder_fix:           [phase1_revision_code_review,         critic,    "Revision blocks fixed. Re-review the notebook."]
+  phase1_revision_architect_fix:         [phase1_revision_critic_review,       critic,    "Revision design revised, re-review at pipeline_builds/{v}_phase1_revision_architect.md", session: fresh]
+  phase1_revision_builder_fix:           [phase1_revision_code_review,         critic,    "Revision blocks fixed. Re-review the notebook.", session: fresh]
 
   # ── Local Experiment Execution ───────────────────────────────────
-  local_experiment_running:              [local_experiment_complete,           system,    "Local experiment run completed. Results at notebooks/local_results/{v}/"]
-  local_experiment_complete:             [local_analysis_architect,            architect, "Experiments complete. Analyze results at notebooks/local_results/{v}/. Read the analysis MD and write a comprehensive preliminary report with any additional analysis scripts needed."]
+  local_experiment_running:              [local_experiment_complete,           system,    "Local experiment run completed. Results at notebooks/local_results/{v}/", session: fresh]
+  local_experiment_complete:             [local_analysis_architect,            architect, "Experiments complete. Analyze results at notebooks/local_results/{v}/. Read the analysis MD and write a comprehensive preliminary report with any additional analysis scripts needed.", session: fresh]
 
   # ── Local Analysis (architect → critic → builder loop) ──────────
-  local_analysis_architect:              [local_analysis_critic_review,        critic,    "Preliminary analysis report ready at notebooks/local_results/{v}/{v}_analysis_report.md. Review the analysis and script recommendations."]
-  local_analysis_critic_review:          [local_analysis_builder,              builder,   "Analysis design approved. Implement additional scripts, run them, incorporate results into the report at notebooks/local_results/{v}/"]
-  local_analysis_architect_revision:     [local_analysis_critic_review,        critic,    "Analysis revised. Re-review at notebooks/local_results/{v}/{v}_analysis_report.md"]
-  local_analysis_builder:                [local_analysis_code_review,          critic,    "Analysis scripts implemented and run. Review the updated report and code at notebooks/local_results/{v}/"]
-  local_analysis_builder_fix:            [local_analysis_code_review,          critic,    "Analysis blocks fixed. Re-review at notebooks/local_results/{v}/"]
-  local_analysis_code_review:            [local_analysis_report_build,         system,    "Analysis code review passed. Building LaTeX report."]
-  local_analysis_report_build:           [local_analysis_complete,             system,    "LaTeX report built. PDF at notebooks/local_results/{v}/{v}_report.pdf", gate: human]
+  local_analysis_architect:              [local_analysis_critic_review,        critic,    "Preliminary analysis report ready at notebooks/local_results/{v}/{v}_analysis_report.md. Review the analysis and script recommendations.", session: fresh]
+  local_analysis_critic_review:          [local_analysis_builder,              builder,   "Analysis design approved. Implement additional scripts, run them, incorporate results into the report at notebooks/local_results/{v}/", session: fresh]
+  local_analysis_architect_revision:     [local_analysis_critic_review,        critic,    "Analysis revised. Re-review at notebooks/local_results/{v}/{v}_analysis_report.md", session: fresh]
+  local_analysis_builder:                [local_analysis_code_review,          critic,    "Analysis scripts implemented and run. Review the updated report and code at notebooks/local_results/{v}/", session: fresh]
+  local_analysis_builder_fix:            [local_analysis_code_review,          critic,    "Analysis blocks fixed. Re-review at notebooks/local_results/{v}/", session: fresh]
+  local_analysis_code_review:            [local_analysis_report_build,         system,    "Analysis code review passed. Building LaTeX report.", session: fresh]
+  local_analysis_report_build:           [local_analysis_complete,             system,    "LaTeX report built. PDF at notebooks/local_results/{v}/{v}_report.pdf", gate: human, session: fresh]
 
   # ── Phase 2 — Design → Build → Review ───────────────────────────
-  phase2_architect_design:               [phase2_critic_design_review,         critic,    "Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md"]
-  phase2_critic_design_review:           [phase2_builder_implementation,       builder,   "Phase 2 design approved. Build spec at pipeline_builds/{v}_phase2_architect_design.md"]
-  phase2_architect_revision:             [phase2_critic_design_review,         critic,    "Phase 2 design revised, re-review at pipeline_builds/{v}_phase2_architect_design.md"]
-  phase2_builder_implementation:         [phase2_builder_verification,         builder,   "Phase 2 implementation done. Run verification: python3 scripts/pipeline_verify.py {v}"]
-  phase2_builder_verification:           [phase2_critic_code_review,           critic,    "Phase 2 verification passed. Review the notebook."]
-  builder_phase2_implemented:            [phase2_critic_code_review,           critic,    "Phase 2 implementation done. Review the notebook."]
-  phase2_critic_code_review:             [phase2_complete,                     architect, "Phase 2 code review passed. Pipeline complete (or ready for Phase 3).", gate: human]
+  phase2_architect_design:               [phase2_critic_design_review,         critic,    "Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md", session: fresh]
+  phase2_critic_design_review:           [phase2_builder_implementation,       builder,   "Phase 2 design approved. Build spec at pipeline_builds/{v}_phase2_architect_design.md", session: fresh]
+  phase2_architect_revision:             [phase2_critic_design_review,         critic,    "Phase 2 design revised, re-review at pipeline_builds/{v}_phase2_architect_design.md", session: fresh]
+  phase2_builder_implementation:         [phase2_builder_verification,         builder,   "Phase 2 implementation done. Run verification: python3 scripts/pipeline_verify.py {v}", session: continue]
+  phase2_builder_verification:           [phase2_critic_code_review,           critic,    "Phase 2 verification passed. Review the notebook.", session: fresh]
+  builder_phase2_implemented:            [phase2_critic_code_review,           critic,    "Phase 2 implementation done. Review the notebook.", session: fresh]
+  phase2_critic_code_review:             [phase2_complete,                     architect, "Phase 2 code review passed. Pipeline complete (or ready for Phase 3).", gate: human, session: fresh]
   # Phase 2 blocks
-  builder_apply_phase2_blocks:           [phase2_critic_code_review,           critic,    "Phase 2 analysis blocks fixed. Re-review the notebook."]
-  critic_block_fixes:                    [phase2_critic_code_review,           critic,    "Blocks fixed. Re-review the notebook."]
+  builder_apply_phase2_blocks:           [phase2_critic_code_review,           critic,    "Phase 2 analysis blocks fixed. Re-review the notebook.", session: fresh]
+  critic_block_fixes:                    [phase2_critic_code_review,           critic,    "Blocks fixed. Re-review the notebook.", session: fresh]
 
   # ── Phase 3 ─────────────────────────────────────────────────────
-  phase3_architect_design:               [phase3_critic_review,                critic,    "Phase 3 iteration design ready for review."]
-  phase3_critic_review:                  [phase3_builder_implementation,       builder,   "Phase 3 design approved. Build it."]
-  phase3_builder_implementation:         [phase3_critic_code_review,           critic,    "Phase 3 implementation done. Review the notebook."]
-  phase3_critic_code_review:             [phase3_complete,                     architect, "Phase 3 iteration complete.", gate: human]
+  phase3_architect_design:               [phase3_critic_review,                critic,    "Phase 3 iteration design ready for review.", session: fresh]
+  phase3_critic_review:                  [phase3_builder_implementation,       builder,   "Phase 3 design approved. Build it.", session: fresh]
+  phase3_builder_implementation:         [phase3_critic_code_review,           critic,    "Phase 3 implementation done. Review the notebook.", session: fresh]
+  phase3_critic_code_review:             [phase3_complete,                     architect, "Phase 3 iteration complete.", gate: human, session: fresh]
 
   # ── Analysis Pipeline — Phase 1 (autonomous statistical analysis) ──
   analysis_architect_design:             [analysis_critic_review,              critic,    "Analysis design ready at pipeline_builds/{v}_architect_analysis_design.md"]

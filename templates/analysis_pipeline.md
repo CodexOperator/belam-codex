@@ -239,16 +239,18 @@ The orchestrator automatically:
 
 ```
 Phase 1:
-Architect designs analysis → [orchestrate complete] → auto-wakes Critic
-Critic reviews methodology → [orchestrate complete] → auto-wakes Builder
-                           → [orchestrate block]    → auto-wakes Architect
-Builder implements notebook → [orchestrate complete] → auto-wakes Critic
-Critic code-reviews         → [orchestrate complete] → auto-wakes next / pipeline complete
-                            → [orchestrate block]    → auto-wakes Builder
+Architect designs analysis → [orchestrate complete] → auto-wakes Critic       (session: fresh)
+Critic reviews methodology → [orchestrate complete] → auto-wakes Builder      (session: fresh)
+                           → [orchestrate block]    → auto-wakes Architect    (session: fresh)
+Builder implements notebook → [orchestrate complete] → auto-wakes Critic      (session: fresh)
+Critic code-reviews         → [orchestrate complete] → auto-wakes next        (session: fresh)
+                            → [orchestrate block]    → auto-wakes Builder     (session: fresh)
 
 Phase 2 (after Shael provides direction):
 Same flow with analysis_phase2_ prefix stages.
 ```
+
+**Session modes:** All cross-agent transitions use `fresh` (reset session). The analysis pipeline has no same-agent sequential stages, so all transitions are fresh. Session modes are defined in `STAGE_TRANSITIONS` in `scripts/pipeline_update.py`.
 
 ## Phase 1: Autonomous Analysis
 _Architect designs analysis methodology → Critic reviews statistical rigor → Builder implements_

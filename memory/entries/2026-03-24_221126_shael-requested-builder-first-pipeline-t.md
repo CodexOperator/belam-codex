@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, orchestration, template, builder-first, pipeline]
 source: "session"
 content: "Shael requested builder-first pipeline template: builder implements first, second builder does bug fixing, critic reviews, architect drafts phase 2 direction. Template markdown created at templates/builder-first-pipeline.md. Orchestration engine script (pipeline_orchestrate.py) consulted for template integration. Task created for making it programmatic via coordinates (builder-first-pipeline-template-coordinate)."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

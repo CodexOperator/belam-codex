@@ -175,15 +175,18 @@ The orchestrator automatically:
 ### Stage Flow
 
 ```
-Architect designs → [orchestrate complete] → auto-wakes Critic
-Critic reviews    → [orchestrate complete] → auto-wakes Builder
-                  → [orchestrate block]    → auto-wakes Architect
-Builder builds    → [orchestrate complete] → auto-wakes Critic
-Critic code-reviews → [orchestrate complete] → auto-wakes Architect
-                    → [orchestrate block]    → auto-wakes Builder
-Phase 1 complete → [autorun] → local_experiment_running (process stage)
-Experiments done → [self-reports] → local_experiment_complete → Phase 2
+Architect designs   → [orchestrate complete] → auto-wakes Critic        (session: fresh)
+Critic reviews      → [orchestrate complete] → auto-wakes Builder       (session: fresh)
+                    → [orchestrate block]    → auto-wakes Architect     (session: fresh)
+Builder builds      → [orchestrate complete] → Builder verifies         (session: continue)
+Builder verifies    → [orchestrate complete] → auto-wakes Critic        (session: fresh)
+Critic code-reviews → [orchestrate complete] → auto-wakes Architect     (session: fresh)
+                    → [orchestrate block]    → auto-wakes Builder       (session: fresh)
+Phase 1 complete    → [autorun] → local_experiment_running (process stage)
+Experiments done    → [self-reports] → local_experiment_complete → Phase 2
 ```
+
+**Session modes:** Cross-agent transitions use `fresh` (reset session). Same-agent sequential stages (builder_implementation → builder_verification) use `continue` (keep session). Defined in `STAGE_TRANSITIONS` in `scripts/pipeline_update.py`.
 
 Same pattern for Phase 2 and Phase 3. The orchestrator knows all transitions.
 Experiment stage is a **process stage** — run_experiment.py self-reports, no agent handoff needed.

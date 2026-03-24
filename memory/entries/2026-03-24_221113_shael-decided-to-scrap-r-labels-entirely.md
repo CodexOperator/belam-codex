@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, render-engine, diff, simplification, architecture]
 source: "session"
 content: "Shael decided to scrap R labels entirely and redefine F labels as raw git diff output (+ / - lines like GitHub). Also scrapped pin/rewind emoji tracking. Decision d84 written (scrap-r-labels-keep-f-labels-as-raw-git-diff). Render engine loses inotify chain, HeartbeatTrigger, DiffEntry processing. Supermap stays at boot; agent tracks changes from context."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

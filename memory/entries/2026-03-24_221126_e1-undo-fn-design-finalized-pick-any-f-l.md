@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, codex-engine, undo, ram, git, e1]
 source: "session"
 content: "e1 undo F{n} design finalized: pick any F label from diff history, git revert/reset that change. RAM git tree makes this trivial since every edit is already a commit. Task ram-git-s4-e1-undo-command created as final stage of builder-first chain."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
