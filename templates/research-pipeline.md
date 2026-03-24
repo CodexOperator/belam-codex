@@ -112,7 +112,7 @@ transitions:
   architect_design_revision:             [critic_design_review,                critic,    "Design revised, re-review at pipeline_builds/{v}_architect_design.md"]
   builder_implementation:                [builder_verification,                builder,   "Implementation done. Run verification: python3 scripts/pipeline_verify.py {v}"]
   builder_verification:                  [critic_code_review,                  critic,    "Verification passed. Review the notebook."]
-  critic_code_review:                    [phase1_complete,                     architect, "Phase 1 code review passed. Ready for Phase 2 design.", gate: human]
+  critic_code_review:                    [phase1_complete,                     architect, "Phase 1 code review passed. Triggering local experiment."]
   phase1_complete:                       [local_experiment_running,            system,    "Phase 1 complete. Starting local experiment run."]
   # Phase 1 blocks
   builder_apply_blocks:                  [critic_code_review,                  critic,    "Blocks fixed. Re-review the notebook."]
@@ -121,7 +121,7 @@ transitions:
   phase1_revision_architect:             [phase1_revision_critic_review,       critic,    "Revision design ready at pipeline_builds/{v}_phase1_revision_architect.md"]
   phase1_revision_critic_review:         [phase1_revision_builder,             builder,   "Revision design approved. Build per pipeline_builds/{v}_phase1_revision_architect.md"]
   phase1_revision_builder:               [phase1_revision_code_review,         critic,    "Revision implementation done. Review the notebook."]
-  phase1_revision_code_review:           [phase1_complete,                     architect, "Phase 1 revision code review passed. Back to phase1_complete.", gate: human]
+  phase1_revision_code_review:           [phase1_complete,                     architect, "Phase 1 revision code review passed. Back to phase1_complete."]
   # Phase 1 revision blocks
   phase1_revision_architect_fix:         [phase1_revision_critic_review,       critic,    "Revision design revised, re-review at pipeline_builds/{v}_phase1_revision_architect.md"]
   phase1_revision_builder_fix:           [phase1_revision_code_review,         critic,    "Revision blocks fixed. Re-review the notebook."]

@@ -357,25 +357,23 @@ def resolve_start_status_bump(version: str, stage: str) -> str | None:
 
 
 def is_human_gated(version: str, stage: str) -> bool:
-    """Check if a stage is human-gated, using template-derived gates.
+    """Check if a stage is human-gated for a specific pipeline's template.
 
     Returns True if the stage requires manual intervention before dispatch.
-    Checks the pipeline's specific template first, then the global union of all template gates.
+    Only checks the pipeline's own template gates — a stage gated in one template
+    is NOT gated in another. Falls back to research template if no type set.
     """
-    # Check pipeline-specific template gates first
     pipeline_type = _get_pipeline_type(version)
     template_name = _resolve_template_name(pipeline_type)
     if template_name:
         _parse_template_transitions(template_name)
         gates = _template_gates.get(template_name, set())
-        if stage in gates:
-            return True
+        return stage in gates
 
-    # Fallback: check the global union of all template gates
-    if stage in _get_human_actions():
-        return True
-
-    return False
+    # No template found — fall back to research template gates
+    _parse_template_transitions('research')
+    gates = _template_gates.get('research', set())
+    return stage in gates
 
 
 def _get_temporal():
