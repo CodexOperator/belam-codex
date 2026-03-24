@@ -1,0 +1,15 @@
+{
+  "version": "containerize-openclaw-workspace",
+  "completed_stage": "critic_design_review",
+  "next_stage": "builder_implementation",
+  "next_agent": "builder",
+  "timestamp": "2026-03-24T08:53:31.965276+00:00",
+  "pipeline_session_id": "3c9987ee-74cf-4e04-b856-59ec19de3bdf",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

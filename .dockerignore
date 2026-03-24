@@ -1,0 +1,15 @@
+# Exclude from Docker build context
+.git
+*.pkl
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+__pycache__
+node_modules
+.codex_runtime/
+*.pyc
+.env
+memory/archive/
+logs/

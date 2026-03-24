@@ -1,0 +1,5 @@
+# ML requirements — torch + snntorch for SNN experiments
+# Only needed on GPU hosts / Colab, NOT in the gateway container
+-r requirements-base.txt
+torch>=2.1.0
+snntorch>=0.9.1

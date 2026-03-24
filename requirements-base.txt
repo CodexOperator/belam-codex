@@ -1,0 +1,8 @@
+# Base requirements for OpenClaw container (no ML dependencies)
+# ML deps in requirements-ml.txt (for Colab/GPU hosts only)
+PyYAML>=6.0
+dulwich>=0.21.0
+scipy>=1.11.0
+numpy>=1.26.0
+pandas>=2.1.0
+requests>=2.31.0
