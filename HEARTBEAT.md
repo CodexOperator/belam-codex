@@ -24,6 +24,7 @@
 ## Task 5: Infrastructure Pipeline Queue
 
 **Scope:** Infra tasks only. Sequential (MAX_CONCURRENT=1). No research/experiment pipelines.
+**Frequency:** Every 12 hours (not every heartbeat). Check `/tmp/openclaw_last_pipeline_check.ts` — if it exists and is less than 12 hours old, skip this entire task silently. Update the timestamp file after completing a check (whether or not a pipeline was launched).
 
 1. Check current pipeline status:
    - `grep "^status:" pipelines/*.md | grep -vE "archived"` — look at active pipeline states
