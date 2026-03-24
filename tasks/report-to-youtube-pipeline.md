@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-20
 owner: belam
@@ -8,6 +8,7 @@ depends_on: []
 upstream: []
 downstream: []
 tags: [video, youtube, automation, infrastructure, manim, tts]
+pipeline: report-to-youtube-pipeline
 ---
 
 # Build Report-to-YouTube Video Pipeline
