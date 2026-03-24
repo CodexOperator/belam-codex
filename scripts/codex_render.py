@@ -1346,7 +1346,8 @@ class SessionManager:
         elif cmd == 'supermap':
             self._nice_flush()
             content = self.tree.render_supermap(diff_engine=self.diff_engine)
-            self._write_supermap_file()
+            if self._engine_ref:
+                self._engine_ref._write_supermap_file()
             return {'ok': True, 'content': content}
 
         elif cmd == 'diff':
