@@ -3,9 +3,17 @@
 ## Flow
 
 ```
-Phase 1: Builder (implement) → Builder (bugfix) → Critic (review) → Architect (Phase 2 draft)
-Phase 2: Builder (implement P2) → Builder (bugfix) → Critic (review) → [done or Architect drafts P3]
+Phase 1: Builder (implement) → Builder (bugfix) → Critic (review) → [HUMAN GATE] → Architect review
+Phase 2: Builder (implement P2) → Builder (bugfix) → Critic (review) → [HUMAN GATE] → Architect review
 ```
+
+At each human gate (`phase1_complete`, `phase2_complete`), the pipeline pauses for Shael to review.
+No auto-transition occurs. From these gates, the architect (or coordinator) can:
+1. **Kick Phase 2** — `python3 scripts/pipeline_orchestrate.py <ver> kickoff --phase2`
+2. **Declare task done** — `python3 scripts/pipeline_orchestrate.py <ver> complete-task --agent architect --notes "reason"`
+   - Archives the pipeline (status: archived)
+   - Marks the parent task as done (status: done)
+   - Notifies Telegram group
 
 ## When to Use
 - Spec is already clear (decision exists, scope is tight)
@@ -82,4 +90,37 @@ status_bumps:
 start_status_bumps:
   builder_implement:               phase1_build
   phase2_builder_implement:        phase2_build
+
+# Human gates: these stages have NO outgoing transition — pipeline pauses
+human_gates:
+  - phase1_complete    # Shael reviews before Phase 2 or task completion
+  - phase2_complete    # Shael reviews before Phase 3 or task completion
 ```
+
+## Human Gates
+
+Both `phase1_complete` and `phase2_complete` are **human gates** — the pipeline stops and waits for manual action. No auto-dispatch occurs.
+
+### Actions at a Human Gate
+
+| Action | Command | Effect |
+|--------|---------|--------|
+| Kick Phase 2 | `pipeline_orchestrate.py <ver> kickoff --phase2` | Starts Phase 2 flow |
+| Complete task | `pipeline_orchestrate.py <ver> complete-task --agent architect --notes "reason"` | Archives pipeline + marks task done |
+| Manual transition | `pipeline_orchestrate.py <ver> complete <gate_stage> --agent <role> --notes "..."` | Advance to specific next stage |
+
+### Architect "Task is Done" Path
+
+When the architect (at `phase1_complete` or `phase2_complete`) determines the task is fully satisfied:
+
+```bash
+python3 scripts/pipeline_orchestrate.py <version> complete-task \
+  --agent architect \
+  --notes "Implementation satisfies all requirements. No Phase 2 needed."
+```
+
+This command:
+1. Sets pipeline status to `archived` with archive date and reason
+2. Finds the parent task (from pipeline's `task:` frontmatter field) and sets status to `done`
+3. Writes agent memory for continuity
+4. Sends a Telegram notification to the pipeline group chat

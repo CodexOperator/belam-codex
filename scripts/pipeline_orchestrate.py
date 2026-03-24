@@ -22,8 +22,12 @@ Also supports:
   python3 scripts/pipeline_orchestrate.py <version> start <stage> --agent <role>
   python3 scripts/pipeline_orchestrate.py <version> status <new_status>
   python3 scripts/pipeline_orchestrate.py <version> show
+  python3 scripts/pipeline_orchestrate.py <version> complete-task --agent <role> --notes "reason"
   python3 scripts/pipeline_orchestrate.py <version> verify   # Check if pending handoff was picked up
   python3 scripts/pipeline_orchestrate.py --check-pending     # Check ALL pipelines for stuck handoffs
+
+  complete-task: Architect declares task fully done. Archives pipeline + marks parent task done.
+                 Use at phase1_complete or phase2_complete when no further work is needed.
 
 Usage examples:
   # Architect completes design revision:
@@ -233,6 +237,13 @@ If you need to BLOCK, use:
 ```
 python3 scripts/pipeline_orchestrate.py {version} block {next_stage} --agent {next_agent} --notes "BLOCK reason" --artifact your_review_file.md --learnings "what I found, why it's blocked, what the fix should look like"
 ```
+
+If the task is **fully complete** and needs no further pipeline phases, use:
+```
+python3 scripts/pipeline_orchestrate.py {version} complete-task --agent {next_agent} --notes "Task complete — reason"
+```
+This archives the pipeline and marks the parent task as done. Use this when the implementation
+fully satisfies the task requirements and no Phase 2/3 is needed.
 
 Stage transitions are posted to the group chat automatically by the orchestrator script. You can post additional updates if you have something worth sharing."""
 
@@ -1326,6 +1337,161 @@ approved analysis report into a professional LaTeX document and compile it to PD
     return True
 
 
+def orchestrate_complete_task(version: str, agent: str = 'architect', notes: str = ''):
+    """Architect declares a task fully done — archives pipeline, marks task done.
+
+    Called when the architect (or coordinator) determines a task needs no further
+    pipeline phases. This is the "task is done" path from phase1_complete or
+    phase2_complete review gates.
+
+    Steps:
+      1. Load pipeline markdown and extract the task slug from frontmatter
+      2. Set pipeline status to 'archived' with archive reason
+      3. Find the parent task and set its status to 'done'
+      4. Notify Telegram group about task completion
+    """
+    print(f"\n{'═' * 70}")
+    print(f"  ✅ ORCHESTRATOR: {version} — completing task (archiving pipeline)")
+    print(f"{'═' * 70}\n")
+
+    # Step 1: Load pipeline and extract task slug
+    pipeline_path = PIPELINES_DIR / f'{version}.md'
+    if not pipeline_path.exists():
+        print(f"❌ Pipeline not found: pipelines/{version}.md")
+        return False
+
+    pipeline_content = pipeline_path.read_text()
+
+    # Extract task slug from frontmatter
+    task_slug = None
+    # Try 'task:' field first (builder-first pipelines)
+    task_match = re.search(r'^task:\s*(.+)$', pipeline_content, re.MULTILINE)
+    if task_match:
+        task_slug = task_match.group(1).strip()
+    else:
+        # Fall back to version as task slug (common convention)
+        task_slug = version
+
+    # Extract current status for logging
+    status_match = re.search(r'^status:\s*(.+)$', pipeline_content, re.MULTILINE)
+    old_status = status_match.group(1).strip() if status_match else 'unknown'
+
+    print(f"   📦 Pipeline: {version} (status: {old_status})")
+    print(f"   📋 Task: {task_slug}")
+    print(f"   👤 Agent: {agent}")
+    if notes:
+        print(f"   📝 Notes: {notes}")
+
+    # Step 2: Archive the pipeline
+    archive_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    archive_reason = notes or f'Task completed by {agent}'
+
+    # Update status to archived
+    pipeline_content = re.sub(
+        r'^status:\s*.+$',
+        'status: archived',
+        pipeline_content,
+        count=1,
+        flags=re.MULTILINE,
+    )
+
+    # Add/update archived date
+    if re.search(r'^archived:', pipeline_content, re.MULTILINE):
+        pipeline_content = re.sub(
+            r'^archived:\s*.+$',
+            f'archived: {archive_date}',
+            pipeline_content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+    else:
+        # Insert after 'started:' line if it exists, otherwise after 'status:'
+        if re.search(r'^started:', pipeline_content, re.MULTILINE):
+            pipeline_content = re.sub(
+                r'^(started:\s*.+)$',
+                f'\\1\narchived: {archive_date}',
+                pipeline_content,
+                count=1,
+                flags=re.MULTILINE,
+            )
+        else:
+            pipeline_content = re.sub(
+                r'^(status:\s*archived)$',
+                f'\\1\narchived: {archive_date}',
+                pipeline_content,
+                count=1,
+                flags=re.MULTILINE,
+            )
+
+    # Add archive_reason if not present
+    if not re.search(r'^archive_reason:', pipeline_content, re.MULTILINE):
+        pipeline_content = re.sub(
+            r'^(archived:\s*.+)$',
+            f'\\1\narchive_reason: {archive_reason}',
+            pipeline_content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+    else:
+        pipeline_content = re.sub(
+            r'^archive_reason:\s*.+$',
+            f'archive_reason: {archive_reason}',
+            pipeline_content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+
+    pipeline_path.write_text(pipeline_content)
+    print(f"   ✅ Pipeline archived (status: archived, archived: {archive_date})")
+
+    # Update state JSON too
+    state = load_pipeline_state(version)
+    state['status'] = 'archived'
+    state['archived'] = archive_date
+    state['archive_reason'] = archive_reason
+    state['last_updated'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
+    save_pipeline_state(version, state)
+
+    # Step 3: Mark the parent task as done
+    task_path = WORKSPACE / 'tasks' / f'{task_slug}.md'
+    if task_path.exists():
+        task_content = task_path.read_text()
+        old_task_status = 'unknown'
+        task_status_match = re.search(r'^status:\s*(.+)$', task_content, re.MULTILINE)
+        if task_status_match:
+            old_task_status = task_status_match.group(1).strip()
+
+        task_content = re.sub(
+            r'^status:\s*.+$',
+            'status: done',
+            task_content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        task_path.write_text(task_content)
+        print(f"   ✅ Task '{task_slug}' marked done (was: {old_task_status})")
+    else:
+        print(f"   ⚠️  Task file not found: tasks/{task_slug}.md — skipping task status update")
+
+    # Step 4: Consolidate agent memory
+    consolidate_agent_memory(agent, version, 'task_complete', notes or archive_reason)
+
+    # Step 5: Notify Telegram group
+    from pipeline_update import notify_group
+    notify_group(agent, version, 'complete', 'task_complete',
+                 f'Task fully done. Pipeline archived. Reason: {archive_reason}')
+
+    print(f"\n{'─' * 70}")
+    print(f"  📊 Task Completion Summary:")
+    print(f"     Pipeline:  {version} → archived")
+    print(f"     Task:      {task_slug} → done")
+    print(f"     Agent:     {agent}")
+    print(f"     Reason:    {archive_reason}")
+    print(f"{'─' * 70}\n")
+
+    return True
+
+
 def orchestrate_start(version: str, stage: str, agent: str, notes: str = ''):
     """Start a stage — just pass through to pipeline_update.py."""
     update_args = [version, 'start', stage, '--agent', agent]
@@ -2147,6 +2313,11 @@ def main():
             sys.exit(1)
         orchestrate_signal(version, stage, agent, signal_name, notes)
 
+    elif action == 'complete-task':
+        agent = flags.get('agent', 'architect')
+        notes = flags.get('notes', positional[0] if positional else '')
+        orchestrate_complete_task(version, agent, notes)
+
     elif action == 'check-stalled':
         max_idle = int(flags.get('max-idle', flags.get('max_idle', '7200')))
         check_stalled_sessions(max_idle)
@@ -2240,7 +2411,7 @@ def main():
 
     else:
         print(f"Unknown action: {action}")
-        print("Actions: show, complete, block, start, status, verify, revise, kickoff, run-experiment, local-analysis, report-build")
+        print("Actions: show, complete, block, start, status, complete-task, verify, revise, kickoff, run-experiment, local-analysis, report-build")
         print("Global: --check-pending")
         sys.exit(1)
 
