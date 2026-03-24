@@ -1254,6 +1254,50 @@ _What follows from this choice? Trade-offs, risks, next steps._
 ---
 primitive: decision
 status: proposed
+date: 2026-03-24
+context: (add context)
+alternatives: []
+rationale: (add rationale)
+consequences: []
+upstream:
+- decision/render-engine-pid-file-and-force-flag
+- decision/codex-cockpit-v7-single-prepend-block-architecture
+downstream: []
+tags:
+- instance:main
+- render-engine
+- systemd
+- infrastructure
+- architecture
+__coord__: d21
+__slug__: codex-render-engine-managed-by-systemd
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/codex-render-engine-managed-by-systemd.md
+__prefix__: d
+__index__: 21
+__ptype__: decisions
+---
+# codex-render-engine-managed-by-systemd
+
+## Context
+
+_What problem or situation prompted this decision?_
+
+## Options Considered
+
+- **Option A:** ...
+- **Option B:** ...
+
+## Decision
+
+_State the decision clearly._
+
+## Consequences
+
+_What follows from this choice? Trade-offs, risks, next steps._
+---
+---
+primitive: decision
+status: proposed
 date: 2026-03-22
 context: (add context)
 alternatives: []
@@ -1267,11 +1311,11 @@ tags:
 - engine:codex
 - v3
 - phase2
-__coord__: d21
+__coord__: d22
 __slug__: codex-render-foreground-ram-tree
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/codex-render-foreground-ram-tree.md
 __prefix__: d
-__index__: 21
+__index__: 22
 __ptype__: decisions
 ---
 # codex-render-foreground-ram-tree
@@ -1305,11 +1349,11 @@ tags:
 - orchestration
 - pipeline
 - infra
-__coord__: d22
+__coord__: d23
 __slug__: consolidate-pipeline-state-json-to-workspace-builds-dir
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/consolidate-pipeline-state-json-to-workspace-builds-dir.md
 __prefix__: d
-__index__: 22
+__index__: 23
 __ptype__: decisions
 ---
 # consolidate-pipeline-state-json-to-workspace-builds-dir
@@ -1355,11 +1399,11 @@ tags:
 - codex-engine
 - cockpit-plugin
 - boot-flag
-__coord__: d23
+__coord__: d24
 __slug__: deprecate-boot-flag-use-cockpit-plugin-for-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/deprecate-boot-flag-use-cockpit-plugin-for-supermap.md
 __prefix__: d
-__index__: 23
+__index__: 24
 __ptype__: decisions
 ---
 # deprecate-boot-flag-use-cockpit-plugin-for-supermap
@@ -1404,11 +1448,11 @@ tags:
 - knowledge
 knowledge: derivative-specialist
 cli: R lessons (for derivative-related findings)
-__coord__: d24
+__coord__: d25
 __slug__: derivative-specialist-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/derivative-specialist-skill.md
 __prefix__: d
-__index__: 24
+__index__: 25
 __ptype__: decisions
 ---
 # Decision: Derivative Specialist Skill
@@ -1449,11 +1493,11 @@ tags:
 - heartbeat
 - telegram
 - lane-queue
-__coord__: d25
+__coord__: d26
 __slug__: diff-trigger-threshold-raised-to-reduce-lane-backup
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/diff-trigger-threshold-raised-to-reduce-lane-backup.md
 __prefix__: d
-__index__: 25
+__index__: 26
 __ptype__: decisions
 ---
 # diff-trigger-threshold-raised-to-reduce-lane-backup
@@ -1501,11 +1545,11 @@ tags:
 - diff
 - architecture
 created: 2026-03-23
-__coord__: d26
+__coord__: d27
 __slug__: diff-triggered-heartbeat-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/diff-triggered-heartbeat-architecture.md
 __prefix__: d
-__index__: 26
+__index__: 27
 __ptype__: decisions
 ---
 # Decision: Diff-Triggered Heartbeat Architecture
@@ -1558,11 +1602,11 @@ tags:
 - systemd
 - cron
 - deferred
-__coord__: d27
+__coord__: d28
 __slug__: disable-watchdog-until-systemd-service-fixed
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/disable-watchdog-until-systemd-service-fixed.md
 __prefix__: d
-__index__: 27
+__index__: 28
 __ptype__: decisions
 ---
 # disable-watchdog-until-systemd-service-fixed
@@ -1601,11 +1645,11 @@ tags:
 - e2
 - namespace
 - architecture
-__coord__: d28
+__coord__: d29
 __slug__: e3-e2-namespace-chain-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/e3-e2-namespace-chain-architecture.md
 __prefix__: d
-__index__: 28
+__index__: 29
 __ptype__: decisions
 ---
 # e3-e2-namespace-chain-architecture
@@ -1644,11 +1688,11 @@ tags:
 - lm
 - coordinate-grammar
 - pipeline
-__coord__: d29
+__coord__: d30
 __slug__: heartbeat-md-e0-primary-path
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/heartbeat-md-e0-primary-path.md
 __prefix__: d
-__index__: 29
+__index__: 30
 __ptype__: decisions
 ---
 # heartbeat-md-e0-primary-path
@@ -1689,11 +1733,11 @@ decided_by:
 downstream:
 - memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe
 - memory/2026-03-17_221720_hierarchical-memory-system-built-and-dep
-__coord__: d30
+__coord__: d31
 __slug__: hierarchical-memory-system
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/hierarchical-memory-system.md
 __prefix__: d
-__index__: 30
+__index__: 31
 __ptype__: decisions
 ---
 # Hierarchical Memory Consolidation System
@@ -1759,11 +1803,11 @@ tags:
 - knowledge-graph
 - primitives
 - relationships
-__coord__: d31
+__coord__: d32
 __slug__: incremental-relationship-mapping-via-pairwise-opus-comparison
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/incremental-relationship-mapping-via-pairwise-opus-comparison.md
 __prefix__: d
-__index__: 31
+__index__: 32
 __ptype__: decisions
 ---
 # Incremental Relationship Mapping via Pairwise Opus Comparison
@@ -1813,11 +1857,11 @@ tags:
 - ux
 - belam
 superseded_by: decision/codex-engine-v1-architecture
-__coord__: d32
+__coord__: d33
 __slug__: indexed-command-interface
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/indexed-command-interface.md
 __prefix__: d
-__index__: 32
+__index__: 33
 __ptype__: decisions
 ---
 # Indexed Command Interface as Default R UX
@@ -1890,11 +1934,11 @@ tags:
 - pipeline
 - infrastructure
 - local-analysis
-__coord__: d33
+__coord__: d34
 __slug__: infra-pipelines-use-local-analysis
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/infra-pipelines-use-local-analysis.md
 __prefix__: d
-__index__: 33
+__index__: 34
 __ptype__: decisions
 ---
 # infra-pipelines-use-local-analysis
@@ -1938,11 +1982,11 @@ tags:
 - diff
 - token-efficiency
 - architecture
-__coord__: d34
+__coord__: d35
 __slug__: inter-agent-diff-comms-turn-by-turn
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/inter-agent-diff-comms-turn-by-turn.md
 __prefix__: d
-__index__: 34
+__index__: 35
 __ptype__: decisions
 ---
 # inter-agent-diff-comms-turn-by-turn
@@ -1982,11 +2026,11 @@ tags:
 - legendary-map
 - supermap
 - architecture
-__coord__: d35
+__coord__: d36
 __slug__: legendary-map-as-lm-namespace-on-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/legendary-map-as-lm-namespace-on-supermap.md
 __prefix__: d
-__index__: 35
+__index__: 36
 __ptype__: decisions
 ---
 # legendary-map-as-lm-namespace-on-supermap
@@ -2020,11 +2064,11 @@ tags:
 upstream:
 - decision/codex-engine-v1-architecture
 downstream: []
-__coord__: d36
+__coord__: d37
 __slug__: live-diff-streaming-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/live-diff-streaming-architecture.md
 __prefix__: d
-__index__: 36
+__index__: 37
 __ptype__: decisions
 ---
 # Live Diff Streaming Architecture
@@ -2256,11 +2300,11 @@ tags:
 - codex-engine
 - token-efficiency
 - design
-__coord__: d37
+__coord__: d38
 __slug__: lm-design-tool-patterns-navigable-runnable
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-design-tool-patterns-navigable-runnable.md
 __prefix__: d
-__index__: 37
+__index__: 38
 __ptype__: decisions
 ---
 # lm-design-tool-patterns-navigable-runnable
@@ -2301,11 +2345,11 @@ tags:
 - dot-syntax
 - coordinate-grammar
 - codex-engine
-__coord__: d38
+__coord__: d39
 __slug__: lm-dot-syntax-workflow-hierarchy
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-dot-syntax-workflow-hierarchy.md
 __prefix__: d
-__index__: 38
+__index__: 39
 __ptype__: decisions
 ---
 # lm-dot-syntax-workflow-hierarchy
@@ -2343,11 +2387,11 @@ tags:
 - infrastructure
 - coordinate-system
 - scaffold
-__coord__: d39
+__coord__: d40
 __slug__: lm-v2-task-coordinate-native-launch-and-scaffold
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/lm-v2-task-coordinate-native-launch-and-scaffold.md
 __prefix__: d
-__index__: 39
+__index__: 40
 __ptype__: decisions
 ---
 # lm-v2-task-coordinate-native-launch-and-scaffold
@@ -2390,11 +2434,11 @@ tags:
 - orchestration
 - concurrency
 - gate
-__coord__: d40
+__coord__: d41
 __slug__: max-concurrent-pipelines-increased-to-2
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/max-concurrent-pipelines-increased-to-2.md
 __prefix__: d
-__index__: 40
+__index__: 41
 __ptype__: decisions
 ---
 # max-concurrent-pipelines-increased-to-2
@@ -2449,11 +2493,11 @@ downstream:
 - memory/2026-03-18_203356_memory-hierarchy-now-indexed-as-primitiv
 - task/build-codex-engine
 - decision/codex-engine-v1-architecture
-__coord__: d41
+__coord__: d42
 __slug__: memory-as-index-not-store
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-as-index-not-store.md
 __prefix__: d
-__index__: 41
+__index__: 42
 __ptype__: decisions
 ---
 # Decision: MEMORY.md as Boot Index, Not Knowledge Store
@@ -2480,11 +2524,11 @@ downstream:
 upstream:
 - decision/memory-as-index-not-store
 - memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe
-__coord__: d42
+__coord__: d43
 __slug__: memory-as-primitive-type
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-as-primitive-type.md
 __prefix__: d
-__index__: 42
+__index__: 43
 __ptype__: decisions
 ---
 # Decision: Memory Hierarchy as Primitive Type
@@ -2530,11 +2574,11 @@ tags:
 - memory-extract
 - session-memory
 - error-handling
-__coord__: d43
+__coord__: d44
 __slug__: memory-extract-hook-error-handling-fix
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/memory-extract-hook-error-handling-fix.md
 __prefix__: d
-__index__: 43
+__index__: 44
 __ptype__: decisions
 ---
 # memory-extract-hook-error-handling-fix
@@ -2588,11 +2632,11 @@ downstream:
 - memory/2026-03-18_233943_built-phase-1-revision-system-new-stages
 - lesson/openclaw-agent-routes-to-active-session
 - memory/2026-03-17_033425_all-three-agents-architect-critic-builde
-__coord__: d44
+__coord__: d45
 __slug__: orchestration-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/orchestration-architecture.md
 __prefix__: d
-__index__: 44
+__index__: 45
 __ptype__: decisions
 ---
 # Decision: Centralized Orchestration Architecture
@@ -2669,11 +2713,11 @@ tags:
 - pipeline
 - infrastructure
 - architecture
-__coord__: d45
+__coord__: d46
 __slug__: orchestration-fire-and-forget-dispatch
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/orchestration-fire-and-forget-dispatch.md
 __prefix__: d
-__index__: 45
+__index__: 46
 __ptype__: decisions
 ---
 # orchestration-fire-and-forget-dispatch
@@ -2712,11 +2756,11 @@ tags:
 - output-codec
 - coordinate-grammar
 - architecture
-__coord__: d46
+__coord__: d47
 __slug__: output-codec-coordinate-compression
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/output-codec-coordinate-compression.md
 __prefix__: d
-__index__: 46
+__index__: 47
 __ptype__: decisions
 ---
 # output-codec-coordinate-compression
@@ -2759,11 +2803,11 @@ upstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
 downstream:
 - memory/2026-03-17_134119_phase-2-cold-start-protocol-agent-contex
-__coord__: d47
+__coord__: d48
 __slug__: phase2-human-gate
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/phase2-human-gate.md
 __prefix__: d
-__index__: 47
+__index__: 48
 __ptype__: decisions
 ---
 # Phase 2 Requires Explicit Human Approval
@@ -2804,11 +2848,11 @@ tags:
 - pipeline
 - convention
 - infrastructure
-__coord__: d48
+__coord__: d49
 __slug__: pipeline-builds-per-version-subdirectory
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-builds-per-version-subdirectory.md
 __prefix__: d
-__index__: 48
+__index__: 49
 __ptype__: decisions
 ---
 # Pipeline Builds: Per-Version Subdirectories
@@ -2882,11 +2926,11 @@ tags:
 - plugin
 - supermap
 - prompt-optimization
-__coord__: d49
+__coord__: d50
 __slug__: pipeline-context-plugin-retired-supermap-sufficient
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-context-plugin-retired-supermap-sufficient.md
 __prefix__: d
-__index__: 49
+__index__: 50
 __ptype__: decisions
 ---
 # pipeline-context-plugin-retired-supermap-sufficient
@@ -2927,11 +2971,11 @@ tags:
 - orchestration
 - pipeline
 - dedup
-__coord__: d50
+__coord__: d51
 __slug__: pipeline-kick-duplicate-dispatch-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/pipeline-kick-duplicate-dispatch-guard.md
 __prefix__: d
-__index__: 50
+__index__: 51
 __ptype__: decisions
 ---
 # pipeline-kick-duplicate-dispatch-guard
@@ -2972,11 +3016,11 @@ tags:
 - encoding
 - snn
 - decision
-__coord__: d51
+__coord__: d52
 __slug__: population-coding-over-delta
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/population-coding-over-delta.md
 __prefix__: d
-__index__: 51
+__index__: 52
 __ptype__: decisions
 ---
 # Population Coding Over Delta Encoding (Default)
@@ -3009,11 +3053,11 @@ tags:
 - market-making
 - knowledge
 knowledge: predictionmarket-specialist
-__coord__: d52
+__coord__: d53
 __slug__: predictionmarket-specialist-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/predictionmarket-specialist-skill.md
 __prefix__: d
-__index__: 52
+__index__: 53
 __ptype__: decisions
 ---
 # Decision: Prediction Market Specialist Skill
@@ -3068,11 +3112,11 @@ tags:
 - primitives
 - knowledge-graph
 - conventions
-__coord__: d53
+__coord__: d54
 __slug__: primitive-relationship-graph
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/primitive-relationship-graph.md
 __prefix__: d
-__index__: 53
+__index__: 54
 __ptype__: decisions
 ---
 # Primitive Relationship Graph
@@ -3161,11 +3205,11 @@ cli: R lessons (for infrastructure-related findings)
 downstream:
 - memory/2026-03-17_033419_built-two-major-systems-tonight-1-analys
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d54
+__coord__: d55
 __slug__: quant-infrastructure-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/quant-infrastructure-skill.md
 __prefix__: d
-__index__: 54
+__index__: 55
 __ptype__: decisions
 ---
 # Decision: Quant Infrastructure Skill
@@ -3217,11 +3261,11 @@ tags:
 - workflow
 - knowledge
 knowledge: quant-workflow
-__coord__: d55
+__coord__: d56
 __slug__: quant-workflow-skill
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/quant-workflow-skill.md
 __prefix__: d
-__index__: 55
+__index__: 56
 __ptype__: decisions
 ---
 # Decision: Quant Workflow Skill
@@ -3276,11 +3320,11 @@ tags:
 - R-command
 - context-injection
 - legendary-map
-__coord__: d56
+__coord__: d57
 __slug__: r-command-default-shows-legend-plus-supermap
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-command-default-shows-legend-plus-supermap.md
 __prefix__: d
-__index__: 56
+__index__: 57
 __ptype__: decisions
 ---
 # r-command-default-shows-legend-plus-supermap
@@ -3319,11 +3363,11 @@ tags:
 - render-engine
 - cli
 - architecture
-__coord__: d57
+__coord__: d58
 __slug__: r-command-render-layer-cli
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-command-render-layer-cli.md
 __prefix__: d
-__index__: 57
+__index__: 58
 __ptype__: decisions
 ---
 # r-command-render-layer-cli
@@ -3357,11 +3401,11 @@ tags:
 - cockpit
 - context
 created: 2026-03-23
-__coord__: d58
+__coord__: d59
 __slug__: r-f-label-split-by-agent-role
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/r-f-label-split-by-agent-role.md
 __prefix__: d
-__index__: 58
+__index__: 59
 __ptype__: decisions
 ---
 # Decision: R/F Label Split by Agent Role
@@ -3411,11 +3455,11 @@ tags:
 - e0
 - orchestration
 - gateway
-__coord__: d59
+__coord__: d60
 __slug__: remove-e0-sweep-from-heartbeat
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/remove-e0-sweep-from-heartbeat.md
 __prefix__: d
-__index__: 59
+__index__: 60
 __ptype__: decisions
 ---
 # remove-e0-sweep-from-heartbeat
@@ -3455,11 +3499,11 @@ tags:
 - architecture
 - context-injection
 - codex-cockpit
-__coord__: d60
+__coord__: d61
 __slug__: render-engine-as-default-context-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-as-default-context-layer.md
 __prefix__: d
-__index__: 60
+__index__: 61
 __ptype__: decisions
 ---
 # render-engine-as-default-context-layer
@@ -3498,11 +3542,11 @@ tags:
 - render-engine
 - architecture
 - diffing
-__coord__: d61
+__coord__: d62
 __slug__: render-engine-nice-vs-greedy-mode
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-nice-vs-greedy-mode.md
 __prefix__: d
-__index__: 61
+__index__: 62
 __ptype__: decisions
 ---
 # render-engine-nice-vs-greedy-mode
@@ -3541,11 +3585,11 @@ tags:
 - render-engine
 - robustness
 - session-startup
-__coord__: d62
+__coord__: d63
 __slug__: render-engine-pid-file-and-force-flag
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-pid-file-and-force-flag.md
 __prefix__: d
-__index__: 62
+__index__: 63
 __ptype__: decisions
 ---
 # render-engine-pid-file-and-force-flag
@@ -3586,11 +3630,11 @@ tags:
 - pipeline
 - run-experiment
 - architecture
-__coord__: d63
+__coord__: d64
 __slug__: run-experiment-phase-flag-for-notebook-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md
 __prefix__: d
-__index__: 63
+__index__: 64
 __ptype__: decisions
 ---
 # run-experiment-phase-flag-for-notebook-cell-targeting
@@ -3631,11 +3675,11 @@ tags:
 - skills
 - knowledge
 - workflow
-__coord__: d64
+__coord__: d65
 __slug__: skill-extraction-from-reports
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-extraction-from-reports.md
 __prefix__: d
-__index__: 64
+__index__: 65
 __ptype__: decisions
 ---
 # Extract Domain Reports Into Skills + Knowledge Files
@@ -3670,11 +3714,11 @@ tags:
 - knowledge-management
 downstream:
 - memory/2026-03-18_192651_convention-established-every-workspace-s
-__coord__: d65
+__coord__: d66
 __slug__: skill-primitive-pairing
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-primitive-pairing.md
 __prefix__: d
-__index__: 65
+__index__: 66
 __ptype__: decisions
 ---
 # Decision: Every Skill Gets a Primitive
@@ -3713,11 +3757,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: d66
+__coord__: d67
 __slug__: stop-auto-logging-pipeline-stage-transitions
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/stop-auto-logging-pipeline-stage-transitions.md
 __prefix__: d
-__index__: 66
+__index__: 67
 __ptype__: decisions
 ---
 # stop-auto-logging-pipeline-stage-transitions
@@ -3756,11 +3800,11 @@ tags:
 - anchor
 - diff
 - cockpit-plugin
-__coord__: d67
+__coord__: d68
 __slug__: supermap-anchor-diff-flags-in-codex-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-anchor-diff-flags-in-codex-engine.md
 __prefix__: d
-__index__: 67
+__index__: 68
 __ptype__: decisions
 ---
 # supermap-anchor-diff-flags-in-codex-engine
@@ -3806,11 +3850,11 @@ tags:
 - legend
 - r-command
 importance: 3
-__coord__: d68
+__coord__: d69
 __slug__: supermap-pure-signal-legend-as-orientation-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-pure-signal-legend-as-orientation-layer.md
 __prefix__: d
-__index__: 68
+__index__: 69
 __ptype__: decisions
 ---
 # supermap-pure-signal-legend-as-orientation-layer
@@ -3857,11 +3901,11 @@ tags:
 - lifecycle
 - boot-optimization
 note: References to embed_primitives.py filtering are stale — codex engine supermap handles boot index filtering
-__coord__: d69
+__coord__: d70
 __slug__: superseded-primitive-lifecycle
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/superseded-primitive-lifecycle.md
 __prefix__: d
-__index__: 69
+__index__: 70
 __ptype__: decisions
 ---
 # Superseded Primitive Lifecycle
@@ -3914,11 +3958,11 @@ tags:
 - experiments
 - builder
 - architecture
-__coord__: d70
+__coord__: d71
 __slug__: supervised-builder-experiments
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supervised-builder-experiments.md
 __prefix__: d
-__index__: 70
+__index__: 71
 __ptype__: decisions
 ---
 # Supervised Builder Agent for Experiment Execution
@@ -3964,11 +4008,11 @@ tags:
 - symbolic-dispatch
 - coordinate-grammar
 - architecture
-__coord__: d71
+__coord__: d72
 __slug__: symbolic-dispatch-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/symbolic-dispatch-architecture.md
 __prefix__: d
-__index__: 71
+__index__: 72
 __ptype__: decisions
 ---
 # symbolic-dispatch-architecture
@@ -4012,11 +4056,11 @@ tags:
 - workflow
 downstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d72
+__coord__: d73
 __slug__: two-phase-backtest-workflow
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/two-phase-backtest-workflow.md
 __prefix__: d
-__index__: 72
+__index__: 73
 __ptype__: decisions
 ---
 # Two-Phase Backtest Workflow
@@ -4040,11 +4084,11 @@ tags:
 - orchestration
 - e0
 - resilience
-__coord__: d73
+__coord__: d74
 __slug__: unclaimed-dispatch-recovery-in-sweep
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/unclaimed-dispatch-recovery-in-sweep.md
 __prefix__: d
-__index__: 73
+__index__: 74
 __ptype__: decisions
 ---
 # unclaimed-dispatch-recovery-in-sweep
@@ -4078,11 +4122,11 @@ tags:
 - heartbeat
 - config
 created: 2026-03-23
-__coord__: d74
+__coord__: d75
 __slug__: webhook-hooks-enabled-for-diff-heartbeat
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/webhook-hooks-enabled-for-diff-heartbeat.md
 __prefix__: d
-__index__: 74
+__index__: 75
 __ptype__: decisions
 ---
 # Decision: Webhook Hooks Enabled for Diff-Triggered Heartbeat
@@ -4123,11 +4167,11 @@ tags:
 - zoom
 - context-efficiency
 importance: 3
-__coord__: d75
+__coord__: d76
 __slug__: zoom-replaces-supermap-injection-option
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/zoom-replaces-supermap-injection-option.md
 __prefix__: d
-__index__: 75
+__index__: 76
 __ptype__: decisions
 ---
 # zoom-replaces-supermap-injection-option
@@ -12743,6 +12787,44 @@ _When does this lesson apply? What should change going forward?_
 ---
 primitive: lesson
 date: 2026-03-24
+source: (add source)
+confidence: high
+upstream:
+- decision/codex-render-engine-managed-by-systemd
+downstream: []
+tags:
+- instance:main
+- render-engine
+- debugging
+- gotcha
+__coord__: l70
+__slug__: render-engine-not-running-after-gateway-restart
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-not-running-after-gateway-restart.md
+__prefix__: l
+__index__: 70
+__ptype__: lessons
+---
+# render-engine-not-running-after-gateway-restart
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
+primitive: lesson
+date: 2026-03-24
 source: session cbf498a2 — render engine debug
 confidence: high
 upstream:
@@ -12755,11 +12837,11 @@ tags:
 - threading
 - architecture
 - bug
-__coord__: l70
+__coord__: l71
 __slug__: render-engine-thread-per-connection-deadlock
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-thread-per-connection-deadlock.md
 __prefix__: l
-__index__: 70
+__index__: 71
 __ptype__: lessons
 ---
 # render-engine-thread-per-connection-deadlock
@@ -12805,11 +12887,11 @@ tags:
 - nice-mode
 - supermap
 - anchor
-__coord__: l71
+__coord__: l72
 __slug__: render-engine-uds-supermap-command-triggers-file-write
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-uds-supermap-command-triggers-file-write.md
 __prefix__: l
-__index__: 71
+__index__: 72
 __ptype__: lessons
 ---
 # render-engine-uds-supermap-command-triggers-file-write
@@ -12843,11 +12925,11 @@ tags:
 - render-engine
 - session-startup
 - robustness
-__coord__: l72
+__coord__: l73
 __slug__: render-engine-zombie-blocks-session-startup
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-zombie-blocks-session-startup.md
 __prefix__: l
-__index__: 72
+__index__: 73
 __ptype__: lessons
 ---
 # render-engine-zombie-blocks-session-startup
@@ -12883,11 +12965,11 @@ tags:
 - renderer
 - codex-cockpit
 - gateway
-__coord__: l73
+__coord__: l74
 __slug__: renderer-process-blocks-gateway-kill
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/renderer-process-blocks-gateway-kill.md
 __prefix__: l
-__index__: 73
+__index__: 74
 __ptype__: lessons
 ---
 # renderer-process-blocks-gateway-kill
@@ -12921,11 +13003,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l74
+__coord__: l75
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 74
+__index__: 75
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -12958,11 +13040,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l75
+__coord__: l76
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 75
+__index__: 76
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -13009,11 +13091,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l76
+__coord__: l77
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 76
+__index__: 77
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -13053,11 +13135,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l77
+__coord__: l78
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 77
+__index__: 78
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -13093,11 +13175,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l78
+__coord__: l79
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 78
+__index__: 79
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -13134,11 +13216,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l79
+__coord__: l80
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 79
+__index__: 80
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -13162,11 +13244,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l80
+__coord__: l81
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 80
+__index__: 81
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -13199,11 +13281,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l81
+__coord__: l82
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 81
+__index__: 82
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -13248,11 +13330,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l82
+__coord__: l83
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 82
+__index__: 83
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -13284,11 +13366,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l83
+__coord__: l84
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 83
+__index__: 84
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -13337,11 +13419,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l84
+__coord__: l85
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 84
+__index__: 85
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -13363,11 +13445,11 @@ tags:
 - supermap
 - injection-order
 - context
-__coord__: l85
+__coord__: l86
 __slug__: supermap-injection-order-supermap-legend-scaffold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-injection-order-supermap-legend-scaffold.md
 __prefix__: l
-__index__: 85
+__index__: 86
 __ptype__: lessons
 ---
 # supermap-injection-order-supermap-legend-scaffold
@@ -13401,11 +13483,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l86
+__coord__: l87
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 86
+__index__: 87
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -13438,11 +13520,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l87
+__coord__: l88
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 87
+__index__: 88
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -13466,11 +13548,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l88
+__coord__: l89
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 88
+__index__: 89
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -13508,11 +13590,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l89
+__coord__: l90
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 89
+__index__: 90
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -13564,11 +13646,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l90
+__coord__: l91
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 90
+__index__: 91
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -13603,11 +13685,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l91
+__coord__: l92
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 91
+__index__: 92
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -13637,11 +13719,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l92
+__coord__: l93
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 92
+__index__: 93
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -13689,11 +13771,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l93
+__coord__: l94
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 93
+__index__: 94
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -13730,11 +13812,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l94
+__coord__: l95
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 94
+__index__: 95
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -13768,11 +13850,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l95
+__coord__: l96
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 95
+__index__: 96
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -18243,7 +18325,7 @@ importance: 3
 tags: []
 source: session
 content: 'Implemented nice/greedy mode for render engine. Nice mode (default) defers all inotify processing to a queue and flushes only on UDS diff/supermap/my_diff queries — saves CPU between agent turns while keeping full history in RAM. Greedy mode is current live behavior with immediate processing and heartbeat trigger. Cockpit plugin updated to start engine with --mode nice. Discovered bug: cockpit plugin respawns engine without CLI args, overriding manual startup modes. Gateway also crashed during testing — recovery cron job discussion started. Session: 4fb6f15e, 2026-03-23.'
-status: active
+status: consolidated
 __coord__: m138
 __slug__: 2026-03-24_002159_implemented-nicegreedy-mode-for-render-e
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_002159_implemented-nicegreedy-mode-for-render-e.md
@@ -18275,7 +18357,7 @@ tags:
 - incident
 source: session
 content: 'Shael urgently disabled all cron jobs (OpenClaw gateway crons + system crontab) after gateway kept restarting/failing. Root cause: gateway_watchdog.sh (every 5 min via system crontab) was seeing broken systemd openclaw-gateway.service and trying to restart it, conflicting with actual gateway process running outside systemd (pid 3166693). systemd service crashes with ''Missing config'' due to path/env issue. Re-enabled all crons except watchdog after diagnosis. Watchdog fix deferred.'
-status: active
+status: consolidated
 __coord__: m139
 __slug__: 2026-03-24_022420_shael-urgently-disabled-all-cron-jobs-op
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_022420_shael-urgently-disabled-all-cron-jobs-op.md
@@ -18306,7 +18388,7 @@ tags:
 - stability
 source: session
 content: 'Gateway freeze at 02:31 UTC traced to stale OpenClaw version: running 2026.3.12, latest was 2026.3.23-1 (11 days behind). Fixed by removing stale global npm install (/usr/lib/node_modules/openclaw), adding ~/.npm-global/bin to PATH, and restarting. Cron jobs disabled during investigation, safe consolidation crons re-enabled after update.'
-status: active
+status: consolidated
 __coord__: m140
 __slug__: 2026-03-24_025429_gateway-freeze-at-0231-utc-traced-to-sta
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_025429_gateway-freeze-at-0231-utc-traced-to-sta.md
@@ -18334,7 +18416,7 @@ tags:
 - session-startup
 source: session
 content: Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup sequence (read memory logs), greeted Shael with summary of prior day (gateway watchdog, render modes, dispatch timeout bug, experiments running). No work performed — session ended after greeting.
-status: active
+status: consolidated
 __coord__: m141
 __slug__: 2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2.md
@@ -18364,7 +18446,7 @@ tags:
 - freeze
 source: session
 content: Crons re-created on session bootstrap despite being disabled. 'Memory consolidation check' (every 6h) and 'Daily memory consolidation' (every 24h) both targeted sessionTarget:main with wakeMode:now — meaning they inject system events directly into the main session and force-wake the gateway. Both newly disabled this session. Root cause of recurring gateway freezes.
-status: active
+status: consolidated
 __coord__: m142
 __slug__: 2026-03-24_040502_crons-re-created-on-session-bootstrap-de
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040502_crons-re-created-on-session-bootstrap-de.md
@@ -18395,7 +18477,7 @@ tags:
 - validate-scheme-b
 source: session
 content: 'Both limbic-reward-snn and validate-scheme-b pipelines archived. Results intact (limbic: 12 experiments + analysis report; validate-scheme-b: 15 experiments + PDF report + critic followup). Pipeline state files corrupted from dispatch loops but research output is intact. Task created: retroactive-analysis-limbic-reward-and-validate-scheme-b.md for formal re-analysis.'
-status: active
+status: consolidated
 __coord__: m143
 __slug__: 2026-03-24_040507_both-limbic-reward-snn-and-validate-sche
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040507_both-limbic-reward-snn-and-validate-sche.md
@@ -18425,7 +18507,7 @@ tags:
 - orchestration
 source: session
 content: 'Heartbeat HEARTBEAT.md stripped of all pipeline/orchestration tasks (Tasks 1-5 including e0 sweep). Only remaining tasks: git commits, memory maintenance, agent conversation export. The e0 sweep in heartbeat was identified as a source of gateway freezes.'
-status: active
+status: consolidated
 __coord__: m144
 __slug__: 2026-03-24_040512_heartbeat-heartbeatmd-stripped-of-all-pi
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040512_heartbeat-heartbeatmd-stripped-of-all-pi.md
@@ -18456,7 +18538,7 @@ tags:
 - freeze
 source: session
 content: 'codex_render.py renderer process (PID 3144387) was causing gateway contention. Kill attempts via exec were themselves being killed (SIGTERM, SIGKILL) — suggesting gateway resource conflict with renderer. Plan: disable codex-cockpit plugin via config to prevent auto-restart on gateway boot.'
-status: active
+status: consolidated
 __coord__: m145
 __slug__: 2026-03-24_040516_codex-renderpy-renderer-process-pid-3144
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040516_codex-renderpy-renderer-process-pid-3144.md
@@ -18488,7 +18570,7 @@ tags:
 - v7
 source: session
 content: 'Codex-cockpit plugin V7 rewrite: discovered appendSystemContext was not reliably reaching agents. Fixed by consolidating all injections (supermap, legend, scaffold) into prependSystemContext in correct order: supermap first, then Soul/identity legend, then coordinate mode scaffold. Gateway restart confirmed injection working at 04:39 UTC.'
-status: active
+status: consolidated
 __coord__: m146
 __slug__: 2026-03-24_045512_codex-cockpit-plugin-v7-rewrite-discover
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_045512_codex-cockpit-plugin-v7-rewrite-discover.md
@@ -18520,7 +18602,7 @@ tags:
 - supermap
 source: session
 content: 'Added anchor-triggered fresh render: codex_render.py supermap UDS handler now calls _write_supermap_file() after every query, so plugin execFileSync UDS poke on anchor turns forces engine to flush+render+write fresh supermap.txt to /dev/shm. Render engine restarted at 04:47 UTC; supermap.txt mtime updated confirming fix works.'
-status: active
+status: consolidated
 __coord__: m147
 __slug__: 2026-03-24_045518_added-anchor-triggered-fresh-render-code
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_045518_added-anchor-triggered-fresh-render-code.md
@@ -18552,7 +18634,7 @@ tags:
 - deadlock
 source: session
 content: 'Render engine (nice mode, PID 3182639) accumulated 9841 threads and deadlocked on a futex on 2026-03-24 ~05:00 UTC. Symptom: ''supermap'' UDS command timed out (0 bytes returned), cockpit plugin injected nothing into context. Root cause: thread-per-connection model — each UDS connect spawns a daemon thread; when _dispatch hangs (lock contention during _nice_flush), thread never exits. Cockpit plugin fires execFileSync each turn, creating new stuck threads per turn. Engine had 10 queued file changes unprocessed. CPU 18.9%, VSZ 83GB at time of detection.'
-status: active
+status: consolidated
 __coord__: m148
 __slug__: 2026-03-24_051330_render-engine-nice-mode-pid-3182639-accu
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_051330_render-engine-nice-mode-pid-3182639-accu.md
@@ -18569,6 +18651,66 @@ Render engine (nice mode, PID 3182639) accumulated 9841 threads and deadlocked o
 ---
 *Source: session*
 *Tags: instance:main, render-engine, nice-mode, threading, bug, deadlock*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T05:36:39Z'
+category: event
+importance: 4
+tags:
+- instance:main
+- render-engine
+- systemd
+- infrastructure
+source: session
+content: 'Created codex-render.service systemd unit on 2026-03-24. Service runs codex_render.py --mode nice --force, enabled at boot, RestartSec=5, MemoryMax=512M, Nice=10. Engine came up with 409 nodes indexed, supermap at /dev/shm/openclaw/supermap.txt (5162 bytes). Triggered by discovering render engine not running at session start (no PID, no supermap on ramdisk). Cockpit V7 plugin confirmed clean — reads supermap only, does not spawn engine. Heartbeat Task 5.5 added: check systemctl is-active, restart if down.'
+status: active
+__coord__: m149
+__slug__: 2026-03-24_053639_created-codex-renderservice-systemd-unit
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_053639_created-codex-renderservice-systemd-unit.md
+__prefix__: m
+__index__: 149
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T05:36:39Z** · `event` · importance 4/5
+
+Created codex-render.service systemd unit on 2026-03-24. Service runs codex_render.py --mode nice --force, enabled at boot, RestartSec=5, MemoryMax=512M, Nice=10. Engine came up with 409 nodes indexed, supermap at /dev/shm/openclaw/supermap.txt (5162 bytes). Triggered by discovering render engine not running at session start (no PID, no supermap on ramdisk). Cockpit V7 plugin confirmed clean — reads supermap only, does not spawn engine. Heartbeat Task 5.5 added: check systemctl is-active, restart if down.
+
+---
+*Source: session*
+*Tags: instance:main, render-engine, systemd, infrastructure*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T05:37:02Z'
+category: context
+importance: 2
+tags:
+- instance:main
+- training-data
+- pipeline
+- archive
+source: session
+content: 'Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 conversation transcripts in machinelearning/snn_applied_finance/conversations/ spanning March 13-23, covering architect/critic/builder triad. Three-layer pipeline: export_agent_conversations.py (heartbeat task), parse_session_transcript.py (deterministic parser, ~10K token cap), archive_session_transcript.py (pipeline/stage metadata). Shael noted memory system evolution from flat MEMORY.md feels ancient vs current stack.'
+status: active
+__coord__: m150
+__slug__: 2026-03-24_053702_shael-asked-about-log-to-parsed-training
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_053702_shael-asked-about-log-to-parsed-training.md
+__prefix__: m
+__index__: 150
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T05:37:02Z** · `context` · importance 2/5
+
+Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 conversation transcripts in machinelearning/snn_applied_finance/conversations/ spanning March 13-23, covering architect/critic/builder triad. Three-layer pipeline: export_agent_conversations.py (heartbeat task), parse_session_transcript.py (deterministic parser, ~10K token cap), archive_session_transcript.py (pipeline/stage metadata). Shael noted memory system evolution from flat MEMORY.md feels ancient vs current stack.
+
+---
+*Source: session*
+*Tags: instance:main, training-data, pipeline, archive*
 ---
 ---
 __coord__: md1
@@ -18970,6 +19112,65 @@ Shael asked about supermap injection and memory update status on this turn. Inve
 - `memory/render-engine-nice-mode-pid-3182639-accu` (imp 4)
 
 **Status at session end:** Fix approach identified — bounded thread pool or background flush thread. Session ended before fix was applied.
+
+## Consolidated Entries — 2026-03-24
+
+*Generated at 2026-03-24T05:25:37Z — 11 entries*
+
+
+### 📅 Event (3)
+
+- **[★★★☆☆]** Shael urgently disabled all cron jobs (OpenClaw gateway crons + system crontab) after gateway kept restarting/failing. Root cause: gateway_watchdog.sh (every 5 min via system crontab) was seeing broken systemd openclaw-gateway.service and trying to restart it, conflicting with actual gateway process running outside systemd (pid 3166693). systemd service crashes with 'Missing config' due to path/env issue. Re-enabled all crons except watchdog after diagnosis. Watchdog fix deferred.
+  *tags: instance:main, cron, gateway, watchdog, systemd, incident*
+- **[★★★☆☆]** Gateway freeze at 02:31 UTC traced to stale OpenClaw version: running 2026.3.12, latest was 2026.3.23-1 (11 days behind). Fixed by removing stale global npm install (/usr/lib/node_modules/openclaw), adding ~/.npm-global/bin to PATH, and restarting. Cron jobs disabled during investigation, safe consolidation crons re-enabled after update.
+  *tags: instance:main, gateway, openclaw, telegram, stability*
+- **[★☆☆☆☆]** Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup sequence (read memory logs), greeted Shael with summary of prior day (gateway watchdog, render modes, dispatch timeout bug, experiments running). No work performed — session ended after greeting.
+  *tags: instance:main, session-startup*
+
+
+### 🔧 Technical (8)
+
+- **[★★★☆☆]** Implemented nice/greedy mode for render engine. Nice mode (default) defers all inotify processing to a queue and flushes only on UDS diff/supermap/my_diff queries — saves CPU between agent turns while keeping full history in RAM. Greedy mode is current live behavior with immediate processing and heartbeat trigger. Cockpit plugin updated to start engine with --mode nice. Discovered bug: cockpit plugin respawns engine without CLI args, overriding manual startup modes. Gateway also crashed during testing — recovery cron job discussion started. Session: 4fb6f15e, 2026-03-23.
+- **[★★★★☆]** Crons re-created on session bootstrap despite being disabled. 'Memory consolidation check' (every 6h) and 'Daily memory consolidation' (every 24h) both targeted sessionTarget:main with wakeMode:now — meaning they inject system events directly into the main session and force-wake the gateway. Both newly disabled this session. Root cause of recurring gateway freezes.
+  *tags: instance:main, cron, gateway, freeze*
+- **[★★★☆☆]** Both limbic-reward-snn and validate-scheme-b pipelines archived. Results intact (limbic: 12 experiments + analysis report; validate-scheme-b: 15 experiments + PDF report + critic followup). Pipeline state files corrupted from dispatch loops but research output is intact. Task created: retroactive-analysis-limbic-reward-and-validate-scheme-b.md for formal re-analysis.
+  *tags: instance:main, pipeline, archive, snn, validate-scheme-b*
+- **[★★★☆☆]** Heartbeat HEARTBEAT.md stripped of all pipeline/orchestration tasks (Tasks 1-5 including e0 sweep). Only remaining tasks: git commits, memory maintenance, agent conversation export. The e0 sweep in heartbeat was identified as a source of gateway freezes.
+  *tags: instance:main, heartbeat, e0, orchestration*
+- **[★★★★☆]** codex_render.py renderer process (PID 3144387) was causing gateway contention. Kill attempts via exec were themselves being killed (SIGTERM, SIGKILL) — suggesting gateway resource conflict with renderer. Plan: disable codex-cockpit plugin via config to prevent auto-restart on gateway boot.
+  *tags: instance:main, renderer, codex-cockpit, gateway, freeze*
+- **[★★★★☆]** Codex-cockpit plugin V7 rewrite: discovered appendSystemContext was not reliably reaching agents. Fixed by consolidating all injections (supermap, legend, scaffold) into prependSystemContext in correct order: supermap first, then Soul/identity legend, then coordinate mode scaffold. Gateway restart confirmed injection working at 04:39 UTC.
+  *tags: instance:main, codex-cockpit, plugin, supermap, prependSystemContext, v7*
+- **[★★★☆☆]** Added anchor-triggered fresh render: codex_render.py supermap UDS handler now calls _write_supermap_file() after every query, so plugin execFileSync UDS poke on anchor turns forces engine to flush+render+write fresh supermap.txt to /dev/shm. Render engine restarted at 04:47 UTC; supermap.txt mtime updated confirming fix works.
+  *tags: instance:main, codex-cockpit, render-engine, anchor, uds, supermap*
+- **[★★★★☆]** Render engine (nice mode, PID 3182639) accumulated 9841 threads and deadlocked on a futex on 2026-03-24 ~05:00 UTC. Symptom: 'supermap' UDS command timed out (0 bytes returned), cockpit plugin injected nothing into context. Root cause: thread-per-connection model — each UDS connect spawns a daemon thread; when _dispatch hangs (lock contention during _nice_flush), thread never exits. Cockpit plugin fires execFileSync each turn, creating new stuck threads per turn. Engine had 10 queued file changes unprocessed. CPU 18.9%, VSZ 83GB at time of detection.
+  *tags: instance:main, render-engine, nice-mode, threading, bug, deadlock*
+
+---
+
+## 2026-03-24T05:36:39Z — event ⚡⚡⚡⚡
+
+Created codex-render.service systemd unit on 2026-03-24. Service runs codex_render.py --mode nice --force, enabled at boot, RestartSec=5, MemoryMax=512M, Nice=10. Engine came up with 409 nodes indexed, supermap at /dev/shm/openclaw/supermap.txt (5162 bytes). Triggered by discovering render engine not running at session start (no PID, no supermap on ramdisk). Cockpit V7 plugin confirmed clean — reads supermap only, does not spawn engine. Heartbeat Task 5.5 added: check systemctl is-active, restart if down.
+
+*Tags: instance:main, render-engine, systemd, infrastructure*
+
+*Source: session*
+
+*Entry: `2026-03-24_053639_created-codex-renderservice-systemd-unit.md`*
+
+---
+
+## 2026-03-24T05:37:02Z — context ⚡⚡
+
+Shael asked about log-to-parsed-training-data archive pipeline. Confirmed: 142 conversation transcripts in machinelearning/snn_applied_finance/conversations/ spanning March 13-23, covering architect/critic/builder triad. Three-layer pipeline: export_agent_conversations.py (heartbeat task), parse_session_transcript.py (deterministic parser, ~10K token cap), archive_session_transcript.py (pipeline/stage metadata). Shael noted memory system evolution from flat MEMORY.md feels ancient vs current stack.
+
+*Tags: instance:main, training-data, pipeline, archive*
+
+*Source: session*
+
+*Entry: `2026-03-24_053702_shael-asked-about-log-to-parsed-training.md`*
+
+---
 ---
 ---
 __coord__: md3

@@ -1082,11 +1082,39 @@ class SessionManager:
         self._lock = threading.Lock()
         # Engine-level refs (set by CodexRenderEngine after construction)
         self._engine_ref = None
+        # Background flush worker — prevents UDS handler deadlock on tree._lock
+        self._flush_requested: threading.Event = threading.Event()
+        self._flush_complete: threading.Event = threading.Event()
+        self._flush_worker_stop: threading.Event = threading.Event()
+        self._flush_worker_thread: threading.Thread | None = None
+
+    def _flush_worker_loop(self) -> None:
+        """Background thread: sole owner of flush_change_queue() calls."""
+        while not self._flush_worker_stop.is_set():
+            # Wait for a flush request or stop signal (1s timeout to check stop flag)
+            self._flush_requested.wait(timeout=1.0)
+            if self._flush_worker_stop.is_set():
+                break
+            if self._flush_requested.is_set():
+                self._flush_requested.clear()
+                if self._engine_ref and self._engine_ref.mode == CodexRenderEngine.MODE_NICE:
+                    try:
+                        self._engine_ref.flush_change_queue()
+                    except Exception:
+                        pass
+                self._flush_complete.set()
 
     def _nice_flush(self) -> None:
-        """Flush deferred change queue if engine is in nice mode."""
+        """Signal the background flush worker and wait (with timeout) for completion.
+
+        Never calls flush_change_queue() directly — avoids blocking the UDS handler
+        thread on tree._lock contention (deadlock fix).
+        """
         if self._engine_ref and self._engine_ref.mode == CodexRenderEngine.MODE_NICE:
-            self._engine_ref.flush_change_queue()
+            self._flush_complete.clear()
+            self._flush_requested.set()
+            # Wait up to 5s — stale data is better than a deadlock
+            self._flush_complete.wait(timeout=5.0)
 
     def start(self, force: bool = False) -> None:
         """Bind UDS, start accept thread.
@@ -1143,6 +1171,13 @@ class SessionManager:
         self._thread = threading.Thread(target=self._accept_loop, daemon=True, name='uds-accept')
         self._thread.start()
 
+        # Start background flush worker (prevents UDS handler deadlock)
+        self._flush_worker_stop.clear()
+        self._flush_worker_thread = threading.Thread(
+            target=self._flush_worker_loop, daemon=True, name='flush-worker'
+        )
+        self._flush_worker_thread.start()
+
     @staticmethod
     def _kill_stale_pid() -> None:
         """Kill ALL other render engine processes (not just the PID file one).
@@ -1188,6 +1223,11 @@ class SessionManager:
 
     def stop(self) -> None:
         self._running = False
+        # Stop background flush worker
+        self._flush_worker_stop.set()
+        self._flush_requested.set()  # Wake it up so it can exit
+        if self._flush_worker_thread and self._flush_worker_thread.is_alive():
+            self._flush_worker_thread.join(timeout=2.0)
         # Close all client connections
         with self._lock:
             for sid, conn in self._client_conns.items():
@@ -1367,10 +1407,10 @@ class SessionManager:
             return {'ok': True, 'message': 'anchor reset'}
 
         elif cmd == 'flush':
-            # Nice mode: explicitly flush the deferred change queue
+            # Nice mode: explicitly flush the deferred change queue via background worker
             if self._engine_ref:
-                flushed = self._engine_ref.flush_change_queue()
-                return {'ok': True, 'flushed': flushed, 'mode': self._engine_ref.mode}
+                self._nice_flush()
+                return {'ok': True, 'flushed': True, 'mode': self._engine_ref.mode}
             return {'ok': False, 'error': 'no engine ref'}
 
         elif cmd == 'refresh':
@@ -1465,9 +1505,10 @@ class SessionManager:
             if self._engine_ref:
                 old_mode = self._engine_ref.mode
                 self._engine_ref.mode = new_mode
-                # Switching to greedy: flush pending queue + start heartbeat
+                # Switching to greedy: flush pending queue via worker + start heartbeat
                 if new_mode == CodexRenderEngine.MODE_GREEDY and old_mode == CodexRenderEngine.MODE_NICE:
-                    flushed = self._engine_ref.flush_change_queue()
+                    self._nice_flush()
+                    flushed = 0
                     if not self._engine_ref.heartbeat_trigger:
                         hb_token, hb_port = self._engine_ref._load_hook_config()
                         if hb_token:
