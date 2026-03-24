@@ -1,1 +1,6 @@
-{"status":"complete","date":"2026-03-24","instance":"main"}
+{
+  "status": "complete",
+  "date": "2026-03-24",
+  "instance": "main",
+  "last_run": "2026-03-24"
+}
