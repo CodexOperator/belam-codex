@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, containerization, architecture, shael]
 source: "session"
 content: "Shael provided full containerization spec: bake workspace into image at build time, multi-process supervisord (gateway + codex-render + cron), secrets via env vars, persistent volumes for state, one-command rebuild script, pinned deps. Gap table: self-contained image vs bind-mounts, multi-process vs gateway-only, secrets vs host files, persistent volumes vs partial, rebuild script vs missing, pinned deps vs partial."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

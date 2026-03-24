@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, task-management, codex-engine, shael]
 source: "session"
 content: "Shael reviewed e3 registry and limit-soul-read-write tasks. Kept e3 registry at low priority (valuable for programmatic namespace creation + scaffolded write system). Split limit-soul-read-write into 3 tasks (coordinate-first-boot-convention, primitive-access-compliance-tracking, persona-filtered-supermap-views) and marked original superseded."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

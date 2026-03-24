@@ -508,3 +508,7 @@
 2026-03-24T20:14:02.938Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-24-2014.md
 2026-03-24T20:14:03.727Z [info] Prompt ready at /tmp/session_extract_prompt_main_6537b697-2d83-438e-85f9-582e5bea0ccc.md, spawning sage via codex engine
 2026-03-24T20:14:03.736Z [info] Sage spawn dispatched via codex engine {"pid":3243048}
+2026-03-24T20:34:45.214Z [info] Hook fired: new {"instance":"main","workspaceDir":"/home/ubuntu/.openclaw/workspace"}
+2026-03-24T20:34:45.217Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-24-2034.md
+2026-03-24T20:34:45.995Z [info] Prompt ready at /tmp/session_extract_prompt_main_a894056e-2bd1-42fc-8cb3-a972fb51a53f.md, spawning sage via codex engine
+2026-03-24T20:34:46.004Z [info] Sage spawn dispatched via codex engine {"pid":3245280}

@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, containerization, incident, gateway, pipeline]
 source: "session"
 content: "Containerize pipeline was stopped by Shael after it caused the gateway to shut down and PATH to lose the openclaw entry. The architect design had called for sudo Docker install on the live host which was the root cause. Task reset to open, priority lowered to low. Pipeline archived."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

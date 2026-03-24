@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: active
+status: done
 priority: medium
 execution: standalone_cron
 created: 2026-03-20
