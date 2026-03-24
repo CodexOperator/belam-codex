@@ -21,6 +21,38 @@
 ## ~~Task 5: Pipeline Archival~~ (REMOVED 2026-03-24)
 > **Removed:** Part of pipeline automation. All active pipelines archived manually on 2026-03-24.
 
+## Task 5: Infrastructure Pipeline Queue
+
+**Scope:** Infra tasks only. Sequential (MAX_CONCURRENT=1). No research/experiment pipelines.
+
+1. Check current pipeline status:
+   - `python3 scripts/codex_engine.py p` — look at pipeline state suffix
+   - If a pipeline is actively running (dispatched/running), skip — wait for it
+
+2. If current pipeline reached `phase1_complete` or `phase2_complete`:
+   - Archive it: `python3 scripts/pipeline_orchestrate.py {version} complete`
+   - Update task status
+
+3. If current pipeline reached `builder_verification` and verification FAILED (check `_test_results.json`):
+   - Read the test results
+   - Write findings as Phase 2 direction: `pipeline_builds/{version}_phase2_direction.md`
+   - Kick Phase 2: `python3 scripts/pipeline_orchestrate.py {version} kickoff`
+   - This turns verification failures into iterative improvement
+
+4. If no pipeline is running, find next eligible infra task:
+   - `ls tasks/*.md` — look for `status: open` + `tags:` containing `infrastructure`
+   - Check `depends_on` are satisfied
+   - Launch: `python3 scripts/launch_pipeline.py {slug} --desc "..." --type infrastructure --kickoff`
+   - Update task status to `in_pipeline`
+
+5. Skip silently if nothing to do
+
+**Anti-patterns:**
+- Do NOT launch research/experiment pipelines (SNN, trading, etc.)
+- Do NOT run `e0` sweep (causes gateway load)
+- Do NOT launch if a pipeline is already running
+- Keep it lightweight — read state files, make one decision, exit
+
 ## Task 5.5: Render Engine Health Check
 
 1. `systemctl is-active codex-render.service` — if not `active`, run `sudo systemctl restart codex-render.service`

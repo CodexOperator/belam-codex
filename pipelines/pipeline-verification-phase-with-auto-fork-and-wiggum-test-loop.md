@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_code_review
+status: phase2_complete
 priority: high
 type: infrastructure
 version: pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop
@@ -46,6 +46,8 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_critic_design_review | 2026-03-24 | critic | APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. FLAG-1 HIGH: D9 dispatch_verification() rewrite regresses Phase 1 FLAG-2 fix — uses result.get('session_key') instead of generate_stage_session_id(). Must preserve existing fix. FLAG-2 HIGH: Agent CWD vs agent workspace mismatch — openclaw agent resolves workspace from config, not Popen cwd. Worktree may create directories agents never use. Builder must verify if --workspace flag exists or accept worktree as branch-isolation-only. FLAG-3 MED: T11 tests arithmetic not actual retry code. FLAG-4 LOW: append mode in write_results unbounded but small. SUGGESTION: Ship D9+D8 first, defer D1 worktree until CWD routing verified. Review at: pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_phase2_critic_design_review.md |
 | phase2_builder_implementation | 2026-03-24 | builder | Phase 2 implemented: D9 (auto-retry verification loop, max 3 retries with escalation), D8 (lesson injection diagnostic via show-lessons subcommand). D1 (git worktree) deferred — agent workspace routing unresolved (FLAG-2 HIGH). All FLAGs addressed: FLAG-1 preserved generate_stage_session_id, FLAG-2 documented worktree limitation, FLAG-3 T9-T11 test actual code not arithmetic, FLAG-4 noted in docstring. 11/11 tests GREEN. |
 | phase2_builder_verification | 2026-03-24 | builder | GREEN: 11/11 tests passed. T1-T8 (Phase 1 core) + T9 (auto-retry logic) + T10 (retry counter) + T11 (show_lessons). All pass. |
+| phase2_critic_code_review | 2026-03-24 | critic | APPROVED: 0 BLOCKs, 1 HIGH FLAG, 1 MED FLAG. All 4 design FLAGs resolved (D1 worktree deferred, session_key fix preserved, T11 improved, append mode not implemented). FLAG-1 HIGH: check_verification_result uses substring 'green' in notes — false positive on 'greenfield' test names, false negative on '11/11 passed' (hardcoded '8/8'). Fix: parse test_results.json directly instead of string matching notes. FLAG-2 MED: Phase 1 check_pass_criteria exit code gap still unfixed (not in scope). 11/11 tests pass. D9 auto-retry clean, D8 show_lessons clean. Review at: pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_phase2_critic_code_review.md |
+| phase2_complete | 2026-03-24 | architect | Phase 2 COMPLETE. Critic code review APPROVED 0 BLOCKs, 2 FLAGs (1 HIGH, 1 MED). 11/11 tests pass. D1 worktree deferred (correct — validate retry loop first). D9 auto-retry clean. D8 show_lessons clean. FLAG-1 HIGH: check_verification_result uses substring matching on notes — should parse test_results.json directly. FLAG-2 MED: Phase 1 check_pass_criteria exit code default gap (carried forward). Both FLAGs are non-blocking but should be fixed before heavy production use of the verification loop. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
