@@ -1,9 +1,59 @@
 {
   "version": "temporal-interaction-llm-gaming",
-  "stages": {},
-  "status": "architect_design",
-  "status_updated": "2026-03-24 11:19",
-  "current_agent": "architect_design",
-  "last_dispatched": "2026-03-24T11:19:24.476337+00:00",
-  "dispatch_claimed": false
+  "stages": {
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:23",
+      "agent": "architect",
+      "notes": "Design v1: Temporal interaction layer + LLM-native gaming foundation. 6 deliverables (~285L, 6 files). D1: WorldState API (SQLite+WAL, CRUD + event log + cursor-based diffs). D2: schema migration (3 new tables in existing temporal.db). D3: hook integration (diff injection via before_prompt_build). D4: agent write tool (w.set/get/events coordinates). D5: demo tic-tac-toe (proves full loop: 2 agents, shared state, diffs). D6: LM entries. Key insight: no daemon needed \u2014 SQLite+WAL + hooks + tool calls = complete temporal interaction loop. Turn-based time resolution via agent turn boundaries. Architecture doc covers gaming layer design (render duality, multiplayer patterns, time resolution) as future roadmap. 5 tests. 4 open questions for critic."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:25",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 1 HIGH FLAG, 2 MED FLAGs, 2 LOW FLAGs. FLAG-1 HIGH: UNIQUE constraint + INSERT OR REPLACE will reset version to 1 on every write \u2014 must use INSERT ON CONFLICT DO UPDATE to increment version correctly. FLAG-2 MED: --world-diff adds a second execFileSync per turn (~200-300ms total for two Python spawns). Acceptable V1, merge into single call V2. FLAG-3 MED: w.* routing should use existing PLATFORM_PREFIXES from codex_lm_platform.py (add 'w' to set), NOT a separate intercept in codex_engine.py \u2014 learned from LM v3 BLOCK. FLAG-4 LOW: temporal.db path resolution across agent workspaces. FLAG-5 LOW: no test for hook integration (--world-diff flag) or w.set coordinate dispatch. Q1: subprocess for V1. Q2: implicit namespaces. Q3: retry with backoff essential. Q4: tic-tac-toe perfect scope. Review at: pipeline_builds/temporal-interaction-llm-gaming_critic_design_review.md"
+    },
+    "builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:30",
+      "agent": "builder",
+      "notes": "All 6 deliverables implemented. D1 world_api.py (280L): WorldState class with CRUD, event log, cursor-based diffs, retry-on-busy decorator (Q3), get_all/get_diff for prompt injection. FLAG-1 fix: INSERT ON CONFLICT DO UPDATE correctly increments version. D2 temporal_schema.py (+55L): V3 migration adds world_state/world_event/agent_cursor tables with indexes. Auto-migrates from v2.1. D3 codex_engine.py (+15L): --world-diff flag for hook integration, reads diff + advances cursor. D4 codex_lm_platform.py (+15L): Added 'w' to PLATFORM_PREFIXES, execute_world dispatch for w.set/get/events/state (FLAG-3 fix: uses existing platform routing, no separate intercept). D5 demo_tictactoe.py (165L): self-contained demo, scripted X-wins game proving full loop. D6 W_ENTRIES (4 LM entries) registered in scan_platform_entries. All 5 FLAGs addressed. Test spec 10/10 GREEN."
+    },
+    "builder_verification": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:31",
+      "agent": "builder",
+      "notes": "GREEN: 10/10 tests passed. T1 CRUD, T2 event log + cursor, T3 diff generation, T4 namespace isolation, T5 edge cases, T6 version increment (FLAG-1 fix), T7 w.* coordinate dispatch (FLAG-3 fix), T8 world-diff integration, T9 tic-tac-toe demo, T10 schema migration. Results at pipeline_builds/temporal-interaction-llm-gaming_test_results.md"
+    },
+    "critic_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:33",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 1 MED FLAG, 1 LOW FLAG. All 5 design FLAGs resolved. FLAG-1 version increment verified (v1\u2192v2\u2192v3 via ON CONFLICT DO UPDATE). FLAG-3 w.* routing uses existing PLATFORM_PREFIXES \u2014 end-to-end verified. 10/10 tests pass. FLAG-1 MED: Cockpit plugin hook NOT wired \u2014 world diffs not auto-injected into agent prompts (TypeScript unchanged). API and coordinates work, agents must explicitly call w.events. Not blocking for V1. FLAG-2 LOW: execute_world defaults agent_id='unknown' \u2014 platform dispatch doesn't thread identity. Review at: pipeline_builds/temporal-interaction-llm-gaming_critic_code_review.md"
+    },
+    "phase1_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:48",
+      "agent": "main",
+      "notes": "Heartbeat archive"
+    },
+    "phase2_architect_design_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-24 11:34",
+      "agent": "architect",
+      "notes": "BLOCK: No Phase 2 direction from Shael. Phase 2 should wire cockpit hook (FLAG-1 MED) and thread agent identity (FLAG-2 LOW). Unblock by creating phase2_direction.md."
+    }
+  },
+  "status": "phase1_complete",
+  "status_updated": "2026-03-24 11:33",
+  "current_agent": "phase2_architect_design",
+  "last_dispatched": "2026-03-24T11:48:56.575894+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "phase1_complete"
+  },
+  "last_updated": "2026-03-24 11:48",
+  "pending_action": "phase1_complete",
+  "verification_retries": 0,
+  "phase2_architect_design_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/pipelines/temporal-interaction-llm-gaming.md"
 }

@@ -355,10 +355,22 @@ def execute_read(sub: str, args: list[str]) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# w.* — World State (temporal interaction layer)
+# ═══════════════════════════════════════════════════════════════════════════
+
+W_ENTRIES = [
+    LMEntry(verb='w.set',    syntax='w.set {entity.key} {value}', description='write to shared world state',    source='platform'),
+    LMEntry(verb='w.get',    syntax='w.get {entity}',             description='read entity from world state',   source='platform'),
+    LMEntry(verb='w.events', syntax='w.events',                   description='show events since last read',     source='platform'),
+    LMEntry(verb='w.state',  syntax='w.state',                    description='dump entire world state',          source='platform'),
+]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # D5: Unified Dispatch + D7: Registration
 # ═══════════════════════════════════════════════════════════════════════════
 
-PLATFORM_PREFIXES = {'oc', 'sys', 'r', 'sc'}
+PLATFORM_PREFIXES = {'oc', 'sys', 'r', 'sc', 'w'}
 
 
 def execute_platform(prefix: str, sub: str, args: list[str]) -> str:
@@ -371,13 +383,16 @@ def execute_platform(prefix: str, sub: str, args: list[str]) -> str:
         return execute_scaffold(sub, args)
     elif prefix == 'r':
         return execute_read(sub, args)
+    elif prefix == 'w':
+        from world_api import execute_world
+        return execute_world(sub, args)
     else:
         return f"Unknown prefix: {prefix}. Available: {', '.join(sorted(PLATFORM_PREFIXES))}"
 
 
 def scan_platform_entries(workspace: Path = None) -> list[LMEntry]:
     """Return all platform entries for LM renderer registration."""
-    return OC_ENTRIES + SYS_ENTRIES + SC_ENTRIES + R_ENTRIES
+    return OC_ENTRIES + SYS_ENTRIES + SC_ENTRIES + R_ENTRIES + W_ENTRIES
 
 
 def is_platform_command(text: str) -> bool:

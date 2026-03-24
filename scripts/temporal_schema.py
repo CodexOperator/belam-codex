@@ -33,7 +33,7 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 DEFAULT_DB_PATH = WORKSPACE / 'data' / 'temporal.db'
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 4
 
 # ─── Schema DDL ──────────────────────────────────────────────────────────────────
 
@@ -210,6 +210,65 @@ def migrate_v2_to_v2_1(conn: sqlite3.Connection) -> None:
         print(f"[temporal_schema] v2.1 migration warning: {e}", file=sys.stderr)
 
 
+# ─── V3 Migration: World State Tables (Temporal Interaction Layer) ────────────
+
+MIGRATION_V3_SQL = """
+-- Shared world state: key-value with temporal history
+CREATE TABLE IF NOT EXISTS world_state (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    namespace   TEXT NOT NULL,
+    entity      TEXT NOT NULL,
+    key         TEXT NOT NULL,
+    value       TEXT NOT NULL,
+    version     INTEGER NOT NULL DEFAULT 1,
+    written_by  TEXT NOT NULL,
+    written_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+
+    UNIQUE(namespace, entity, key)
+);
+
+-- Immutable event log (append-only)
+CREATE TABLE IF NOT EXISTS world_event (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    namespace   TEXT NOT NULL,
+    entity      TEXT NOT NULL,
+    key         TEXT NOT NULL,
+    old_value   TEXT,
+    new_value   TEXT NOT NULL,
+    written_by  TEXT NOT NULL,
+    written_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    turn_id     TEXT
+);
+
+-- Per-agent read cursor: "last event I've seen"
+CREATE TABLE IF NOT EXISTS agent_cursor (
+    agent_id    TEXT NOT NULL,
+    namespace   TEXT NOT NULL,
+    last_event_id INTEGER NOT NULL DEFAULT 0,
+    updated_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+
+    PRIMARY KEY(agent_id, namespace)
+);
+
+CREATE INDEX IF NOT EXISTS idx_world_event_namespace ON world_event(namespace, id);
+CREATE INDEX IF NOT EXISTS idx_world_event_written_at ON world_event(written_at);
+CREATE INDEX IF NOT EXISTS idx_world_state_ns_entity ON world_state(namespace, entity);
+"""
+
+
+def migrate_v2_1_to_v3(conn: sqlite3.Connection) -> None:
+    """V3 migration: world_state + world_event + agent_cursor tables.
+
+    Idempotent — uses CREATE IF NOT EXISTS.
+    """
+    conn.executescript(MIGRATION_V3_SQL)
+    conn.execute(
+        "INSERT OR IGNORE INTO schema_version (version, description) VALUES (?, ?)",
+        (4, "V3: world_state + world_event + agent_cursor (temporal interaction layer)")
+    )
+    conn.commit()
+
+
 def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     """Initialize the temporal database with schema.
 
@@ -245,6 +304,11 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> sqlite3.Connection:
     # Auto-migrate v2 → v2.1 (context_json column)
     migrate_v2_to_v2_1(conn)
 
+    # Auto-migrate v2.1 → v3 (world state tables)
+    max_ver = conn.execute("SELECT MAX(version) FROM schema_version").fetchone()[0]
+    if max_ver is not None and max_ver < 4:
+        migrate_v2_1_to_v3(conn)
+
     conn.commit()
     return conn
 
@@ -264,7 +328,8 @@ def verify_db(db_path: Path = DEFAULT_DB_PATH) -> dict:
 
     required = {'pipeline_state', 'state_transition', 'handoff',
                 'agent_context', 'agent_presence', 'schema_version',
-                'pipeline_dependency', 'view_config'}
+                'pipeline_dependency', 'view_config',
+                'world_state', 'world_event', 'agent_cursor'}
     missing = required - tables
 
     # Check schema version

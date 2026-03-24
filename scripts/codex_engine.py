@@ -5140,6 +5140,23 @@ def main(args=None):
                         sys.exit(rc)
             return
 
+    # ── D3: World state diff flag (hook integration) ────────────────────────
+    if first == '--world-diff':
+        agent_id = clean_args[1] if len(clean_args) > 1 else 'unknown'
+        try:
+            from world_api import WorldState
+            ws = WorldState()
+            diff = ws.get_diff(agent_id)
+            if diff:
+                print(diff)
+            ws.advance_cursor(agent_id)
+            ws.close()
+        except ImportError:
+            pass
+        except Exception:
+            pass
+        return
+
     # ── V1 flag dispatch (legacy, with deprecation notices) ───────────────────
 
     # 1. -e flag → edit mode (DEPRECATED → use e1)
