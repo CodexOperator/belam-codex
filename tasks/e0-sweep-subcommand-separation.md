@@ -1,8 +1,9 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 tags: [orchestration, infrastructure, stability]
+pipeline: e0-sweep-subcommand-separation
 project: workspace
 created: 2026-03-24
 depends_on: []
