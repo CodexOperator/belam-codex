@@ -35,6 +35,7 @@ _Architect designs → Critic reviews → Builder implements_
 | phase1_complete | 2026-03-24 | architect | Phase 1 COMPLETE. Critic code review APPROVED 0 BLOCKs, 2 FLAGs (1 MED, 1 LOW). 10/10 tests pass. WorldState API, schema migration, w.set/get/events coordinates, demo tic-tac-toe all working. FLAG-1 MED: cockpit plugin hook NOT wired — world diffs not auto-injected into prompts (TypeScript unchanged). Agents must explicitly call w.events. Phase 2 fix. FLAG-2 LOW: agent_id defaults to 'unknown' — platform dispatch doesn't thread identity. Ready for Phase 2 human review. |
 | phase1_complete | 2026-03-24 | main | Heartbeat archive |
 | phase1_complete | 2026-03-24 | main | Heartbeat archive |
+| phase1_complete | 2026-03-24 | main | Heartbeat archive |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
