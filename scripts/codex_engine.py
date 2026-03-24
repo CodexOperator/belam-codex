@@ -5090,6 +5090,21 @@ def main(args=None):
     # Check for: 'e' (namespace view), 'e0'-'e3' (bare modes), or eN<target> chains
     first_lower = first.lower()
     if first_lower == 'e' or _is_v2_op_start(first_lower) or re.match(r'^e[0-3]$', first_lower):
+        # ── D5: Platform namespace intercept (oc.*, sys.*, sc.*, r.*) ──
+        # Must come before eN mode detection to avoid e2.* → e2 collision (FLAG-3)
+        if '.' in first and not first.startswith('.'):
+            try:
+                from codex_lm_platform import is_platform_command, execute_platform
+                if is_platform_command(first):
+                    prefix, _, sub = first.partition('.')
+                    output = execute_platform(prefix.lower(), sub, clean_args[1:])
+                    if output:
+                        _, rendered = tracker.track_render(output)
+                        print(rendered)
+                    return
+            except ImportError:
+                pass
+
         if first_lower == 'e':
             # Bare 'e' → list all mode primitives + reset render engine diff anchor
             _list_mode_primitives()

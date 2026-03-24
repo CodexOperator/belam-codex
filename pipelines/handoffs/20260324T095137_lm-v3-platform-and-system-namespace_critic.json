@@ -1,0 +1,15 @@
+{
+  "version": "lm-v3-platform-and-system-namespace",
+  "completed_stage": "architect_design",
+  "next_stage": "critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-24T09:51:37.838953+00:00",
+  "pipeline_session_id": "87e30eff-4317-48de-8134-0c835e6ac0ac",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
