@@ -767,8 +767,14 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     print(f"\n   📝 Handoff record: {handoff_path.relative_to(WORKSPACE)}")
 
     # Step 4: Fire-and-forget dispatch to next agent
-    print(f"\n   🔔 Dispatching {next_agent} (fire-and-forget)...")
-    result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
+    # Use verification dispatch for verification stages (includes wiggum steer timer)
+    VERIFICATION_STAGES = {'builder_verification', 'phase2_builder_verification'}
+    if next_stage in VERIFICATION_STAGES:
+        print(f"\n   🔔 Dispatching {next_agent} for VERIFICATION (with wiggum steer)...")
+        result = dispatch_verification(version)
+    else:
+        print(f"\n   🔔 Dispatching {next_agent} (fire-and-forget)...")
+        result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
     if result.get('success'):
         print(f"   🔔 Dispatched {next_agent} (fire-and-forget)")
     else:
@@ -1617,20 +1623,75 @@ def run_exchange_loop(version: str, stage: str) -> dict:
 # D3: Stage flow table — defines session behavior per transition
 # session_type: 'shared' = reviewer joins existing session, 'fresh' = new session
 STAGE_FLOW = {
-    'architect_design':     ('critic_design_review', 'critic', 'shared'),
-    'critic_design_review': ('builder_implementation', 'builder', 'fresh'),
-    'builder_implementation': ('critic_code_review', 'critic', 'shared'),
-    'critic_code_review':   ('phase1_complete', 'architect', 'fresh'),
-    'phase2_architect_design':     ('phase2_critic_design_review', 'critic', 'shared'),
-    'phase2_critic_design_review': ('phase2_builder_implementation', 'builder', 'fresh'),
-    'phase2_builder_implementation': ('phase2_critic_code_review', 'critic', 'shared'),
-    'phase2_critic_code_review':   ('phase2_complete', 'architect', 'fresh'),
+    'architect_design':       ('critic_design_review', 'critic', 'shared'),
+    'critic_design_review':   ('builder_implementation', 'builder', 'fresh'),
+    'builder_implementation': ('builder_verification', 'builder', 'fresh'),
+    'builder_verification':   ('critic_code_review', 'critic', 'shared'),
+    'critic_code_review':     ('phase1_complete', 'architect', 'fresh'),
+    'phase2_architect_design':       ('phase2_critic_design_review', 'critic', 'shared'),
+    'phase2_critic_design_review':   ('phase2_builder_implementation', 'builder', 'fresh'),
+    'phase2_builder_implementation': ('phase2_builder_verification', 'builder', 'fresh'),
+    'phase2_builder_verification':   ('phase2_critic_code_review', 'critic', 'shared'),
+    'phase2_critic_code_review':     ('phase2_complete', 'architect', 'fresh'),
 }
 
 
 def generate_stage_session_id(version: str, stage: str) -> str:
     """Generate a deterministic session ID for a pipeline stage."""
     return f"pipeline:{version}:{stage}"
+
+
+# ─── Verification Dispatch (D5) ─────────────────────────────────────────────
+
+VERIFICATION_TIMEOUT = 600     # 10 min total
+VERIFICATION_STEER_AT = 420   # 7 min steer warning
+
+def build_verification_message(version: str) -> str:
+    """Build the dispatch message for builder verification stage."""
+    return f"""Run the verification loop for pipeline {version}:
+
+1. Run: python3 scripts/pipeline_verify.py {version}
+2. If all GREEN → complete the stage with the test results summary
+3. If FAIL → read the test results, fix the failing code, commit, re-run
+4. Max 5 iterations. If still failing after 5, block with the test results.
+
+The test spec is at: pipeline_builds/{version}_test_spec.md
+Test results will be written to: pipeline_builds/{version}_test_results.md"""
+
+
+def dispatch_verification(version: str) -> dict:
+    """Dispatch builder for verification with wiggum steer timer.
+
+    Uses generate_stage_session_id() for deterministic session routing (FLAG-2 fix).
+    """
+    stage = 'builder_verification'
+    session_id = generate_stage_session_id(version, stage)
+    message = build_verification_message(version)
+
+    # Dispatch builder
+    result = fire_and_forget_dispatch(version, stage, 'builder', message=message)
+
+    # Start steer timer (background) — uses session_id not result.session_key
+    steer_script = WORKSPACE / 'skills' / 'ralph-wiggum' / 'scripts' / 'steer_timer.sh'
+    if steer_script.exists():
+        try:
+            subprocess.Popen(
+                ['bash', str(steer_script), session_id,
+                 str(VERIFICATION_STEER_AT), str(VERIFICATION_TIMEOUT)],
+                cwd=str(WORKSPACE),
+                start_new_session=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            print(f"   ⏰ Wiggum steer timer started: {VERIFICATION_STEER_AT}s steer, "
+                  f"{VERIFICATION_TIMEOUT}s hard timeout")
+        except Exception as e:
+            print(f"   ⚠️ Failed to start steer timer: {e}")
+    else:
+        print(f"   ⚠️ Steer timer script not found: {steer_script}")
+
+    result['session_id'] = session_id
+    return result
 
 
 def orchestrate_signal(version: str, stage: str, agent: str, signal: str, notes: str = ''):

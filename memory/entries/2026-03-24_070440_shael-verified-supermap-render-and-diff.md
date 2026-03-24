@@ -6,7 +6,7 @@ importance: 2
 tags: [instance:main, codex-engine, supermap, verification]
 source: "session"
 content: "Shael verified supermap render and diff flow 2026-03-24 ~07:02 UTC. Render engine active (nice mode, 435 nodes, 30min uptime), supermap 4600 bytes injected into context via cockpit plugin, UDS responding in <1s. Diffs confirmed flowing — 2 coords shifted since anchor."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

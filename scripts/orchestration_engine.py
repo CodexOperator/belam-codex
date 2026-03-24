@@ -647,6 +647,50 @@ def _files_for_stage(version: str, stage: str, agent: str) -> list[str]:
     for tc in task_candidates:
         base_files.append(str(tc.relative_to(WORKSPACE)))
 
+    # Relevant lessons — tag-match pipeline tags against lesson tags
+    # Agents inherit hard-won knowledge without needing to discover it
+    try:
+        import yaml as _yaml
+        pipeline_tags = set()
+        # Get pipeline tags from pipeline file or task file
+        for tag_src in (WORKSPACE / 'pipelines' / f'{version}.md',
+                        *WORKSPACE.glob(f'tasks/*{version}*')):
+            if tag_src.exists():
+                _content = tag_src.read_text()
+                if '---' in _content:
+                    _fm = _content.split('---', 2)
+                    if len(_fm) >= 3:
+                        try:
+                            _meta = _yaml.safe_load(_fm[1])
+                            if _meta and 'tags' in _meta:
+                                pipeline_tags.update(_meta['tags'])
+                        except Exception:
+                            pass
+        # Strip instance: tags — they're agent-specific, not topical
+        pipeline_tags = {t for t in pipeline_tags if not t.startswith('instance:')}
+        if pipeline_tags:
+            scored_lessons = []
+            for lf in sorted((WORKSPACE / 'lessons').glob('*.md')):
+                _lc = lf.read_text()
+                if '---' in _lc:
+                    _lfm = _lc.split('---', 2)
+                    if len(_lfm) >= 3:
+                        try:
+                            _lmeta = _yaml.safe_load(_lfm[1])
+                            if _lmeta and 'tags' in _lmeta:
+                                _ltags = {t for t in _lmeta['tags'] if not t.startswith('instance:')}
+                                overlap = pipeline_tags & _ltags
+                                if overlap:
+                                    scored_lessons.append((len(overlap), str(lf.relative_to(WORKSPACE))))
+                        except Exception:
+                            pass
+            # Top 10 most relevant lessons by tag overlap, most relevant first
+            scored_lessons.sort(key=lambda x: x[0], reverse=True)
+            for _, lesson_path in scored_lessons[:10]:
+                base_files.append(lesson_path)
+    except Exception:
+        pass  # Lessons are additive — never block dispatch on failure
+
     # Determine phase prefix for artifact lookup
     is_phase2 = 'phase2' in stage
     phase_prefix = 'phase2_' if is_phase2 else ''
@@ -2153,6 +2197,7 @@ def _check_unclaimed_dispatches(dry_run: bool = False,
     """
     AGENT_STAGES = {
         'architect_design', 'critic_design_review', 'builder_implementation',
+        'builder_verification', 'phase2_builder_verification',
         'critic_code_review', 'architect_design_revision', 'builder_apply_blocks',
         'phase2_architect_design', 'phase2_critic_design_review',
         'phase2_builder_implementation', 'phase2_critic_code_review',

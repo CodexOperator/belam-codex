@@ -86,7 +86,8 @@ STAGE_TRANSITIONS = {
     'architect_design':           ('critic_design_review',       'critic',    'Design ready for review at pipeline_builds/{v}_architect_design.md'),
     'critic_design_review':       ('builder_implementation',     'builder',   'Design approved. Build spec at pipeline_builds/{v}_architect_design.md'),
     'architect_design_revision':  ('critic_design_review',       'critic',    'Design revised, re-review at pipeline_builds/{v}_architect_design.md'),
-    'builder_implementation':     ('critic_code_review',         'critic',    'Implementation done. Review the notebook.'),
+    'builder_implementation':     ('builder_verification',       'builder',   'Implementation done. Run verification: python3 scripts/pipeline_verify.py {v}'),
+    'builder_verification':       ('critic_code_review',         'critic',    'Verification passed. Review the notebook.'),
     'critic_code_review':         ('phase1_complete',            'architect', 'Phase 1 code review passed. Ready for Phase 2 design.'),
     # Phase 1 blocks
     'builder_apply_blocks':       ('critic_code_review',         'critic',    'Blocks fixed. Re-review the notebook.'),
@@ -120,7 +121,8 @@ STAGE_TRANSITIONS = {
     'phase2_architect_design':    ('phase2_critic_design_review','critic',    'Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md'),
     'phase2_critic_design_review':('phase2_builder_implementation','builder', 'Phase 2 design approved. Build spec at pipeline_builds/{v}_phase2_architect_design.md'),
     'phase2_architect_revision':  ('phase2_critic_design_review','critic',    'Phase 2 design revised, re-review at pipeline_builds/{v}_phase2_architect_design.md'),
-    'phase2_builder_implementation':('phase2_critic_code_review','critic',    'Phase 2 implementation done. Review the notebook.'),
+    'phase2_builder_implementation':('phase2_builder_verification', 'builder', 'Phase 2 implementation done. Run verification: python3 scripts/pipeline_verify.py {v}'),
+    'phase2_builder_verification': ('phase2_critic_code_review',  'critic',    'Phase 2 verification passed. Review the notebook.'),
     'builder_phase2_implemented': ('phase2_critic_code_review',  'critic',    'Phase 2 implementation done. Review the notebook.'),
     'phase2_critic_code_review':  ('phase2_complete',            'architect', 'Phase 2 code review passed. Pipeline complete (or ready for Phase 3).'),
     # Phase 2 blocks

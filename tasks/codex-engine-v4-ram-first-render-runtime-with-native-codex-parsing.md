@@ -159,12 +159,68 @@ Agents don't know they're in RAM. The workspace resolves through symlinks to a g
 - **Volatile risk mitigated:** sync daemon + systemd ExecStartPre recovery
 - **Graceful degradation:** if tmpfs unavailable, fall back to disk-direct (current behavior)
 
+### D7.6: Undo Primitive
+- Turn boundary = commit boundary (cockpit plugin fires auto-commit on turn end)
+- `e1 undo` → `git reset --hard HEAD~1` on RAM repo — instant, atomic rollback
+- `e1 undo N` → roll back N turns
+- Undo is RAM-only until next sync — disk stays clean as "are you sure?" boundary
+- Adds to coordinate grammar: agents get undo as a first-class action
+
+### D7.7: Ping/Pong Granularity Modes
+Configurable signaling frequency between agents and coordinator:
+
+| Mode | Behavior | Use case |
+|------|----------|----------|
+| `batch` | Current behavior — diffs accumulate, 10-threshold wake | Background pipelines, low priority |
+| `stage` | Wake on `_state.json` commit only | Normal pipeline flow |
+| `turn` | Every agent commit wakes coordinator | Active debugging, pair-steering |
+| `live` | post-commit hook fires on every write (sub-turn) | Real-time observation |
+
+- Mode set per-pipeline in `_state.json` (`ping_mode: batch|stage|turn|live`)
+- post-commit hook reads mode and routes: skip / wake coordinator / wake all watchers
+- Default: `stage` (sane middle ground)
+
+### D7.8: Read/Write Routing Architecture
+
+**Decision: Symlinks — agent home IS RAM.**
+
+```
+Agent perspective:     ~/workspace/tasks/foo.md  (reads AND writes)
+OS resolves to:        /dev/shm/codex/tasks/foo.md
+Agent doesn't know.
+
+Static files stay on disk (not symlinked):
+  AGENTS.md, SOUL.md, IDENTITY.md, USER.md,
+  MEMORY.md, HEARTBEAT.md, skills/, scripts/,
+  commands/, modes/, templates/, docs/
+
+Primitive dirs symlinked to RAM:
+  tasks/, decisions/, lessons/, memory/entries/,
+  pipeline_builds/, pipelines/, goals/, knowledge/,
+  projects/, workspaces/
+```
+
+- Reads from RAM = always freshest state (includes other agents' uncommitted writes)
+- Writes to RAM = instant, git-tracked, diffable
+- Static config files stay on disk — no symlink needed, rarely change
+- Sync daemon is the only disk writer (periodic + on session end)
+- Crash recovery: `ExecStartPre=git clone disk → RAM` in systemd unit
+
+**Why not split R/W paths:**
+- Explicit routing contaminates every agent prompt and skill
+- Scales poorly — every new agent needs the convention
+- Symlinks are invisible — agents just use standard filesystem ops
+- RAM reads are faster anyway (no reason to read from disk)
+
 ### Success Criteria
 - [ ] Agent file writes resolve to RAM via symlinks (<1ms I/O)
 - [ ] `git diff` replaces inotify for all diff generation
 - [ ] Sync daemon maintains <60s staleness on disk
 - [ ] Engine restart from cold (disk clone → RAM) in <3s
 - [ ] Pipeline state changes wake coordinator within 1 turn
+- [ ] `e1 undo` rolls back last turn in <10ms
+- [ ] Ping mode configurable per-pipeline, default `stage`
+- [ ] Zero agent-facing changes — symlinks invisible to all existing prompts/skills
 
 ## Phase 2 Notes
 - .codex file YAML parsing fails on some frontmatter blocks — codec needs normalization pass before feeding to yaml.safe_load
