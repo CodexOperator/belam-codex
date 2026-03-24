@@ -1,7 +1,8 @@
 ---
 primitive: task
-status: open
+status: superseded
 priority: critical
+superseded_by: [persistent-e3-registry, indexed-subops-e0-e3]
 created: 2026-03-21
 owner: belam
 depends_on: [codex-engine-v2-modes-mcp-temporal]

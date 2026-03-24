@@ -1,17 +1,17 @@
 ---
 primitive: task
 status: in_pipeline
-priority: critical
+priority: high
 created: 2026-03-23
 owner: belam
 depends_on: []
 upstream: [codex-engine-v3-legendary-map, codex-engine-v3-temporal-mcp-autoclave]
 downstream: []
-tags: [codex-engine, v4, render-engine, ram, codex-format, infrastructure]
+tags: [codex-engine, render-engine, ram, codex-format, research]
 pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
 ---
 
-# Codex Engine v4: RAM-First Render Runtime
+# Engine Render Modes: RAM-First Render Runtime
 
 ## Vision
 
