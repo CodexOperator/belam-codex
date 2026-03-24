@@ -1,14 +1,13 @@
 {
   "status": "complete",
-  "session": "ff7ae2e6-a42d-4870-926c-2a862b65ca51",
+  "session": "36029da4-a7bc-4ad0-ab71-b2a7a62270f2",
   "instance": "main",
   "date": "2026-03-24",
-  "completed_at": "2026-03-24T02:24:00Z",
+  "completed_at": "2026-03-24T02:54:00Z",
   "primitives_created": [
-    "memory/entries/2026-03-24_022420_shael-urgently-disabled-all-cron-jobs-op.md",
-    "lessons/gateway-watchdog-conflicts-with-out-of-systemd-process.md",
-    "lessons/openclaw-systemd-service-missing-config-path.md",
-    "decisions/disable-watchdog-until-systemd-service-fixed.md"
+    "memory/entries/2026-03-24_025429_gateway-freeze-at-0231-utc-traced-to-sta.md",
+    "lessons/openclaw-dual-install-path-conflict.md",
+    "lessons/openclaw-version-lag-causes-gateway-instability.md"
   ],
-  "last_run": "2026-03-24T02:24:00Z"
+  "last_run": "2026-03-24T02:54:00Z"
 }
