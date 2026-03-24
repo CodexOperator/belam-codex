@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-24
 owner: belam
@@ -9,6 +9,7 @@ depends_on: []
 upstream: [containerize-openclaw-workspace]
 downstream: []
 tags: [docker, infrastructure, disaster-recovery, testing]
+pipeline: container-build-and-test
 ---
 
 # Container Build & Test: Disaster Recovery Validation
