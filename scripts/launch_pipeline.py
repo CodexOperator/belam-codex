@@ -552,8 +552,10 @@ def main():
     parser.add_argument('--desc', '-d', help='Pipeline description')
     parser.add_argument('--priority', '-p', default='high', choices=['critical', 'high', 'medium', 'low'])
     parser.add_argument('--tags', '-t', help='Comma-separated tags')
-    parser.add_argument('--type', choices=['research', 'infrastructure'], default='research',
-                        help='Pipeline type: research (has experiments/analysis) or infrastructure (code-only)')
+    parser.add_argument('--type', default='research',
+                        help='Pipeline type: research, infrastructure, or a template name (e.g. builder-first)')
+    parser.add_argument('--template', default=None,
+                        help='Pipeline template name (e.g. builder-first). Sets --type to the template name.')
     parser.add_argument('--project', default='snn-applied-finance')
     parser.add_argument('--supersedes', default='', help='Pipeline version this one supersedes (auto-archives the old one)')
     parser.add_argument('--list', '-l', action='store_true', help='List all pipelines')
@@ -595,25 +597,34 @@ def main():
         print("❌ --desc required when creating a new pipeline")
         sys.exit(1)
     
+    # Template overrides type
+    pipeline_type = args.template if args.template else args.type
+    
     tags = [t.strip() for t in args.tags.split(',')] if args.tags else None
     pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project,
-                         pipeline_type=args.type, supersedes=args.supersedes)
+                         pipeline_type=pipeline_type, supersedes=args.supersedes)
     
     if args.kickoff or args.start:
         print(f"\n🚀 Kicking off (fire-and-forget)...")
-        # Import and use fire_and_forget_dispatch directly — no blocking
         sys.path.insert(0, str(Path(__file__).parent))
-        from orchestration_engine import fire_and_forget_dispatch
+        from orchestration_engine import fire_and_forget_dispatch, resolve_transition
         from pipeline_orchestrate import orchestrate_status
 
-        # 1. State transition: pipeline_created → architect_design
-        orchestrate_status(args.version, 'architect_design')
-        print(f"   ✅ State: architect_design")
+        # Resolve first stage from template (or default to architect_design)
+        transition = resolve_transition(args.version, 'pipeline_created')
+        if transition:
+            first_stage, first_agent, _ = transition
+        else:
+            first_stage, first_agent = 'architect_design', 'architect'
 
-        # 2. Fire-and-forget dispatch architect (returns immediately)
-        result = fire_and_forget_dispatch(args.version, 'architect_design', 'architect')
+        # 1. State transition
+        orchestrate_status(args.version, first_stage)
+        print(f"   ✅ State: {first_stage}")
+
+        # 2. Fire-and-forget dispatch
+        result = fire_and_forget_dispatch(args.version, first_stage, first_agent)
         if result['success']:
-            print(f"   ✅ Architect dispatched (pid={result['pid']})")
+            print(f"   ✅ {first_agent.title()} dispatched (pid={result['pid']})")
         else:
             print(f"   ⚠️  Dispatch failed: {result['error']}")
             print(f"   Manual fallback: python3 scripts/orchestration_engine.py dispatch {args.version}")

@@ -44,9 +44,28 @@ Break the parent task into sequential subtasks named:
 
 Each subtask runs through the full pipeline independently. Later subtasks can depend on earlier ones.
 
-## Pipeline File Fields
+## Stage Transitions
+<!-- machine-readable: parsed by orchestration_engine.py -->
+<!-- gate: human → stops auto-dispatch, waits for manual kick -->
 ```yaml
-type: builder-first
-stages: [builder_implement, builder_bugfix, critic_review, architect_phase2]
-current_stage: builder_implement
+first_agent: builder
+pipeline_fields:
+  type: builder-first
+  stages: [builder_implement, builder_bugfix, critic_review, architect_phase2]
+
+transitions:
+  # Phase 1 — builder-first
+  pipeline_created:        [builder_implement,    builder, "Task spec ready. Implement per task file and success criteria."]
+  builder_implement:       [builder_bugfix,       builder, "Implementation done. Review code, fix bugs, add edge case coverage."]
+  builder_bugfix:          [critic_review,        critic,  "Code complete + bugfixed. Review implementation against task spec."]
+  critic_review:           [phase1_complete,      system,  "Phase 1 review passed. Ready for human review or Phase 2.", gate: human]
+  # Phase 1 blocks — critic sends back to builder
+  builder_apply_blocks:    [critic_review,        critic,  "Blocks fixed. Re-review implementation."]
+
+  # Phase 2 — same flow with architect drafting direction first
+  phase2_architect_design:        [phase2_builder_implement,    builder, "Phase 2 direction ready. Implement changes per phase2 spec."]
+  phase2_builder_implement:       [phase2_builder_bugfix,       builder, "Phase 2 implementation done. Fix bugs and edge cases."]
+  phase2_builder_bugfix:          [phase2_critic_review,        critic,  "Phase 2 code complete. Review against phase2 spec."]
+  phase2_critic_review:           [phase2_complete,             system,  "Phase 2 review passed. Pipeline complete.", gate: human]
+  phase2_builder_apply_blocks:    [phase2_critic_review,        critic,  "Phase 2 blocks fixed. Re-review."]
 ```

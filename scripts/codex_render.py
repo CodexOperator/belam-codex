@@ -20,17 +20,13 @@ Usage:
 
 from __future__ import annotations
 
-import ctypes
-import ctypes.util
 import collections
 import datetime
 import hashlib
 import json
 import os
-import select
 import signal
 import socket
-import struct
 import sys
 import threading
 import time
@@ -94,7 +90,6 @@ class DiffEntry:
     slug: str
     field_diffs: list = field(default_factory=list)  # [(field, old, new), ...]
     timestamp: float = 0.0
-    content: str = ''  # F-label: full primitive content (populated on record)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -732,31 +727,22 @@ class DiffEngine:
                 ))
                 self._lm_hash = current  # Update so we don't re-emit
 
-    def record(self, entry: DiffEntry, tree: 'CodexTree | None' = None) -> None:
-        """Record a diff entry. If tree provided, populate F-label content."""
-        if tree and not entry.content:
-            node = tree.get(entry.coord)
-            if node and node.raw_text:
-                entry.content = node.raw_text
+    def record(self, entry: DiffEntry) -> None:
+        """Record a diff entry."""
         with self._lock:
             self._diffs.append(entry)
 
-    def get_delta(self, include_content: bool = False) -> str:
-        """Render accumulated diffs in Δ/+/− format.
-        
-        Args:
-            include_content: If True, include F-label (full content) after each R-label.
-        """
+    def get_delta(self) -> str:
+        """Render accumulated diffs in Δ/+/− format."""
         with self._lock:
             if not self._diffs:
                 return ''
 
-            # Count distinct coords that changed
             changed_coords = set()
             for d in self._diffs:
                 changed_coords.add(d.coord)
 
-            lines = [f"R{{n}}Δ ({len(changed_coords)} coords shifted)"]
+            lines = [f"Δ ({len(changed_coords)} coords shifted)"]
             for d in self._diffs:
                 if d.kind == 'modified':
                     detail_parts = []
@@ -770,20 +756,11 @@ class DiffEngine:
                     lines.append(f"  − {d.coord:<5} {d.slug} (removed)")
                 elif d.kind == 'reassigned':
                     lines.append(f"  ↻ {d.coord:<5} {d.slug} (reassigned)")
-                # F-label: append full content if requested
-                if include_content and d.content and d.kind != 'removed':
-                    lines.append(f"    F[{d.coord}]:")
-                    for cl in d.content.split('\n'):
-                        lines.append(f"    | {cl}")
 
             return '\n'.join(lines)
 
-    def get_delta_since(self, timestamp: float, include_content: bool = False) -> str:
-        """Get diffs since a specific timestamp.
-        
-        Args:
-            include_content: If True, include F-label (full content) after each R-label.
-        """
+    def get_delta_since(self, timestamp: float) -> str:
+        """Get diffs since a specific timestamp."""
         with self._lock:
             filtered = [d for d in self._diffs if d.timestamp >= timestamp]
             if not filtered:
@@ -796,18 +773,7 @@ class DiffEngine:
                     lines.append(f"  + {d.coord:<5} {d.slug}")
                 elif d.kind == 'removed':
                     lines.append(f"  − {d.coord:<5} {d.slug}")
-                # F-label: append full content if requested
-                if include_content and d.content and d.kind != 'removed':
-                    lines.append(f"    F[{d.coord}]:")
-                    for cl in d.content.split('\n'):
-                        lines.append(f"    | {cl}")
             return '\n'.join(lines)
-
-    def f_label_count_since(self, timestamp: float) -> int:
-        """Count F-label diffs since timestamp (for heartbeat trigger)."""
-        with self._lock:
-            return sum(1 for d in self._diffs
-                       if d.timestamp >= timestamp and d.content)
 
     def has_changes(self) -> bool:
         with self._lock:
@@ -819,177 +785,8 @@ class DiffEngine:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §4  InotifyWatcher — Linux File Change Detection (ctypes, zero deps)
+# §4  StatPoller — File Change Detection via mtime polling
 # ═══════════════════════════════════════════════════════════════════════════════
-
-# inotify constants
-IN_MODIFY    = 0x00000002
-IN_CREATE    = 0x00000100
-IN_DELETE    = 0x00000200
-IN_MOVED_FROM = 0x00000040
-IN_MOVED_TO  = 0x00000080
-IN_NONBLOCK  = 0x00000800
-IN_CLOEXEC   = 0x00080000
-
-# inotify_event header: int wd, uint32 mask, uint32 cookie, uint32 len
-EVENT_HEADER_SIZE = struct.calcsize('iIII')
-
-
-class InotifyWatcher:
-    """Watch workspace directories for file changes using Linux inotify via ctypes."""
-
-    def __init__(self, workspace: Path, callback: Callable[[Path, str], None]):
-        self.workspace = workspace
-        self.callback = callback
-        self._fd: int = -1
-        self._watches: dict[int, Path] = {}
-        self._running = False
-        self._thread: threading.Thread | None = None
-        self._coalesce_window = 0.1  # 100ms
-
-    def start(self) -> None:
-        """Initialize inotify fd, add watches for all namespace directories."""
-        libc = ctypes.CDLL(ctypes.util.find_library('c'), use_errno=True)
-        self._inotify_init1 = libc.inotify_init1
-        self._inotify_init1.argtypes = [ctypes.c_int]
-        self._inotify_init1.restype = ctypes.c_int
-
-        self._inotify_add_watch = libc.inotify_add_watch
-        self._inotify_add_watch.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
-        self._inotify_add_watch.restype = ctypes.c_int
-
-        self._fd = self._inotify_init1(IN_NONBLOCK | IN_CLOEXEC)
-        if self._fd < 0:
-            raise OSError(f"inotify_init1 failed: errno {ctypes.get_errno()}")
-
-        mask = IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_FROM | IN_MOVED_TO
-
-        engine = _get_engine()
-        watched_dirs = set()
-
-        for prefix, (_, directory, special) in engine.NAMESPACE.items():
-            if directory is None:
-                continue
-            dirpath = self.workspace / directory
-            if dirpath.exists() and dirpath.is_dir():
-                watched_dirs.add(dirpath)
-
-        # Also watch workspace root for context files (SOUL.md, AGENTS.md, etc.)
-        watched_dirs.add(self.workspace)
-
-        # Also watch pipeline_builds/ for state JSON changes so supermap re-renders
-        # when pipeline_update.py writes new state (state JSONs aren't in a namespace dir).
-        for pb_dir in [
-            self.workspace / 'pipeline_builds',
-            self.workspace / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds',
-        ]:
-            if pb_dir.exists() and pb_dir.is_dir():
-                watched_dirs.add(pb_dir)
-
-        for dirpath in watched_dirs:
-            wd = self._inotify_add_watch(
-                self._fd,
-                str(dirpath).encode('utf-8'),
-                mask,
-            )
-            if wd >= 0:
-                self._watches[wd] = dirpath
-
-        self._running = True
-        self._thread = threading.Thread(target=self._watch_loop, daemon=True, name='inotify')
-        self._thread.start()
-
-    def stop(self) -> None:
-        self._running = False
-        if self._fd >= 0:
-            os.close(self._fd)
-            self._fd = -1
-
-    def _watch_loop(self) -> None:
-        """Read events from inotify fd, coalesce within 100ms window."""
-        pending: dict[str, str] = {}  # filepath → event_type
-
-        while self._running:
-            try:
-                readable, _, _ = select.select([self._fd], [], [], 1.0)
-            except (ValueError, OSError):
-                break
-
-            if not readable:
-                # Flush pending on timeout too
-                if pending:
-                    self._flush_pending(pending)
-                    pending.clear()
-                continue
-
-            try:
-                buf = os.read(self._fd, 8192)
-            except OSError:
-                continue
-
-            events = self._parse_events(buf)
-            for filepath, event_type in events:
-                pending[str(filepath)] = event_type
-
-            # Wait coalesce window, then flush
-            time.sleep(self._coalesce_window)
-
-            # Read any additional events that arrived during coalesce
-            try:
-                while True:
-                    readable2, _, _ = select.select([self._fd], [], [], 0)
-                    if not readable2:
-                        break
-                    buf2 = os.read(self._fd, 8192)
-                    for fp, et in self._parse_events(buf2):
-                        pending[str(fp)] = et
-            except OSError:
-                pass
-
-            self._flush_pending(pending)
-            pending.clear()
-
-    def _flush_pending(self, pending: dict[str, str]) -> None:
-        for fp_str, event_type in pending.items():
-            try:
-                self.callback(Path(fp_str), event_type)
-            except Exception:
-                pass
-
-    def _parse_events(self, buf: bytes) -> list[tuple[Path, str]]:
-        """Parse raw inotify_event structs."""
-        events = []
-        offset = 0
-        while offset < len(buf):
-            if offset + EVENT_HEADER_SIZE > len(buf):
-                break
-            wd, mask, cookie, name_len = struct.unpack_from('iIII', buf, offset)
-            offset += EVENT_HEADER_SIZE
-            if name_len > 0:
-                name_bytes = buf[offset:offset + name_len]
-                offset += name_len
-                name = name_bytes.split(b'\x00', 1)[0].decode('utf-8', errors='replace')
-            else:
-                name = ''
-                offset += name_len
-
-            if not name:
-                continue
-
-            dirpath = self._watches.get(wd)
-            if not dirpath:
-                continue
-
-            filepath = dirpath / name
-
-            if mask & IN_MODIFY:
-                events.append((filepath, 'modified'))
-            elif mask & (IN_CREATE | IN_MOVED_TO):
-                events.append((filepath, 'created'))
-            elif mask & (IN_DELETE | IN_MOVED_FROM):
-                events.append((filepath, 'deleted'))
-
-        return events
 
 
 class StatPoller:
@@ -1118,7 +915,7 @@ class SessionManager:
                 break
             if self._flush_requested.is_set():
                 self._flush_requested.clear()
-                if self._engine_ref and self._engine_ref.mode == CodexRenderEngine.MODE_NICE:
+                if self._engine_ref:
                     try:
                         self._engine_ref.flush_change_queue()
                     except Exception:
@@ -1131,7 +928,7 @@ class SessionManager:
         Never calls flush_change_queue() directly — avoids blocking the UDS handler
         thread on tree._lock contention (deadlock fix).
         """
-        if self._engine_ref and self._engine_ref.mode == CodexRenderEngine.MODE_NICE:
+        if self._engine_ref:
             self._flush_complete.clear()
             self._flush_requested.set()
             # Wait up to 5s — stale data is better than a deadlock
@@ -1413,14 +1210,12 @@ class SessionManager:
 
         elif cmd == 'diff':
             self._nice_flush()
-            include_content = msg.get('include_content', False)
-            return {'ok': True, 'delta': self.diff_engine.get_delta(include_content=include_content)}
+            return {'ok': True, 'delta': self.diff_engine.get_delta()}
 
         elif cmd == 'diff_since':
             self._nice_flush()
             ts = msg.get('timestamp', 0.0)
-            include_content = msg.get('include_content', False)
-            return {'ok': True, 'delta': self.diff_engine.get_delta_since(ts, include_content=include_content)}
+            return {'ok': True, 'delta': self.diff_engine.get_delta_since(ts)}
 
         elif cmd == 'anchor_reset':
             self._nice_flush()
@@ -1438,7 +1233,7 @@ class SessionManager:
             self._nice_flush()
             # Phase 2: Hint to re-scan a specific file or namespace.
             # Used by orchestration_engine._post_state_change() for sub-100ms
-            # R-label latency after F-label generation (instead of anchor_reset
+            # Latency after diff generation (instead of anchor_reset
             # which would wipe the diff buffer — Critic FLAG-1).
             filepath = msg.get('filepath')
             prefix = msg.get('prefix')
@@ -1520,32 +1315,8 @@ class SessionManager:
             }
 
         elif cmd == 'set_mode':
-            new_mode = msg.get('mode', '')
-            if new_mode not in (CodexRenderEngine.MODE_NICE, CodexRenderEngine.MODE_GREEDY):
-                return {'ok': False, 'error': f'invalid mode: {new_mode} (nice|greedy)'}
-            if self._engine_ref:
-                old_mode = self._engine_ref.mode
-                self._engine_ref.mode = new_mode
-                # Switching to greedy: flush pending queue via worker + start heartbeat
-                if new_mode == CodexRenderEngine.MODE_GREEDY and old_mode == CodexRenderEngine.MODE_NICE:
-                    self._nice_flush()
-                    flushed = 0
-                    if not self._engine_ref.heartbeat_trigger:
-                        hb_token, hb_port = self._engine_ref._load_hook_config()
-                        if hb_token:
-                            self._engine_ref.heartbeat_trigger = HeartbeatTrigger(
-                                self.diff_engine, poll_interval_s=5.0,
-                                threshold=30, gateway_port=hb_port, hook_token=hb_token,
-                            )
-                            self._engine_ref.heartbeat_trigger.start()
-                    return {'ok': True, 'mode': new_mode, 'flushed': flushed}
-                # Switching to nice: stop heartbeat trigger
-                elif new_mode == CodexRenderEngine.MODE_NICE and old_mode == CodexRenderEngine.MODE_GREEDY:
-                    if self._engine_ref.heartbeat_trigger:
-                        self._engine_ref.heartbeat_trigger.stop()
-                        self._engine_ref.heartbeat_trigger = None
-                return {'ok': True, 'mode': new_mode}
-            return {'ok': False, 'error': 'no engine ref'}
+            # Mode switching removed — engine always runs in deferred mode
+            return {'ok': True, 'mode': 'nice'}
 
         elif cmd == 'test_write':
             if self._engine_ref and self._engine_ref.test:
@@ -1592,13 +1363,12 @@ class SessionManager:
         # ── D3: per-session diff (uses agent's own anchor) ──────────
         elif cmd == 'my_diff':
             self._nice_flush()
-            include_content = msg.get('include_content', False)
             with self._lock:
                 session = self._sessions.get(session_id)
             if session:
                 return {'ok': True,
                         'delta': self.diff_engine.get_delta_since(
-                            session.anchor_time, include_content=include_content)}
+                            session.anchor_time)}
             return {'ok': False, 'error': 'not attached — call attach first'}
 
         # ── D1: RAM-first write (edit existing node) ────────────────
@@ -1935,7 +1705,7 @@ class ContextAssembler:
         return content
 
     def invalidate_context_file(self, filename: str) -> None:
-        """FLAG-2: Explicit invalidation for context files on inotify events."""
+        """FLAG-2: Explicit invalidation for context files on file change events."""
         self._context_hashes.pop(filename, None)
         self._context_cache.pop(filename, None)
 
@@ -2034,112 +1804,25 @@ class DashboardServer:
 CONTEXT_FILENAMES = {'SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md', 'AGENTS.md', 'MEMORY.md'}
 
 
-class HeartbeatTrigger:
-    """Monitors diff accumulation and triggers OpenClaw heartbeats via webhook.
-    
-    Checks every `poll_interval_s` seconds. Fires when `threshold` or more
-    F-label diffs have accumulated since the last trigger.
-    """
-
-    def __init__(self, diff_engine: 'DiffEngine',
-                 poll_interval_s: float = 5.0,
-                 threshold: int = 30,
-                 gateway_port: int = 18789,
-                 hook_token: str = ''):
-        self.diff_engine = diff_engine
-        self.poll_interval_s = poll_interval_s
-        self.threshold = threshold
-        self.gateway_port = gateway_port
-        self.hook_token = hook_token
-        self._last_trigger_time: float = 0.0
-        self._running = False
-        self._thread: threading.Thread | None = None
-        self._cooldown_s = 30.0  # min seconds between heartbeat triggers
-
-    def start(self) -> None:
-        if not self.hook_token:
-            return  # No token configured — skip
-        self._last_trigger_time = time.time()
-        self._running = True
-        self._thread = threading.Thread(target=self._poll_loop, daemon=True,
-                                        name='heartbeat-trigger')
-        self._thread.start()
-
-    def stop(self) -> None:
-        self._running = False
-
-    def _poll_loop(self) -> None:
-        while self._running:
-            time.sleep(self.poll_interval_s)
-            if not self._running:
-                break
-            try:
-                self._check_and_trigger()
-            except Exception:
-                pass
-
-    def _check_and_trigger(self) -> None:
-        now = time.time()
-        # Cooldown check
-        if now - self._last_trigger_time < self._cooldown_s:
-            return
-        # Count F-label diffs since last trigger
-        count = self.diff_engine.f_label_count_since(self._last_trigger_time)
-        if count >= self.threshold:
-            self._fire_heartbeat(count)
-            self._last_trigger_time = now
-
-    def _fire_heartbeat(self, diff_count: int) -> None:
-        """POST to /hooks/wake to trigger an immediate heartbeat."""
-        import urllib.request
-        import urllib.error
-        url = f'http://127.0.0.1:{self.gateway_port}/hooks/wake'
-        payload = json.dumps({
-            'text': f'[diff-trigger] {diff_count} F-label changes accumulated',
-            'mode': 'now',
-        }).encode('utf-8')
-        req = urllib.request.Request(
-            url, data=payload,
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {self.hook_token}',
-            },
-        )
-        try:
-            resp = urllib.request.urlopen(req, timeout=5)
-            resp.read()
-        except urllib.error.URLError:
-            pass  # Gateway not reachable — skip silently
-
-
 class CodexRenderEngine:
     """Main render engine process. Foreground, session-scoped."""
-
-    # ── Engine Modes ───────────────────────────────────────────────────────
-    # nice (default): inotify queues (path, event) tuples only — zero processing
-    #   between turns. Flush happens on UDS query (diff/supermap/my_diff).
-    #   Full diff history kept in RAM. HeartbeatTrigger disabled.
-    # greedy: current behavior — immediate inotify processing, heartbeat trigger.
-    MODE_NICE = 'nice'
-    MODE_GREEDY = 'greedy'
 
     def __init__(self, workspace: Path, test_mode: bool = False, force: bool = False,
                  mode: str = 'nice'):
         self.workspace = workspace
         self._force = force
-        self.mode = mode if mode in (self.MODE_NICE, self.MODE_GREEDY) else self.MODE_NICE
+        self.mode = mode  # kept for API compat; always 'nice' behavior now
         self.tree = CodexTree(workspace)
         self.diff_engine = DiffEngine(self.tree)
         self.context = ContextAssembler(workspace, self.tree, self.diff_engine)
         self.dashboard = DashboardServer(self.tree, self.diff_engine)
-        self.watcher: InotifyWatcher | StatPoller | None = None
+        self.watcher: StatPoller | None = None
         self.sessions = SessionManager(self.tree, self.diff_engine, self.context)
         self.sessions._engine_ref = self
         self.test: TestMode | None = None
-        self.heartbeat_trigger: HeartbeatTrigger | None = None
         self._running = False
         self._start_time = 0.0
-        # Nice mode: deferred change queue (thread-safe)
+        # Deferred change queue (thread-safe)
         self._change_queue: collections.deque[tuple[Path, str]] = collections.deque()
 
         if test_mode:
@@ -2187,15 +1870,9 @@ class CodexRenderEngine:
         # 2a. Write initial supermap file for sync plugin reads
         self._write_supermap_file()
 
-        # 3. File watcher
-        watcher_type = 'poll'
-        try:
-            self.watcher = InotifyWatcher(self.workspace, self._on_file_change)
-            self.watcher.start()
-            watcher_type = 'inotify'
-        except Exception:
-            self.watcher = StatPoller(self.workspace, self._on_file_change)
-            self.watcher.start()
+        # 3. File watcher (stat polling)
+        self.watcher = StatPoller(self.workspace, self._on_file_change)
+        self.watcher.start()
 
         # 4. Session server
         self.sessions.start(force=self._force)
@@ -2205,27 +1882,11 @@ class CodexRenderEngine:
             branch = self.test.start()
             print(f"Test mode: branch {branch}")
 
-        # 6. Heartbeat trigger (diff-driven) — greedy mode only
-        if self.mode == self.MODE_GREEDY:
-            hb_token, hb_port = self._load_hook_config()
-            if hb_token:
-                self.heartbeat_trigger = HeartbeatTrigger(
-                    self.diff_engine,
-                    poll_interval_s=5.0,
-                    threshold=30,
-                    gateway_port=hb_port,
-                    hook_token=hb_token,
-                )
-                self.heartbeat_trigger.start()
-
-        # 7. Boot status
-        print(f"Codex Render Engine started ({self.mode} mode)")
+        # 6. Boot status
+        print(f"Codex Render Engine started")
         print(f"  Tree: {len(self.tree.nodes)} primitives loaded in {self.tree.load_time:.2f}s")
-        print(f"  Watcher: {watcher_type}")
+        print(f"  Watcher: stat-poll")
         print(f"  Socket: {SOCKET_PATH}")
-        print(f"  Mode: {self.mode} {'(deferred flush)' if self.mode == self.MODE_NICE else '(live processing)'}")
-        if self.heartbeat_trigger:
-            print(f"  Heartbeat trigger: {self.heartbeat_trigger.threshold} F-labels / {self.heartbeat_trigger.poll_interval_s}s poll")
         if self.test:
             print(f"  Test mode: {self.test.branch_name}")
 
@@ -2233,23 +1894,6 @@ class CodexRenderEngine:
 
         # 7. Main loop
         self._main_loop()
-
-    @staticmethod
-    def _load_hook_config() -> tuple[str, int]:
-        """Load webhook token and gateway port from openclaw.json."""
-        config_path = Path.home() / '.openclaw' / 'openclaw.json'
-        try:
-            with open(config_path) as f:
-                config = json.load(f)
-            hooks = config.get('hooks', {})
-            token = hooks.get('token', '')
-            enabled = hooks.get('enabled', False)
-            port = config.get('gateway', {}).get('port', 18789)
-            if enabled and token:
-                return token, port
-        except Exception:
-            pass
-        return '', 18789
 
     def _main_loop(self) -> None:
         """Block until SIGINT/SIGTERM."""
@@ -2276,9 +1920,6 @@ class CodexRenderEngine:
 
     def _cleanup(self) -> None:
         """Clean shutdown."""
-        if self.heartbeat_trigger:
-            self.heartbeat_trigger.stop()
-
         if self.test and self.test._overlay:
             print(f"Test mode has {len(self.test._overlay)} uncommitted changes — discarding.")
             self.test.discard()
@@ -2297,38 +1938,22 @@ class CodexRenderEngine:
         TEST_MODE_FLAG.unlink(missing_ok=True)
 
     def _on_file_change(self, filepath: Path, event_type: str) -> None:
-        """Callback from inotify/poller when a file changes.
+        """Callback from poller when a file changes.
 
-        Nice mode: queue (filepath, event_type) for deferred processing.
-        Greedy mode: process immediately (original behavior).
-
-        FLAG-2: Explicit context file invalidation.
-        FLAG-3: CREATE/DELETE → reindex_namespace, MODIFY → apply_disk_change.
+        Queues (filepath, event_type) for deferred processing.
+        Flush happens on UDS query (diff/supermap/my_diff).
         """
-        # Handle pipeline state JSON changes: force supermap re-render without
-        # tree reindex (state JSON is not a primitive — just invalidate the cache
-        # so the next render picks up fresh state data from _pipeline_state_suffix).
+        # Handle pipeline state JSON changes: invalidate supermap cache
         if filepath.suffix == '.json' and '_state.json' in filepath.name:
-            # Invalidate supermap cache so next render re-reads state JSONs
             self.tree.supermap_cache = None
-            if self.mode == self.MODE_NICE:
-                # Queue a sentinel so the flush worker knows to re-render
-                self._change_queue.append((filepath, '_pipeline_state_change'))
-            else:
-                self._write_supermap_file()
+            self._change_queue.append((filepath, '_pipeline_state_change'))
             return
 
         # Only care about .md files and .codex files
         if filepath.suffix not in ('.md', '.codex'):
             return
 
-        # Nice mode: just queue and return — zero processing until flush
-        if self.mode == self.MODE_NICE:
-            self._change_queue.append((filepath, event_type))
-            return
-
-        # Greedy mode: process immediately
-        self._process_file_change(filepath, event_type)
+        self._change_queue.append((filepath, event_type))
 
     def _process_file_change(self, filepath: Path, event_type: str) -> None:
         """Actually process a file change — shared by nice flush and greedy callback."""
@@ -2347,37 +1972,24 @@ class CodexRenderEngine:
         if event_type == 'modified':
             diff = self.tree.apply_disk_change(filepath)
             if diff:
-                self.diff_engine.record(diff, tree=self.tree)
-                if self.mode == self.MODE_GREEDY:
-                    self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
+                self.diff_engine.record(diff)
 
         elif event_type == 'created':
             fp_str = str(filepath)
-            # Check if a previous reindex in this flush batch already indexed this file
             existing_coord = self.tree._filepath_to_coord.get(fp_str)
             if existing_coord and existing_coord in self.tree.nodes:
-                # Already indexed and diffed by a prior reindex — skip
-                pass
+                pass  # Already indexed by a prior reindex in this flush batch
             else:
-                # FLAG-3: CREATE → reindex namespace, get ALL new diffs
                 prefix = self.tree._filepath_to_prefix(filepath)
                 if prefix:
                     diff_entries = self.tree._reindex_single_new(filepath, prefix)
                     for diff_entry in diff_entries:
                         self.diff_engine.record(diff_entry)
-                        if self.mode == self.MODE_GREEDY:
-                            self.sessions.notify_all({'event': 'change', 'diff': asdict(diff_entry)})
 
         elif event_type == 'deleted':
             diff = self.tree.apply_deletion(filepath)
             if diff:
-                self.diff_engine.record(diff, tree=self.tree)
-                if self.mode == self.MODE_GREEDY:
-                    self.sessions.notify_all({'event': 'change', 'diff': asdict(diff)})
-
-        # Write supermap file after every greedy-mode change
-        if self.mode == self.MODE_GREEDY:
-            self._write_supermap_file()
+                self.diff_engine.record(diff)
 
     def flush_change_queue(self) -> int:
         """Process all queued file changes (nice mode). Returns count processed."""
@@ -2412,13 +2024,11 @@ class CodexRenderEngine:
     def _print_status(self) -> None:
         uptime = time.time() - self._start_time
         print(f"\n=== Codex Render Engine Status ===")
-        print(f"  Mode: {self.mode}")
         print(f"  Uptime: {uptime:.0f}s")
         print(f"  Tree: {len(self.tree.nodes)} nodes")
         print(f"  Sessions: {len(self.sessions._sessions)}")
         print(f"  Diffs since anchor: {len(self.diff_engine._diffs)}")
-        if self.mode == self.MODE_NICE:
-            print(f"  Queued changes: {len(self._change_queue)}")
+        print(f"  Queued changes: {len(self._change_queue)}")
         if self.test:
             s = self.test.status()
             print(f"  Test mode: {s['modified']} modified, {s['deleted']} deleted")
@@ -2487,10 +2097,10 @@ def main():
     parser.add_argument('--stop', action='store_true', help='Shutdown running engine')
     parser.add_argument('--workspace', type=str, default=None)
     parser.add_argument('--force', action='store_true', help='Kill existing engine and take over')
-    parser.add_argument('--mode', choices=['nice', 'greedy'], default='nice',
-                        help='Engine mode: nice (deferred, default) or greedy (live inotify)')
-    parser.add_argument('--set-mode', choices=['nice', 'greedy'], default=None,
-                        help='Switch running engine mode at runtime')
+    parser.add_argument('--mode', default='nice',
+                        help='Engine mode (kept for compat, always deferred)')
+    parser.add_argument('--set-mode', default=None,
+                        help='Mode switch (kept for compat, no-op)')
 
     args = parser.parse_args()
 

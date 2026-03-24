@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-24
 owner: belam
@@ -8,6 +8,7 @@ depends_on: []
 upstream: [scrap-r-labels-keep-f-labels-as-raw-git-diff]
 downstream: [ram-git-s1-tmpfs-repo-and-symlinks]
 tags: [infrastructure, codex-engine, simplification, builder-first]
+pipeline: render-engine-simplification
 project: codex-engine
 pipeline_type: builder-first
 ---

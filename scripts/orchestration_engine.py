@@ -72,6 +72,7 @@ WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/wor
 SCRIPTS = WORKSPACE / 'scripts'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
+TEMPLATES_DIR = WORKSPACE / 'templates'
 RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 ML_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 RESULTS_BASE = ML_DIR / 'notebooks' / 'local_results'
@@ -118,6 +119,129 @@ MAX_RESUMES = 3
 # ─── Temporal Overlay (V2-temporal integration — lazy loaded) ──────────────────
 
 _temporal_overlay = None  # Lazy-loaded TemporalOverlay instance
+
+# ─── Template-Aware Transition Resolution ──────────────────────────────────────
+
+_template_cache: dict[str, dict] = {}  # template_name → parsed transitions
+_template_gates: dict[str, set] = {}  # template_name → set of human-gated stages
+
+
+def _parse_template_transitions(template_name: str) -> dict | None:
+    """Parse stage transitions from a pipeline template markdown file.
+
+    Reads the ```yaml block under '## Stage Transitions' and extracts
+    the 'transitions' mapping. Returns dict of stage → (next_stage, agent, msg)
+    or None if template not found or unparseable.
+
+    Also populates _template_gates with stages that have 'gate: human'.
+    """
+    if template_name in _template_cache:
+        return _template_cache[template_name]
+
+    template_file = TEMPLATES_DIR / f'{template_name}-pipeline.md'
+    if not template_file.exists():
+        _template_cache[template_name] = None
+        return None
+
+    content = template_file.read_text()
+
+    # Extract yaml code block after "## Stage Transitions"
+    match = re.search(
+        r'## Stage Transitions.*?```yaml\s*\n(.*?)```',
+        content, re.DOTALL
+    )
+    if not match:
+        _template_cache[template_name] = None
+        return None
+
+    yaml_block = match.group(1)
+
+    # Parse transitions manually (avoid PyYAML dependency)
+    transitions = {}
+    gates = set()
+    in_transitions = False
+    for line in yaml_block.splitlines():
+        stripped = line.strip()
+        if stripped.startswith('transitions:'):
+            in_transitions = True
+            continue
+        if not in_transitions:
+            continue
+        if stripped.startswith('#') or not stripped:
+            continue
+        # New top-level key (not indented enough) means we left transitions
+        if not line.startswith('  ') and ':' in stripped and not stripped.startswith('-'):
+            break
+
+        # Parse: stage_name: [next_stage, agent, "message"] with optional gate: human
+        m = re.match(
+            r'\s*(\w+):\s*\[(\w+),\s*(\w+),\s*"([^"]*)"(?:,\s*gate:\s*(\w+))?\]',
+            line
+        )
+        if m:
+            stage, next_stage, agent, msg, gate = m.groups()
+            transitions[stage] = (next_stage, agent, msg)
+            if gate == 'human':
+                gates.add(next_stage)
+
+    result = transitions if transitions else None
+    _template_cache[template_name] = result
+    _template_gates[template_name] = gates
+    return result
+
+
+def _get_pipeline_type(version: str) -> str | None:
+    """Read the 'type' field from a pipeline's frontmatter."""
+    version = resolve_pipeline(version) or version
+    pf = PIPELINES_DIR / f'{version}.md'
+    if not pf.exists():
+        return None
+    content = pf.read_text(errors='replace')
+    m = re.search(r'^type:\s*(.+)$', content, re.MULTILINE)
+    return m.group(1).strip() if m else None
+
+
+def resolve_transition(version: str, stage: str) -> tuple | None:
+    """Resolve the next transition for a stage, checking pipeline template first.
+
+    Returns (next_stage, expected_agent, message) or None.
+    Falls back to STAGE_TRANSITIONS from pipeline_update.py if no template match.
+    """
+    # Check if this pipeline has a template type
+    pipeline_type = _get_pipeline_type(version)
+    if pipeline_type and pipeline_type not in ('research', 'infrastructure'):
+        template_transitions = _parse_template_transitions(pipeline_type)
+        if template_transitions:
+            result = template_transitions.get(stage)
+            if result:
+                return result
+
+    # Fallback to default STAGE_TRANSITIONS
+    try:
+        from pipeline_update import STAGE_TRANSITIONS
+        return STAGE_TRANSITIONS.get(stage)
+    except ImportError:
+        return None
+
+
+def is_human_gated(version: str, stage: str) -> bool:
+    """Check if a stage is human-gated, considering both HUMAN_ACTIONS and template gates.
+
+    Returns True if the stage requires manual intervention before dispatch.
+    """
+    if stage in HUMAN_ACTIONS:
+        return True
+
+    # Check template-defined gates
+    pipeline_type = _get_pipeline_type(version)
+    if pipeline_type and pipeline_type not in ('research', 'infrastructure'):
+        # Ensure template is parsed (populates _template_gates)
+        _parse_template_transitions(pipeline_type)
+        gates = _template_gates.get(pipeline_type, set())
+        if stage in gates:
+            return True
+
+    return False
 
 
 def _get_temporal():
@@ -1357,7 +1481,7 @@ def pipeline_next_action(version: str) -> str | None:
         if dir_new2.exists() or dir_legacy2.exists():
             return f'Phase 2 direction file found -- kick off Phase 2'
         return f'Human gate: local analysis complete, awaiting Phase 2 direction'
-    if pending in HUMAN_ACTIONS:
+    if pending in HUMAN_ACTIONS or is_human_gated(version, pending):
         return f'Human gate: {pending}'
 
     # Agent actions — check if stalled
@@ -1388,6 +1512,10 @@ def _agent_from_action(action: str) -> str:
         return 'system'
     if action in HUMAN_ACTIONS:
         return 'human-gate'
+    # Check template gates (version not available here, so check all cached templates)
+    for gates in _template_gates.values():
+        if action in gates:
+            return 'human-gate'
     return 'unknown'
 
 
@@ -1684,17 +1812,13 @@ def pipeline_handoff(version: str, from_agent: str, to_agent: str, notes: str = 
     # Consolidate outgoing agent's memory
     consolidate_agent_memory(from_agent, version, pending, notes)
 
-    # Determine next stage from transition map
-    try:
-        from pipeline_update import STAGE_TRANSITIONS
-        transition = STAGE_TRANSITIONS.get(pending)
-        if transition:
-            next_stage, expected_agent, _ = transition
-            if to_agent != expected_agent:
-                print(f'  WARN: expected {expected_agent} but dispatching to {to_agent}')
-        else:
-            next_stage = None
-    except ImportError:
+    # Determine next stage from transition map (template-aware)
+    transition = resolve_transition(version, pending)
+    if transition:
+        next_stage, expected_agent, _ = transition
+        if to_agent != expected_agent:
+            print(f'  WARN: expected {expected_agent} but dispatching to {to_agent}')
+    else:
         next_stage = None
 
     if not next_stage:
@@ -1762,7 +1886,7 @@ def restart_pipeline(version: str) -> bool:
     state = load_state_json(version)
     pending = state.get('pending_action', 'none')
 
-    if pending in HUMAN_ACTIONS or pending == 'none':
+    if is_human_gated(version, pending) or pending == 'none':
         print(f'  ⚠ Pipeline {version} at human gate or idle ({pending}) — nothing to restart')
         return False
 
@@ -1792,7 +1916,7 @@ def kick_pipeline(version: str) -> bool:
     pending = state.get('pending_action', 'none')
     claimed = state.get('dispatch_claimed', False)
 
-    if pending in HUMAN_ACTIONS or pending == 'none':
+    if is_human_gated(version, pending) or pending == 'none':
         print(f'  ⚠ Pipeline {version} at human gate or idle ({pending}) — nothing to kick')
         return False
 
@@ -1837,7 +1961,7 @@ def pipeline_resume(version: str) -> bool:
     state = load_state_json(version)
     pending = state.get('pending_action', 'none')
 
-    if pending in HUMAN_ACTIONS or pending == 'none':
+    if is_human_gated(version, pending) or pending == 'none':
         print(f'  {version}: at human gate or idle ({pending}) -- nothing to resume')
         return False
 
@@ -1985,19 +2109,16 @@ def check_completions(dry_run: bool = False) -> list[dict]:
         except Exception as e:
             print(f'  [check_completions] State advance failed: {e}')
 
-        # Determine next stage and agent
-        try:
-            from pipeline_update import STAGE_TRANSITIONS
-            transition = STAGE_TRANSITIONS.get(pending)
-            if transition:
-                next_stage, next_agent, _ = transition
-            else:
-                next_stage, next_agent = None, handoff_target
-        except ImportError:
-            next_stage = handoff_target
+        # Determine next stage and agent (template-aware)
+        transition = resolve_transition(version, pending)
+        if transition:
+            next_stage, next_agent, _ = transition
+        else:
+            next_stage, next_agent = None, handoff_target
+        if not next_agent and next_stage:
             next_agent = _agent_from_action(next_stage) if next_stage else None
 
-        if next_stage and next_agent and next_stage not in HUMAN_ACTIONS:
+        if next_stage and next_agent and not is_human_gated(version, next_stage):
             dispatch_result = fire_and_forget_dispatch(version, next_stage, next_agent)
             fl = generate_f_label('handoff', {
                 'src': agent, 'dst': next_agent, 'coord': _get_pipeline_coord(version)
@@ -2009,7 +2130,7 @@ def check_completions(dry_run: bool = False) -> list[dict]:
                 'action': 'dispatched', 'pid': dispatch_result.get('pid'),
             })
         else:
-            action = 'at_human_gate' if next_stage in HUMAN_ACTIONS else 'no_transition'
+            action = 'at_human_gate' if is_human_gated(version, next_stage or '') else 'no_transition'
             processed.append({
                 'version': version, 'stage': pending, 'agent': agent,
                 'next_stage': next_stage, 'action': action,
@@ -2286,7 +2407,7 @@ def check_stalls(threshold_minutes: int = STALL_THRESHOLD_MINUTES) -> list[dict]
         pending = p['pending_action']
         last = p['last_updated']
 
-        if pending in HUMAN_ACTIONS or pending == 'none' or not pending:
+        if is_human_gated(version, pending) or pending == 'none' or not pending:
             continue
 
         if pending not in AGENT_ACTIONS:
@@ -2908,7 +3029,7 @@ def handle_complete(version: str, stage: str, agent: str,
 
     # Generate F-label for state transition
     fl = generate_f_label('stage_change', {
-        'old_stage': stage, 'new_stage': _next_stage_for(stage),
+        'old_stage': stage, 'new_stage': _next_stage_for(stage, version),
         'coord': coord,
     })
     print(f'  {fl}')
@@ -2918,7 +3039,7 @@ def handle_complete(version: str, stage: str, agent: str,
         try:
             result = orchestrate_complete(version, stage, agent, notes, learnings)
             # V2-temporal post-hook: record transition in SpacetimeDB
-            next_stg = _next_stage_for(stage)
+            next_stg = _next_stage_for(stage, version)
             next_ag = _agent_from_action(next_stg) if next_stg else ''
             _post_state_change(version, stage, next_stg or 'terminal',
                                agent, 'complete', notes, next_ag)
@@ -2927,7 +3048,7 @@ def handle_complete(version: str, stage: str, agent: str,
             return {'status': 'error', 'error': str(e), 'f_label': fl}
 
     # Fallback: just update state and build next payload
-    next_stg = _next_stage_for(stage)
+    next_stg = _next_stage_for(stage, version)
     if not next_stg:
         return {'status': 'terminal', 'message': f'No transition from {stage}', 'f_label': fl}
 
@@ -2988,14 +3109,24 @@ def handle_block(version: str, stage: str, agent: str,
     }
 
 
-def _next_stage_for(stage: str) -> str | None:
-    """Get the next stage in the standard transition sequence."""
-    # Try pipeline_update.py STAGE_TRANSITIONS first
+def _next_stage_for(stage: str, version: str = None) -> str | None:
+    """Get the next stage in the transition sequence (template-aware).
+
+    If version is provided and the pipeline has a template type,
+    checks template transitions first before falling back to defaults.
+    """
+    # Template-aware resolution if version provided
+    if version:
+        transition = resolve_transition(version, stage)
+        if transition:
+            return transition[0]  # (next_stage, expected_agent, desc)
+
+    # Fallback to default STAGE_TRANSITIONS
     try:
         from pipeline_update import STAGE_TRANSITIONS
         transition = STAGE_TRANSITIONS.get(stage)
         if transition:
-            return transition[0]  # (next_stage, expected_agent, desc)
+            return transition[0]
     except ImportError:
         pass
 
