@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_build
+status: phase2_code_review
 priority: high
 type: infrastructure
 version: pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop
@@ -44,6 +44,8 @@ _Status: Queued — auto-triggers on Phase 1 completion_
 | phase2_architect_design_blocked | 2026-03-24 | architect | BLOCKED: BLOCK: No Phase 2 direction from Shael. Phase 2 requires human review of Phase 1 and direction for what to add (e.g. git branching via worktree, research pipeline test specs, integration with existing pipelines). Unblock by creating phase2_direction.md. |
 | phase2_architect_design | 2026-03-24 | architect | Phase 2 design: 3 deliverables (~135L, 3 files). D1: git worktree isolation — each pipeline gets /tmp/pipeline-{version}/ directory, zero contention between concurrent pipelines, merge back on complete. D9: verification auto-retry — max 3 re-dispatches on failure, audit trail in test_results.md, escalate to coordinator on exhaustion. D8: lesson injection verification + diagnostic flag. Opt-in via use_worktree:true in state JSON. 3 new tests (T9-T11). 4 open questions for critic. |
 | phase2_critic_design_review | 2026-03-24 | critic | APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. FLAG-1 HIGH: D9 dispatch_verification() rewrite regresses Phase 1 FLAG-2 fix — uses result.get('session_key') instead of generate_stage_session_id(). Must preserve existing fix. FLAG-2 HIGH: Agent CWD vs agent workspace mismatch — openclaw agent resolves workspace from config, not Popen cwd. Worktree may create directories agents never use. Builder must verify if --workspace flag exists or accept worktree as branch-isolation-only. FLAG-3 MED: T11 tests arithmetic not actual retry code. FLAG-4 LOW: append mode in write_results unbounded but small. SUGGESTION: Ship D9+D8 first, defer D1 worktree until CWD routing verified. Review at: pipeline_builds/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop_phase2_critic_design_review.md |
+| phase2_builder_implementation | 2026-03-24 | builder | Phase 2 implemented: D9 (auto-retry verification loop, max 3 retries with escalation), D8 (lesson injection diagnostic via show-lessons subcommand). D1 (git worktree) deferred — agent workspace routing unresolved (FLAG-2 HIGH). All FLAGs addressed: FLAG-1 preserved generate_stage_session_id, FLAG-2 documented worktree limitation, FLAG-3 T9-T11 test actual code not arithmetic, FLAG-4 noted in docstring. 11/11 tests GREEN. |
+| phase2_builder_verification | 2026-03-24 | builder | GREEN: 11/11 tests passed. T1-T8 (Phase 1 core) + T9 (auto-retry logic) + T10 (retry counter) + T11 (show_lessons). All pass. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
