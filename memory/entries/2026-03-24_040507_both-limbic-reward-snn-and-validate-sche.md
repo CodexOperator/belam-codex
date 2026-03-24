@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, pipeline, archive, snn, validate-scheme-b]
 source: "session"
 content: "Both limbic-reward-snn and validate-scheme-b pipelines archived. Results intact (limbic: 12 experiments + analysis report; validate-scheme-b: 15 experiments + PDF report + critic followup). Pipeline state files corrupted from dispatch loops but research output is intact. Task created: retroactive-analysis-limbic-reward-and-validate-scheme-b.md for formal re-analysis."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

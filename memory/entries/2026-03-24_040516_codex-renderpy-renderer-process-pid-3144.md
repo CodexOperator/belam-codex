@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, renderer, codex-cockpit, gateway, freeze]
 source: "session"
 content: "codex_render.py renderer process (PID 3144387) was causing gateway contention. Kill attempts via exec were themselves being killed (SIGTERM, SIGKILL) — suggesting gateway resource conflict with renderer. Plan: disable codex-cockpit plugin via config to prevent auto-restart on gateway boot."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

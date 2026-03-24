@@ -6,7 +6,7 @@ importance: 3
 tags: [instance:main, gateway, openclaw, telegram, stability]
 source: "session"
 content: "Gateway freeze at 02:31 UTC traced to stale OpenClaw version: running 2026.3.12, latest was 2026.3.23-1 (11 days behind). Fixed by removing stale global npm install (/usr/lib/node_modules/openclaw), adding ~/.npm-global/bin to PATH, and restarting. Cron jobs disabled during investigation, safe consolidation crons re-enabled after update."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
