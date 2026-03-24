@@ -100,6 +100,72 @@ D5 revised: NO direct OpenClaw integration. Engine is authoritative for our agen
 D6 revised: KEEP dulwich for test mode. Dulwich provides real branch semantics (merge, diff-between-branches, discard) that a simple flush-suppression flag cannot replicate. The render engine already uses dulwich — no changes needed here, just ensure it works with the RAM-first write path.
 
 
+## D7: RAM Git Worktree as Agent Filesystem
+
+### Vision
+Agents don't know they're in RAM. The workspace resolves through symlinks to a git repo on tmpfs. Every file write is a git object. The render engine observes the git tree instead of the filesystem.
+
+### Architecture
+```
+/dev/shm/codex/                    ← git repo in tmpfs (working tree + .git)
+  ├── tasks/
+  ├── decisions/
+  ├── lessons/
+  ├── memory/
+  ├── pipeline_builds/
+  └── .git/                        ← full git objects, all in RAM
+
+~/.openclaw/workspace/
+  ├── tasks/ → /dev/shm/codex/tasks/          ← symlinks
+  ├── decisions/ → /dev/shm/codex/decisions/
+  ├── lessons/ → /dev/shm/codex/lessons/
+  └── ...                                      ← non-primitive dirs stay on disk
+```
+
+### Sub-deliverables
+
+**D7.1: RAM repo bootstrap**
+- On engine start: `git clone --local workspace → /dev/shm/codex/` (primitive dirs only)
+- Symlink primitive namespace dirs from workspace → tmpfs
+- Engine reads git tree directly (replaces inotify watcher entirely)
+- `git diff HEAD~1` replaces the inotify→queue→flush chain
+
+**D7.2: Git-native diff pipeline**
+- `post-commit` hook → pings render engine UDS → diffs flow to agents next turn
+- Replaces: inotify watches, change queue, flush worker
+- Coalescing is free (git handles atomic commits)
+- Ordering is free (commit sequence)
+
+**D7.3: Background sync daemon**
+- Periodically pushes RAM git → disk git for persistence
+- Configurable interval (default: every 60s + on agent session end)
+- Crash recovery: clone disk → RAM on boot (systemd ExecStartPre)
+- Sync is `git push` — fast, incremental, atomic
+
+**D7.4: Agent branch isolation (optional, Phase 3)**
+- Each pipeline agent works on `{role}/{pipeline}` branch
+- Coordinator sees all branches — merge conflicts = coordination signals
+- Merge to main = accepted work
+- Discard branch = rollback
+
+**D7.5: Pipeline turn-by-turn signaling**
+- Instant wake on `_state.json` commit (pattern-match in post-commit hook)
+- Directive file convention: coordinator writes `_directive.md`, agent sees as diff
+- Threshold tuning: state file changes bypass the 10-diff accumulator
+
+### Key Properties
+- **Flush isolation preserved:** each agent's turn pokes independently — no contention
+- **Nice mode still works:** queue is now git's working tree; flush = commit
+- **Volatile risk mitigated:** sync daemon + systemd ExecStartPre recovery
+- **Graceful degradation:** if tmpfs unavailable, fall back to disk-direct (current behavior)
+
+### Success Criteria
+- [ ] Agent file writes resolve to RAM via symlinks (<1ms I/O)
+- [ ] `git diff` replaces inotify for all diff generation
+- [ ] Sync daemon maintains <60s staleness on disk
+- [ ] Engine restart from cold (disk clone → RAM) in <3s
+- [ ] Pipeline state changes wake coordinator within 1 turn
+
 ## Phase 2 Notes
 - .codex file YAML parsing fails on some frontmatter blocks — codec needs normalization pass before feeding to yaml.safe_load
 - Use codex_codec.py as canonical parser (it already handles edge cases)
