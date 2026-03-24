@@ -136,8 +136,26 @@ def parse_frontmatter(filepath):
     return meta
 
 
+# ── Backfill Cutoff ───────────────────────────────────────────────────────
+# Primitives created on or after this date are excluded from mapping.
+# Sage's automated memory extraction handles relationships for newer primitives.
+# This mapper is backfill-only for the pre-automation era.
+BACKFILL_CUTOFF_DATE = "2026-03-21"
+
+
+def _is_before_cutoff(meta):
+    """Return True if primitive was created before BACKFILL_CUTOFF_DATE."""
+    raw = meta.get("date", "") or meta.get("created", "") or meta.get("timestamp", "")
+    if not raw:
+        return True  # No date = old, include it
+    return str(raw)[:10] < BACKFILL_CUTOFF_DATE
+
+
 def load_all_primitives():
     """Load all primitives from eligible type directories + memory entries.
+
+    Only includes primitives created before BACKFILL_CUTOFF_DATE.
+    Sage handles relationship mapping for newer primitives automatically.
 
     Returns dict: { 'type/slug': { frontmatter + _content + _type + _slug + _path } }
     """
@@ -156,6 +174,8 @@ def load_all_primitives():
             meta["_type"] = ptype
             meta["_slug"] = f.stem
             meta["_path"] = str(f)
+            if not _is_before_cutoff(meta):
+                continue
             key = f"{ptype}/{f.stem}"
             primitives[key] = meta
 
@@ -170,6 +190,8 @@ def load_all_primitives():
             # Normalize: use timestamp as date if no date field
             if "date" not in meta and "timestamp" in meta:
                 meta["date"] = meta["timestamp"][:10]
+            if not _is_before_cutoff(meta):
+                continue
             key = f"memories/{f.stem}"
             primitives[key] = meta
 
@@ -423,11 +445,11 @@ def call_opus_single(task_message, dry_run=False):
     import uuid
     session_id = f"mapper-{uuid.uuid4().hex[:12]}"
 
-    # Use code-tutor agent (Sonnet) — lightweight, own session space,
+    # Use sage agent (Sonnet) — lightweight, own session space,
     # won't collide with main coordinator session
     cmd = [
         'openclaw', 'agent',
-        '--agent', 'code-tutor',
+        '--agent', 'sage',
         '--session-id', session_id,
         '--thinking', 'off',
         '--message', task_message,
