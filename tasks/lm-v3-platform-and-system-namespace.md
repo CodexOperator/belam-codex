@@ -88,8 +88,8 @@ Single new file: `scripts/codex_lm_platform.py` (~300-400L)
 - Scaffold templates as Python dicts/strings
 - Plugs into existing `codex_lm_renderer.py` registration system
 
-## Open Questions
+## Design Decisions (Resolved)
 
-1. Should `oc.*` entries execute directly or just render the command for the agent to exec?
-2. Scaffold wiring depth — auto-wire into crontab/hooks, or just create the file?
-3. `sys.*` scope — curated list vs auto-discover from PATH?
+1. **Auto-exec, not render.** `oc.gw` executes `openclaw gateway status` via codex_engine.py and returns output directly. No intermediate render step. Saves tokens.
+2. **Full autowire.** Scaffolds create files AND wire into hooks/crontab/config. Documentation baked into the scaffold's output view so the agent knows what was wired and how to proceed.
+3. **Curated, extensible via e3.** Start with high-value tools. Agents extend via `e3 sys.{newtool}` as needed — the tools you collect become a memory of what you do.
