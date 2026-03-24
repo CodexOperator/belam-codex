@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: done
 priority: high
 created: 2026-03-20
 owner: belam

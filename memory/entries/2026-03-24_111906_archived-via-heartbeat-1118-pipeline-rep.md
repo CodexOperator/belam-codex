@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:report-to-youtube-pipeline, stage:phase1_complete]
 source: "pipeline_update:report-to-youtube-pipeline:phase1_complete"
 content: "Archived via heartbeat (11:18) | Pipeline: report-to-youtube-pipeline | Stage: phase1_complete"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

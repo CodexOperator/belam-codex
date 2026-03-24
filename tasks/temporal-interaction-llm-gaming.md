@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: done
 priority: medium
 project: multi-agent-infrastructure
 depends_on: []

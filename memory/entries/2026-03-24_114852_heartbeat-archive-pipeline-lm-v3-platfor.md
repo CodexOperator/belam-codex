@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:lm-v3-platform-and-system-namespace, stage:phase1_complete]
 source: "pipeline_update:lm-v3-platform-and-system-namespace:phase1_complete"
 content: "Heartbeat archive | Pipeline: lm-v3-platform-and-system-namespace | Stage: phase1_complete"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

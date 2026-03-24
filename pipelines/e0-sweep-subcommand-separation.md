@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_complete
+status: archived
 priority: high
 type: infrastructure
 version: e0-sweep-subcommand-separation

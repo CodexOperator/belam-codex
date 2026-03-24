@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:temporal-interaction-llm-gaming, stage:phase1_complete]
 source: "pipeline_update:temporal-interaction-llm-gaming:phase1_complete"
 content: "Heartbeat archive | Pipeline: temporal-interaction-llm-gaming | Stage: phase1_complete"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

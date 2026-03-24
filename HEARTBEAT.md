@@ -26,31 +26,28 @@
 **Scope:** Infra tasks only. Sequential (MAX_CONCURRENT=1). No research/experiment pipelines.
 
 1. Check current pipeline status:
-   - `python3 scripts/codex_engine.py p` — look at pipeline state suffix
-   - If a pipeline is actively running (dispatched/running), skip — wait for it
+   - `grep "^status:" pipelines/*.md | grep -vE "archived"` — look at active pipeline states
+   - If a pipeline is actively running (dispatched/in_progress/architect_design/critic_*/builder_*), skip — wait for it
 
-2. If current pipeline reached `phase1_complete` or `phase2_complete`:
-   - Archive it: `python3 scripts/pipeline_orchestrate.py {version} complete`
-   - Update task status
+2. If current pipeline reached `phase1_complete`:
+   - Check test results: `pipeline_builds/{version}_test_results.md` or `machinelearning/.../pipeline_builds/{version}_test_results.md`
+   - If tests **PASSED (GREEN)**: mark pipeline as archived, update task status to `done`
+   - If tests **FAILED**: write findings as Phase 2 direction (`pipeline_builds/{version}_phase2_direction.md`), then kick Phase 2: `python3 scripts/pipeline_orchestrate.py {version} kickoff`
+   - **Do NOT auto-kick Phase 2 on passed pipelines** — Phase 2 is only for fixing failures
 
-3. If current pipeline reached `builder_verification` and verification FAILED (check `_test_results.json`):
-   - Read the test results
-   - Write findings as Phase 2 direction: `pipeline_builds/{version}_phase2_direction.md`
-   - Kick Phase 2: `python3 scripts/pipeline_orchestrate.py {version} kickoff`
-   - This turns verification failures into iterative improvement
-
-4. If no pipeline is running, find next eligible infra task:
+3. If no pipeline is running, find next eligible infra task:
    - `ls tasks/*.md` — look for `status: open` + `tags:` containing `infrastructure`
    - Check `depends_on` are satisfied
    - Launch: `python3 scripts/launch_pipeline.py {slug} --desc "..." --type infrastructure --kickoff`
    - Update task status to `in_pipeline`
 
-5. Skip silently if nothing to do
+4. Skip silently if nothing to do
 
 **Anti-patterns:**
 - Do NOT launch research/experiment pipelines (SNN, trading, etc.)
 - Do NOT run `e0` sweep (causes gateway load)
 - Do NOT launch if a pipeline is already running
+- Do NOT auto-kick Phase 2 when Phase 1 tests passed — this causes dispatch loops
 - Keep it lightweight — read state files, make one decision, exit
 
 ## Task 5.5: Render Engine Health Check
@@ -79,7 +76,16 @@
 
 _Note: embed_primitives.py is archived — supermap is injected at boot via hook._
 
-## Task 8: Agent Conversation Export
+## Task 8: Telegram Summary to Shael
+
+Send Shael a brief Telegram message summarizing heartbeat activity. Include:
+- Which tasks were launched into pipelines (if any)
+- Which pipelines finished — include test results (passed/failed, test count)
+- Which pipelines are still running
+- Any errors or issues found
+- Skip this task if nothing changed since last heartbeat (no launches, no completions, no errors)
+
+## Task 9: Agent Conversation Export
 
 1. `python3 scripts/export_agent_conversations.py --since 2`
 2. Skip silently if no new conversations

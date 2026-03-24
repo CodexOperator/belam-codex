@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:e0-sweep-subcommand-separation, stage:phase1_complete]
 source: "pipeline_update:e0-sweep-subcommand-separation:phase1_complete"
 content: "Archived via heartbeat (11:18) | Pipeline: e0-sweep-subcommand-separation | Stage: phase1_complete"
-status: active
+status: consolidated
 ---
 
 # Memory Entry

@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: done
 priority: high
 tags: [orchestration, infrastructure, stability]
 pipeline: e0-sweep-subcommand-separation

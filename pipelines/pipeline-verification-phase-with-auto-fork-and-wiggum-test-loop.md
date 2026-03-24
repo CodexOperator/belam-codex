@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: high
 type: infrastructure
 version: pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop
