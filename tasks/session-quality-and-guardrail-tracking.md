@@ -45,10 +45,16 @@ Programmatic detection and logging of guardrail trigger events:
 - Whether different guardrails fired in sequence (escalation pattern)
 - Context: what was the agent trying to do when the guardrail fired
 
+**Dual purpose — debug AND training signal:**
+- Debug: alert on chains > 3 (likely stuck in a loop), surface via `r.guardrails`
+- Training: structured negative examples for fine-tuning. Each activation captures (context, action, guardrail_type, outcome) — encoding "don't do this" as training pairs
+- Surveys are pure training signal; guardrail activations are both
+- Format TBD: different fine-tuning approaches handle negative signal differently (DPO pairs, RLHF penalty, instruction-following with "avoid X" framing). Collect richly now, experiment with encoding later.
+
 **Implementation:**
 - Hook into agent_end telemetry or tool response parsing
 - Detect guardrail signatures: refusal patterns, tool denials, approval-pending states
-- Log as structured events: `{timestamp, guardrail_type, chain_length, context}`
+- Log as structured events: `{timestamp, guardrail_type, chain_length, context, action_attempted, resolution}`
 - Alert on chains > 3 (likely stuck in a loop)
 - Surfaceable via `r.guardrails` read command (from t7's `r.*` namespace)
 
