@@ -35,7 +35,8 @@ Importable AND runnable standalone:
   All commands accept --json for structured output (zero coordinator tokens).
 
 FLAG fixes applied (orchestration-engine-v2 critic review):
-  FLAG-1 (MED): STAGE_TRANSITIONS imported from pipeline_update.py (single source of truth)
+  FLAG-1 (MED): STAGE_TRANSITIONS now resolved from template markdown files exclusively
+                 (research-pipeline.md, builder-first-pipeline.md, etc.)
   FLAG-2 (MED): Gate conditions support version strings for stored conditions; coordinate
                  syntax (p{N}) triggers a warning about archival fragility
   FLAG-3 (MED): pre/post_actions are metadata-only in DispatchPayload; engine executes
@@ -89,29 +90,64 @@ AGENT_SESSION_DIRS = {
     'builder': Path(os.path.expanduser('~/.openclaw/agents/builder/sessions')),
 }
 
-# Actions that indicate agent work is in progress
-AGENT_ACTIONS = {
-    'architect_design', 'critic_design_review', 'builder_implementation',
-    'critic_code_review', 'architect_design_revision', 'builder_apply_blocks',
-    'phase2_architect_design', 'phase2_critic_design_review',
-    'phase2_builder_implementation', 'phase2_critic_code_review',
-    'phase2_architect_revision',
-    'analysis_architect_design', 'analysis_critic_review',
-    'analysis_builder_implementation', 'analysis_critic_code_review',
-    'local_analysis_architect', 'local_analysis_critic_review',
-    'local_analysis_builder', 'local_analysis_code_review',
-    'local_analysis_report_build',
-    'local_experiment_running', 'report_building',
-    'phase1_revision_architect', 'phase1_revision_critic_review',
-    'phase1_revision_builder', 'phase1_revision_code_review',
-    'phase1_revision_architect_fix', 'phase1_revision_builder_fix',
-}
+# ─── Lazy-loaded template-derived sets ──────────────────────────────────────────
+# These replace the old hardcoded AGENT_ACTIONS and HUMAN_ACTIONS sets.
+# Built dynamically from all templates in templates/ on first access.
 
-# Actions that are human-gated (don't auto-recover)
-HUMAN_ACTIONS = {
-    'ready_for_colab_run', 'phase1_complete', 'phase2_complete',
-    'phase3_complete', 'pipeline_created', 'local_analysis_complete',
-}
+_all_template_gates_loaded = False
+_dynamic_human_actions: set = set()
+_dynamic_agent_actions: set = set()
+_template_status_bumps: dict[str, dict] = {}       # template_name → {stage: status}
+_template_start_status_bumps: dict[str, dict] = {}  # template_name → {stage: status}
+
+
+def _load_all_template_gates():
+    """Scan all templates in templates/ and build dynamic HUMAN_ACTIONS and AGENT_ACTIONS sets.
+
+    HUMAN_ACTIONS = every stage tagged with gate: human across all templates
+    AGENT_ACTIONS = every stage that transitions to a non-system agent across all templates
+    Also populates _template_status_bumps and _template_start_status_bumps.
+    """
+    global _all_template_gates_loaded, _dynamic_human_actions, _dynamic_agent_actions
+    if _all_template_gates_loaded:
+        return
+
+    if not TEMPLATES_DIR.exists():
+        _all_template_gates_loaded = True
+        return
+
+    for template_file in TEMPLATES_DIR.glob('*-pipeline.md'):
+        template_name = template_file.name.replace('-pipeline.md', '')
+        # Ensure template is parsed (populates _template_cache and _template_gates)
+        transitions = _parse_template_transitions(template_name)
+        # Collect human gates
+        gates = _template_gates.get(template_name, set())
+        _dynamic_human_actions.update(gates)
+        # Collect agent actions: any stage whose transition target is a non-system agent
+        if transitions:
+            for stage, (next_stage, agent, msg) in transitions.items():
+                if agent not in ('system', 'human-gate'):
+                    _dynamic_agent_actions.add(next_stage)
+
+    _all_template_gates_loaded = True
+
+
+def _get_human_actions() -> set:
+    """Get the set of human-gated actions (lazy-loaded from templates)."""
+    _load_all_template_gates()
+    return _dynamic_human_actions
+
+
+def _get_agent_actions() -> set:
+    """Get the set of agent actions (lazy-loaded from templates)."""
+    _load_all_template_gates()
+    return _dynamic_agent_actions
+
+
+# Legacy names — DO NOT USE directly. Use _get_agent_actions() and _get_human_actions().
+# Set to None so any stale 'in AGENT_ACTIONS' will TypeError instead of silently pass.
+AGENT_ACTIONS = None
+HUMAN_ACTIONS = None
 
 # Max resume attempts before alerting human
 MAX_RESUMES = 3
@@ -156,37 +192,62 @@ def _parse_template_transitions(template_name: str) -> dict | None:
 
     yaml_block = match.group(1)
 
-    # Parse transitions manually (avoid PyYAML dependency)
+    # Parse transitions, status_bumps, and start_status_bumps manually (avoid PyYAML dependency)
     transitions = {}
     gates = set()
-    in_transitions = False
+    status_bumps = {}
+    start_status_bumps = {}
+    current_section = None  # 'transitions' | 'status_bumps' | 'start_status_bumps'
+
     for line in yaml_block.splitlines():
         stripped = line.strip()
-        if stripped.startswith('transitions:'):
-            in_transitions = True
-            continue
-        if not in_transitions:
-            continue
         if stripped.startswith('#') or not stripped:
             continue
-        # New top-level key (not indented enough) means we left transitions
-        if not line.startswith('  ') and ':' in stripped and not stripped.startswith('-'):
-            break
 
-        # Parse: stage_name: [next_stage, agent, "message"] with optional gate: human
-        m = re.match(
-            r'\s*(\w+):\s*\[(\w+),\s*(\w+),\s*"([^"]*)"(?:,\s*gate:\s*(\w+))?\]',
-            line
-        )
-        if m:
-            stage, next_stage, agent, msg, gate = m.groups()
-            transitions[stage] = (next_stage, agent, msg)
-            if gate == 'human':
-                gates.add(next_stage)
+        # Detect top-level section keys
+        if stripped == 'transitions:':
+            current_section = 'transitions'
+            continue
+        elif stripped == 'status_bumps:':
+            current_section = 'status_bumps'
+            continue
+        elif stripped == 'start_status_bumps:':
+            current_section = 'start_status_bumps'
+            continue
+        # Other top-level keys (first_agent:, pipeline_fields:, etc.)
+        elif not line.startswith('  ') and ':' in stripped and not stripped.startswith('-'):
+            current_section = None
+            continue
+
+        if current_section == 'transitions':
+            # Parse: stage_name: [next_stage, agent, "message"] with optional gate: human
+            m = re.match(
+                r'\s*(\w+):\s*\[(\w+),\s*(\w+),\s*"([^"]*)"(?:,\s*gate:\s*(\w+))?\]',
+                line
+            )
+            if m:
+                stage, next_stage, agent, msg, gate = m.groups()
+                transitions[stage] = (next_stage, agent, msg)
+                if gate == 'human':
+                    gates.add(next_stage)
+
+        elif current_section == 'status_bumps':
+            # Parse: stage_name:  status_string
+            m = re.match(r'\s+([\w]+):\s+(\S+)', line)
+            if m:
+                status_bumps[m.group(1)] = m.group(2)
+
+        elif current_section == 'start_status_bumps':
+            # Parse: stage_name:  status_string
+            m = re.match(r'\s+([\w]+):\s+(\S+)', line)
+            if m:
+                start_status_bumps[m.group(1)] = m.group(2)
 
     result = transitions if transitions else None
     _template_cache[template_name] = result
     _template_gates[template_name] = gates
+    _template_status_bumps[template_name] = status_bumps
+    _template_start_status_bumps[template_name] = start_status_bumps
     return result
 
 
@@ -201,45 +262,118 @@ def _get_pipeline_type(version: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
+def _resolve_template_name(pipeline_type: str | None) -> str:
+    """Map a pipeline type to its template name.
+
+    Default/None/research/infrastructure all map to 'research'.
+    Other types map to themselves (e.g. 'builder-first' → 'builder-first').
+    """
+    if not pipeline_type or pipeline_type in ('research', 'infrastructure'):
+        return 'research'
+    return pipeline_type
+
+
 def resolve_transition(version: str, stage: str) -> tuple | None:
-    """Resolve the next transition for a stage, checking pipeline template first.
+    """Resolve the next transition for a stage from templates exclusively.
 
     Returns (next_stage, expected_agent, message) or None.
-    Falls back to STAGE_TRANSITIONS from pipeline_update.py if no template match.
+    Checks pipeline's own template first, then falls back to the research template.
     """
-    # Check if this pipeline has a template type
     pipeline_type = _get_pipeline_type(version)
-    if pipeline_type and pipeline_type not in ('research', 'infrastructure'):
-        template_transitions = _parse_template_transitions(pipeline_type)
-        if template_transitions:
-            result = template_transitions.get(stage)
+    template_name = _resolve_template_name(pipeline_type)
+
+    # Try the pipeline's template
+    template_transitions = _parse_template_transitions(template_name)
+    if template_transitions:
+        result = template_transitions.get(stage)
+        if result:
+            return result
+
+    # If not the research template already, try research as final fallback
+    if template_name != 'research':
+        research_transitions = _parse_template_transitions('research')
+        if research_transitions:
+            result = research_transitions.get(stage)
             if result:
                 return result
 
-    # Fallback to default STAGE_TRANSITIONS
-    try:
-        from pipeline_update import STAGE_TRANSITIONS
-        return STAGE_TRANSITIONS.get(stage)
-    except ImportError:
-        return None
+    return None
+
+
+def resolve_status_bump(version: str, stage: str) -> str | None:
+    """Resolve the status bump for a stage from templates.
+
+    Returns the new status string or None.
+    """
+    pipeline_type = _get_pipeline_type(version)
+    template_name = _resolve_template_name(pipeline_type)
+
+    # Try the pipeline's template
+    bumps = _template_status_bumps.get(template_name)
+    if bumps is None:
+        _parse_template_transitions(template_name)
+        bumps = _template_status_bumps.get(template_name, {})
+    result = bumps.get(stage)
+    if result:
+        return result
+
+    # Fallback to research template
+    if template_name != 'research':
+        bumps = _template_status_bumps.get('research')
+        if bumps is None:
+            _parse_template_transitions('research')
+            bumps = _template_status_bumps.get('research', {})
+        return bumps.get(stage)
+
+    return None
+
+
+def resolve_start_status_bump(version: str, stage: str) -> str | None:
+    """Resolve the start status bump for a stage from templates.
+
+    Returns the new status string or None.
+    """
+    pipeline_type = _get_pipeline_type(version)
+    template_name = _resolve_template_name(pipeline_type)
+
+    # Try the pipeline's template
+    bumps = _template_start_status_bumps.get(template_name)
+    if bumps is None:
+        _parse_template_transitions(template_name)
+        bumps = _template_start_status_bumps.get(template_name, {})
+    result = bumps.get(stage)
+    if result:
+        return result
+
+    # Fallback to research template
+    if template_name != 'research':
+        bumps = _template_start_status_bumps.get('research')
+        if bumps is None:
+            _parse_template_transitions('research')
+            bumps = _template_start_status_bumps.get('research', {})
+        return bumps.get(stage)
+
+    return None
 
 
 def is_human_gated(version: str, stage: str) -> bool:
-    """Check if a stage is human-gated, considering both HUMAN_ACTIONS and template gates.
+    """Check if a stage is human-gated, using template-derived gates.
 
     Returns True if the stage requires manual intervention before dispatch.
+    Checks the pipeline's specific template first, then the global union of all template gates.
     """
-    if stage in HUMAN_ACTIONS:
-        return True
-
-    # Check template-defined gates
+    # Check pipeline-specific template gates first
     pipeline_type = _get_pipeline_type(version)
-    if pipeline_type and pipeline_type not in ('research', 'infrastructure'):
-        # Ensure template is parsed (populates _template_gates)
-        _parse_template_transitions(pipeline_type)
-        gates = _template_gates.get(pipeline_type, set())
+    template_name = _resolve_template_name(pipeline_type)
+    if template_name:
+        _parse_template_transitions(template_name)
+        gates = _template_gates.get(template_name, set())
         if stage in gates:
             return True
+
+    # Fallback: check the global union of all template gates
+    if stage in _get_human_actions():
+        return True
 
     return False
 
@@ -300,7 +434,7 @@ def _post_state_change(version: str, from_stage: str, to_stage: str,
                 next_stage=to_stage, notes=notes,
             )
         # 4. V3: Cascading dependency resolution on phase completion / archive
-        if to_stage in HUMAN_ACTIONS or action == 'archive':
+        if to_stage in _get_human_actions() or action == 'archive':
             try:
                 from dependency_graph import resolve_downstream_deps
                 resolved = resolve_downstream_deps(version, action=action)
@@ -1481,11 +1615,11 @@ def pipeline_next_action(version: str) -> str | None:
         if dir_new2.exists() or dir_legacy2.exists():
             return f'Phase 2 direction file found -- kick off Phase 2'
         return f'Human gate: local analysis complete, awaiting Phase 2 direction'
-    if pending in HUMAN_ACTIONS or is_human_gated(version, pending):
+    if pending in _get_human_actions() or is_human_gated(version, pending):
         return f'Human gate: {pending}'
 
     # Agent actions — check if stalled
-    if pending in AGENT_ACTIONS:
+    if pending in _get_agent_actions():
         agent = _agent_from_action(pending)
         if elapsed is not None and elapsed > STALL_THRESHOLD_MINUTES:
             return f'STALLED: {agent} has not completed {pending} ({elapsed:.0f}min). Recovery needed.'
@@ -1510,7 +1644,7 @@ def _agent_from_action(action: str) -> str:
         return 'system'
     if 'report' in action:
         return 'system'
-    if action in HUMAN_ACTIONS:
+    if action in _get_human_actions():
         return 'human-gate'
     # Check template gates (version not available here, so check all cached templates)
     for gates in _template_gates.values():
@@ -2253,7 +2387,7 @@ def check_gates(version: str = None, dry_run: bool = False) -> list[dict]:
             continue
 
         # Active agent work -- not a gate, but report it
-        if pending in AGENT_ACTIONS:
+        if pending in _get_agent_actions():
             elapsed = minutes_since(p['last_updated'])
             if elapsed is not None and elapsed > STALL_THRESHOLD_MINUTES:
                 results.append({
@@ -2410,7 +2544,7 @@ def check_stalls(threshold_minutes: int = STALL_THRESHOLD_MINUTES) -> list[dict]
         if is_human_gated(version, pending) or pending == 'none' or not pending:
             continue
 
-        if pending not in AGENT_ACTIONS:
+        if pending not in _get_agent_actions():
             continue
 
         elapsed = minutes_since(last)
@@ -3112,25 +3246,23 @@ def handle_block(version: str, stage: str, agent: str,
 def _next_stage_for(stage: str, version: str = None) -> str | None:
     """Get the next stage in the transition sequence (template-aware).
 
-    If version is provided and the pipeline has a template type,
-    checks template transitions first before falling back to defaults.
+    Uses template-based resolution exclusively. Falls back to research template
+    if no version is provided, then to STAGE_SEQUENCE as last resort.
     """
     # Template-aware resolution if version provided
     if version:
         transition = resolve_transition(version, stage)
         if transition:
             return transition[0]  # (next_stage, expected_agent, desc)
+    else:
+        # No version — try research template as default
+        research_transitions = _parse_template_transitions('research')
+        if research_transitions:
+            result = research_transitions.get(stage)
+            if result:
+                return result[0]
 
-    # Fallback to default STAGE_TRANSITIONS
-    try:
-        from pipeline_update import STAGE_TRANSITIONS
-        transition = STAGE_TRANSITIONS.get(stage)
-        if transition:
-            return transition[0]
-    except ImportError:
-        pass
-
-    # Fallback to STAGE_SEQUENCE
+    # Last resort: STAGE_SEQUENCE (positional fallback for legacy compat)
     try:
         idx = STAGE_SEQUENCE.index(stage)
         if idx + 1 < len(STAGE_SEQUENCE):

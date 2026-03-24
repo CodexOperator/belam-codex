@@ -68,4 +68,18 @@ transitions:
   phase2_builder_bugfix:          [phase2_critic_review,        critic,  "Phase 2 code complete. Review against phase2 spec."]
   phase2_critic_review:           [phase2_complete,             system,  "Phase 2 review passed. Pipeline complete.", gate: human]
   phase2_builder_apply_blocks:    [phase2_critic_review,        critic,  "Phase 2 blocks fixed. Re-review."]
+
+status_bumps:
+  builder_implement:               phase1_build
+  builder_bugfix:                  phase1_build
+  critic_review:                   phase1_code_review
+  phase1_complete:                 phase1_complete
+  phase2_builder_implement:        phase2_build
+  phase2_builder_bugfix:           phase2_build
+  phase2_critic_review:            phase2_code_review
+  phase2_complete:                 phase2_complete
+
+start_status_bumps:
+  builder_implement:               phase1_build
+  phase2_builder_implement:        phase2_build
 ```
