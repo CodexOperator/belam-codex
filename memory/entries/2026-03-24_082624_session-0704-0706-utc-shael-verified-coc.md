@@ -6,7 +6,7 @@ importance: 2
 tags: [instance:main, cockpit, render-engine, verification, session-startup]
 source: "session"
 content: "Session 07:04-07:06 UTC: Shael verified cockpit V8 + render engine health at session start. Engine active in nice mode, 435 nodes, mtime fresh. Confirmed CODEX injection present. Discussed pipeline agents already getting supermap+diffs via cockpit V8 on every turn. Identified gap: coordinator has no visibility into running agents until completion."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

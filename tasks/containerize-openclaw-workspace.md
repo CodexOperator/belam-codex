@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-21
 owner: belam
@@ -9,6 +9,7 @@ depends_on: []
 upstream: []
 downstream: []
 tags: [docker, infrastructure, portability, deployment]
+pipeline: containerize-openclaw-workspace
 ---
 
 # containerize-openclaw-workspace
