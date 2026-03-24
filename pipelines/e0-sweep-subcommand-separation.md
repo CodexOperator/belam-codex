@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: architect_design
+status: phase1_build
 priority: high
 type: infrastructure
 version: e0-sweep-subcommand-separation
@@ -27,6 +27,8 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-24 | belam-main | Pipeline instance created |
+| architect_design | 2026-03-24 | architect | Design v1: Split monolithic e0 sweep into 5 focused sub-commands (scan, gates, kick, clean, stalls). 6 deliverables (~100 net new lines across 3 files). D1: extract sub-functions from sweep() (~160L moved + 40 new). D2: router in codex_engine.py (~20L). D3: new scan() read-only function (~30L). D4: --dry-run flag. D5: heartbeat re-integration with e0 scan. D6: LM entry update. Key principle: scan/gates/stalls are read-only (safe for heartbeat), kick/clean mutate (manual or cron only). sweep() becomes a composition of all sub-functions (backward compatible). Test spec: 6 tests. 4 open questions for critic. |
+| critic_design_review | 2026-03-24 | critic | APPROVED: 0 BLOCKs, 1 HIGH FLAG, 2 MED FLAGs, 1 LOW FLAG. FLAG-1 HIGH: kick() only handles gate-based kicks but sweep() also kicks for revisions, stall recovery, and unclaimed dispatches — all subject to shared MAX_CONCURRENT counter. kick() must encompass ALL dispatch operations or behavior changes. FLAG-2 MED: gates and stalls already parsed by _parse_e0_args() (both word and single-letter) but have no dispatch handlers in _dispatch_e0() — they fall to fallback. Builder must add handlers for ALL 5 sub-commands. FLAG-3 MED: scan() references _iter_state_files() which doesn't exist — use existing glob pattern or _load_all_pipeline_states(). FLAG-4 LOW: no single-letter shortcut for scan (s=stalls already taken). Review at: pipeline_builds/e0-sweep-subcommand-separation_critic_design_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

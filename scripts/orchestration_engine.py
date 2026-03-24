@@ -2382,6 +2382,247 @@ def _check_unclaimed_dispatches(dry_run: bool = False,
     return unclaimed
 
 
+# ─── Sub-Commands (D1: extracted from sweep) ───────────────────────────────────
+
+MAX_CONCURRENT = 1  # Max pipelines kicked per sweep/kick invocation
+
+
+def scan(pipeline: str = None) -> list[dict]:
+    """Read-only pipeline status scan. No mutations, no dispatches."""
+    results = []
+    state_files = list(BUILDS_DIR.glob('*_state.json')) if BUILDS_DIR.exists() else []
+
+    for sf in state_files:
+        try:
+            state = json.loads(sf.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        version = state.get('version', sf.stem.replace('_state', ''))
+        if pipeline and version != pipeline:
+            continue
+
+        status = state.get('status', 'unknown')
+        pending = state.get('pending_action', 'none')
+        agent = state.get('current_agent', '?')
+        last = state.get('last_dispatched', '')
+        last_updated = state.get('last_updated', '')
+
+        results.append({
+            'pipeline': version,
+            'status': status,
+            'pending_action': pending,
+            'current_agent': agent,
+            'last_dispatched': last,
+            'last_updated': last_updated,
+        })
+
+    if results:
+        print(f"\nPipeline Status ({len(results)} active):")
+        for r in results:
+            print(f"  {r['pipeline']:<50} {r['status']:<25} {r['pending_action']}")
+    else:
+        print("  No active pipelines.")
+
+    return results
+
+
+def clean(dry_run: bool = False) -> list[dict]:
+    """Clear stale locks and dead experiment PIDs. Returns list of actions taken."""
+    actions = []
+
+    # Stale locks
+    locks = list_locks()
+    stale_locks = [l for l in locks if l.get('stale')]
+    for l in stale_locks:
+        pid = l.get('pid', '?')
+        reason = 'dead PID' if not l.get('pid_alive') else 'stale'
+        print(f'  STALE {l["agent"]}: PID {pid} ({reason})')
+        if not dry_run:
+            try:
+                lock_path = Path(l['file'])
+                if l.get('pid') and l.get('pid_alive'):
+                    try:
+                        os.kill(l['pid'], 15)
+                        time.sleep(1)
+                        try:
+                            os.kill(l['pid'], 9)
+                        except ProcessLookupError:
+                            pass
+                    except ProcessLookupError:
+                        pass
+                lock_path.unlink(missing_ok=True)
+                actions.append({'type': 'lock_cleared', 'agent': l['agent'], 'pid': pid})
+                print(f'    -> Lock cleared')
+            except Exception as e:
+                print(f'    -> Failed: {e}')
+        else:
+            actions.append({'type': 'dry_run', 'action': f'Would clear lock for {l["agent"]}'})
+
+    # Dead experiment PIDs
+    exp_pids = list(BUILDS_DIR.glob('*_experiment.pid')) if BUILDS_DIR.exists() else []
+    for pid_file in exp_pids:
+        try:
+            pid_info = json.loads(pid_file.read_text())
+            pid = pid_info.get('pid')
+            ver = pid_info.get('version', pid_file.stem.replace('_experiment', ''))
+            try:
+                os.kill(pid, 0)
+                # Still alive — report but don't clean
+                started = pid_info.get('started', '')
+                elapsed = minutes_since(started) if started else None
+                age_str = f'{elapsed:.0f}min' if elapsed else '?'
+                print(f'  RUNNING {ver}: PID {pid}, {age_str} elapsed')
+            except (OSError, ProcessLookupError):
+                print(f'  DEAD {ver}: PID {pid} -- process ended')
+                if not dry_run:
+                    pid_file.unlink(missing_ok=True)
+                    actions.append({'type': 'experiment_cleaned', 'pipeline': ver, 'pid': pid})
+        except Exception:
+            pass
+
+    if not stale_locks and not exp_pids:
+        print('  Nothing to clean.')
+
+    return actions
+
+
+def stalls(pipeline: str = None) -> list[dict]:
+    """Detect and report stalled pipelines. Read-only."""
+    all_stalls = check_stalls()
+    if pipeline:
+        all_stalls = [s for s in all_stalls if s.get('pipeline') == pipeline]
+
+    if all_stalls:
+        print(f"\nStalled Pipelines (>{STALL_THRESHOLD_MINUTES}min):")
+        for s in all_stalls:
+            print(f"  {s['pipeline']}/{s['pending_action']} by {s['agent']} "
+                  f"({s['age_minutes']:.0f}min)")
+    else:
+        print('  No stalled pipelines.')
+
+    return all_stalls
+
+
+def kick(pipeline: str = None, max_concurrent: int = MAX_CONCURRENT,
+         dry_run: bool = False) -> list[dict]:
+    """Dispatch ALL pending operations: gates + revisions + stalls + unclaimed.
+
+    Respects max_concurrent across ALL dispatch types (FLAG-1 fix).
+    Returns list of actions taken.
+    """
+    actions = []
+    kicked = 0
+
+    # 1. Gate-based kicks
+    gate_results = check_gates(pipeline, dry_run=True)  # always read-only first
+    for g in gate_results:
+        if kicked >= max_concurrent:
+            break
+        if g['status'] not in ('eligible', 'open'):
+            continue
+        if dry_run:
+            actions.append({'type': 'dry_run', 'gate': g['gate'], 'pipeline': g['pipeline']})
+            continue
+
+        if g['gate'] == 'kickoff' and _HAS_ORCHESTRATE:
+            try:
+                result = orchestrate_complete(g['pipeline'], 'pipeline_created',
+                                              'belam-main', 'Auto-kicked by e0 kick')
+                if result:
+                    actions.append({'type': 'gate_kick', 'gate': 'kickoff',
+                                    'pipeline': g['pipeline']})
+                    kicked += 1
+            except Exception as e:
+                print(f'  Kick failed for {g["pipeline"]}: {e}')
+
+        elif g['gate'] == 'phase2_direction' and _HAS_ORCHESTRATE:
+            try:
+                result = orchestrate_complete(g['pipeline'], 'phase1_complete',
+                                              'belam-main', 'Phase 2 direction found — kicked')
+                if result:
+                    actions.append({'type': 'gate_kick', 'gate': 'phase2_direction',
+                                    'pipeline': g['pipeline']})
+                    kicked += 1
+            except Exception as e:
+                print(f'  Phase 2 kick failed for {g["pipeline"]}: {e}')
+
+        elif g['gate'] == 'analysis' and _HAS_ORCHESTRATE:
+            try:
+                from pipeline_orchestrate import orchestrate_local_analysis
+                result = orchestrate_local_analysis(g['pipeline'])
+                if result:
+                    actions.append({'type': 'gate_kick', 'gate': 'analysis',
+                                    'pipeline': g['pipeline']})
+                    kicked += 1
+            except Exception as e:
+                print(f'  Analysis launch failed for {g["pipeline"]}: {e}')
+
+    # 2. Revision kicks
+    rev_files = list(BUILDS_DIR.glob('*_revision_request.md')) if BUILDS_DIR.exists() else []
+    for rf in rev_files:
+        if kicked >= max_concurrent:
+            break
+        fm = load_pipeline_frontmatter(rf)
+        ver = fm.get('version', rf.stem.replace('_revision_request', ''))
+        if pipeline and ver != pipeline:
+            continue
+        print(f'  PENDING REVISION: {ver}')
+        if not dry_run and _HAS_ORCHESTRATE:
+            try:
+                from pipeline_orchestrate import orchestrate_revise
+                context = rf.read_text()
+                result = orchestrate_revise(ver, context)
+                if result:
+                    actions.append({'type': 'revision_kick', 'pipeline': ver})
+                    kicked += 1
+                    rf.unlink()
+            except Exception as e:
+                print(f'    -> Revision kick failed: {e}')
+
+    # 3. Stall recovery
+    stall_list = check_stalls()
+    if pipeline:
+        stall_list = [s for s in stall_list if s.get('pipeline') == pipeline]
+    for s in stall_list:
+        if kicked >= max_concurrent:
+            break
+        print(f'  STALLED: {s["pipeline"]}/{s["pending_action"]} ({s["age_minutes"]:.0f}min)')
+        if not dry_run and _HAS_ORCHESTRATE:
+            try:
+                ok = pipeline_resume(s['pipeline'])
+                if ok:
+                    actions.append({'type': 'stall_recovery', 'pipeline': s['pipeline'],
+                                    'agent': s['agent']})
+                    kicked += 1
+            except Exception as e:
+                print(f'    -> Recovery failed: {e}')
+
+    # 4. Unclaimed dispatch recovery
+    if kicked < max_concurrent:
+        unclaimed = _check_unclaimed_dispatches(dry_run=dry_run)
+        for u in unclaimed:
+            if kicked >= max_concurrent:
+                break
+            print(f'  UNCLAIMED: {u["pipeline"]} → {u["agent"]} ({u["elapsed"]:.0f}min)')
+            if not dry_run and _HAS_ORCHESTRATE:
+                try:
+                    ok = pipeline_resume(u['pipeline'])
+                    if ok:
+                        actions.append({'type': 'unclaimed_recovery',
+                                        'pipeline': u['pipeline'], 'agent': u['agent']})
+                        kicked += 1
+                except Exception as e:
+                    print(f'    -> Recovery failed: {e}')
+
+    if not actions:
+        print('  Nothing to kick.')
+    else:
+        print(f'\n  Kicked {kicked} pipeline(s).')
+
+    return actions
+
+
 # ─── Full Sweep ─────────────────────────────────────────────────────────────────
 
 def sweep(dry_run: bool = False) -> list[str]:

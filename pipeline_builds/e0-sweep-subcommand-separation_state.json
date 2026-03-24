@@ -1,9 +1,27 @@
 {
   "version": "e0-sweep-subcommand-separation",
-  "stages": {},
-  "status": "architect_design",
-  "status_updated": "2026-03-24 09:19",
-  "current_agent": "architect_design",
-  "last_dispatched": "2026-03-24T09:19:07.333599+00:00",
-  "dispatch_claimed": false
+  "stages": {
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-24 09:21",
+      "agent": "architect",
+      "notes": "Design v1: Split monolithic e0 sweep into 5 focused sub-commands (scan, gates, kick, clean, stalls). 6 deliverables (~100 net new lines across 3 files). D1: extract sub-functions from sweep() (~160L moved + 40 new). D2: router in codex_engine.py (~20L). D3: new scan() read-only function (~30L). D4: --dry-run flag. D5: heartbeat re-integration with e0 scan. D6: LM entry update. Key principle: scan/gates/stalls are read-only (safe for heartbeat), kick/clean mutate (manual or cron only). sweep() becomes a composition of all sub-functions (backward compatible). Test spec: 6 tests. 4 open questions for critic."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 09:23",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 1 HIGH FLAG, 2 MED FLAGs, 1 LOW FLAG. FLAG-1 HIGH: kick() only handles gate-based kicks but sweep() also kicks for revisions, stall recovery, and unclaimed dispatches \u2014 all subject to shared MAX_CONCURRENT counter. kick() must encompass ALL dispatch operations or behavior changes. FLAG-2 MED: gates and stalls already parsed by _parse_e0_args() (both word and single-letter) but have no dispatch handlers in _dispatch_e0() \u2014 they fall to fallback. Builder must add handlers for ALL 5 sub-commands. FLAG-3 MED: scan() references _iter_state_files() which doesn't exist \u2014 use existing glob pattern or _load_all_pipeline_states(). FLAG-4 LOW: no single-letter shortcut for scan (s=stalls already taken). Review at: pipeline_builds/e0-sweep-subcommand-separation_critic_design_review.md"
+    }
+  },
+  "status": "phase1_build",
+  "status_updated": "2026-03-24 09:23",
+  "current_agent": "builder_implementation",
+  "last_dispatched": "2026-03-24T09:23:45.393835+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "critic_design_review"
+  },
+  "last_updated": "2026-03-24 09:23",
+  "pending_action": "builder_implementation"
 }

@@ -4285,6 +4285,25 @@ def _parse_e0_args(op_args):
     elif first in ('sweep', 'status'):
         result['op'] = 'sweep'
         remaining = remaining[1:]
+    elif first == 'scan':
+        result['op'] = 'scan'
+        remaining = remaining[1:]
+        if remaining:
+            pm = re.match(r'^p(\d+)$', remaining[0], re.IGNORECASE)
+            if pm:
+                result['pipeline'] = remaining[0].lower()
+                remaining = remaining[1:]
+    elif first == 'kick':
+        result['op'] = 'kick'
+        remaining = remaining[1:]
+        if remaining:
+            pm = re.match(r'^p(\d+)$', remaining[0], re.IGNORECASE)
+            if pm:
+                result['pipeline'] = remaining[0].lower()
+                remaining = remaining[1:]
+    elif first == 'clean':
+        result['op'] = 'clean'
+        remaining = remaining[1:]
     elif first == 'list':
         result['op'] = 'list'
         remaining = remaining[1:]
@@ -4295,6 +4314,13 @@ def _parse_e0_args(op_args):
     # Default to sweep if no op was set
     if result['op'] is None:
         result['op'] = 'sweep'
+
+    # D4: Parse --dry-run flag from remaining args
+    if '--dry-run' in remaining:
+        result['dry_run'] = True
+        remaining = [a for a in remaining if a != '--dry-run']
+    else:
+        result['dry_run'] = False
 
     result['extra'] = remaining
     return result
@@ -4368,6 +4394,29 @@ def _dispatch_e0(op_args, tracker):
                     print(output)
             else:
                 print(f"e0: pipeline '{pipeline_ref}' not found")
+
+        elif spec['op'] == 'scan':
+            pipeline_filter = None
+            if spec['pipeline']:
+                pipeline_filter = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            result = orch.scan(pipeline_filter)
+            if f_label and result:
+                print(f"{f_label} {len(result)} pipeline(s) scanned")
+
+        elif spec['op'] == 'kick':
+            pipeline_filter = None
+            if spec['pipeline']:
+                pipeline_filter = orch.resolve_pipeline(spec['pipeline']) if hasattr(orch, 'resolve_pipeline') else spec['pipeline']
+            dry = spec.get('dry_run', False)
+            result = orch.kick(pipeline=pipeline_filter, dry_run=dry)
+            if f_label and result:
+                print(f"{f_label} {len(result)} action(s)")
+
+        elif spec['op'] == 'clean':
+            dry = spec.get('dry_run', False)
+            result = orch.clean(dry_run=dry)
+            if f_label and result:
+                print(f"{f_label} {len(result)} item(s) cleaned")
 
         elif spec['op'] in ('gates', 'stalls', 'locks', 'handoffs'):
             # Route to CLI for formatted output

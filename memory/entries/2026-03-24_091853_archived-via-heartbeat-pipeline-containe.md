@@ -6,7 +6,7 @@ importance: 4
 tags: [agent:main, pipeline:containerize-openclaw-workspace, stage:phase1_complete]
 source: "pipeline_update:containerize-openclaw-workspace:phase1_complete"
 content: "Archived via heartbeat | Pipeline: containerize-openclaw-workspace | Stage: phase1_complete"
-status: active
+status: consolidated
 ---
 
 # Memory Entry
