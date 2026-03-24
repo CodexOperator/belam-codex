@@ -3355,6 +3355,48 @@ Render engine `my_diff` and `diff` commands respect `include_content` param.
 ---
 ---
 primitive: decision
+status: proposed
+date: 2026-03-24
+context: (add context)
+alternatives: []
+rationale: (add rationale)
+consequences: []
+upstream: []
+downstream: []
+tags:
+- instance:main
+- heartbeat
+- e0
+- orchestration
+- gateway
+__coord__: d58
+__slug__: remove-e0-sweep-from-heartbeat
+__filepath__: /home/ubuntu/.openclaw/workspace/decisions/remove-e0-sweep-from-heartbeat.md
+__prefix__: d
+__index__: 58
+__ptype__: decisions
+---
+# remove-e0-sweep-from-heartbeat
+
+## Context
+
+_What problem or situation prompted this decision?_
+
+## Options Considered
+
+- **Option A:** ...
+- **Option B:** ...
+
+## Decision
+
+_State the decision clearly._
+
+## Consequences
+
+_What follows from this choice? Trade-offs, risks, next steps._
+---
+---
+primitive: decision
 status: accepted
 date: 2026-03-22
 context: (add context)
@@ -3371,11 +3413,11 @@ tags:
 - architecture
 - context-injection
 - codex-cockpit
-__coord__: d58
+__coord__: d59
 __slug__: render-engine-as-default-context-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-as-default-context-layer.md
 __prefix__: d
-__index__: 58
+__index__: 59
 __ptype__: decisions
 ---
 # render-engine-as-default-context-layer
@@ -3414,11 +3456,11 @@ tags:
 - render-engine
 - architecture
 - diffing
-__coord__: d59
+__coord__: d60
 __slug__: render-engine-nice-vs-greedy-mode
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-nice-vs-greedy-mode.md
 __prefix__: d
-__index__: 59
+__index__: 60
 __ptype__: decisions
 ---
 # render-engine-nice-vs-greedy-mode
@@ -3457,11 +3499,11 @@ tags:
 - render-engine
 - robustness
 - session-startup
-__coord__: d60
+__coord__: d61
 __slug__: render-engine-pid-file-and-force-flag
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/render-engine-pid-file-and-force-flag.md
 __prefix__: d
-__index__: 60
+__index__: 61
 __ptype__: decisions
 ---
 # render-engine-pid-file-and-force-flag
@@ -3502,11 +3544,11 @@ tags:
 - pipeline
 - run-experiment
 - architecture
-__coord__: d61
+__coord__: d62
 __slug__: run-experiment-phase-flag-for-notebook-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/run-experiment-phase-flag-for-notebook-cell-targeting.md
 __prefix__: d
-__index__: 61
+__index__: 62
 __ptype__: decisions
 ---
 # run-experiment-phase-flag-for-notebook-cell-targeting
@@ -3547,11 +3589,11 @@ tags:
 - skills
 - knowledge
 - workflow
-__coord__: d62
+__coord__: d63
 __slug__: skill-extraction-from-reports
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-extraction-from-reports.md
 __prefix__: d
-__index__: 62
+__index__: 63
 __ptype__: decisions
 ---
 # Extract Domain Reports Into Skills + Knowledge Files
@@ -3586,11 +3628,11 @@ tags:
 - knowledge-management
 downstream:
 - memory/2026-03-18_192651_convention-established-every-workspace-s
-__coord__: d63
+__coord__: d64
 __slug__: skill-primitive-pairing
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/skill-primitive-pairing.md
 __prefix__: d
-__index__: 63
+__index__: 64
 __ptype__: decisions
 ---
 # Decision: Every Skill Gets a Primitive
@@ -3629,11 +3671,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: d64
+__coord__: d65
 __slug__: stop-auto-logging-pipeline-stage-transitions
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/stop-auto-logging-pipeline-stage-transitions.md
 __prefix__: d
-__index__: 64
+__index__: 65
 __ptype__: decisions
 ---
 # stop-auto-logging-pipeline-stage-transitions
@@ -3672,11 +3714,11 @@ tags:
 - anchor
 - diff
 - cockpit-plugin
-__coord__: d65
+__coord__: d66
 __slug__: supermap-anchor-diff-flags-in-codex-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-anchor-diff-flags-in-codex-engine.md
 __prefix__: d
-__index__: 65
+__index__: 66
 __ptype__: decisions
 ---
 # supermap-anchor-diff-flags-in-codex-engine
@@ -3722,11 +3764,11 @@ tags:
 - legend
 - r-command
 importance: 3
-__coord__: d66
+__coord__: d67
 __slug__: supermap-pure-signal-legend-as-orientation-layer
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supermap-pure-signal-legend-as-orientation-layer.md
 __prefix__: d
-__index__: 66
+__index__: 67
 __ptype__: decisions
 ---
 # supermap-pure-signal-legend-as-orientation-layer
@@ -3773,11 +3815,11 @@ tags:
 - lifecycle
 - boot-optimization
 note: References to embed_primitives.py filtering are stale — codex engine supermap handles boot index filtering
-__coord__: d67
+__coord__: d68
 __slug__: superseded-primitive-lifecycle
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/superseded-primitive-lifecycle.md
 __prefix__: d
-__index__: 67
+__index__: 68
 __ptype__: decisions
 ---
 # Superseded Primitive Lifecycle
@@ -3830,11 +3872,11 @@ tags:
 - experiments
 - builder
 - architecture
-__coord__: d68
+__coord__: d69
 __slug__: supervised-builder-experiments
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/supervised-builder-experiments.md
 __prefix__: d
-__index__: 68
+__index__: 69
 __ptype__: decisions
 ---
 # Supervised Builder Agent for Experiment Execution
@@ -3880,11 +3922,11 @@ tags:
 - symbolic-dispatch
 - coordinate-grammar
 - architecture
-__coord__: d69
+__coord__: d70
 __slug__: symbolic-dispatch-architecture
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/symbolic-dispatch-architecture.md
 __prefix__: d
-__index__: 69
+__index__: 70
 __ptype__: decisions
 ---
 # symbolic-dispatch-architecture
@@ -3928,11 +3970,11 @@ tags:
 - workflow
 downstream:
 - memory/2026-03-17_134119_major-session-built-three-infrastructure
-__coord__: d70
+__coord__: d71
 __slug__: two-phase-backtest-workflow
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/two-phase-backtest-workflow.md
 __prefix__: d
-__index__: 70
+__index__: 71
 __ptype__: decisions
 ---
 # Two-Phase Backtest Workflow
@@ -3956,11 +3998,11 @@ tags:
 - orchestration
 - e0
 - resilience
-__coord__: d71
+__coord__: d72
 __slug__: unclaimed-dispatch-recovery-in-sweep
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/unclaimed-dispatch-recovery-in-sweep.md
 __prefix__: d
-__index__: 71
+__index__: 72
 __ptype__: decisions
 ---
 # unclaimed-dispatch-recovery-in-sweep
@@ -3994,11 +4036,11 @@ tags:
 - heartbeat
 - config
 created: 2026-03-23
-__coord__: d72
+__coord__: d73
 __slug__: webhook-hooks-enabled-for-diff-heartbeat
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/webhook-hooks-enabled-for-diff-heartbeat.md
 __prefix__: d
-__index__: 72
+__index__: 73
 __ptype__: decisions
 ---
 # Decision: Webhook Hooks Enabled for Diff-Triggered Heartbeat
@@ -4039,11 +4081,11 @@ tags:
 - zoom
 - context-efficiency
 importance: 3
-__coord__: d73
+__coord__: d74
 __slug__: zoom-replaces-supermap-injection-option
 __filepath__: /home/ubuntu/.openclaw/workspace/decisions/zoom-replaces-supermap-injection-option.md
 __prefix__: d
-__index__: 73
+__index__: 74
 __ptype__: decisions
 ---
 # zoom-replaces-supermap-injection-option
@@ -10646,6 +10688,43 @@ _When does this lesson apply? What should change going forward?_
 ---
 ---
 primitive: lesson
+date: '2026-03-24'
+source: (add source)
+confidence: '?'
+upstream: []
+downstream: []
+tags:
+- instance:main
+- cron
+- gateway
+- bootstrap
+__coord__: l21
+__slug__: crons-recreated-on-session-bootstrap
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/crons-recreated-on-session-bootstrap.md
+__prefix__: l
+__index__: 21
+__ptype__: lessons
+---
+# crons-recreated-on-session-bootstrap
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
+primitive: lesson
 date: 2026-03-23
 source: pipeline debugging session
 confidence: confirmed
@@ -10658,11 +10737,11 @@ tags:
 - experiment
 - recovery
 - pid
-__coord__: l21
+__coord__: l22
 __slug__: dead-pid-recovery-must-update-pipeline-state
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dead-pid-recovery-must-update-pipeline-state.md
 __prefix__: l
-__index__: 21
+__index__: 22
 __ptype__: lessons
 ---
 # dead-pid-recovery-must-update-pipeline-state
@@ -10695,11 +10774,11 @@ tags:
 - architecture
 - context
 created: 2026-03-23
-__coord__: l22
+__coord__: l23
 __slug__: diff-updates-are-turn-based-not-mid-turn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/diff-updates-are-turn-based-not-mid-turn.md
 __prefix__: l
-__index__: 22
+__index__: 23
 __ptype__: lessons
 ---
 # Lesson: Diff Updates Are Turn-Based, Not Mid-Turn
@@ -10736,11 +10815,11 @@ tags:
 - diff
 - implementation
 created: 2026-03-23
-__coord__: l23
+__coord__: l24
 __slug__: diffentry-content-field-for-f-label-display
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/diffentry-content-field-for-f-label-display.md
 __prefix__: l
-__index__: 23
+__index__: 24
 __ptype__: lessons
 ---
 # Lesson: DiffEntry Content Field Required for F-Label Display
@@ -10782,14 +10861,52 @@ tags:
 - pipeline
 - orchestration
 - dispatch
-__coord__: l24
+__coord__: l25
 __slug__: dispatch-claimed-flag-required-for-true-active-check
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dispatch-claimed-flag-required-for-true-active-check.md
 __prefix__: l
-__index__: 24
+__index__: 25
 __ptype__: lessons
 ---
 # dispatch-claimed-flag-required-for-true-active-check
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
+primitive: lesson
+date: '2026-03-24'
+source: (add source)
+confidence: '?'
+upstream: []
+downstream: []
+tags:
+- instance:main
+- orchestration
+- dispatch
+- session
+- context
+__coord__: l26
+__slug__: dispatch-loop-bloats-agent-session-context
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/dispatch-loop-bloats-agent-session-context.md
+__prefix__: l
+__index__: 26
+__ptype__: lessons
+---
+# dispatch-loop-bloats-agent-session-context
 
 ## Context
 
@@ -10824,11 +10941,11 @@ tags:
 - dispatch
 - bug
 importance: 3
-__coord__: l25
+__coord__: l27
 __slug__: dot-syntax-ln-workflow-dispatch-unreachable
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/dot-syntax-ln-workflow-dispatch-unreachable.md
 __prefix__: l
-__index__: 25
+__index__: 27
 __ptype__: lessons
 ---
 # dot-syntax-lN-workflow-dispatch-unreachable
@@ -10867,11 +10984,11 @@ tags:
 - e0
 - orchestration
 - pipeline
-__coord__: l26
+__coord__: l28
 __slug__: e0-sweep-routes-through-orchestration-engine-not-autorun
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e0-sweep-routes-through-orchestration-engine-not-autorun.md
 __prefix__: l
-__index__: 26
+__index__: 28
 __ptype__: lessons
 ---
 # e0-sweep-routes-through-orchestration-engine-not-autorun
@@ -10906,11 +11023,11 @@ tags:
 - e2
 - namespace
 - design-pattern
-__coord__: l27
+__coord__: l29
 __slug__: e3-chains-e2-after-namespace-registration
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/e3-chains-e2-after-namespace-registration.md
 __prefix__: l
-__index__: 27
+__index__: 29
 __ptype__: lessons
 ---
 # e3-chains-e2-after-namespace-registration
@@ -10943,11 +11060,11 @@ tags:
 - architecture
 applies_to:
 - snn-applied-finance
-__coord__: l28
+__coord__: l30
 __slug__: event-detection-not-state-classification
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/event-detection-not-state-classification.md
 __prefix__: l
-__index__: 28
+__index__: 30
 __ptype__: lessons
 ---
 # Simple SNNs Detect Events, Not States
@@ -10971,11 +11088,11 @@ tags:
 - orchestration
 - pipeline
 - bug-fix
-__coord__: l29
+__coord__: l31
 __slug__: fire-and-forget-dispatch-timeout-1-killed-all-agents
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/fire-and-forget-dispatch-timeout-1-killed-all-agents.md
 __prefix__: l
-__index__: 29
+__index__: 31
 __ptype__: lessons
 ---
 # fire-and-forget-dispatch-timeout-1-killed-all-agents
@@ -11013,11 +11130,11 @@ tags:
 - systemd
 - telegram
 - debugging
-__coord__: l30
+__coord__: l32
 __slug__: gateway-systemd-can-crash-while-process-survives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gateway-systemd-can-crash-while-process-survives.md
 __prefix__: l
-__index__: 30
+__index__: 32
 __ptype__: lessons
 ---
 # gateway-systemd-can-crash-while-process-survives
@@ -11061,11 +11178,11 @@ tags:
 - systemd
 - cron
 - incident
-__coord__: l31
+__coord__: l33
 __slug__: gateway-watchdog-conflicts-with-out-of-systemd-process
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gateway-watchdog-conflicts-with-out-of-systemd-process.md
 __prefix__: l
-__index__: 31
+__index__: 33
 __ptype__: lessons
 ---
 # gateway-watchdog-conflicts-with-out-of-systemd-process
@@ -11104,11 +11221,11 @@ related:
 - beta-convergence
 - snn-treats-like-weird-cnn
 supersedes: tiny-snn-gpu-parallelism
-__coord__: l32
+__coord__: l34
 __slug__: gpu-parallel-thrashing-t4
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/gpu-parallel-thrashing-t4.md
 __prefix__: l
-__index__: 32
+__index__: 34
 __ptype__: lessons
 ---
 # GPU Parallel Worker Thrashing on Tesla T4
@@ -11156,11 +11273,11 @@ tags:
 - r-command
 - design
 importance: 3
-__coord__: l33
+__coord__: l35
 __slug__: guidance-prose-belongs-in-legend-not-supermap-tree
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/guidance-prose-belongs-in-legend-not-supermap-tree.md
 __prefix__: l
-__index__: 33
+__index__: 35
 __ptype__: lessons
 ---
 # guidance-prose-belongs-in-legend-not-supermap-tree
@@ -11196,11 +11313,11 @@ tags:
 - heartbeat
 - lm
 - coordinate-grammar
-__coord__: l34
+__coord__: l36
 __slug__: heartbeat-md-contaminates-manual-session-behavior
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/heartbeat-md-contaminates-manual-session-behavior.md
 __prefix__: l
-__index__: 34
+__index__: 36
 __ptype__: lessons
 ---
 # heartbeat-md-contaminates-manual-session-behavior
@@ -11238,11 +11355,11 @@ tags:
 - inotify
 - debugging
 - codex-engine-v4
-__coord__: l35
+__coord__: l37
 __slug__: inotify-batch-creates-coalesce-to-single-reindex
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/inotify-batch-creates-coalesce-to-single-reindex.md
 __prefix__: l
-__index__: 35
+__index__: 37
 __ptype__: lessons
 ---
 # inotify-batch-creates-coalesce-to-single-reindex
@@ -11290,11 +11407,11 @@ tags:
 - bug
 - regex
 importance: 3
-__coord__: l36
+__coord__: l38
 __slug__: is-coordinate-single-char-prefix-limitation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/is-coordinate-single-char-prefix-limitation.md
 __prefix__: l
-__index__: 36
+__index__: 38
 __ptype__: lessons
 ---
 # is-coordinate-single-char-prefix-limitation
@@ -11329,11 +11446,11 @@ tags:
 - launch
 - imports
 - scripting
-__coord__: l37
+__coord__: l39
 __slug__: launch-pipeline-kickoff-path-had-stale-imports
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/launch-pipeline-kickoff-path-had-stale-imports.md
 __prefix__: l
-__index__: 37
+__index__: 39
 __ptype__: lessons
 ---
 # launch-pipeline-kickoff-path-had-stale-imports
@@ -11367,11 +11484,11 @@ tags:
 - commands
 - primitives
 - cleanup
-__coord__: l38
+__coord__: l40
 __slug__: legacy-view-command-primitives-redundant-after-engine
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/legacy-view-command-primitives-redundant-after-engine.md
 __prefix__: l
-__index__: 38
+__index__: 40
 __ptype__: lessons
 ---
 # legacy-view-command-primitives-redundant-after-engine
@@ -11404,11 +11521,11 @@ tags:
 - lm
 - coordinate-grammar
 - ux
-__coord__: l39
+__coord__: l41
 __slug__: lm-entries-must-be-compelling-to-displace-raw-scripts
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/lm-entries-must-be-compelling-to-displace-raw-scripts.md
 __prefix__: l
-__index__: 39
+__index__: 41
 __ptype__: lessons
 ---
 # lm-entries-must-be-compelling-to-displace-raw-scripts
@@ -11444,11 +11561,11 @@ tags:
 upstream:
 - infra-pipelines-use-local-analysis
 downstream: []
-__coord__: l40
+__coord__: l42
 __slug__: local-analysis-is-pipeline-type-agnostic
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/local-analysis-is-pipeline-type-agnostic.md
 __prefix__: l
-__index__: 40
+__index__: 42
 __ptype__: lessons
 ---
 # local-analysis-is-pipeline-type-agnostic
@@ -11493,11 +11610,11 @@ tags:
 - lane-queue
 - system-events
 - diff-trigger
-__coord__: l41
+__coord__: l43
 __slug__: main-session-lane-backup-from-event-bursts
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/main-session-lane-backup-from-event-bursts.md
 __prefix__: l
-__index__: 41
+__index__: 43
 __ptype__: lessons
 ---
 # main-session-lane-backup-from-event-bursts
@@ -11539,11 +11656,11 @@ upstream: []
 downstream: []
 tags:
 - instance:main
-__coord__: l42
+__coord__: l44
 __slug__: memory-entries-capture-events-not-state
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-entries-capture-events-not-state.md
 __prefix__: l
-__index__: 42
+__index__: 44
 __ptype__: lessons
 ---
 # memory-entries-capture-events-not-state
@@ -11577,11 +11694,11 @@ tags:
 - memory-extract
 - bash
 - session-files
-__coord__: l43
+__coord__: l45
 __slug__: memory-extract-hook-session-file-detection-mismatch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extract-hook-session-file-detection-mismatch.md
 __prefix__: l
-__index__: 43
+__index__: 45
 __ptype__: lessons
 ---
 # memory-extract-hook-session-file-detection-mismatch
@@ -11615,11 +11732,11 @@ tags:
 - sage
 - design
 - extraction-limits
-__coord__: l44
+__coord__: l46
 __slug__: memory-extraction-misses-design-convergence-in-conversation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/memory-extraction-misses-design-convergence-in-conversation.md
 __prefix__: l
-__index__: 44
+__index__: 46
 __ptype__: lessons
 ---
 # memory-extraction-misses-design-convergence-in-conversation
@@ -11652,11 +11769,11 @@ tags:
 - pipeline
 - experiments
 - notebooks
-__coord__: l45
+__coord__: l47
 __slug__: notebook-runs-need-phase-aware-cell-targeting
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/notebook-runs-need-phase-aware-cell-targeting.md
 __prefix__: l
-__index__: 45
+__index__: 47
 __ptype__: lessons
 ---
 # notebook-runs-need-phase-aware-cell-targeting
@@ -11691,11 +11808,11 @@ tags:
 - agents
 - openclaw
 - session-routing
-__coord__: l46
+__coord__: l48
 __slug__: openclaw-agent-routes-to-active-session
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-agent-routes-to-active-session.md
 __prefix__: l
-__index__: 46
+__index__: 48
 __ptype__: lessons
 ---
 # openclaw agent CLI Routes to Active Session, Not Isolated
@@ -11732,11 +11849,11 @@ tags:
 - path
 - gateway
 importance: 3
-__coord__: l47
+__coord__: l49
 __slug__: openclaw-dual-install-path-conflict
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-dual-install-path-conflict.md
 __prefix__: l
-__index__: 47
+__index__: 49
 __ptype__: lessons
 ---
 # openclaw-dual-install-path-conflict
@@ -11770,11 +11887,11 @@ tags:
 - context
 - boot
 - infrastructure
-__coord__: l48
+__coord__: l50
 __slug__: openclaw-fixed-context-injection-list
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-fixed-context-injection-list.md
 __prefix__: l
-__index__: 48
+__index__: 50
 __ptype__: lessons
 ---
 # openclaw-fixed-context-injection-list
@@ -11809,11 +11926,11 @@ tags:
 - plugin-sdk
 - before_prompt_build
 - codex-cockpit
-__coord__: l49
+__coord__: l51
 __slug__: openclaw-plugin-definepluginentry-import-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-plugin-definepluginentry-import-path.md
 __prefix__: l
-__index__: 49
+__index__: 51
 __ptype__: lessons
 ---
 # openclaw-plugin-definePluginEntry-import-path
@@ -11860,11 +11977,11 @@ tags:
 - systemd
 - config
 - openclaw
-__coord__: l50
+__coord__: l52
 __slug__: openclaw-systemd-service-missing-config-path
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-systemd-service-missing-config-path.md
 __prefix__: l
-__index__: 50
+__index__: 52
 __ptype__: lessons
 ---
 # openclaw-systemd-service-missing-config-path
@@ -11901,11 +12018,11 @@ tags:
 - stability
 - updates
 importance: 3
-__coord__: l51
+__coord__: l53
 __slug__: openclaw-version-lag-causes-gateway-instability
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/openclaw-version-lag-causes-gateway-instability.md
 __prefix__: l
-__index__: 51
+__index__: 53
 __ptype__: lessons
 ---
 # openclaw-version-lag-causes-gateway-instability
@@ -11942,11 +12059,11 @@ tags:
 - pipeline
 - sessions_spawn
 - dispatch
-__coord__: l52
+__coord__: l54
 __slug__: orchestration-dispatch-payload-spawn-relay
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-dispatch-payload-spawn-relay.md
 __prefix__: l
-__index__: 52
+__index__: 54
 __ptype__: lessons
 ---
 # orchestration-dispatch-payload-spawn-relay
@@ -11988,11 +12105,11 @@ tags:
 - self-reference
 - infrastructure
 - meta
-__coord__: l53
+__coord__: l55
 __slug__: orchestration-engine-v1-self-built-through-legacy-pipeline
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/orchestration-engine-v1-self-built-through-legacy-pipeline.md
 __prefix__: l
-__index__: 53
+__index__: 55
 __ptype__: lessons
 ---
 # orchestration-engine-v1-self-built-through-legacy-pipeline
@@ -12034,11 +12151,11 @@ tags:
 - validation
 applies_to:
 - snn-applied-finance
-__coord__: l54
+__coord__: l56
 __slug__: per-fold-significance-tests-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/per-fold-significance-tests-required.md
 __prefix__: l
-__index__: 54
+__index__: 56
 __ptype__: lessons
 ---
 # Per-Fold Significance Tests and Permutation Tests Are Required
@@ -12065,11 +12182,11 @@ tags:
 - ablation
 - equilibrium
 - phasic
-__coord__: l55
+__coord__: l57
 __slug__: phasic-only-ablation-wins-equilibrium
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/phasic-only-ablation-wins-equilibrium.md
 __prefix__: l
-__index__: 55
+__index__: 57
 __ptype__: lessons
 ---
 # Phasic-Only Ablation Wins in Equilibrium SNN
@@ -12116,11 +12233,11 @@ tags:
 - instance:main
 - tooling
 - monitoring
-__coord__: l56
+__coord__: l58
 __slug__: pipeline-dashboard-watch-flag-vs-linux-watch
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-dashboard-watch-flag-vs-linux-watch.md
 __prefix__: l
-__index__: 56
+__index__: 58
 __ptype__: lessons
 ---
 # pipeline-dashboard-watch-flag-vs-linux-watch
@@ -12154,11 +12271,11 @@ tags:
 - pipeline
 - infrastructure
 - hanging
-__coord__: l57
+__coord__: l59
 __slug__: pipeline-orchestrate-blocking-agent-wake
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-orchestrate-blocking-agent-wake.md
 __prefix__: l
-__index__: 57
+__index__: 59
 __ptype__: lessons
 ---
 # pipeline-orchestrate-blocking-agent-wake
@@ -12192,11 +12309,11 @@ tags:
 - pipeline
 - state-file
 - bug
-__coord__: l58
+__coord__: l60
 __slug__: pipeline-state-file-split-brain-pattern
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-file-split-brain-pattern.md
 __prefix__: l
-__index__: 58
+__index__: 60
 __ptype__: lessons
 ---
 # pipeline-state-file-split-brain-pattern
@@ -12230,11 +12347,11 @@ tags:
 - pipeline
 - bug
 - infrastructure
-__coord__: l59
+__coord__: l61
 __slug__: pipeline-state-json-not-synced-on-archive
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-json-not-synced-on-archive.md
 __prefix__: l
-__index__: 59
+__index__: 61
 __ptype__: lessons
 ---
 # pipeline-state-json-not-synced-on-archive
@@ -12267,11 +12384,11 @@ tags:
 - pipeline
 - state-json
 - orchestration
-__coord__: l60
+__coord__: l62
 __slug__: pipeline-state-pending-action-is-agent-role-not-stage-name
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-state-pending-action-is-agent-role-not-stage-name.md
 __prefix__: l
-__index__: 60
+__index__: 62
 __ptype__: lessons
 ---
 # pipeline-state-pending-action-is-agent-role-not-stage-name
@@ -12306,11 +12423,11 @@ tags:
 applies_to:
 - pipeline_update.py
 - pipeline primitives
-__coord__: l61
+__coord__: l63
 __slug__: pipeline-table-separator-required
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/pipeline-table-separator-required.md
 __prefix__: l
-__index__: 61
+__index__: 63
 __ptype__: lessons
 ---
 # Pipeline Table Separator Required for Update Script
@@ -12349,11 +12466,11 @@ tags:
 - openclaw
 - config
 - infrastructure
-__coord__: l62
+__coord__: l64
 __slug__: plugin-allowlist-must-be-updated-on-plugin-retire
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugin-allowlist-must-be-updated-on-plugin-retire.md
 __prefix__: l
-__index__: 62
+__index__: 64
 __ptype__: lessons
 ---
 # plugin-allowlist-must-be-updated-on-plugin-retire
@@ -12388,11 +12505,11 @@ tags:
 - commands
 - architecture
 - primitives
-__coord__: l63
+__coord__: l65
 __slug__: plugins-have-presence-commands-are-fire-and-forget
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/plugins-have-presence-commands-are-fire-and-forget.md
 __prefix__: l
-__index__: 63
+__index__: 65
 __ptype__: lessons
 ---
 # plugins-have-presence-commands-are-fire-and-forget
@@ -12428,11 +12545,11 @@ tags:
 - lm
 - boot
 - scaffold
-__coord__: l64
+__coord__: l66
 __slug__: r0-scaffold-as-lightweight-coordinate-mode-nudge
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/r0-scaffold-as-lightweight-coordinate-mode-nudge.md
 __prefix__: l
-__index__: 64
+__index__: 66
 __ptype__: lessons
 ---
 # r0-scaffold-as-lightweight-coordinate-mode-nudge
@@ -12467,11 +12584,11 @@ tags:
 - context-injection
 - architecture
 - llm-context
-__coord__: l65
+__coord__: l67
 __slug__: render-engine-agents-are-in-it-not-calling-it
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-agents-are-in-it-not-calling-it.md
 __prefix__: l
-__index__: 65
+__index__: 67
 __ptype__: lessons
 ---
 # render-engine-agents-are-in-it-not-calling-it
@@ -12505,11 +12622,11 @@ tags:
 - render-engine
 - session-startup
 - robustness
-__coord__: l66
+__coord__: l68
 __slug__: render-engine-zombie-blocks-session-startup
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/render-engine-zombie-blocks-session-startup.md
 __prefix__: l
-__index__: 66
+__index__: 68
 __ptype__: lessons
 ---
 # render-engine-zombie-blocks-session-startup
@@ -12535,6 +12652,43 @@ Socket existence alone is insufficient for render engine startup guard — you n
 ---
 ---
 primitive: lesson
+date: '2026-03-24'
+source: (add source)
+confidence: '?'
+upstream: []
+downstream: []
+tags:
+- instance:main
+- renderer
+- codex-cockpit
+- gateway
+__coord__: l69
+__slug__: renderer-process-blocks-gateway-kill
+__filepath__: /home/ubuntu/.openclaw/workspace/lessons/renderer-process-blocks-gateway-kill.md
+__prefix__: l
+__index__: 69
+__ptype__: lessons
+---
+# renderer-process-blocks-gateway-kill
+
+## Context
+
+_What was happening? What problem or situation triggered this?_
+
+## What Happened
+
+_Describe the event, experiment, or observation._
+
+## Lesson
+
+_The core insight. Single crisp sentence if possible._
+
+## Application
+
+_When does this lesson apply? What should change going forward?_
+---
+---
+primitive: lesson
 date: 2026-03-20
 source: (add source)
 confidence: high
@@ -12546,11 +12700,11 @@ tags:
 - session-key
 - agent-rename
 - openclaw
-__coord__: l67
+__coord__: l70
 __slug__: sage-agent-session-key-stale-after-rename
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sage-agent-session-key-stale-after-rename.md
 __prefix__: l
-__index__: 67
+__index__: 70
 __ptype__: lessons
 ---
 # sage-agent-session-key-stale-after-rename
@@ -12583,11 +12737,11 @@ tags:
 - scheme-b
 - statistics
 - confirmed
-__coord__: l68
+__coord__: l71
 __slug__: scheme-b-validated-10-fold
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/scheme-b-validated-10-fold.md
 __prefix__: l
-__index__: 68
+__index__: 71
 __ptype__: lessons
 ---
 # Scheme B Accuracy Validated Across 10 Folds
@@ -12634,11 +12788,11 @@ applies_to:
 - agent-management
 upstream:
 - decision/agent-session-isolation
-__coord__: l69
+__coord__: l72
 __slug__: session-reset-targets-main-not-group
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/session-reset-targets-main-not-group.md
 __prefix__: l
-__index__: 69
+__index__: 72
 __ptype__: lessons
 ---
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session
@@ -12678,11 +12832,11 @@ tags:
 - coordination
 - sessions-send
 - timeout
-__coord__: l70
+__coord__: l73
 __slug__: sessions-send-timeout-filesystem-first
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/sessions-send-timeout-filesystem-first.md
 __prefix__: l
-__index__: 70
+__index__: 73
 __ptype__: lessons
 ---
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination
@@ -12718,11 +12872,11 @@ tags:
 - debugging
 - belam
 - argparse
-__coord__: l71
+__coord__: l74
 __slug__: shell-splits-unquoted-list-args
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/shell-splits-unquoted-list-args.md
 __prefix__: l
-__index__: 71
+__index__: 74
 __ptype__: lessons
 ---
 # Shell Splits Unquoted List Arguments
@@ -12759,11 +12913,11 @@ tags:
 applies_to:
 - snn-applied-finance
 - equilibrium-snn
-__coord__: l72
+__coord__: l75
 __slug__: snn-treats-like-weird-cnn
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/snn-treats-like-weird-cnn.md
 __prefix__: l
-__index__: 72
+__index__: 75
 __ptype__: lessons
 ---
 # Don't Treat SNNs Like Weird CNNs
@@ -12787,11 +12941,11 @@ tags:
 - soul
 - codex-layer
 - consciousness-architecture
-__coord__: l73
+__coord__: l76
 __slug__: soul-condensation-preserves-latent-nuance
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/soul-condensation-preserves-latent-nuance.md
 __prefix__: l
-__index__: 73
+__index__: 76
 __ptype__: lessons
 ---
 # soul-condensation-preserves-latent-nuance
@@ -12824,11 +12978,11 @@ tags:
 - stacking
 - architecture
 - dead-end
-__coord__: l74
+__coord__: l77
 __slug__: stacking-specialists-is-dead-end
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stacking-specialists-is-dead-end.md
 __prefix__: l
-__index__: 74
+__index__: 77
 __ptype__: lessons
 ---
 # Stacking Specialist Micro-Networks Is a Dead End
@@ -12873,11 +13027,11 @@ tags:
 - orchestration
 - pipeline
 - stall-recovery
-__coord__: l75
+__coord__: l78
 __slug__: stall-recovery-bypasses-kick-pipeline-guard
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/stall-recovery-bypasses-kick-pipeline-guard.md
 __prefix__: l
-__index__: 75
+__index__: 78
 __ptype__: lessons
 ---
 # stall-recovery-bypasses-kick-pipeline-guard
@@ -12909,11 +13063,11 @@ tags:
 - infrastructure
 downstream:
 - memory/2026-03-19_191633_supervised-builder-experiment-runner-wor
-__coord__: l76
+__coord__: l79
 __slug__: subprocess-run-doesnt-raise-on-failure
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/subprocess-run-doesnt-raise-on-failure.md
 __prefix__: l
-__index__: 76
+__index__: 79
 __ptype__: lessons
 ---
 # subprocess.run Does Not Raise on Non-Zero Exit Code
@@ -12962,11 +13116,11 @@ tags:
 - boot-hook
 - supermap
 - infrastructure
-__coord__: l77
+__coord__: l80
 __slug__: supermap-boot-hook-via-embed-primitives
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/supermap-boot-hook-via-embed-primitives.md
 __prefix__: l
-__index__: 77
+__index__: 80
 __ptype__: lessons
 ---
 # supermap-boot-hook-via-embed-primitives
@@ -12988,11 +13142,11 @@ tags:
 - pipeline
 - archival
 - orchestration
-__coord__: l78
+__coord__: l81
 __slug__: task-auto-archive-follows-downstream-work
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/task-auto-archive-follows-downstream-work.md
 __prefix__: l
-__index__: 78
+__index__: 81
 __ptype__: lessons
 ---
 # task-auto-archive-follows-downstream-work
@@ -13025,11 +13179,11 @@ tags:
 - infrastructure
 applies_to:
 - multi-agent-infrastructure
-__coord__: l79
+__coord__: l82
 __slug__: telegram-bots-cant-see-bots
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/telegram-bots-cant-see-bots.md
 __prefix__: l
-__index__: 79
+__index__: 82
 __ptype__: lessons
 ---
 # Telegram Bots Cannot See Other Bots' Messages
@@ -13053,11 +13207,11 @@ tags:
 - context-injection
 - render-engine
 - architecture
-__coord__: l80
+__coord__: l83
 __slug__: three-context-path-redundancy
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/three-context-path-redundancy.md
 __prefix__: l
-__index__: 80
+__index__: 83
 __ptype__: lessons
 ---
 # three-context-path-redundancy
@@ -13095,11 +13249,11 @@ applies_to:
 - v4
 - v5+
 superseded_by: gpu-parallel-thrashing-t4
-__coord__: l81
+__coord__: l84
 __slug__: tiny-snn-gpu-parallelism
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/tiny-snn-gpu-parallelism.md
 __prefix__: l
-__index__: 81
+__index__: 84
 __ptype__: lessons
 ---
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution
@@ -13151,11 +13305,11 @@ tags:
 - trading
 - pipeline
 - architecture
-__coord__: l82
+__coord__: l85
 __slug__: token-efficiency-stacks-as-runway-multiplier
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-efficiency-stacks-as-runway-multiplier.md
 __prefix__: l
-__index__: 82
+__index__: 85
 __ptype__: lessons
 ---
 # token-efficiency-stacks-as-runway-multiplier
@@ -13190,11 +13344,11 @@ tags:
 - llm
 - coordinate-design
 - tokens
-__coord__: l83
+__coord__: l86
 __slug__: token-ids-affect-attention-quality-not-just-count
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/token-ids-affect-attention-quality-not-just-count.md
 __prefix__: l
-__index__: 83
+__index__: 86
 __ptype__: lessons
 ---
 # token-ids-affect-attention-quality-not-just-count
@@ -13224,11 +13378,11 @@ tags:
 - snn
 - pytorch
 - debugging
-__coord__: l84
+__coord__: l87
 __slug__: torch-buffer-requires-tensor-assignment
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/torch-buffer-requires-tensor-assignment.md
 __prefix__: l
-__index__: 84
+__index__: 87
 __ptype__: lessons
 ---
 # torch.nn.Buffer Requires Tensor Assignment, Not Float
@@ -13276,11 +13430,11 @@ tags:
 - clock-cycles
 upstream:
 - memory/2026-03-19_204801_design-principle-from-shael-clock-cycles
-__coord__: l85
+__coord__: l88
 __slug__: use-scaffold-then-edit-not-overwrite
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/use-scaffold-then-edit-not-overwrite.md
 __prefix__: l
-__index__: 85
+__index__: 88
 __ptype__: lessons
 ---
 # use-scaffold-then-edit-not-overwrite
@@ -13317,11 +13471,11 @@ tags:
 - naming
 - automation
 - debugging
-__coord__: l86
+__coord__: l89
 __slug__: verify-notebook-paths-resolve-before-automation
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/verify-notebook-paths-resolve-before-automation.md
 __prefix__: l
-__index__: 86
+__index__: 89
 __ptype__: lessons
 ---
 # Verify Notebook Paths Resolve Before Automation
@@ -13355,11 +13509,11 @@ tags:
 - workflow
 - documentation
 - orchestrate
-__coord__: l87
+__coord__: l90
 __slug__: workflow-doc-step-refs-must-match-actual-script-names
 __filepath__: /home/ubuntu/.openclaw/workspace/lessons/workflow-doc-step-refs-must-match-actual-script-names.md
 __prefix__: l
-__index__: 87
+__index__: 90
 __ptype__: lessons
 ---
 # workflow-doc-step-refs-must-match-actual-script-names
@@ -17940,6 +18094,128 @@ Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup seq
 *Tags: instance:main, session-startup*
 ---
 ---
+primitive: memory_log
+timestamp: '2026-03-24T04:05:02Z'
+category: technical
+importance: 4
+tags:
+- instance:main
+- cron
+- gateway
+- freeze
+source: session
+content: Crons re-created on session bootstrap despite being disabled. 'Memory consolidation check' (every 6h) and 'Daily memory consolidation' (every 24h) both targeted sessionTarget:main with wakeMode:now — meaning they inject system events directly into the main session and force-wake the gateway. Both newly disabled this session. Root cause of recurring gateway freezes.
+status: active
+__coord__: m142
+__slug__: 2026-03-24_040502_crons-re-created-on-session-bootstrap-de
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040502_crons-re-created-on-session-bootstrap-de.md
+__prefix__: m
+__index__: 142
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T04:05:02Z** · `technical` · importance 4/5
+
+Crons re-created on session bootstrap despite being disabled. 'Memory consolidation check' (every 6h) and 'Daily memory consolidation' (every 24h) both targeted sessionTarget:main with wakeMode:now — meaning they inject system events directly into the main session and force-wake the gateway. Both newly disabled this session. Root cause of recurring gateway freezes.
+
+---
+*Source: session*
+*Tags: instance:main, cron, gateway, freeze*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T04:05:07Z'
+category: technical
+importance: 3
+tags:
+- instance:main
+- pipeline
+- archive
+- snn
+- validate-scheme-b
+source: session
+content: 'Both limbic-reward-snn and validate-scheme-b pipelines archived. Results intact (limbic: 12 experiments + analysis report; validate-scheme-b: 15 experiments + PDF report + critic followup). Pipeline state files corrupted from dispatch loops but research output is intact. Task created: retroactive-analysis-limbic-reward-and-validate-scheme-b.md for formal re-analysis.'
+status: active
+__coord__: m143
+__slug__: 2026-03-24_040507_both-limbic-reward-snn-and-validate-sche
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040507_both-limbic-reward-snn-and-validate-sche.md
+__prefix__: m
+__index__: 143
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T04:05:07Z** · `technical` · importance 3/5
+
+Both limbic-reward-snn and validate-scheme-b pipelines archived. Results intact (limbic: 12 experiments + analysis report; validate-scheme-b: 15 experiments + PDF report + critic followup). Pipeline state files corrupted from dispatch loops but research output is intact. Task created: retroactive-analysis-limbic-reward-and-validate-scheme-b.md for formal re-analysis.
+
+---
+*Source: session*
+*Tags: instance:main, pipeline, archive, snn, validate-scheme-b*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T04:05:12Z'
+category: technical
+importance: 3
+tags:
+- instance:main
+- heartbeat
+- e0
+- orchestration
+source: session
+content: 'Heartbeat HEARTBEAT.md stripped of all pipeline/orchestration tasks (Tasks 1-5 including e0 sweep). Only remaining tasks: git commits, memory maintenance, agent conversation export. The e0 sweep in heartbeat was identified as a source of gateway freezes.'
+status: active
+__coord__: m144
+__slug__: 2026-03-24_040512_heartbeat-heartbeatmd-stripped-of-all-pi
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040512_heartbeat-heartbeatmd-stripped-of-all-pi.md
+__prefix__: m
+__index__: 144
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T04:05:12Z** · `technical` · importance 3/5
+
+Heartbeat HEARTBEAT.md stripped of all pipeline/orchestration tasks (Tasks 1-5 including e0 sweep). Only remaining tasks: git commits, memory maintenance, agent conversation export. The e0 sweep in heartbeat was identified as a source of gateway freezes.
+
+---
+*Source: session*
+*Tags: instance:main, heartbeat, e0, orchestration*
+---
+---
+primitive: memory_log
+timestamp: '2026-03-24T04:05:16Z'
+category: technical
+importance: 4
+tags:
+- instance:main
+- renderer
+- codex-cockpit
+- gateway
+- freeze
+source: session
+content: 'codex_render.py renderer process (PID 3144387) was causing gateway contention. Kill attempts via exec were themselves being killed (SIGTERM, SIGKILL) — suggesting gateway resource conflict with renderer. Plan: disable codex-cockpit plugin via config to prevent auto-restart on gateway boot.'
+status: active
+__coord__: m145
+__slug__: 2026-03-24_040516_codex-renderpy-renderer-process-pid-3144
+__filepath__: /home/ubuntu/.openclaw/workspace/memory/entries/2026-03-24_040516_codex-renderpy-renderer-process-pid-3144.md
+__prefix__: m
+__index__: 145
+__ptype__: memory
+---
+# Memory Entry
+
+**2026-03-24T04:05:16Z** · `technical` · importance 4/5
+
+codex_render.py renderer process (PID 3144387) was causing gateway contention. Kill attempts via exec were themselves being killed (SIGTERM, SIGKILL) — suggesting gateway resource conflict with renderer. Plan: disable codex-cockpit plugin via config to prevent auto-restart on gateway boot.
+
+---
+*Source: session*
+*Tags: instance:main, renderer, codex-cockpit, gateway, freeze*
+---
+---
 __coord__: md1
 __slug__: '2026-03-25'
 __filepath__: /home/ubuntu/.openclaw/workspace/memory/2026-03-25.md
@@ -18189,6 +18465,73 @@ Session /new triggered at 2:53 AM UTC on 2026-03-24. Agent performed startup seq
 *Entry: `2026-03-24_030247_session-new-triggered-at-253-am-utc-on-2.md`*
 
 ---
+
+## 2026-03-24T04:05:02Z — technical ⚡⚡⚡⚡
+
+Crons re-created on session bootstrap despite being disabled. 'Memory consolidation check' (every 6h) and 'Daily memory consolidation' (every 24h) both targeted sessionTarget:main with wakeMode:now — meaning they inject system events directly into the main session and force-wake the gateway. Both newly disabled this session. Root cause of recurring gateway freezes.
+
+*Tags: instance:main, cron, gateway, freeze*
+
+*Source: session*
+
+*Entry: `2026-03-24_040502_crons-re-created-on-session-bootstrap-de.md`*
+
+---
+
+## 2026-03-24T04:05:07Z — technical ⚡⚡⚡
+
+Both limbic-reward-snn and validate-scheme-b pipelines archived. Results intact (limbic: 12 experiments + analysis report; validate-scheme-b: 15 experiments + PDF report + critic followup). Pipeline state files corrupted from dispatch loops but research output is intact. Task created: retroactive-analysis-limbic-reward-and-validate-scheme-b.md for formal re-analysis.
+
+*Tags: instance:main, pipeline, archive, snn, validate-scheme-b*
+
+*Source: session*
+
+*Entry: `2026-03-24_040507_both-limbic-reward-snn-and-validate-sche.md`*
+
+---
+
+## 2026-03-24T04:05:12Z — technical ⚡⚡⚡
+
+Heartbeat HEARTBEAT.md stripped of all pipeline/orchestration tasks (Tasks 1-5 including e0 sweep). Only remaining tasks: git commits, memory maintenance, agent conversation export. The e0 sweep in heartbeat was identified as a source of gateway freezes.
+
+*Tags: instance:main, heartbeat, e0, orchestration*
+
+*Source: session*
+
+*Entry: `2026-03-24_040512_heartbeat-heartbeatmd-stripped-of-all-pi.md`*
+
+---
+
+## 2026-03-24T04:05:16Z — technical ⚡⚡⚡⚡
+
+codex_render.py renderer process (PID 3144387) was causing gateway contention. Kill attempts via exec were themselves being killed (SIGTERM, SIGKILL) — suggesting gateway resource conflict with renderer. Plan: disable codex-cockpit plugin via config to prevent auto-restart on gateway boot.
+
+*Tags: instance:main, renderer, codex-cockpit, gateway, freeze*
+
+*Source: session*
+
+*Entry: `2026-03-24_040516_codex-renderpy-renderer-process-pid-3144.md`*
+
+---
+
+## Session 03c51180 — 03:07–04:04 UTC (main)
+
+**Gateway freeze investigation + cleanup**
+
+- User reported gateway freezing whenever pipelines are investigated
+- Found: 2 crons re-created on bootstrap (`Memory consolidation check` every 6h, `Daily memory consolidation` every 24h) — both targeting `sessionTarget:main` with `wakeMode:now`. Disabled all 5 crons.
+- Gateway had just restarted at 03:07 UTC (41% CPU spike on startup), corroborating freeze pattern
+- Architect session at 159k tokens due to dispatch loop re-sending handoffs 11+ times, preventing session reset
+- **Pipelines archived:** `limbic-reward-snn` and `validate-scheme-b` — both had full results and analysis reports intact despite corrupted state files
+- Task created: `retroactive-analysis-limbic-reward-and-validate-scheme-b.md`
+- **HEARTBEAT.md stripped** of all pipeline/orchestration tasks (Tasks 1–5 including `e0` sweep). Only: git commits, memory maintenance, conversation export.
+- `codex_render.py` (PID 3144387) was contending with gateway; kill attempts via exec were themselves killed (SIGTERM/SIGKILL). Plan: disable codex-cockpit plugin via config.
+- Tmux dashboard for limbic-reward killed.
+
+**Lessons logged:**
+- Crons can be silently re-created on session bootstrap
+- Renderer process contention blocks gateway-level kill commands
+- Dispatch loops bloat agent session context and prevent resets
 ---
 ---
 __coord__: md3
