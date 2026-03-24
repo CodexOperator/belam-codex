@@ -1,9 +1,59 @@
 {
   "version": "report-to-youtube-pipeline",
-  "stages": {},
-  "status": "architect_design",
-  "status_updated": "2026-03-24 10:49",
-  "current_agent": "architect_design",
-  "last_dispatched": "2026-03-24T10:49:41.329425+00:00",
-  "dispatch_claimed": false
+  "stages": {
+    "architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-24 10:52",
+      "agent": "architect",
+      "notes": "Design v1: Report-to-YouTube pipeline. 8 deliverables (~740L, 8 files). D1: script generator (report\u2192structured YAML with scenes, narration, visual directions). D2: Edge TTS engine (free, async, high quality). D3: visualization generator (matplotlib animated charts + Manim animations + Cairo title cards). D4: MoviePy video assembler (audio as master clock). D5: SRT subtitle generator. D6: thumbnail generator. D7: CLI orchestrator (report_to_video.py). First target: validate-scheme-b report. Stack: Edge TTS + MoviePy + Manim + FFmpeg + Pillow. All ARM64 compatible. 5 tests. 4 open questions for critic."
+    },
+    "critic_design_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 10:54",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 2 HIGH FLAGs, 2 MED FLAGs, 2 LOW FLAGs. FLAG-1 HIGH: 5 of 7 deps not installed (ffmpeg, edge-tts, moviepy, pydub, pymupdf) \u2014 builder must install D8 FIRST or 3/5 tests fail immediately. Sudo available. FLAG-2 HIGH: D1 script generator underspecified \u2014 shows YAML output but no parsing logic. Fix: start with markdown only, split on ## headings, section-name\u2192visual-type mapping dict, 150wpm word count. Defer PDF parsing. FLAG-3 MED: MoviePy 2.x API differs from code (import paths, volume methods). Pin moviepy or verify 2.x API. FLAG-4 MED: subtitle timing assumes uniform word distribution \u2014 accept for V1, use Edge TTS SubMaker word timestamps in V2. FLAG-5 LOW: no stage-level resume (check if output exists before re-generating). FLAG-6 LOW: Manim in requirements despite deferral to V2 \u2014 remove it. Q1: matplotlib for V1, Manim V2. Q2: template from report text. Q3: skip BGM. Q4: optional review gate. Review at: pipeline_builds/report-to-youtube-pipeline_critic_design_review.md"
+    },
+    "builder_implementation": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:02",
+      "agent": "builder",
+      "notes": "All 8 deliverables implemented. D1 video_script_generator.py (210L): markdown parser splits on ## headings, section\u2192visual-type mapping dict, 150wpm duration estimates, spoken-word text cleanup. D2 video_tts.py (95L): Edge TTS async, per-scene resume (FLAG-5). D3 video_visuals.py (260L): title cards (Pillow), static charts + animated bar charts (matplotlib.animation\u2192MP4), dark theme palette. D4 video_assembler.py (140L): MoviePy 2.x API verified (FLAG-3), audio as master clock, video loop/trim to match audio. D5 video_subtitles.py (100L): SRT with 10-word chunks, uniform timing (FLAG-4 V1 accepted). D6 video_thumbnail.py (110L): 1280x720 YouTube thumbnail. D7 report_to_video.py (160L): CLI orchestrator with --script-only, --from-script, --preview, --assets-only flags. D8 requirements-video.txt: edge-tts+moviepy+pydub+pymupdf only (no Manim per FLAG-6). All 6 FLAGs addressed. Test spec 9/9 GREEN including T9 end-to-end preview (1-scene video generated from validate-scheme-b report)."
+    },
+    "builder_verification": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:03",
+      "agent": "builder",
+      "notes": "GREEN: 9/9 tests passed. T1 Edge TTS audio gen, T2 Pillow thumbnail, T3 FFmpeg available, T4 YAML format, T5 MoviePy 2.x imports, T6 script generator parses validate-scheme-b report, T7 SRT subtitle gen, T8 visual generator (title cards + charts), T9 end-to-end preview (1-scene video from real report). Results at pipeline_builds/report-to-youtube-pipeline_test_results.md"
+    },
+    "critic_code_review": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:07",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 1 MED FLAG, 2 LOW FLAGs. All 6 design FLAGs resolved. 9/9 tests pass. FLAG-1 MED: animated chart visuals use random placeholder data (np.random bars), not connected to report data \u2014 narration says '53.5% accuracy' but chart shows random bars. Acceptable for V1 but needs data wiring in V2. FLAG-2 LOW: pymupdf in requirements but never imported (markdown-only V1). FLAG-3 LOW: animated charts may be slow on ARM64 (300 frames \u00d7 FFmpeg encode). 8 files, ~1146L total. Modular architecture works: each stage produces files consumed by the next. Stage-level resume throughout. Edge TTS, MoviePy 2.x, matplotlib.animation all working on ARM64. Review at: pipeline_builds/report-to-youtube-pipeline_critic_code_review.md"
+    },
+    "phase1_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-24 11:19",
+      "agent": "main",
+      "notes": "Heartbeat archive"
+    },
+    "phase2_architect_design_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-24 11:08",
+      "agent": "architect",
+      "notes": "BLOCK: No Phase 2 direction from Shael. Phase 2 should wire real data into charts and produce first validate-scheme-b video. Unblock by creating phase2_direction.md."
+    }
+  },
+  "status": "phase1_complete",
+  "status_updated": "2026-03-24 11:07",
+  "current_agent": "phase2_architect_design",
+  "last_dispatched": "2026-03-24T11:19:17.904053+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "phase1_complete"
+  },
+  "last_updated": "2026-03-24 11:19",
+  "pending_action": "phase1_complete",
+  "verification_retries": 0,
+  "phase2_architect_design_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/pipelines/report-to-youtube-pipeline.md"
 }

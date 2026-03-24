@@ -1,0 +1,15 @@
+{
+  "version": "e0-sweep-subcommand-separation",
+  "completed_stage": "phase1_complete",
+  "next_stage": "phase2_architect_design",
+  "next_agent": "architect",
+  "timestamp": "2026-03-24T11:19:04.266301+00:00",
+  "pipeline_session_id": "7b1cf172-4ad0-4e12-a27f-370293e3fec8",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

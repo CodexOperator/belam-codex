@@ -1,0 +1,15 @@
+{
+  "version": "report-to-youtube-pipeline",
+  "completed_stage": "phase1_complete",
+  "next_stage": "phase2_architect_design",
+  "next_agent": "architect",
+  "timestamp": "2026-03-24T11:19:06.620050+00:00",
+  "pipeline_session_id": "9f73a3f0-477e-44dc-a73d-01c608ec695f",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

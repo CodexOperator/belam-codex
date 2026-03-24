@@ -1,10 +1,11 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: medium
 project: multi-agent-infrastructure
 depends_on: []
 tags: [research, infrastructure, spacetimedb, temporal, gaming]
+pipeline: temporal-interaction-llm-gaming
 created: 2026-03-21
 ---
 

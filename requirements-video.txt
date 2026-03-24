@@ -1,0 +1,6 @@
+# Video pipeline dependencies (V1 — no Manim)
+edge-tts>=7.0
+moviepy>=2.0
+pydub>=0.25
+pymupdf>=1.24
+# Pillow and PyYAML already installed system-wide

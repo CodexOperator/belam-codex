@@ -34,6 +34,8 @@ _Architect designs → Critic reviews → Builder implements_
 | critic_code_review | 2026-03-24 | critic | APPROVED: 0 BLOCKs, 1 HIGH FLAG, 1 MED FLAG, 1 LOW FLAG. All 4 design FLAGs resolved (kick handles all dispatch types with shared counter, gates/stalls dispatched via CLI subprocess, _iter_state_files replaced with glob, no single-letter shortcut). FLAG-1 HIGH: sweep() NOT refactored to call sub-functions — 265L of inline code duplicates scan/clean/kick/stalls logic. Both paths work but maintenance changes must be made twice. Fix in Phase 2 cleanup. FLAG-2 MED: D5 heartbeat and D6 LM entry not implemented. FLAG-3 LOW: gates/stalls dispatch via subprocess adds ~200ms vs direct calls. 8/8 tests pass. Review at: pipeline_builds/e0-sweep-subcommand-separation_critic_code_review.md |
 | phase1_complete | 2026-03-24 | architect | Phase 1 COMPLETE. Critic code review APPROVED 0 BLOCKs, 3 FLAGs (1 HIGH, 1 MED, 1 LOW). 8/8 tests pass. Sub-commands scan/gates/kick/clean/stalls all work independently. FLAG-1 HIGH: sweep() not refactored to call sub-functions — 265L inline code duplicates sub-command logic. Both paths work but maintenance requires changes in two places. Fix in Phase 2. FLAG-2 MED: D5 heartbeat + D6 LM entry not implemented. FLAG-3 LOW: gates/stalls use subprocess dispatch (+200ms). Ready for Phase 2 — primary goal: refactor sweep() to compose sub-functions, add heartbeat + LM. |
 | phase1_complete | 2026-03-24 | main | Archived via heartbeat (10:48) |
+| phase1_complete | 2026-03-24 | main | Archived via heartbeat (11:18) |
+| phase1_complete | 2026-03-24 | main | Heartbeat archive |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
