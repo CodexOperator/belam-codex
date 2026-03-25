@@ -1,0 +1,41 @@
+{
+  "version": "git-diff-handoff-context",
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-25 15:19",
+      "agent": "builder",
+      "notes": "Implemented handoff_diff.py with snapshot recording and scoped diff generation. Wired into pipeline_orchestrate.py complete/block flows. 17 tests all passing."
+    }
+  },
+  "status": "p1_bugfix",
+  "status_updated": "2026-03-25 15:19",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-25T15:18:21.328712+00:00",
+      "commits": {
+        "workspace": "019f745234a0c50221bb8f64b2de37f0a01a2935",
+        "machinelearning": "bacb58b57fe5e34f15f307f168a4732d00a8fcf3"
+      }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-25T15:19:39.395004+00:00",
+      "commits": {
+        "workspace": "8834593a7884cb44b68057d912f6bb8829d010a5",
+        "machinelearning": "bacb58b57fe5e34f15f307f168a4732d00a8fcf3"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_builder_implement"
+  },
+  "last_updated": "2026-03-25 15:19",
+  "pending_action": "p1_builder_bugfix",
+  "current_agent": "p1_builder_bugfix",
+  "last_dispatched": "2026-03-25T15:19:40.332878+00:00",
+  "dispatch_claimed": false
+}
