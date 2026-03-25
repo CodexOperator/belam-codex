@@ -32,12 +32,8 @@ EXCLUDED_STATUSES = {'superseded', 'archived'}
 
 # ── D5/D1b: UDS helpers for RAM-first engine integration ────────────────────
 def _try_uds_query(cmd: str, **kwargs) -> dict | None:
-    """Send a command to the render engine via UDS. Returns response or None."""
-    try:
-        from codex_render import _signal_render_engine
-        return _signal_render_engine(cmd, **kwargs)
-    except Exception:
-        return None
+    """Stub — render daemon retired. Returns None."""
+    return None
 
 
 def _try_uds_edit(coord: str, edits: list, body_op: dict | None = None) -> bool:
@@ -1944,14 +1940,6 @@ def _write_frontmatter_file(filepath, fields, body_lines):
         out_lines.append('')
         out_lines.extend(body_lines)
     content = '\n'.join(out_lines) + '\n'
-    # V3 Phase 2: test mode intercept — writes go to render engine overlay
-    if _check_render_test_mode():
-        try:
-            from codex_render import intercept_write
-            if intercept_write(str(fp.relative_to(WORKSPACE)), content):
-                return
-        except (ImportError, ValueError):
-            pass
     fp.write_text(content, encoding='utf-8')
 
 
@@ -5106,15 +5094,16 @@ def main(args=None):
         except ImportError:
             pass
 
+    # ── r0: force-render supermap (no daemon, stdout) ──
+    if first_lower == 'r0':
+        print(_render_sm())
+        _restore_shuffle()
+        return
+
     if first_lower == 'e' or _is_v2_op_start(first_lower) or re.match(r'^e[0-3]$', first_lower):
         if first_lower == 'e':
-            # Bare 'e' → list all mode primitives + reset render engine diff anchor
+            # Bare 'e' → list all mode primitives
             _list_mode_primitives()
-            try:
-                from codex_render import _signal_render_engine
-                _signal_render_engine('anchor_reset')
-            except ImportError:
-                pass
             return
         if re.match(r'^e[0-3]$', first_lower) and len(clean_args) == 1:
             # Bare eN with no additional args

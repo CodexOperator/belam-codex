@@ -445,15 +445,7 @@ def _post_state_change(version: str, from_stage: str, to_stage: str,
         # 5. Phase 2: Signal render engine for immediate pickup
         # Uses 'refresh' command (NOT anchor_reset which wipes the diff buffer
         # that .v5 R-label trail reads from — Critic FLAG-1).
-        try:
-            pipeline_md = PIPELINES_DIR / f'{version}.md'
-            if pipeline_md.exists():
-                from codex_render import _signal_render_engine
-                _signal_render_engine('refresh', filepath=str(pipeline_md))
-        except (ImportError, Exception):
-            pass  # Non-fatal — inotify is the primary mechanism
-
-        return True
+                return True
     except Exception:
         return False  # Temporal failures are non-fatal
 

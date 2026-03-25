@@ -52,11 +52,8 @@
 - Do NOT auto-kick Phase 2 when Phase 1 tests passed — this causes dispatch loops
 - Keep it lightweight — read state files, make one decision, exit
 
-## Task 5.5: Render Engine Health Check
-
-1. `systemctl is-active codex-render.service` — if not `active`, run `sudo systemctl restart codex-render.service`
-2. Verify socket responds: `python3 scripts/codex_render.py --status`
-3. If both fail, log a warning and continue — don't block heartbeat
+## ~~Task 5.5: Render Engine Health Check~~ (REMOVED 2026-03-25)
+> **Removed:** Render daemon retired. Supermap is now rendered on-demand by `scripts/render_supermap.py` (called directly by cockpit plugin V10). No daemon to health-check.
 
 ## Task 6: Git Commits (Both Repos)
 

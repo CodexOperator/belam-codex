@@ -90,6 +90,7 @@ _TOOL_PATTERNS = [
     LMEntry(verb='mem-search',  syntax='memory_search("{q}")',   description='semantic search over memory',                            source='tool'),
     LMEntry(verb='spawn-agent', syntax='sessions_spawn(...)',     description='launch sub-agent session',                               source='tool'),
     LMEntry(verb='shell',       syntax='exec {cmd}',             description='run shell command',                                      source='tool'),
+    LMEntry(verb='render',      syntax='r0',                     description='force-render supermap now',                              source='tool'),
 ]
 
 
