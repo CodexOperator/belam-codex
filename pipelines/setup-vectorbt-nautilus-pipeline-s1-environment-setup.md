@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_complete
+status: archived
 priority: high
 type: builder-first
 version: setup-vectorbt-nautilus-pipeline-s1-environment-setup

@@ -21,36 +21,36 @@
 ## ~~Task 5: Pipeline Archival~~ (REMOVED 2026-03-24)
 > **Removed:** Part of pipeline automation. All active pipelines archived manually on 2026-03-24.
 
-## Task 5: Infrastructure Pipeline Queue
+## Task 5: VectorBT/Nautilus Subtask Queue (S2–S6)
 
-**Scope:** Infra tasks only. MAX_CONCURRENT=2. No research/experiment pipelines.
-**Frequency:** Every 30 minutes (no additional timing gate — run on every heartbeat).
+**Scope:** ONLY `setup-vectorbt-nautilus-pipeline-s{2..6}` tasks. Sequential (MAX_CONCURRENT=1). Nothing else.
+**Type:** builder-first (all these are builder-first pipelines).
+**Frequency:** Every heartbeat.
+**Stop condition:** When S6 is done, this task is complete. Remove it.
+
+**Completed:** S1 (environment setup) — done, critic approved, 22/22 tests GREEN.
 
 1. Check current pipeline status:
-   - `grep "^status:" pipelines/*.md | grep -vE "archived"` — look at active pipeline states
-   - If a pipeline is actively running (dispatched/in_progress/architect_design/critic_*/builder_*), skip — wait for it
+   - `grep "^status:" pipelines/*.md | grep -vE "archived"` — look for active vectorbt pipelines
+   - If one is running (any non-archived status), skip — wait for it
 
-2. If current pipeline reached `phase1_complete`:
-   - Check test results: `pipeline_builds/{version}_test_results.md` or `machinelearning/.../pipeline_builds/{version}_test_results.md`
-   - If tests **PASSED (GREEN)**: mark pipeline as archived, update task status to `done`
-   - If tests **FAILED**: write findings as Phase 2 direction (`pipeline_builds/{version}_phase2_direction.md`), then kick Phase 2: `python3 scripts/pipeline_orchestrate.py {version} kickoff`
-   - **Do NOT auto-kick Phase 2 on passed pipelines** — Phase 2 is only for fixing failures
+2. If current pipeline reached `p1_complete`:
+   - If critic approved (0 blocks): mark pipeline archived, update task to `done`
+   - If critic blocked: write Phase 2 direction, kick Phase 2
+   - Do NOT auto-kick Phase 2 on passed pipelines
 
-3. If fewer than 2 pipelines are running, find next eligible infra task:
-   - `ls tasks/*.md` — look for `status: open` + `tags:` containing `infrastructure`
-   - **Sort by priority:** high → medium → low. Within same priority, prefer tasks with no unmet `depends_on`
-   - Check `depends_on` AND `upstream` are satisfied (upstream tasks must be `done` or `archived`)
-   - Launch: `python3 scripts/launch_pipeline.py {slug} --desc "..." --type infrastructure --kickoff`
+3. If no pipeline is running, launch next subtask in sequence:
+   - Order: S2 → S3 → S4 → S5 → S6 (strict sequential, each depends on prior)
+   - Find first `status: open` subtask in sequence
+   - Launch: `python3 scripts/launch_pipeline.py {slug} --desc "..." --type builder-first --kickoff`
    - Update task status to `in_pipeline`
 
 4. Skip silently if nothing to do
 
 **Anti-patterns:**
-- Do NOT launch research/experiment pipelines (SNN, trading, etc.)
-- Do NOT run `e0` sweep (causes gateway load)
-- Do NOT launch if a pipeline is already running
-- Do NOT auto-kick Phase 2 when Phase 1 tests passed — this causes dispatch loops
-- Keep it lightweight — read state files, make one decision, exit
+- Do NOT launch anything except setup-vectorbt-nautilus-pipeline-s{2..6}
+- Do NOT run more than 1 pipeline at a time
+- Do NOT auto-kick Phase 2 on passed pipelines
 
 ## ~~Task 5.5: Render Engine Health Check~~ (REMOVED 2026-03-25)
 > **Removed:** Render daemon retired. Supermap is now rendered on-demand by `scripts/render_supermap.py` (called directly by cockpit plugin V10). No daemon to health-check.

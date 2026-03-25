@@ -1,0 +1,15 @@
+{
+  "version": "video-pipeline-standalone-repo",
+  "completed_stage": "p1_builder_verify",
+  "next_stage": "p1_critic_code_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-25T04:25:11.495125+00:00",
+  "pipeline_session_id": "e46af6fc-1f16-4eb1-bd3c-83fd1fa2df9c",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
