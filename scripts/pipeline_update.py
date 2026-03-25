@@ -644,8 +644,12 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
     stage_trans, block_trans, status_bumps_map, _ = get_transitions_for_pipeline(version)
     transition = block_trans.get(stage)
     if transition:
-        next_action, next_agent, ping_template = transition
+        # Block transitions are 3-tuple or 4-tuple: (fix_stage, fix_role, msg[, session_mode])
+        next_action, next_agent = transition[0], transition[1]
+        ping_template = transition[2] if len(transition) > 2 else ''
+        block_session_mode = transition[3] if len(transition) > 3 else 'fresh'
         state['pending_action'] = next_action
+        state['pending_session_mode'] = block_session_mode
     state['last_updated'] = now_str()
     save_state(version, state)
 

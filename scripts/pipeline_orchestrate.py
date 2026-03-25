@@ -264,6 +264,42 @@ fully satisfies the task requirements and no Phase 2/3 is needed."""
     return msg
 
 
+def build_continue_block_message(version: str, completed_stage: str, next_stage: str,
+                                  next_agent: str, notes: str, artifact: str = '') -> str:
+    """Build a lightweight block-fix message for continue-session mode.
+
+    The agent already has full context from their previous session — they just need
+    the critic's feedback and a diff of what changed (if anything).
+    """
+    diff_section = ''
+    try:
+        from handoff_diff import build_handoff_diff
+        diff_section = build_handoff_diff(version, next_agent)
+    except Exception as e:
+        print(f"   ⚠️  handoff_diff failed (non-fatal): {e}")
+
+    artifact_line = ''
+    if artifact:
+        artifact_line = f'\n**Critic review artifact:** `research/pipeline_builds/{artifact}` — read this for the full block details.\n'
+
+    msg = f"""🚫 BLOCK — Critic sent your work back for fixes
+
+**Pipeline:** {version}
+**Blocked stage:** {completed_stage}
+**Your fix task:** {next_stage}
+**Critic notes:** {notes}
+{artifact_line}
+You still have full context from your previous session. Address the blocks listed above,
+then complete the fix:
+
+```
+python3 scripts/pipeline_orchestrate.py {version} complete {next_stage} --agent {next_agent} --notes "Fixed: summary" --learnings "what the critic caught, what I learned"
+```
+{diff_section}"""
+
+    return msg
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # Agent wake via `openclaw agent` CLI
 # ═══════════════════════════════════════════════════════════════════════
@@ -977,20 +1013,27 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
         print(f"\n   ℹ️  No auto-transition for blocking '{stage}' — no handoff needed")
         return True
 
-    next_stage, next_agent, _ = transition
-    print(f"\n   📋 Block transition: {stage} → {next_stage} ({next_agent})")
+    next_stage, next_agent = transition[0], transition[1]
+    block_session_mode = transition[3] if len(transition) > 3 else 'fresh'
+    print(f"\n   📋 Block transition: {stage} → {next_stage} ({next_agent}) [session: {block_session_mode}]")
 
-    # Step 3: Reset agent session for fresh context
-    print(f"\n   🔄 Resetting {next_agent} session for fresh context...")
-    reset_agent_session(next_agent)
+    # Step 3: Session mode — fresh resets the agent session, continue reuses it
+    if block_session_mode == 'fresh':
+        print(f"\n   🔄 Resetting {next_agent} session for fresh context...")
+        reset_agent_session(next_agent)
+        pipeline_session_id = generate_session_id(version, next_agent)
+    else:
+        # 'continue' — reuse existing session, skip reset
+        pipeline_session_id = None
+        print(f"\n   🔄 Session mode: continue — reusing {next_agent}'s existing session")
 
-    # Step 4: Generate isolated session ID for this pipeline
-    pipeline_session_id = generate_session_id(version, next_agent)
+    # Step 4: Build handoff message — lightweight for continue, full for fresh
+    if block_session_mode == 'continue':
+        handoff_msg = build_continue_block_message(version, stage, next_stage, next_agent, notes, artifact)
+    else:
+        handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes, artifact)
 
-    # Step 5: Build handoff message and fire-and-forget dispatch
-    handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes, artifact)
-
-    print(f"\n   🔔 Dispatching {next_agent} for block fix (fire-and-forget)...")
+    print(f"\n   🔔 Dispatching {next_agent} for block fix (fire-and-forget, session: {block_session_mode})...")
     result = fire_and_forget_dispatch(version, next_stage, next_agent, message=handoff_msg)
     if result.get('success'):
         print(f"   🔔 Dispatched {next_agent} (fire-and-forget)")
@@ -998,8 +1041,8 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
         print(f"   ⚠️ Dispatch failed: {result.get('error')}")
 
     # Write handoff record
-    wake_result = {'success': result.get('success', False), 'status': 'dispatched', 'session_id': pipeline_session_id}
-    write_handoff(version, stage, next_stage, next_agent, wake_result, pipeline_session_id)
+    wake_result = {'success': result.get('success', False), 'status': 'dispatched', 'session_id': pipeline_session_id or ''}
+    write_handoff(version, stage, next_stage, next_agent, wake_result, pipeline_session_id or '')
 
     return True
 

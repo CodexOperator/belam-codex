@@ -208,7 +208,15 @@ def _parse_phase_based(data: dict) -> dict | None:
 
     # Generate block transitions from block_routing
     for blocker_role, routing in block_routing.items():
-        for blocker_action, fix_role in routing.items():
+        for blocker_action, fix_target in routing.items():
+            # Support both string ("builder") and dict ({ agent: builder, session: continue }) formats
+            if isinstance(fix_target, dict):
+                fix_role = fix_target.get('agent', fix_target.get('role', ''))
+                block_session_mode = fix_target.get('session', 'fresh')
+            else:
+                fix_role = fix_target
+                block_session_mode = 'fresh'
+
             # For every phase, generate block transitions for matching stages
             for phase_num in sorted_phase_nums:
                 phase = phases[phase_num]
@@ -224,9 +232,10 @@ def _parse_phase_based(data: dict) -> dict | None:
                         # Find the fix_role's last stage before the blocker for re-entry
                         fix_msg = f'Phase {phase_num}: {blocker_role} blocked at {blocker_action}. {fix_role} fix required.'
 
-                        block_transitions[block_stage] = (fix_stage, fix_role, fix_msg)
+                        # 4-tuple: (fix_stage, fix_role, fix_msg, session_mode)
+                        block_transitions[block_stage] = (fix_stage, fix_role, fix_msg, block_session_mode)
 
-                        # The fix stage transitions back to the blocker
+                        # The fix stage transitions back to the blocker — always fresh (cross-agent)
                         transitions[fix_stage] = (block_stage, blocker_role,
                                                   f'Blocks fixed. Re-review by {blocker_role}.', 'fresh')
 

@@ -99,7 +99,7 @@ phases:
 
 block_routing:
   critic:
-    review: builder
+    review: { agent: builder, session: continue }
 
 complete_task_agent: architect
 ```

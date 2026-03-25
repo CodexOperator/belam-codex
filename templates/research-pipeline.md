@@ -122,11 +122,11 @@ phases:
 
 block_routing:
   critic:
-    design_review: architect
-    code_review: builder
-    analysis_review: architect
-    analysis_code_review: builder
-    review: architect
+    design_review: { agent: architect, session: continue }
+    code_review: { agent: builder, session: continue }
+    analysis_review: { agent: architect, session: continue }
+    analysis_code_review: { agent: builder, session: continue }
+    review: { agent: architect, session: continue }
 
 complete_task_agent: architect
 ```
