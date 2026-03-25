@@ -83,20 +83,20 @@
       "slug": "persistent-extend-and-indexed-subops"
     },
     "t10": {
-      "hash": "5e7f3af60321",
-      "slug": "report-to-youtube-pipeline"
+      "hash": "9bd43ed6075f",
+      "slug": "quant-cross-asset-stablecoin-spreads"
     },
     "t11": {
       "hash": "66b85191357d",
       "slug": "ram-git-s1-tmpfs-repo-and-symlinks"
     },
     "t12": {
-      "hash": "6b07b566fea3",
-      "slug": "spiking-transformer-integration-research"
+      "hash": "dfbd12496268",
+      "slug": "quant-pairs-trading-energy-nuclear"
     },
     "t13": {
-      "hash": "d4f493066fed",
-      "slug": "temporal-interaction-llm-gaming"
+      "hash": "45252b1ff5db",
+      "slug": "quant-statistical-process-models"
     },
     "t14": {
       "hash": "647899770d34",
@@ -1253,8 +1253,24 @@
     "pt3": {
       "hash": "2f148faeece5",
       "slug": "test-template-pipeline"
+    },
+    "t21": {
+      "hash": "d0092ada2d6f",
+      "slug": "snn-microcap-crypto-baseline"
+    },
+    "t22": {
+      "hash": "e82578b386ba",
+      "slug": "snn-cross-asset-stablecoin-spreads"
+    },
+    "t25": {
+      "hash": "d53068f97a86",
+      "slug": "snn-pairs-trading-energy-nuclear"
+    },
+    "t27": {
+      "hash": "eaa20ac1a299",
+      "slug": "snn-statistical-process-models"
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-25T22:32:35Z"
+  "last_incremental": "2026-03-25T23:00:51Z"
 }
