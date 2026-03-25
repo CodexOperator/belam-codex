@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: archived
 priority: high
 type: builder-first
 version: setup-vectorbt-nautilus-pipeline-s3-strategy-adapter
@@ -28,6 +28,10 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-25 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-25 | builder | S3 strategy adapter implemented: 5 deliverables, 46/46 tests GREEN |
+| p1_builder_implement | 2026-03-25 | builder | 5 deliverables: base_adapter.py, vectorbt_adapter.py, nautilus_adapter.py, __init__.py, test_strategy_adapter.py. 46/46 tests pass. |
+| p1_builder_bugfix | 2026-03-25 | builder | Bugfix audit found and fixed 1 bug + 2 doc issues: (1) BUG FIX: confidence sizing was dead code — _compute_sizes() was called but size=np.inf overrode it, making size_mode=confidence identical to fixed. Fixed by using size_type=value with cash-denominated sizes for confidence mode, and size_type=amount with np.inf for fixed mode. Added regression test proving confidence != fixed returns. (2) DOC FIX: Removed nonexistent kelly sizing mode from docstring. (3) DOC FIX: Corrected nautilus_adapter usage example (config takes strings, not InstrumentId/BarType/Decimal objects). 46/46 tests GREEN. |
+| p1_critic_review | 2026-03-25 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. 46/46 tests GREEN (verified independently). All 3 bugfix claims verified: (1) confidence sizing was dead code — fixed with size_type=value + cash-denominated sizes, regression test proves fixed!=confidence returns (0.118 vs 0.043). (2) Kelly removed from docstrings — grep confirmed zero references. (3) Nautilus config uses strings — SNNStrategyConfig fields are str, conversion in __init__. FLAG-1 MED: confidence sizing uses init_cash not current portfolio value — documented approximation, acceptable for research. FLAG-2 LOW: lazy import in _generate_current_signal. 5 deliverables, 1644L total, clean architecture. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

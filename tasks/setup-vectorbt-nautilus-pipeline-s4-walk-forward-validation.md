@@ -1,9 +1,10 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: medium
 owner: builder
 tags: [backtesting, validation, statistics]
+pipeline: setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation
 project: snn-applied-finance
 estimate: 5 hours
 parent_task: setup-vectorbt-nautilus-pipeline
