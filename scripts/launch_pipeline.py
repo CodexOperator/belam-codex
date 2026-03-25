@@ -578,6 +578,10 @@ def main():
     parser.add_argument('--start', action='store_true', help='Start Phase 1 immediately (prints agent task)')
     parser.add_argument('--kickoff', '-k', action='store_true',
                         help='Send task to architect agent via sessions_send after creation')
+    parser.add_argument('--wiggum', '-w', action='store_true',
+                        help='Use auto_wiggum.py for dispatch (steer timer + auto-recovery)')
+    parser.add_argument('--wiggum-timeout', type=int, default=600,
+                        help='Timeout in seconds for wiggum dispatch (default: 600)')
     args = parser.parse_args()
     
     if args.list:
@@ -638,13 +642,47 @@ def main():
         orchestrate_status(args.version, first_stage)
         print(f"   ✅ State: {first_stage}")
 
-        # 2. Fire-and-forget dispatch (also sends group notification via fire_and_forget_dispatch)
-        result = fire_and_forget_dispatch(args.version, first_stage, first_agent)
-        if result['success']:
-            print(f"   ✅ {first_agent.title()} dispatched (pid={result['pid']})")
+        # 2. Dispatch — use auto_wiggum if --wiggum flag set, otherwise fire-and-forget
+        wiggum_flag = getattr(args, 'wiggum', False)
+        wiggum_timeout = getattr(args, 'wiggum_timeout', 600)
+        if wiggum_flag:
+            # Use auto_wiggum.py for steer-timer-aware dispatch
+            wiggum_script = str(Path(__file__).parent / 'auto_wiggum.py')
+            task_msg = (
+                f"Pipeline {args.version} stage {first_stage}. "
+                f"Read the pipeline file at pipelines/{args.version}.md and any spec/design docs. "
+                f"Implement the stage, run tests, then complete: "
+                f"python3 scripts/pipeline_orchestrate.py {args.version} complete {first_stage}"
+            )
+            import subprocess as _sp
+            wiggum_cmd = [
+                sys.executable, wiggum_script,
+                '--agent', first_agent,
+                '--timeout', str(wiggum_timeout),
+                '--task', task_msg,
+                '--pipeline', args.version,
+                '--stage', first_stage,
+                '--complete-on-exit',
+            ]
+            # Launch in background (nohup-style)
+            proc = _sp.Popen(
+                wiggum_cmd,
+                stdout=open(f'/tmp/wiggum_{args.version}.log', 'a'),
+                stderr=_sp.STDOUT,
+                cwd=str(WORKSPACE),
+                start_new_session=True,
+            )
+            print(f"   ✅ {first_agent.title()} dispatched via auto_wiggum (pid={proc.pid}, timeout={wiggum_timeout}s)")
+            print(f"   📋 Steer at {int(wiggum_timeout * 0.8)}s, hard timeout at {wiggum_timeout}s")
+            print(f"   📄 Log: /tmp/wiggum_{args.version}.log")
         else:
-            print(f"   ⚠️  Dispatch failed: {result['error']}")
-            print(f"   Manual fallback: python3 scripts/orchestration_engine.py dispatch {args.version}")
+            # Classic fire-and-forget dispatch
+            result = fire_and_forget_dispatch(args.version, first_stage, first_agent)
+            if result['success']:
+                print(f"   ✅ {first_agent.title()} dispatched (pid={result['pid']})")
+            else:
+                print(f"   ⚠️  Dispatch failed: {result['error']}")
+                print(f"   Manual fallback: python3 scripts/orchestration_engine.py dispatch {args.version}")
     else:
         print(f"\n🚀 Pipeline created. Kick off with:")
         print(f"   R kickoff {args.version}")

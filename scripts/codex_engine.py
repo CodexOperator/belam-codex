@@ -4512,7 +4512,7 @@ def _dispatch_e0(op_args, tracker):
             import subprocess as _sp
             cmd = [
                 sys.executable, str(Path(__file__).parent / 'launch_pipeline.py'),
-                slug, '--desc', desc, '--priority', priority, '--start',
+                slug, '--desc', desc, '--priority', priority, '--kickoff', '--wiggum',
             ]
             out = _sp.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE))
             if out.stdout.strip():

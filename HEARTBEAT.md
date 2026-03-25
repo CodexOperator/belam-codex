@@ -21,36 +21,17 @@
 ## ~~Task 5: Pipeline Archival~~ (REMOVED 2026-03-24)
 > **Removed:** Part of pipeline automation. All active pipelines archived manually on 2026-03-24.
 
-## Task 5: VectorBT/Nautilus Subtask Queue (S2–S6)
+## ~~Task 5: VectorBT/Nautilus Subtask Queue (S2–S6)~~ (COMPLETED 2026-03-25)
 
-**Scope:** ONLY `setup-vectorbt-nautilus-pipeline-s{2..6}` tasks. Sequential (MAX_CONCURRENT=1). Nothing else.
-**Type:** builder-first (all these are builder-first pipelines).
-**Frequency:** Every heartbeat.
-**Stop condition:** When S6 is done, this task is complete. Remove it.
-
-**Completed:** S1 (environment setup) — done, critic approved, 22/22 tests GREEN.
-
-1. Check current pipeline status:
-   - `grep "^status:" pipelines/*.md | grep -vE "archived"` — look for active vectorbt pipelines
-   - If one is running (any non-archived status), skip — wait for it
-
-2. If current pipeline reached `p1_complete`:
-   - If critic approved (0 blocks): mark pipeline archived, update task to `done`
-   - If critic blocked: write Phase 2 direction, kick Phase 2
-   - Do NOT auto-kick Phase 2 on passed pipelines
-
-3. If no pipeline is running, launch next subtask in sequence:
-   - Order: S2 → S3 → S4 → S5 → S6 (strict sequential, each depends on prior)
-   - Find first `status: open` subtask in sequence
-   - Launch: `python3 scripts/launch_pipeline.py {slug} --desc "..." --type builder-first --kickoff`
-   - Update task status to `in_pipeline`
-
-4. Skip silently if nothing to do
-
-**Anti-patterns:**
-- Do NOT launch anything except setup-vectorbt-nautilus-pipeline-s{2..6}
-- Do NOT run more than 1 pipeline at a time
-- Do NOT auto-kick Phase 2 on passed pipelines
+> **Completed:** All 6 subtasks done (S1–S6), all critic approved.
+> - S1 (environment setup): 22/22 tests GREEN
+> - S2 (data pipeline): APPROVED
+> - S3 (strategy adapter): APPROVED  
+> - S4 (walk-forward validation): Phase 2 DSR fix → APPROVED
+> - S5 (transaction costs): APPROVED
+> - S6 (statistical validation): 54/54 tests GREEN, Phase 2 bugfix → APPROVED
+> 
+> VectorBT/Nautilus infrastructure complete. Ready for S7 (experiments) when needed.
 
 ## ~~Task 5.5: Render Engine Health Check~~ (REMOVED 2026-03-25)
 > **Removed:** Render daemon retired. Supermap is now rendered on-demand by `scripts/render_supermap.py` (called directly by cockpit plugin V10). No daemon to health-check.

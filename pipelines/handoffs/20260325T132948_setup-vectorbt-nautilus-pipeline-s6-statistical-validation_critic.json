@@ -1,0 +1,15 @@
+{
+  "version": "setup-vectorbt-nautilus-pipeline-s6-statistical-validation",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-25T13:29:48.119264+00:00",
+  "pipeline_session_id": "e70a915a-a359-4f3e-a539-bb00780898cd",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

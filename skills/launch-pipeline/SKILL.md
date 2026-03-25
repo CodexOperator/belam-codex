@@ -110,7 +110,21 @@ All agents (architect, critic, builder) run on **Opus** with:
 - **10-minute window** per session (600s timeout)
 - **Memory files as continuity** — agents read `memory/YYYY-MM-DD.md` at session start
 - **Auto memory consolidation** — orchestrator writes `--notes` and `--learnings` to agent memory before handoff
+- **Auto-Wiggum dispatch** — `--wiggum` flag (default for `e0 t{n}`) uses `auto_wiggum.py` for steer-timer-aware dispatch. Steers agent at 80% timeout to wrap up cleanly. Falls back to `pipeline_stall_recovery.py` (cron, every 15min) if agent dies.
 - **Checkpoint-and-resume** — on timeout, partial work is preserved and a fresh session continues
+
+### Wiggum Dispatch
+
+```bash
+# e0 t{n} now uses wiggum by default
+python3 scripts/launch_pipeline.py {slug} --kickoff --wiggum
+python3 scripts/launch_pipeline.py {slug} --kickoff --wiggum --wiggum-timeout 900  # 15min
+```
+
+The auto-recovery chain:
+1. `auto_wiggum.py` steers agent at 80% timeout → agent wraps up
+2. `pipeline_stall_recovery.py` (cron) catches dead agents within 15min → re-dispatches with escalating timeout
+3. Max 3 retries per stage → alerts for manual intervention
 
 ## Analysis Pipelines
 

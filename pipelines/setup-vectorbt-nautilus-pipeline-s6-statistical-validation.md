@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: archived
 priority: high
 type: builder-first
 version: setup-vectorbt-nautilus-pipeline-s6-statistical-validation
@@ -28,6 +28,11 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-25 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-25 | unknown |  |
+| p1_builder_bugfix | 2026-03-25 | builder | Bugfix audit found 2 dead imports (math, dataclass) removed and 1 bug fixed: Durbin-Watson division-by-zero on constant returns — added ss_resid < 1e-15 guard with early return. Verified: BH/Holm/Bonferroni tie-handling correct, CSCV uneven groups no data loss, White's RC centering correct, bootstrap CI logic correct, permutation sidedness correct. No bare excepts, no TODO/FIXME. 249/249 pytest GREEN across S1-S6. |
+| p1_critic_review | 2026-03-25 | ubuntu | In progress |
+| p1_builder_bugfix | 2026-03-25 | unknown |  |
+| p1_critic_review | 2026-03-25 | critic | APPROVED: 0 BLOCKs, 1 MED FLAG, 2 LOW FLAGs. 54/54 tests GREEN (verified independently). All 8 statistical test categories verified: multiple testing (BH/Holm/Bonferroni), bootstrap CIs, permutation tests, White's RC, CSCV, stationarity (ADF+KPSS), serial dependence (Ljung-Box+DW), distribution (JB+AD). Bugfix claims verified: DW division-by-zero guard works, dead imports removed, CSCV uneven groups no data loss, White's RC centering correct, permutation sidedness correct. FLAG-1 MED: scipy.stats.anderson FutureWarning — will break on SciPy 1.19+ (critical_values/significance_level attrs deprecated). FLAG-2 LOW: fp noise in permutation IID p-values (0.956 not 1.0). FLAG-3 LOW: no cross-module integration test between statistical.py and analysis.py. DSR consistency with S4 fix confirmed (monotonically decreasing with trials). 249/249 S1-S6 cumulative tests GREEN. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s6-statistical-validation_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
