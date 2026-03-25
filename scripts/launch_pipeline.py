@@ -629,6 +629,11 @@ def main():
         else:
             first_stage, first_agent = 'architect_design', 'architect'
 
+        # 0. Reset agent session for clean context
+        from pipeline_orchestrate import reset_agent_session
+        print(f"   🔄 Resetting {first_agent} session for fresh context...")
+        reset_agent_session(first_agent)
+
         # 1. State transition
         orchestrate_status(args.version, first_stage)
         print(f"   ✅ State: {first_stage}")
