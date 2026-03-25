@@ -1,9 +1,52 @@
 {
   "version": "setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-25 05:38",
-  "current_agent": "p1_builder_implement",
-  "last_dispatched": "2026-03-25T05:38:00.079660+00:00",
-  "dispatch_claimed": false
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-25 05:47",
+      "agent": "builder",
+      "notes": "4 deliverables: walk_forward.py (WFConfig, WFFold, WalkForwardEngine \u2014 rolling + anchored modes, purge gap, temporal splits). metrics.py (Sharpe, Sortino, PSR, DSR, max drawdown, Calmar, trade stats, significance tests). analysis.py (WalkForwardAnalyzer \u2014 stability, overfitting PDR, regime, CI, verdict). test_walk_forward.py \u2014 47 tests. 142/142 pytest GREEN across S1-S4."
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-25 05:50",
+      "agent": "builder",
+      "notes": "Bugfix audit found and fixed 3 issues: (1) BUG FIX: embargo_days was declared in WFConfig but never enforced in generate_splits() \u2014 both rolling and anchored modes now add embargo_days to the step advancement, spacing folds correctly. (2) DEAD CODE: deflated_sharpe_ratio had 3 unused variables (euler_gamma, z, returns_std param) \u2014 removed unused param and variables, cleaned comments. (3) DEAD CODE: WFMode enum defined but never referenced (mode uses plain strings) \u2014 removed enum and its import. 142/142 pytest GREEN across S1-S4."
+    },
+    "p1_critic_review_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-25 05:58",
+      "agent": "critic",
+      "notes": "BLOCK-1: DSR benchmark not scaled by sqrt(V[SR_hat]) \u2014 E[max(Z)] passed raw as benchmark to PSR, making DSR \u2248 0 for ALL inputs (benchmark is 10-30x higher than any realistic daily SR). Fix: multiply sr_benchmark by sqrt(var_sr) where var_sr = (1 - skew*SR + (kurt-1)/4 * SR^2) / (T-1). Also FLAG-1 MED: no test for embargo_days spacing. 47/47 tests GREEN. All 3 bugfix claims verified (embargo enforced, WFMode removed, dead code cleaned). Architecture is solid \u2014 this is the ONLY issue. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review.md"
+    },
+    "p1_builder_fix_blocks": {
+      "status": "complete",
+      "completed_at": "2026-03-25 06:03",
+      "agent": "builder",
+      "notes": "BLOCK-1 fixed: DSR benchmark now scaled by sqrt(V[SR_hat]) per Bailey & L\u00f3pez de Prado 2014 Eq.6. var_sr = (1 - skew*SR + (kurt-1)/4 * SR^2) / (T-1), sr_benchmark *= sqrt(var_sr). Verified: SR=2.0 ann / 10 trials / 252 obs \u2192 DSR=0.488 (was 0.000). Added 3 new tests: test_dsr_reasonable_for_good_strategy (BLOCK-1 regression), test_dsr_mediocre_strategy_penalized, test_embargo_days_spacing (FLAG-1). 50/50 S4 tests GREEN, 145/145 total S1-S4 GREEN."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-25 06:07",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 FLAGs. BLOCK-1 fix verified correct \u2014 DSR benchmark scaled by sqrt(V[SR_hat]) per Bailey & L\u00f3pez de Prado 2014 Eq.6. var_sr formula matches PSR implementation. Numerical verification: SR=2.0/10trials/252obs \u2192 DSR=0.488 (was 0.000). All 5 test cases economically reasonable. 3 new tests verified: BLOCK-1 regression test, mediocre strategy penalization, embargo_days spacing. 50/50 S4 tests GREEN (verified independently). Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review_fix.md"
+    },
+    "p1_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-25 06:08",
+      "agent": "belam-main",
+      "notes": "Phase 2 kickoff"
+    }
+  },
+  "status": "p2_design",
+  "status_updated": "2026-03-25 06:08",
+  "current_agent": "p2_architect_design",
+  "last_dispatched": "2026-03-25T06:08:15.901342+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "p1_complete"
+  },
+  "last_updated": "2026-03-25 06:08",
+  "pending_action": "p2_architect_design",
+  "p1_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review.md"
 }

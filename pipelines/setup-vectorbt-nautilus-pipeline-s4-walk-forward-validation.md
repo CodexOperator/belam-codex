@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: p2_design
 priority: high
 type: builder-first
 version: setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation
@@ -28,6 +28,14 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-25 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-25 | builder | 4 deliverables: D1: walk_forward.py (WFConfig, WFFold, WalkForwardEngine — rolling + anchored modes, purge gap, temporal splitting via Polars). D2: metrics.py (Sharpe, Sortino, PSR, DSR, max drawdown, Calmar, trade stats, compute_oos_metrics, significance tests). D3: analysis.py (WalkForwardAnalyzer — stability/degradation trend, overfitting PDR, regime analysis, confidence intervals, full_report with verdict). D4: test_walk_forward.py — 47 tests (7 config, 9 splits, 15 metrics, 3 significance, 7 analyzer, 2 end-to-end, 4 fold recording). 142/142 pytest GREEN across S1-S4. |
+| p1_builder_implement | 2026-03-25 | builder | 4 deliverables: walk_forward.py (WFConfig, WFFold, WalkForwardEngine — rolling + anchored modes, purge gap, temporal splits). metrics.py (Sharpe, Sortino, PSR, DSR, max drawdown, Calmar, trade stats, significance tests). analysis.py (WalkForwardAnalyzer — stability, overfitting PDR, regime, CI, verdict). test_walk_forward.py — 47 tests. 142/142 pytest GREEN across S1-S4. |
+| p1_builder_bugfix | 2026-03-25 | builder | Bugfix audit found and fixed 3 issues: (1) BUG FIX: embargo_days was declared in WFConfig but never enforced in generate_splits() — both rolling and anchored modes now add embargo_days to the step advancement, spacing folds correctly. (2) DEAD CODE: deflated_sharpe_ratio had 3 unused variables (euler_gamma, z, returns_std param) — removed unused param and variables, cleaned comments. (3) DEAD CODE: WFMode enum defined but never referenced (mode uses plain strings) — removed enum and its import. 142/142 pytest GREEN across S1-S4. |
+| p1_critic_review_blocked | 2026-03-25 | critic | BLOCKED: BLOCK-1: DSR benchmark not scaled by sqrt(V[SR_hat]) — E[max(Z)] passed raw as benchmark to PSR, making DSR ≈ 0 for ALL inputs (benchmark is 10-30x higher than any realistic daily SR). Fix: multiply sr_benchmark by sqrt(var_sr) where var_sr = (1 - skew*SR + (kurt-1)/4 * SR^2) / (T-1). Also FLAG-1 MED: no test for embargo_days spacing. 47/47 tests GREEN. All 3 bugfix claims verified (embargo enforced, WFMode removed, dead code cleaned). Architecture is solid — this is the ONLY issue. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review.md |
+| p1_builder_fix_blocks | 2026-03-25 | builder | BLOCK-1 fixed: DSR benchmark now scaled by sqrt(V[SR_hat]) per Bailey & López de Prado 2014 Eq.6. var_sr = (1 - skew*SR + (kurt-1)/4 * SR^2) / (T-1), sr_benchmark *= sqrt(var_sr). Verified: SR=2.0 ann / 10 trials / 252 obs → DSR=0.488 (was 0.000). Added 3 new tests: test_dsr_reasonable_for_good_strategy (BLOCK-1 regression), test_dsr_mediocre_strategy_penalized, test_embargo_days_spacing (FLAG-1). 50/50 S4 tests GREEN, 145/145 total S1-S4 GREEN. |
+| p1_critic_review | 2026-03-25 | critic | APPROVED: 0 BLOCKs, 0 FLAGs. BLOCK-1 fix verified correct — DSR benchmark scaled by sqrt(V[SR_hat]) per Bailey & López de Prado 2014 Eq.6. var_sr formula matches PSR implementation. Numerical verification: SR=2.0/10trials/252obs → DSR=0.488 (was 0.000). All 5 test cases economically reasonable. 3 new tests verified: BLOCK-1 regression test, mediocre strategy penalization, embargo_days spacing. 50/50 S4 tests GREEN (verified independently). Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review_fix.md |
+| p1_complete | 2026-03-25 | unknown |  |
+| p1_complete | 2026-03-25 | belam-main | Phase 2 kickoff |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
