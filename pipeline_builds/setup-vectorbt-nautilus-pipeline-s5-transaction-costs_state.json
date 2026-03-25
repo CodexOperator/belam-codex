@@ -1,9 +1,33 @@
 {
   "version": "setup-vectorbt-nautilus-pipeline-s5-transaction-costs",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-25 06:40",
-  "current_agent": "p1_builder_implement",
-  "last_dispatched": "2026-03-25T06:40:33.543514+00:00",
-  "dispatch_claimed": false
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-25 06:49",
+      "agent": "builder",
+      "notes": "5 deliverables: D1: costs/models.py (ExchangeFeeSchedule with Binance spot/futures VIP0-9, SlippageModel, MarketImpactModel sqrt Almgren-Chriss, SpreadCostModel, FundingRateModel perp futures, CostStack composable chain with to_vectorbt_params). D2: costs/analysis.py (CostAttribution with per-trade breakdown and trades_killed_by_costs, BreakEvenAnalyzer with break_even_return and cost_adjusted_sharpe, CostSensitivitySweep with fee/slippage/frequency sensitivity). D3: costs/__init__.py (public exports). D4: tests/test_transaction_costs.py \u2014 50 tests (6 fee schedule, 3 slippage, 5 market impact, 3 spread, 5 funding, 7 cost stack, 3 factory, 5 attribution, 5 break-even, 5 sensitivity, 3 integration). 195/195 pytest GREEN across S1-S5."
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-25 06:50",
+      "agent": "builder",
+      "notes": "Bugfix audit: 1 dead import found and removed (field from dataclasses in analysis.py \u2014 imported but never used). No logic bugs found. 6 verification audits passed: (1) FundingRateModel directional symmetry (long pays, short earns, symmetric). (2) CostStack round-trip with funding correctly cancels. (3) MarketImpactModel handles negative ADV. (4) CostAttribution net_returns correctly deducts round-trip costs (verified: 5% gross - 2% RT cost = 3% net). (5) All 5 components implement CostComponent protocol. (6) BreakEvenAnalyzer math verified (16 bps one-way \u2192 32 bps RT \u2192 0.32% break-even). No bare excepts, no TODO/FIXME. 195/195 pytest GREEN across S1-S5."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-25 06:54",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 1 MED FLAG, 2 LOW FLAGs. 50/50 tests GREEN (verified independently). 11 independent verifications passed. FLAG-1 MED: CostAttribution.net_returns() doubles one-side cost for round-trip instead of summing buy+sell \u2014 incorrect with FundingRateModel (4x overestimate for buy trades with perp funding). Does not affect spot backtesting (symmetric costs). CostStack.round_trip_bps() IS correct. FLAG-2 LOW: 5 unused imports in analysis.py (ExchangeFeeSchedule, FundingRateModel, MarketImpactModel, SlippageModel, SpreadCostModel imported but only CostStack used). FLAG-3 LOW: full_sensitivity_report() leaves net_sharpe_at_default_cost as None (never filled). Architecture is solid: Protocol-based CostComponent, frozen dataclasses, additive CostStack, correct VBT bridge excluding funding. Realistic Binance VIP0-9 tiers, Almgren-Chriss sqrt impact. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s5-transaction-costs_critic_review.md"
+    }
+  },
+  "status": "p1_complete",
+  "status_updated": "2026-03-25 06:54",
+  "current_agent": "p1_complete",
+  "last_dispatched": "2026-03-25T06:54:39.483880+00:00",
+  "dispatch_claimed": false,
+  "phase1": {
+    "stage": "p1_critic_review"
+  },
+  "last_updated": "2026-03-25 06:54",
+  "pending_action": "p1_complete"
 }

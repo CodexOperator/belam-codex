@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: archived
 priority: high
 type: builder-first
 version: setup-vectorbt-nautilus-pipeline-s5-transaction-costs
@@ -28,6 +28,9 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-25 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-25 | builder | 5 deliverables: D1: costs/models.py (ExchangeFeeSchedule with Binance spot/futures VIP0-9, SlippageModel, MarketImpactModel sqrt Almgren-Chriss, SpreadCostModel, FundingRateModel perp futures, CostStack composable chain with to_vectorbt_params). D2: costs/analysis.py (CostAttribution with per-trade breakdown and trades_killed_by_costs, BreakEvenAnalyzer with break_even_return and cost_adjusted_sharpe, CostSensitivitySweep with fee/slippage/frequency sensitivity). D3: costs/__init__.py (public exports). D4: tests/test_transaction_costs.py — 50 tests (6 fee schedule, 3 slippage, 5 market impact, 3 spread, 5 funding, 7 cost stack, 3 factory, 5 attribution, 5 break-even, 5 sensitivity, 3 integration). 195/195 pytest GREEN across S1-S5. |
+| p1_builder_bugfix | 2026-03-25 | builder | Bugfix audit: 1 dead import found and removed (field from dataclasses in analysis.py — imported but never used). No logic bugs found. 6 verification audits passed: (1) FundingRateModel directional symmetry (long pays, short earns, symmetric). (2) CostStack round-trip with funding correctly cancels. (3) MarketImpactModel handles negative ADV. (4) CostAttribution net_returns correctly deducts round-trip costs (verified: 5% gross - 2% RT cost = 3% net). (5) All 5 components implement CostComponent protocol. (6) BreakEvenAnalyzer math verified (16 bps one-way → 32 bps RT → 0.32% break-even). No bare excepts, no TODO/FIXME. 195/195 pytest GREEN across S1-S5. |
+| p1_critic_review | 2026-03-25 | critic | APPROVED: 0 BLOCKs, 1 MED FLAG, 2 LOW FLAGs. 50/50 tests GREEN (verified independently). 11 independent verifications passed. FLAG-1 MED: CostAttribution.net_returns() doubles one-side cost for round-trip instead of summing buy+sell — incorrect with FundingRateModel (4x overestimate for buy trades with perp funding). Does not affect spot backtesting (symmetric costs). CostStack.round_trip_bps() IS correct. FLAG-2 LOW: 5 unused imports in analysis.py (ExchangeFeeSchedule, FundingRateModel, MarketImpactModel, SlippageModel, SpreadCostModel imported but only CostStack used). FLAG-3 LOW: full_sensitivity_report() leaves net_sharpe_at_default_cost as None (never filled). Architecture is solid: Protocol-based CostComponent, frozen dataclasses, additive CostStack, correct VBT bridge excluding funding. Realistic Binance VIP0-9 tiers, Almgren-Chriss sqrt impact. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s5-transaction-costs_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

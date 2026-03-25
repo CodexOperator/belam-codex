@@ -1,0 +1,9 @@
+{
+  "version": "setup-vectorbt-nautilus-pipeline-s6-statistical-validation",
+  "stages": {},
+  "status": "p1_builder_implement",
+  "status_updated": "2026-03-25 07:10",
+  "current_agent": "p1_builder_implement",
+  "last_dispatched": "2026-03-25T07:10:32.616320+00:00",
+  "dispatch_claimed": false
+}

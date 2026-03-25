@@ -1,0 +1,15 @@
+{
+  "version": "setup-vectorbt-nautilus-pipeline-s5-transaction-costs",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-25T06:50:26.414302+00:00",
+  "pipeline_session_id": "93ef5f11-6ae7-464e-bc13-1b75c376adf2",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
