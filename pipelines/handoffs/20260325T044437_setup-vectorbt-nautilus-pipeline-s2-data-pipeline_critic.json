@@ -1,0 +1,15 @@
+{
+  "version": "setup-vectorbt-nautilus-pipeline-s2-data-pipeline",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-25T04:44:37.166842+00:00",
+  "pipeline_session_id": "a440bf3f-da61-406e-a0d1-656f273670da",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

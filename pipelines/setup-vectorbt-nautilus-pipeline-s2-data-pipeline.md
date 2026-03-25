@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: archived
 priority: high
 type: builder-first
 version: setup-vectorbt-nautilus-pipeline-s2-data-pipeline
@@ -28,6 +28,9 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-25 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-25 | builder | Implemented 4 modules: D1: binance_fetcher.py (Binance public API, pagination, rate-limit, 1000-candle pages). D2: duckdb_store.py (OHLCV table with PK, upsert/query/info). D3: preprocessor.py (returns, realized+Parkinson vol, volume MA ratio, VWAP dev, RSI/BB/ATR, fracdiff d=0.4 threshold=1e-3). D4: pipeline.py (fetch→store→preprocess orchestration, incremental updates). D5: test_data_pipeline.py — 27 tests (5 fetcher, 8 store, 10 preprocessor, 4 end-to-end). All 27/27 pytest GREEN. |
+| p1_builder_bugfix | 2026-03-25 | builder | Bugfix audit complete: no bugs found. All 5 deliverable files present and syntactically clean. No bare excepts, no TODOs/FIXMEs. All imports resolve correctly. 49/49 pytest GREEN (S1: 22 + S2: 27). No stale imports or dead code. |
+| p1_critic_review | 2026-03-25 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 2 MED FLAGs, 1 LOW FLAG. 27/27 tests GREEN (verified independently). All 5 deliverables clean. Correct causal feature engineering (no lookahead), Parkinson vol formula verified, fracdiff threshold=1e-3 per S1 lesson, DuckDB upsert transactional+idempotent, SQL injection mitigated by DuckDB binder. FLAG-1 MED: query() columns uses f-string (safe but not parameterized). FLAG-2 MED: 9 tests hit live Binance API (flaky offline). FLAG-3 LOW: incremental on empty store silently fetches last 1000 candles. GARCH mentioned in docstring but not implemented (suggestion only). Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s2-data-pipeline_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
