@@ -4239,6 +4239,14 @@ def _parse_e0_args(op_args):
         else:
             result['op'] = 'pipeline_status'
 
+    # Task coordinate: t3.pt1, t12.pt2 — pipeline launch from task with template (D1)
+    elif re.match(r'^t(\d+)\.pt(\d+)$', first, re.IGNORECASE):
+        result['op'] = 'task_launch'
+        m = re.match(r'^t(\d+)\.pt(\d+)$', first, re.IGNORECASE)
+        result['pipeline_template'] = int(m.group(2))
+        # Rewrite first to just the task coord for downstream parsing
+        remaining = [f't{m.group(1)}'] + remaining[1:]
+
     # Task coordinate: t3, t12 — pipeline launch from task (D1)
     elif re.match(r'^t(\d+)$', first, re.IGNORECASE):
         result['op'] = 'task_launch'
@@ -4508,11 +4516,29 @@ def _dispatch_e0(op_args, tracker):
                 return 1
             desc = str(fm.get('description', slug.replace('-', ' ')))
             priority = str(fm.get('priority', 'high'))
+
+            # Resolve pipeline template: pt1=builder-first, pt2=research (or from task frontmatter)
+            PIPELINE_TEMPLATES = {
+                1: 'builder-first',
+                2: 'research',
+            }
+            pt_idx = spec.get('pipeline_template')
+            if pt_idx and pt_idx in PIPELINE_TEMPLATES:
+                pipeline_type = PIPELINE_TEMPLATES[pt_idx]
+            elif pt_idx:
+                print(f"e0 t{task_idx}.pt{pt_idx}: unknown template (available: {', '.join(f'pt{k}={v}' for k,v in PIPELINE_TEMPLATES.items())})")
+                return 1
+            else:
+                # Default: check task frontmatter for type, fall back to builder-first
+                pipeline_type = str(fm.get('pipeline_type', fm.get('type', 'builder-first')))
+
             # FLAG-1: slug IS the pipeline version (documented convention)
             import subprocess as _sp
             cmd = [
                 sys.executable, str(Path(__file__).parent / 'launch_pipeline.py'),
-                slug, '--desc', desc, '--priority', priority, '--kickoff', '--wiggum',
+                slug, '--desc', desc, '--priority', priority,
+                '--type', pipeline_type,
+                '--kickoff', '--wiggum',
             ]
             out = _sp.run(cmd, capture_output=True, text=True, cwd=str(WORKSPACE))
             if out.stdout.strip():

@@ -5,6 +5,7 @@
 ```
 Phase 1: Builder (implement) → Builder (bugfix) → Critic (review) → [HUMAN GATE]
 Phase 2: Architect (design) → Builder (implement) → Builder (bugfix) → Critic (review) → [HUMAN GATE]
+Phase 3: Architect (design) → Builder (implement) → Builder (bugfix) → Critic (review) → [HUMAN GATE]
 ```
 
 At each human gate (`p1_complete`, `p2_complete`), the pipeline pauses for Shael to review.
@@ -81,6 +82,14 @@ phases:
     gate: human
 
   2:
+    stages:
+      - { role: architect, action: design, session: fresh }
+      - { role: builder, action: implement, session: fresh }
+      - { role: builder, action: bugfix, session: continue }
+      - { role: critic, action: review, session: fresh }
+    gate: human
+
+  3:
     stages:
       - { role: architect, action: design, session: fresh }
       - { role: builder, action: implement, session: fresh }

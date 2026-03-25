@@ -779,9 +779,45 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
             if direction_note:
                 break
 
-        # Construct a generic next-phase transition
-        transition = (f'p{next_phase}_architect_design', 'architect',
-                      f'Phase {next_phase} approved.{direction_note} Design Phase {next_phase} changes.')
+        # Auto-complete logic: only at p3_complete (architect had 3 chances to call complete-task)
+        # At p1_complete and p2_complete, architect reviews and decides — don't auto-complete
+        if phase_n and phase_n >= 3 and not direction_note:
+            # Three phases done. Check Phase 3 critic review — if approved, auto-complete.
+            critic_approved = False
+            for loc in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+                for suffix in ('_critic_review.md', '_critic_code_review.md'):
+                    candidate = loc / f'{version}{suffix}'
+                    if candidate.exists():
+                        review_text = candidate.read_text()
+                        if 'APPROVED' in review_text and '0 BLOCK' in review_text:
+                            critic_approved = True
+                        break
+                if critic_approved:
+                    break
+
+            if critic_approved:
+                print(f"\n   ✅ Phase {phase_n} critic approved, architect did not call complete-task "
+                      f"after {phase_n} phases → auto-completing task")
+                return orchestrate_complete_task(version, agent='system',
+                    notes=f'Auto-completed after {phase_n} phases: critic approved at {stage}, '
+                          f'architect did not call complete-task')
+            else:
+                # Critic blocked at p3+ — loop back to p3_architect_design (don't create p4+)
+                print(f"\n   🔄 Critic blocked at phase {phase_n} — looping back to p3_architect_design")
+                transition = (f'p3_architect_design', 'architect',
+                              f'Phase {phase_n} critic had issues. Re-entering at p3 to address blocks. '
+                              f'Review the critic report and design fixes. '
+                              f'Call complete-task if the remaining issues are acceptable.')
+        elif direction_note:
+            # Direction file found → construct next-phase transition
+            transition = (f'p{next_phase}_architect_design', 'architect',
+                          f'Phase {next_phase} approved.{direction_note} Design Phase {next_phase} changes.')
+        else:
+            # p1_complete or p2_complete with no direction — let architect review
+            # Construct generic next-phase transition (architect will call complete-task if done)
+            transition = (f'p{next_phase}_architect_design', 'architect',
+                          f'Phase {next_phase} — review critic report and either call complete-task '
+                          f'or write phase {next_phase} direction.')
 
     if not transition:
         print(f"\n   ℹ️  No auto-transition for '{stage}' — no handoff needed")

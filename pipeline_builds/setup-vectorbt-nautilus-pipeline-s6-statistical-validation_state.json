@@ -20,8 +20,8 @@
       "notes": "APPROVED: 0 BLOCKs, 1 MED FLAG, 2 LOW FLAGs. 54/54 tests GREEN (verified independently). All 8 statistical test categories verified: multiple testing (BH/Holm/Bonferroni), bootstrap CIs, permutation tests, White's RC, CSCV, stationarity (ADF+KPSS), serial dependence (Ljung-Box+DW), distribution (JB+AD). Bugfix claims verified: DW division-by-zero guard works, dead imports removed, CSCV uneven groups no data loss, White's RC centering correct, permutation sidedness correct. FLAG-1 MED: scipy.stats.anderson FutureWarning \u2014 will break on SciPy 1.19+ (critical_values/significance_level attrs deprecated). FLAG-2 LOW: fp noise in permutation IID p-values (0.956 not 1.0). FLAG-3 LOW: no cross-module integration test between statistical.py and analysis.py. DSR consistency with S4 fix confirmed (monotonically decreasing with trials). 249/249 S1-S6 cumulative tests GREEN. Review at: pipeline_builds/setup-vectorbt-nautilus-pipeline-s6-statistical-validation_critic_review.md"
     }
   },
-  "status": "p1_complete",
-  "status_updated": "2026-03-25 13:39",
+  "status": "archived",
+  "status_updated": "2026-03-25 14:08",
   "current_agent": "p1_complete",
   "last_dispatched": "2026-03-25T13:39:14.766805+00:00",
   "dispatch_claimed": false,

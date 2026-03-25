@@ -48,6 +48,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     p.add_argument("--pipeline", help="Pipeline version/name (optional context)")
     p.add_argument("--stage", help="Pipeline stage (optional context)")
+    p.add_argument("--no-reset", action="store_true",
+                   help="Skip session reset (use for continue-mode or recovery into existing session)")
     p.add_argument("--complete-on-exit", action="store_true",
                    help="After timeout, call pipeline_orchestrate.py to complete the stage")
     return p
@@ -176,8 +178,10 @@ def run(args: argparse.Namespace) -> int:
     log(f"Auto-Wiggum starting: agent={args.agent} timeout={timeout}s "
         f"steer_ratio={steer_ratio} steer_at={steer_delay}s")
 
-    # ── 1. Reset session ───────────────────────────────────────────────────
-    if not reset_session(args.agent):
+    # ── 1. Reset session (unless --no-reset for continue mode / recovery) ─
+    if getattr(args, 'no_reset', False):
+        log(f"Skipping session reset (--no-reset)")
+    elif not reset_session(args.agent):
         return 1
 
     # ── 2. Send task ───────────────────────────────────────────────────────
