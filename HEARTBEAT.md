@@ -23,7 +23,7 @@
 
 ## Task 5: Infrastructure Pipeline Queue
 
-**Scope:** Infra tasks only. Sequential (MAX_CONCURRENT=1). No research/experiment pipelines.
+**Scope:** Infra tasks only. MAX_CONCURRENT=2. No research/experiment pipelines.
 **Frequency:** Every 30 minutes (no additional timing gate — run on every heartbeat).
 
 1. Check current pipeline status:
@@ -36,7 +36,7 @@
    - If tests **FAILED**: write findings as Phase 2 direction (`pipeline_builds/{version}_phase2_direction.md`), then kick Phase 2: `python3 scripts/pipeline_orchestrate.py {version} kickoff`
    - **Do NOT auto-kick Phase 2 on passed pipelines** — Phase 2 is only for fixing failures
 
-3. If no pipeline is running, find next eligible infra task:
+3. If fewer than 2 pipelines are running, find next eligible infra task:
    - `ls tasks/*.md` — look for `status: open` + `tags:` containing `infrastructure`
    - **Sort by priority:** high → medium → low. Within same priority, prefer tasks with no unmet `depends_on`
    - Check `depends_on` AND `upstream` are satisfied (upstream tasks must be `done` or `archived`)

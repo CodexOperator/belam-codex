@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-24
 owner: belam
@@ -9,6 +9,7 @@ depends_on: []
 upstream: [report-to-youtube-pipeline]
 downstream: []
 tags: [video, youtube, infrastructure, repo-setup]
+pipeline: video-pipeline-standalone-repo
 ---
 
 # Video Pipeline: Standalone Repo & Iterative Improvement Loop
