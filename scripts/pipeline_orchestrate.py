@@ -125,6 +125,14 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
                           next_agent: str, notes: str, artifact: str = '') -> str:
     """Build a rich handoff message with full context for the target agent."""
 
+    # Build git diff section (changes since this agent's last session)
+    diff_section = ''
+    try:
+        from handoff_diff import build_handoff_diff
+        diff_section = build_handoff_diff(version, next_agent)
+    except Exception as e:
+        print(f"   ⚠️  handoff_diff failed (non-fatal): {e}")
+
     agent_info = AGENT_INFO.get(next_agent, {})
     knowledge_file = agent_info.get('knowledge', '')
 
@@ -223,7 +231,7 @@ This is a FRESH session. You have no prior context except your memory files.
 
 **Read these files before starting:**
 {files_list}
-
+{diff_section}
 **Pipeline state:** `python3 scripts/pipeline_update.py {version} show`
 
 **When you finish, call the orchestrator (it auto-saves your memory):**
@@ -705,6 +713,16 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     # Step 0: Consolidate calling agent's memory BEFORE anything else
     print(f"   💾 Consolidating {agent}'s memory...")
     consolidate_agent_memory(agent, version, stage, notes, learnings)
+
+    # Step 0.5: Snapshot git commits for handoff diff context
+    try:
+        from handoff_diff import snapshot_handoff_commits
+        snap = snapshot_handoff_commits(version, stage, agent)
+        ws_hash = snap.get('commits', {}).get('workspace', '?')[:8]
+        ml_hash = snap.get('commits', {}).get('machinelearning', '?')[:8]
+        print(f"   📸 Git snapshot: ws={ws_hash} ml={ml_hash}")
+    except Exception as e:
+        print(f"   ⚠️  Git snapshot failed (non-fatal): {e}")
     print()
 
     # Step 1: Run pipeline_update.py (state + markdown + telegram notification)
@@ -927,6 +945,16 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
     # Step 0: Consolidate calling agent's memory BEFORE anything else
     print(f"   💾 Consolidating {agent}'s memory...")
     consolidate_agent_memory(agent, version, stage, notes, learnings)
+
+    # Step 0.5: Snapshot git commits for handoff diff context
+    try:
+        from handoff_diff import snapshot_handoff_commits
+        snap = snapshot_handoff_commits(version, stage, agent)
+        ws_hash = snap.get('commits', {}).get('workspace', '?')[:8]
+        ml_hash = snap.get('commits', {}).get('machinelearning', '?')[:8]
+        print(f"   📸 Git snapshot: ws={ws_hash} ml={ml_hash}")
+    except Exception as e:
+        print(f"   ⚠️  Git snapshot failed (non-fatal): {e}")
     print()
 
     # Step 1: Run pipeline_update.py
