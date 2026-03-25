@@ -14,6 +14,7 @@ polars>=1.0                   # Fast DataFrame (Rust-backed, ARM64 wheels)
 duckdb>=1.0                   # Embedded analytics DB (ARM64 wheels)
 
 # Statistical / financial
-fracdiff>=0.9                 # Fractional differencing
+# fracdiff — INCOMPATIBLE with Python 3.12 (requires <3.10)
+#   Replaced by backtesting/utils/fracdiff_shim.py (numpy-based fdiff)
 arch>=7.0                     # GARCH + volatility models
 skfolio>=0.5                  # Portfolio optimization (sklearn-compatible)

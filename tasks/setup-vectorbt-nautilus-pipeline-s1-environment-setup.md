@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: in_pipeline
+status: archived
 priority: medium
 owner: builder
 tags: [backtesting, infrastructure]

@@ -818,6 +818,8 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
 
     # Step 3.5: Session mode — fresh resets the agent session, continue reuses it
     if session_mode == 'fresh':
+        print(f"   🔄 Resetting {next_agent} session for fresh context...")
+        reset_agent_session(next_agent)
         pipeline_session_id = generate_session_id(version, next_agent)
     else:
         # 'continue' — reuse existing session, skip reset

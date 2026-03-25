@@ -36,9 +36,15 @@ class TestImports:
         assert result == (1,)
         conn.close()
 
-    def test_fracdiff_import(self):
-        import fracdiff
-        assert hasattr(fracdiff, 'fdiff')
+    def test_fracdiff_shim(self):
+        """fracdiff package incompatible with Python 3.12 — use our shim."""
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+        from machinelearning.snn_applied_finance.backtesting.utils.fracdiff_shim import fdiff
+        import numpy as np
+        result = fdiff(np.arange(100, dtype=float), d=0.5)
+        assert len(result) == 100
+        assert not np.isnan(result[-1])
 
     def test_arch_import(self):
         from arch import arch_model
