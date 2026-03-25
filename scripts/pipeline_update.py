@@ -69,6 +69,8 @@ AGENT_DISPLAY = {
     'architect':  ('🏗️ Architect', 'architect'),
     'critic':     ('🔍 Critic', 'critic'),
     'builder':    ('🔨 Builder', 'builder'),
+    'system':     ('🤖 System', 'default'),
+    'coordinator':('🔮 Belam', 'default'),
     'belam-main': ('🔮 Belam', 'default'),
     'main':       ('🔮 Belam', 'default'),
     'unknown':    ('🔮 Belam', 'default'),
@@ -262,6 +264,49 @@ START_STATUS_BUMPS = {
     'phase3_critic_code_review':                'phase3_active',
 }
 
+def get_transitions_for_pipeline(version: str) -> tuple:
+    """Resolve (stage_transitions, block_transitions, status_bumps, start_status_bumps) for a pipeline.
+
+    1. Read pipelines/{version}.md frontmatter → type field
+    2. Map type to template name (e.g. 'builder-first' → 'builder-first')
+    3. If template exists and type is not 'research', parse it and return its dicts
+    4. Else return hardcoded globals (backward compatible)
+
+    Pipelines without a type: field, or with type: research, use the hardcoded dicts.
+    """
+    # Read pipeline type from frontmatter
+    pipeline_type = None
+    pf = PIPELINES_DIR / f'{version}.md'
+    if pf.exists():
+        content = pf.read_text(errors='replace')
+        m = re.search(r'^type:\s*(.+)$', content, re.MULTILINE)
+        if m:
+            pipeline_type = m.group(1).strip()
+
+    # Default/research/infrastructure → use hardcoded dicts
+    if not pipeline_type or pipeline_type in ('research', 'infrastructure'):
+        return (STAGE_TRANSITIONS, BLOCK_TRANSITIONS, STATUS_BUMPS, START_STATUS_BUMPS)
+
+    # Try to parse template
+    try:
+        from template_parser import parse_template
+        parsed = parse_template(pipeline_type)
+        if parsed:
+            return (
+                parsed['transitions'],
+                parsed.get('block_transitions', {}) or BLOCK_TRANSITIONS,
+                parsed.get('status_bumps', {}) or STATUS_BUMPS,
+                parsed.get('start_status_bumps', {}) or START_STATUS_BUMPS,
+            )
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # Fallback to hardcoded
+    return (STAGE_TRANSITIONS, BLOCK_TRANSITIONS, STATUS_BUMPS, START_STATUS_BUMPS)
+
+
 BLOCK_TRANSITIONS = {
     'critic_design_review':       ('architect_design_revision',  'architect', 'Design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
     'critic_code_review':         ('builder_apply_blocks',       'builder',   'Code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
@@ -332,11 +377,17 @@ def _get_bot_token(agent: str) -> str | None:
         # Map agent name to Telegram account
         _, account_key = AGENT_DISPLAY.get(agent, ('', 'default'))
 
-        # Prefer the acting agent's bot, but fall back to architect if the
-        # acting agent isn't a group member (e.g. belam-main/default bot)
+        # Prefer the acting agent's bot, but fall back through known group
+        # member bots if the acting agent isn't one (e.g. system, belam-main,
+        # coordinator, default bot)
         GROUP_MEMBER_ACCOUNTS = {'architect', 'critic', 'builder'}
         if account_key not in GROUP_MEMBER_ACCOUNTS:
-            account_key = 'architect'  # fallback — always a group member
+            # Try each group member bot as fallback
+            for fallback_key in ('architect', 'builder', 'critic'):
+                token = accounts.get(fallback_key, {}).get('botToken')
+                if token:
+                    return token
+            return None  # no tokens found at all
 
         account = accounts.get(account_key, {})
         return account.get('botToken')
@@ -679,8 +730,9 @@ def cmd_complete(version, stage, notes='', agent=None):
     content = append_to_phase_table(content, phase, stage, now_date(), agent, notes)
     pf.write_text(content)
     
-    # Update pending_action based on stage transition map
-    transition = STAGE_TRANSITIONS.get(stage)
+    # Update pending_action based on stage transition map (template-aware)
+    stage_trans, block_trans, status_bumps_map, start_bumps_map = get_transitions_for_pipeline(version)
+    transition = stage_trans.get(stage)
     if transition:
         next_action, next_agent, ping_template = transition[0], transition[1], transition[2]
         state['pending_action'] = next_action
@@ -688,7 +740,7 @@ def cmd_complete(version, stage, notes='', agent=None):
         save_state(version, state)
 
         # Auto-bump the overall pipeline status
-        new_status = STATUS_BUMPS.get(next_action)
+        new_status = status_bumps_map.get(next_action)
         if new_status:
             content = pf.read_text()
             old_match = re.search(r'^status:\s*(.+)$', content, re.MULTILINE)
@@ -742,8 +794,9 @@ def cmd_start(version, stage, agent=None, notes=None):
     content = append_to_phase_table(content, phase, stage, now_date(), agent, display_notes)
     pf.write_text(content)
 
-    # Auto-bump frontmatter status for phase transitions
-    new_status = START_STATUS_BUMPS.get(stage)
+    # Auto-bump frontmatter status for phase transitions (template-aware)
+    _, _, _, start_bumps_map = get_transitions_for_pipeline(version)
+    new_status = start_bumps_map.get(stage)
     if new_status:
         current_content = pf.read_text()
         old_match = re.search(r'^status:\s*(.+)$', current_content, re.MULTILINE)
@@ -781,7 +834,9 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
     if artifact:
         state[f'{stage}_blocks_artifact'] = f'machinelearning/snn_applied_finance/research/pipeline_builds/{artifact}'
 
-    transition = BLOCK_TRANSITIONS.get(stage)
+    # Use template-aware transitions for block resolution
+    stage_trans, block_trans, status_bumps_map, _ = get_transitions_for_pipeline(version)
+    transition = block_trans.get(stage)
     if transition:
         next_action, next_agent, ping_template = transition
         state['pending_action'] = next_action
@@ -790,7 +845,7 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
 
     # Auto-bump status
     if transition:
-        new_status = STATUS_BUMPS.get(next_action)
+        new_status = status_bumps_map.get(next_action)
         if new_status:
             cmd_status(version, new_status)
 

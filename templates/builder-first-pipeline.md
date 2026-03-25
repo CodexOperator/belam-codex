@@ -69,6 +69,8 @@ transitions:
   builder_implement:       [builder_bugfix,       builder, "Implementation done. Review code, fix bugs, add edge case coverage.", session: continue]
   builder_bugfix:          [critic_review,        critic,  "Code complete + bugfixed. Review implementation against task spec.", session: fresh]
   critic_review:           [phase1_complete,      system,  "Phase 1 review passed. Ready for human review or Phase 2.", gate: human, session: fresh]
+  # Phase 2 entry (fires only on manual phase2 kickoff — gate: human prevents auto-dispatch)
+  phase1_complete:         [phase2_architect_design, architect, "Phase 2 approved. Design phase 2 changes per direction doc.", session: fresh]
   # Phase 1 blocks — critic sends back to builder
   builder_apply_blocks:    [critic_review,        critic,  "Blocks fixed. Re-review implementation.", session: fresh]
 

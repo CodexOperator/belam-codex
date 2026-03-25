@@ -431,14 +431,26 @@ def create_pipeline(version, description, priority='high', tags=None, project='s
     tags_str = f"[{', '.join(tags)}]" if tags else '[snn, finance]'
     
     is_infra = pipeline_type == 'infrastructure'
-    
+
+    # Parse template for pipeline_fields if using a non-standard template
+    template_type = pipeline_type
+    if pipeline_type not in ('research', 'infrastructure'):
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            from template_parser import parse_template
+            parsed = parse_template(pipeline_type)
+            if parsed and parsed.get('pipeline_fields', {}).get('type'):
+                template_type = parsed['pipeline_fields']['type']
+        except Exception:
+            pass  # Fall back to using pipeline_type as-is
+
     # Build frontmatter
     fm_lines = [
         '---',
         'primitive: pipeline',
         'status: phase1_design',
         f'priority: {priority}',
-        f'type: {pipeline_type}',
+        f'type: {template_type}',
         f'version: {version}',
     ]
     if not is_infra:
@@ -621,7 +633,7 @@ def main():
         orchestrate_status(args.version, first_stage)
         print(f"   ✅ State: {first_stage}")
 
-        # 2. Fire-and-forget dispatch
+        # 2. Fire-and-forget dispatch (also sends group notification via fire_and_forget_dispatch)
         result = fire_and_forget_dispatch(args.version, first_stage, first_agent)
         if result['success']:
             print(f"   ✅ {first_agent.title()} dispatched (pid={result['pid']})")

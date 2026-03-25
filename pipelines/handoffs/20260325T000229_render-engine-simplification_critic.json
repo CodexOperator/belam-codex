@@ -1,0 +1,15 @@
+{
+  "version": "render-engine-simplification",
+  "completed_stage": "builder_bugfix",
+  "next_stage": "critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-25T00:02:29.994612+00:00",
+  "pipeline_session_id": "5d7ae157-3574-4e31-91da-3d9f7bf6be9c",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

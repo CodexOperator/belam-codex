@@ -739,11 +739,15 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         escalate_verification_failure(version, load_pipeline_state(version))
         return False
 
-    # Step 2: Determine next agent from transition map
-    transition = STAGE_TRANSITIONS.get(stage)
+    # Step 2: Determine next agent from transition map (template-aware)
+    from pipeline_update import get_transitions_for_pipeline
+    stage_trans, block_trans, _, _ = get_transitions_for_pipeline(version)
+    transition = stage_trans.get(stage)
 
     # Phase 2 entry: both phase1_complete and local_analysis_complete are human gates
     # that transition to phase2_architect_design when kicked off.
+    # Templates define the entry point via their transitions block; this block only
+    # fires if the template doesn't define an outgoing transition for the gate stage.
     phase2_entry_stages = ('phase1_complete', 'local_analysis_complete')
     if stage in phase2_entry_stages and not transition:
         # Check for direction file in both workspace and research pipeline_builds/
@@ -755,8 +759,20 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                     break
             if direction_note:
                 break
-        transition = ('phase2_architect_design', 'architect',
-                      f'Phase 2 approved.{direction_note} Design Phase 2 enrichments.')
+
+        # Try template-aware resolution for Phase 2 entry.
+        # Templates should define e.g. phase1_complete → phase2_architect_design.
+        # Convention: builder-first uses phase1_complete; research uses local_analysis_complete.
+        template_transition = stage_trans.get(stage)
+        if template_transition:
+            next_stage = template_transition[0]
+            next_agent = template_transition[1]
+            msg = template_transition[2] if len(template_transition) > 2 else ''
+            transition = (next_stage, next_agent, f'{msg}{direction_note}')
+        else:
+            # Final fallback for templates that don't define phase2 entry from human gates
+            transition = ('phase2_architect_design', 'architect',
+                          f'Phase 2 approved.{direction_note} Design Phase 2 enrichments.')
 
     if not transition:
         print(f"\n   ℹ️  No auto-transition for '{stage}' — no handoff needed")
@@ -861,8 +877,10 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
         print(f"\n❌ pipeline_update.py failed — aborting handoff")
         return False
 
-    # Step 2: Determine fix agent from block transition map
-    transition = BLOCK_TRANSITIONS.get(stage)
+    # Step 2: Determine fix agent from block transition map (template-aware)
+    from pipeline_update import get_transitions_for_pipeline
+    _, block_trans, _, _ = get_transitions_for_pipeline(version)
+    transition = block_trans.get(stage)
     if not transition:
         print(f"\n   ℹ️  No auto-transition for blocking '{stage}' — no handoff needed")
         return True

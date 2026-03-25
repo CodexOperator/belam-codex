@@ -32,9 +32,9 @@ import threading
 import time
 import uuid
 from collections import OrderedDict
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
+
 
 # ── Lazy engine import ──────────────────────────────────────────────────────────
 
@@ -80,16 +80,6 @@ class PrimitiveNode:
     edges_out: list[str] = field(default_factory=list)
     edges_in: list[str] = field(default_factory=list)
     raw_text: str = ''
-
-
-@dataclass
-class DiffEntry:
-    """Single change detected between disk and RAM."""
-    kind: str        # 'modified', 'added', 'removed', 'reassigned'
-    coord: str
-    slug: str
-    field_diffs: list = field(default_factory=list)  # [(field, old, new), ...]
-    timestamp: float = 0.0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -459,8 +449,8 @@ class CodexTree:
                         files.add(str(f))
         return files
 
-    def apply_disk_change(self, filepath: Path) -> DiffEntry | list[DiffEntry] | None:
-        """Update a single node from disk. Returns diff entry/entries or None if unchanged."""
+    def apply_disk_change(self, filepath: Path) -> bool:
+        """Update a single node from disk. Returns True if changed."""
         fp_str = str(filepath)
 
         with self._lock:
@@ -470,24 +460,24 @@ class CodexTree:
                 # New file — need full namespace reindex
                 prefix = self._filepath_to_prefix(filepath)
                 if prefix:
-                    entries = self._reindex_single_new(filepath, prefix)
-                    return entries if entries else None
-                return None
+                    self._reindex_single_new(filepath, prefix)
+                    return True
+                return False
 
             old_node = self.nodes.get(coord)
             if not old_node:
-                return None
+                return False
 
             try:
                 raw = self._read_file(filepath)
                 if raw is None:
-                    return None
+                    return False
             except Exception:
-                return None
+                return False
 
             new_hash = hashlib.sha256(raw.encode('utf-8', errors='replace')).hexdigest()[:16]
             if new_hash == old_node.content_hash:
-                return None
+                return False
 
             engine = _get_engine()
             fm_raw, body_str = engine.parse_frontmatter(raw)
@@ -516,40 +506,31 @@ class CodexTree:
                 pass
 
             self.supermap_cache = None
+            return True
 
-            return DiffEntry(
-                kind='modified', coord=coord, slug=old_node.slug,
-                field_diffs=field_diffs, timestamp=time.time(),
-            )
-
-    def apply_deletion(self, filepath: Path) -> DiffEntry | None:
-        """Handle file deletion — remove node, trigger reindex."""
+    def apply_deletion(self, filepath: Path) -> bool:
+        """Handle file deletion — remove node, trigger reindex. Returns True if changed."""
         fp_str = str(filepath)
         with self._lock:
             coord = self._filepath_to_coord.get(fp_str)
             if not coord:
-                return None
+                return False
             node = self.nodes.pop(coord, None)
             if not node:
-                return None
+                return False
             self.by_slug.pop(node.slug, None)
             del self._filepath_to_coord[fp_str]
             self.supermap_cache = None
 
             # FLAG-3: reindex namespace for DELETE events (coords shift)
             self.reindex_namespace(node.prefix)
+            return True
 
-            return DiffEntry(
-                kind='removed', coord=coord, slug=node.slug,
-                timestamp=time.time(),
-            )
-
-    def reindex_namespace(self, prefix: str) -> list[DiffEntry]:
-        """Re-read a namespace from disk and reindex. Returns reassignment diffs."""
+    def reindex_namespace(self, prefix: str) -> None:
+        """Re-read a namespace from disk and reindex."""
         engine = _get_engine()
         primitives = engine.get_primitives(prefix, active_only=False)
         type_label = engine.NAMESPACE[prefix][0]
-        diffs = []
 
         # Remove old entries for this prefix
         old_coords = [c for c, n in self.nodes.items() if n.prefix == prefix]
@@ -580,30 +561,10 @@ class CodexTree:
         self.by_prefix[prefix] = ns_nodes
         self.namespace_counts[prefix] = len(ns_nodes)
         self.supermap_cache = None
-        return diffs
 
-    def _reindex_single_new(self, filepath: Path, prefix: str) -> list[DiffEntry]:
-        """Handle new file(s) by reindexing namespace. Returns ALL new diffs."""
-        # Snapshot old coords before reindex
-        old_coords = set(c for c, n in self.nodes.items() if n.prefix == prefix)
-        
-        # FLAG-3: CREATE events → reindex full namespace
+    def _reindex_single_new(self, filepath: Path, prefix: str) -> None:
+        """Handle new file(s) by reindexing namespace."""
         self.reindex_namespace(prefix)
-        
-        # Find ALL newly added nodes (not just the triggering file)
-        new_coords = set(c for c, n in self.nodes.items() if n.prefix == prefix)
-        added_coords = new_coords - old_coords
-        
-        diffs = []
-        now = time.time()
-        for coord in sorted(added_coords):
-            node = self.nodes.get(coord)
-            if node:
-                diffs.append(DiffEntry(
-                    kind='added', coord=coord, slug=node.slug,
-                    timestamp=now, content=node.raw_text or '',
-                ))
-        return diffs
 
     def _filepath_to_prefix(self, filepath: Path) -> str | None:
         """Determine which namespace prefix a filepath belongs to."""
@@ -618,27 +579,14 @@ class CodexTree:
                 return prefix
         return None
 
-    def render_supermap(self, diff_engine: 'DiffEngine | None' = None) -> str:
-        """Render supermap from RAM tree (cached).
-        
-        If diff_engine is provided, checks for LM virtual namespace changes
-        and emits DiffEntry records (RAM-only, no disk writes).
-        """
+    def render_supermap(self) -> str:
+        """Render supermap from RAM tree (cached)."""
         if self.supermap_cache is not None:
-            # Even on cache hit, check LM changes (cheap — just a hash compare)
-            if diff_engine is not None:
-                diff_engine.check_lm_change()
             return self.supermap_cache
 
         engine = _get_engine()
-        # Render from the engine (reads disk, but we could optimize later)
         content = engine.render_supermap()
         self.supermap_cache = content
-
-        # Check LM changes after fresh render
-        if diff_engine is not None:
-            diff_engine.check_lm_change()
-
         return content
 
     def to_codec_view(self, level: str = 'dense') -> str:
@@ -677,195 +625,6 @@ class CodexTree:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §3  Diff Engine — Anchor-Based Change Tracking
-# ═══════════════════════════════════════════════════════════════════════════════
-
-class DiffEngine:
-    """Tracks changes relative to an anchor point."""
-
-    def __init__(self, tree: CodexTree):
-        self.tree = tree
-        self._anchor_hashes: dict[str, str] = {}
-        self._anchor_time: float = 0.0
-        self._diffs: list[DiffEntry] = []
-        self._lock = threading.Lock()
-        # Virtual namespace tracking (LM, etc.) — RAM-only, no disk writes
-        self._lm_hash: str = ''
-
-    def set_anchor(self) -> None:
-        """Snapshot current tree state as the anchor."""
-        with self._lock:
-            self._anchor_hashes = {
-                coord: node.content_hash
-                for coord, node in self.tree.nodes.items()
-            }
-            self._anchor_time = time.time()
-            self._diffs.clear()
-            # Snapshot LM state at anchor time
-            self._lm_hash = self._compute_lm_hash()
-
-    def _compute_lm_hash(self) -> str:
-        """Hash current LM renderer output (RAM-only)."""
-        try:
-            from codex_lm_renderer import render_lm_section
-            lm_lines = render_lm_section(self.tree.workspace)
-            return hashlib.md5('\n'.join(lm_lines).encode()).hexdigest() if lm_lines else ''
-        except Exception:
-            return ''
-
-    def check_lm_change(self) -> None:
-        """Compare current LM output to anchor — emit virtual DiffEntry if changed."""
-        if not self._lm_hash:
-            return  # No anchor yet
-        current = self._compute_lm_hash()
-        if current and current != self._lm_hash:
-            with self._lock:
-                self._diffs.append(DiffEntry(
-                    kind='modified', coord='lm', slug='legendary-map',
-                    field_diffs=[('content', 'changed', f'{current[:8]}')],
-                    timestamp=time.time(),
-                ))
-                self._lm_hash = current  # Update so we don't re-emit
-
-    def record(self, entry: DiffEntry) -> None:
-        """Record a diff entry."""
-        with self._lock:
-            self._diffs.append(entry)
-
-    def get_delta(self) -> str:
-        """Render accumulated diffs in Δ/+/− format."""
-        with self._lock:
-            if not self._diffs:
-                return ''
-
-            changed_coords = set()
-            for d in self._diffs:
-                changed_coords.add(d.coord)
-
-            lines = [f"Δ ({len(changed_coords)} coords shifted)"]
-            for d in self._diffs:
-                if d.kind == 'modified':
-                    detail_parts = []
-                    for fname, old_v, new_v in d.field_diffs:
-                        detail_parts.append(f"{fname} {old_v}→{new_v}")
-                    detail = '  '.join(detail_parts) if detail_parts else 'content changed'
-                    lines.append(f"  Δ {d.coord:<5} {detail}")
-                elif d.kind == 'added':
-                    lines.append(f"  + {d.coord:<5} {d.slug}")
-                elif d.kind == 'removed':
-                    lines.append(f"  − {d.coord:<5} {d.slug} (removed)")
-                elif d.kind == 'reassigned':
-                    lines.append(f"  ↻ {d.coord:<5} {d.slug} (reassigned)")
-
-            return '\n'.join(lines)
-
-    def get_delta_since(self, timestamp: float) -> str:
-        """Get diffs since a specific timestamp."""
-        with self._lock:
-            filtered = [d for d in self._diffs if d.timestamp >= timestamp]
-            if not filtered:
-                return ''
-            lines = []
-            for d in filtered:
-                if d.kind == 'modified':
-                    lines.append(f"  Δ {d.coord:<5} {d.slug}")
-                elif d.kind == 'added':
-                    lines.append(f"  + {d.coord:<5} {d.slug}")
-                elif d.kind == 'removed':
-                    lines.append(f"  − {d.coord:<5} {d.slug}")
-            return '\n'.join(lines)
-
-    def has_changes(self) -> bool:
-        with self._lock:
-            return len(self._diffs) > 0
-
-    @property
-    def anchor_time(self) -> float:
-        return self._anchor_time
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §4  StatPoller — File Change Detection via mtime polling
-# ═══════════════════════════════════════════════════════════════════════════════
-
-
-class StatPoller:
-    """Fallback: poll file mtimes every 500ms."""
-
-    def __init__(self, workspace: Path, callback: Callable[[Path, str], None]):
-        self.workspace = workspace
-        self.callback = callback
-        self._mtimes: dict[str, float] = {}
-        self._running = False
-        self._thread: threading.Thread | None = None
-
-    def start(self) -> None:
-        self._running = True
-        self._scan_all()  # initial snapshot
-        self._thread = threading.Thread(target=self._poll_loop, daemon=True, name='statpoll')
-        self._thread.start()
-
-    def stop(self) -> None:
-        self._running = False
-
-    def _scan_all(self) -> dict[str, float]:
-        """Scan all namespace dirs, return filepath→mtime."""
-        engine = _get_engine()
-        current = {}
-        for prefix, (_, directory, _) in engine.NAMESPACE.items():
-            if directory is None:
-                continue
-            dirpath = self.workspace / directory
-            if dirpath.exists() and dirpath.is_dir():
-                for f in dirpath.iterdir():
-                    if f.is_file() and f.suffix == '.md':
-                        try:
-                            current[str(f)] = f.stat().st_mtime
-                        except OSError:
-                            pass
-        # Context files
-        for fname in ('SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md', 'AGENTS.md'):
-            fp = self.workspace / fname
-            if fp.exists():
-                try:
-                    current[str(fp)] = fp.stat().st_mtime
-                except OSError:
-                    pass
-        # Pipeline state JSONs — tracked so supermap re-renders on state changes
-        for pb_dir in [
-            self.workspace / 'pipeline_builds',
-            self.workspace / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds',
-        ]:
-            if pb_dir.exists() and pb_dir.is_dir():
-                for f in pb_dir.iterdir():
-                    if f.is_file() and f.name.endswith('_state.json'):
-                        try:
-                            current[str(f)] = f.stat().st_mtime
-                        except OSError:
-                            pass
-        return current
-
-    def _poll_loop(self) -> None:
-        while self._running:
-            time.sleep(0.5)
-            current = self._scan_all()
-
-            # Detect modifications and new files
-            for fp_str, mtime in current.items():
-                old_mtime = self._mtimes.get(fp_str)
-                if old_mtime is None:
-                    self.callback(Path(fp_str), 'created')
-                elif mtime != old_mtime:
-                    self.callback(Path(fp_str), 'modified')
-
-            # Detect deletions
-            for fp_str in set(self._mtimes) - set(current):
-                self.callback(Path(fp_str), 'deleted')
-
-            self._mtimes = current
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
 # §5  Session Manager — UDS Multi-Agent Server
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -887,10 +646,9 @@ class AgentSession:
 class SessionManager:
     """Manages multiple agent connections via Unix domain socket."""
 
-    def __init__(self, tree: CodexTree, diff_engine: DiffEngine,
-                 context_assembler: ContextAssembler | None = None):
+    def __init__(self, tree: CodexTree,
+                 context_assembler: 'ContextAssembler | None' = None):
         self.tree = tree
-        self.diff_engine = diff_engine
         self.context = context_assembler
         self._sessions: dict[str, AgentSession] = {}
         self._client_conns: dict[str, socket.socket] = {}
@@ -1168,7 +926,7 @@ class SessionManager:
             session = AgentSession(
                 session_id=session_id, agent_name=agent,
                 connected_at=now, last_active=now,
-                anchor_time=self.diff_engine.anchor_time,
+                anchor_time=0.0,
                 pipeline=pipeline, stage=stage, role=role,
             )
             with self._lock:
@@ -1203,24 +961,22 @@ class SessionManager:
 
         elif cmd == 'supermap':
             self._nice_flush()
-            content = self.tree.render_supermap(diff_engine=self.diff_engine)
+            content = self.tree.render_supermap()
             if self._engine_ref:
                 self._engine_ref._write_supermap_file()
             return {'ok': True, 'content': content}
 
         elif cmd == 'diff':
             self._nice_flush()
-            return {'ok': True, 'delta': self.diff_engine.get_delta()}
+            return {'ok': True, 'delta': ''}
 
         elif cmd == 'diff_since':
             self._nice_flush()
             ts = msg.get('timestamp', 0.0)
-            return {'ok': True, 'delta': self.diff_engine.get_delta_since(ts)}
+            return {'ok': True, 'delta': ''}
 
         elif cmd == 'anchor_reset':
-            self._nice_flush()
-            self.diff_engine.set_anchor()
-            return {'ok': True, 'message': 'anchor reset'}
+            return {'ok': True, 'message': 'anchor reset (no-op — diff engine removed)'}
 
         elif cmd == 'flush':
             # Nice mode: explicitly flush the deferred change queue via background worker
@@ -1240,12 +996,9 @@ class SessionManager:
             if filepath:
                 p = Path(filepath)
                 if p.exists():
-                    result = self.tree.apply_disk_change(p)
-                    if result:
-                        diffs = result if isinstance(result, list) else [result]
-                        for diff in diffs:
-                            self.diff_engine.record(diff)
-                            self.notify_all({'event': 'change', 'diff': asdict(diff)})
+                    changed = self.tree.apply_disk_change(p)
+                    if changed:
+                        self.notify_all({'event': 'change'})
                     return {'ok': True, 'refreshed': filepath}
                 return {'ok': False, 'error': f'file not found: {filepath}'}
             elif prefix:
@@ -1280,16 +1033,16 @@ class SessionManager:
             self._nice_flush()
             fmt = msg.get('format', 'dense')
             if fmt == 'dense':
-                return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
+                return {'ok': True, 'content': self.tree.render_supermap()}
             elif fmt == 'diff':
-                return {'ok': True, 'content': self.diff_engine.get_delta()}
+                return {'ok': True, 'content': ''}
             elif fmt == 'json':
                 nodes = []
                 for prefix in _get_engine().SHOW_ORDER:
                     for n in self.tree.get_namespace(prefix):
                         nodes.append(_node_to_dict(n))
                 return {'ok': True, 'content': json.dumps(nodes)}
-            return {'ok': True, 'content': self.tree.render_supermap(diff_engine=self.diff_engine)}
+            return {'ok': True, 'content': self.tree.render_supermap()}
 
         elif cmd == 'status':
             test_mode = False
@@ -1307,8 +1060,8 @@ class SessionManager:
                 'mode': engine_mode,
                 'sessions': len(self._sessions),
                 'tree_size': len(self.tree.nodes),
-                'uptime_s': time.time() - self.diff_engine.anchor_time,
-                'diffs': len(self.diff_engine._diffs),
+                'uptime_s': time.time() - (self._engine_ref._start_time if self._engine_ref else 0),
+                'diffs': 0,
                 'queued_changes': queued,
                 'test_mode': test_mode,
                 'test_status': test_status,
@@ -1325,9 +1078,7 @@ class SessionManager:
                 self._engine_ref.test.write(fp, content)
                 # Also update tree
                 abs_path = self.tree.workspace / fp
-                diff = self.tree.apply_disk_change(abs_path)
-                if diff:
-                    self.diff_engine.record(diff)
+                self.tree.apply_disk_change(abs_path)
                 return {'ok': True}
             return {'ok': False, 'error': 'not in test mode'}
 
@@ -1342,7 +1093,6 @@ class SessionManager:
             if self._engine_ref and self._engine_ref.test:
                 self._engine_ref.test.discard()
                 self.tree.load_full()
-                self.diff_engine.set_anchor()
                 return {'ok': True}
             return {'ok': False, 'error': 'not in test mode'}
 
@@ -1366,9 +1116,7 @@ class SessionManager:
             with self._lock:
                 session = self._sessions.get(session_id)
             if session:
-                return {'ok': True,
-                        'delta': self.diff_engine.get_delta_since(
-                            session.anchor_time)}
+                return {'ok': True, 'delta': ''}
             return {'ok': False, 'error': 'not attached — call attach first'}
 
         # ── D1: RAM-first write (edit existing node) ────────────────
@@ -1383,13 +1131,7 @@ class SessionManager:
                 changes = self.tree.apply_edits(coord, edits, body_op)
             except Exception as e:
                 return {'ok': False, 'error': str(e)}
-            diff = DiffEntry(kind='modified', coord=coord,
-                             slug=node.slug,
-                             field_diffs=[(c['field'], c.get('old'), c.get('new')) for c in changes],
-                             timestamp=time.time(),
-                             content=node.raw_text or '')
-            self.diff_engine.record(diff)
-            self.notify_all({'event': 'change', 'diff': asdict(diff)})
+            self.notify_all({'event': 'change', 'coord': coord})
             self._flush_to_disk(coord)
             return {'ok': True, 'coord': coord, 'changes': len(changes)}
 
@@ -1405,13 +1147,7 @@ class SessionManager:
                 node = self.tree.create_node(namespace, title, frontmatter, body)
             except Exception as e:
                 return {'ok': False, 'error': str(e)}
-            diff = DiffEntry(kind='added', coord=node.coord,
-                             slug=node.slug,
-                             field_diffs=[('__created__', None, title)],
-                             timestamp=time.time(),
-                             content=node.raw_text or '')
-            self.diff_engine.record(diff)
-            self.notify_all({'event': 'create', 'diff': asdict(diff)})
+            self.notify_all({'event': 'create', 'coord': node.coord})
             self._flush_to_disk(node.coord)
             return {'ok': True, 'coord': node.coord, 'title': title}
 
@@ -1582,10 +1318,9 @@ class ContextAssembler:
         ('TOOLS.md',    'tools',    False),
     ]
 
-    def __init__(self, workspace: Path, tree: CodexTree, diff_engine: DiffEngine):
+    def __init__(self, workspace: Path, tree: CodexTree):
         self.workspace = workspace
         self.tree = tree
-        self.diff_engine = diff_engine
         self._context_cache: dict[str, str] = {}
         self._context_hashes: dict[str, str] = {}
 
@@ -1643,10 +1378,7 @@ class ContextAssembler:
 
         sections.append('\n\n'.join(stubs))
 
-        # 3. appendSystemContext — diffs
-        delta = self.diff_engine.get_delta()
-        if delta:
-            sections.append(f"## appendSystemContext (diffs)\n\n```\n{delta}\n```")
+        # 3. appendSystemContext — diffs (removed — diff engine stripped)
 
         full = '\n\n---\n\n'.join(sections)
 
@@ -1676,9 +1408,7 @@ class ContextAssembler:
             if mem:
                 sections.append(mem)
 
-        delta = self.diff_engine.get_delta()
-        if delta:
-            sections.append(f"## Changes Since Last Context\n\n```\n{delta}\n```")
+        # Changes delta removed — diff engine stripped
 
         full = '\n\n---\n\n'.join(sections)
 
@@ -1761,13 +1491,12 @@ class ContextAssembler:
 class DashboardServer:
     """Exposes render buffer for canvas/tmux consumption."""
 
-    def __init__(self, tree: CodexTree, diff_engine: DiffEngine):
+    def __init__(self, tree: CodexTree):
         self.tree = tree
-        self.diff_engine = diff_engine
 
     def get_buffer(self, fmt: str = 'dense') -> str:
         if fmt == 'dense':
-            return self.tree.render_supermap(diff_engine=self.diff_engine)
+            return self.tree.render_supermap()
         elif fmt == 'json':
             nodes = []
             for prefix in _get_engine().SHOW_ORDER:
@@ -1786,12 +1515,12 @@ class DashboardServer:
                     lines.append('')
             return '\n'.join(lines)
         elif fmt == 'diff':
-            return self.diff_engine.get_delta() or '(no changes since anchor)'
+            return '(diff engine removed)'
         elif fmt == 'status':
             return json.dumps({
                 'tree_size': len(self.tree.nodes),
-                'uptime_s': time.time() - self.diff_engine.anchor_time,
-                'diffs': len(self.diff_engine._diffs),
+                'uptime_s': 0,
+                'diffs': 0,
             }, indent=2)
         return self.tree.render_supermap()
 
@@ -1813,11 +1542,9 @@ class CodexRenderEngine:
         self._force = force
         self.mode = mode  # kept for API compat; always 'nice' behavior now
         self.tree = CodexTree(workspace)
-        self.diff_engine = DiffEngine(self.tree)
-        self.context = ContextAssembler(workspace, self.tree, self.diff_engine)
-        self.dashboard = DashboardServer(self.tree, self.diff_engine)
-        self.watcher: StatPoller | None = None
-        self.sessions = SessionManager(self.tree, self.diff_engine, self.context)
+        self.context = ContextAssembler(workspace, self.tree)
+        self.dashboard = DashboardServer(self.tree)
+        self.sessions = SessionManager(self.tree, self.context)
         self.sessions._engine_ref = self
         self.test: TestMode | None = None
         self._running = False
@@ -1864,15 +1591,12 @@ class CodexRenderEngine:
             except Exception:
                 pass
 
-        # 2. Anchor
-        self.diff_engine.set_anchor()
+        # 2. (diff anchor removed)
 
         # 2a. Write initial supermap file for sync plugin reads
         self._write_supermap_file()
 
-        # 3. File watcher (stat polling)
-        self.watcher = StatPoller(self.workspace, self._on_file_change)
-        self.watcher.start()
+        # 3. (file watcher removed — no polling)
 
         # 4. Session server
         self.sessions.start(force=self._force)
@@ -1885,7 +1609,6 @@ class CodexRenderEngine:
         # 6. Boot status
         print(f"Codex Render Engine started")
         print(f"  Tree: {len(self.tree.nodes)} primitives loaded in {self.tree.load_time:.2f}s")
-        print(f"  Watcher: stat-poll")
         print(f"  Socket: {SOCKET_PATH}")
         if self.test:
             print(f"  Test mode: {self.test.branch_name}")
@@ -1905,8 +1628,7 @@ class CodexRenderEngine:
             self._print_status()
 
         def _anchor_reset(signum, frame):
-            self.diff_engine.set_anchor()
-            print("Diff anchor reset.")
+            print("Anchor reset (no-op — diff engine removed).")
 
         signal.signal(signal.SIGINT, _shutdown)
         signal.signal(signal.SIGTERM, _shutdown)
@@ -1931,33 +1653,13 @@ class CodexRenderEngine:
             pass
 
         self.sessions.stop()
-        if self.watcher:
-            self.watcher.stop()
 
         # Remove test mode flag
         TEST_MODE_FLAG.unlink(missing_ok=True)
 
-    def _on_file_change(self, filepath: Path, event_type: str) -> None:
-        """Callback from poller when a file changes.
-
-        Queues (filepath, event_type) for deferred processing.
-        Flush happens on UDS query (diff/supermap/my_diff).
-        """
-        # Handle pipeline state JSON changes: invalidate supermap cache
-        if filepath.suffix == '.json' and '_state.json' in filepath.name:
-            self.tree.supermap_cache = None
-            self._change_queue.append((filepath, '_pipeline_state_change'))
-            return
-
-        # Only care about .md files and .codex files
-        if filepath.suffix not in ('.md', '.codex'):
-            return
-
-        self._change_queue.append((filepath, event_type))
-
     def _process_file_change(self, filepath: Path, event_type: str) -> None:
-        """Actually process a file change — shared by nice flush and greedy callback."""
-        # Pipeline state JSON sentinel: cache already invalidated in _on_file_change.
+        """Process a file change (called via UDS refresh command)."""
+        # Pipeline state JSON sentinel: cache already invalidated by caller.
         # Nothing more to do here — the flush worker will call _write_supermap_file().
         if event_type == '_pipeline_state_change':
             return
@@ -1970,9 +1672,7 @@ class CodexRenderEngine:
                 return
 
         if event_type == 'modified':
-            diff = self.tree.apply_disk_change(filepath)
-            if diff:
-                self.diff_engine.record(diff)
+            self.tree.apply_disk_change(filepath)
 
         elif event_type == 'created':
             fp_str = str(filepath)
@@ -1982,14 +1682,10 @@ class CodexRenderEngine:
             else:
                 prefix = self.tree._filepath_to_prefix(filepath)
                 if prefix:
-                    diff_entries = self.tree._reindex_single_new(filepath, prefix)
-                    for diff_entry in diff_entries:
-                        self.diff_engine.record(diff_entry)
+                    self.tree._reindex_single_new(filepath, prefix)
 
         elif event_type == 'deleted':
-            diff = self.tree.apply_deletion(filepath)
-            if diff:
-                self.diff_engine.record(diff)
+            self.tree.apply_deletion(filepath)
 
     def flush_change_queue(self) -> int:
         """Process all queued file changes (nice mode). Returns count processed."""
@@ -1998,9 +1694,7 @@ class CodexRenderEngine:
             filepath, event_type = self._change_queue.popleft()
             self._process_file_change(filepath, event_type)
             count += 1
-        # Also check LM changes after flush
         if count > 0:
-            self.diff_engine.check_lm_change()
             self._write_supermap_file()
         return count
 
@@ -2027,7 +1721,7 @@ class CodexRenderEngine:
         print(f"  Uptime: {uptime:.0f}s")
         print(f"  Tree: {len(self.tree.nodes)} nodes")
         print(f"  Sessions: {len(self.sessions._sessions)}")
-        print(f"  Diffs since anchor: {len(self.diff_engine._diffs)}")
+        print(f"  Diffs: (engine removed)")
         print(f"  Queued changes: {len(self._change_queue)}")
         if self.test:
             s = self.test.status()

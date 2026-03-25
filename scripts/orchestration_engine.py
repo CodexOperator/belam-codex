@@ -204,29 +204,26 @@ def _parse_template_transitions(template_name: str) -> dict | None:
         if stripped.startswith('#') or not stripped:
             continue
 
-        # Detect top-level section keys
-        if stripped == 'transitions:':
-            current_section = 'transitions'
-            continue
-        elif stripped == 'status_bumps:':
-            current_section = 'status_bumps'
-            continue
-        elif stripped == 'start_status_bumps:':
-            current_section = 'start_status_bumps'
-            continue
-        # Other top-level keys (first_agent:, pipeline_fields:, etc.)
-        elif not line.startswith('  ') and ':' in stripped and not stripped.startswith('-'):
-            current_section = None
+        # Detect top-level section keys (no leading spaces)
+        if not line.startswith(' ') and ':' in line:
+            if stripped == 'transitions:':
+                current_section = 'transitions'
+            elif stripped == 'status_bumps:':
+                current_section = 'status_bumps'
+            elif stripped == 'start_status_bumps:':
+                current_section = 'start_status_bumps'
+            else:
+                current_section = None
             continue
 
         if current_section == 'transitions':
-            # Parse: stage_name: [next_stage, agent, "message"] with optional gate: human
+            # Parse: stage_name: [next_stage, agent, "message"] with optional gate: human and session: mode
             m = re.match(
-                r'\s*(\w+):\s*\[(\w+),\s*(\w+),\s*"([^"]*)"(?:,\s*gate:\s*(\w+))?\]',
+                r'\s*(\w+):\s*\[(\w+),\s*(\w+),\s*"([^"]*)"\s*(?:,\s*gate:\s*(\w+))?(?:,\s*session:\s*(\w+))?\]',
                 line
             )
             if m:
-                stage, next_stage, agent, msg, gate = m.groups()
+                stage, next_stage, agent, msg, gate, session = m.groups()
                 transitions[stage] = (next_stage, agent, msg)
                 if gate == 'human':
                     gates.add(next_stage)
@@ -1855,6 +1852,12 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
             stderr=subprocess.DEVNULL,
             start_new_session=True,   # Detach from our process group
         )
+        # Best-effort group notification for dispatch
+        try:
+            from pipeline_update import notify_group
+            notify_group(agent, version, 'start', stage, f'Agent dispatched for {stage}')
+        except Exception:
+            pass  # Never block dispatch on notification failure
         return {'success': True, 'pid': proc.pid, 'error': None}
     except FileNotFoundError:
         return {'success': False, 'pid': None, 'error': 'openclaw CLI not found on PATH'}

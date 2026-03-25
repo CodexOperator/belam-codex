@@ -141,6 +141,8 @@ transitions:
   local_analysis_builder_fix:            [local_analysis_code_review,          critic,    "Analysis blocks fixed. Re-review at notebooks/local_results/{v}/", session: fresh]
   local_analysis_code_review:            [local_analysis_report_build,         system,    "Analysis code review passed. Building LaTeX report.", session: fresh]
   local_analysis_report_build:           [local_analysis_complete,             system,    "LaTeX report built. PDF at notebooks/local_results/{v}/{v}_report.pdf", gate: human, session: fresh]
+  # Phase 2 entry (fires only on manual phase2 kickoff — gate: human prevents auto-dispatch)
+  local_analysis_complete:               [phase2_architect_design,             architect, "Phase 2 approved. Design phase 2 per direction doc.", session: fresh]
 
   # ── Phase 2 — Design → Build → Review ───────────────────────────
   phase2_architect_design:               [phase2_critic_design_review,         critic,    "Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md", session: fresh]
