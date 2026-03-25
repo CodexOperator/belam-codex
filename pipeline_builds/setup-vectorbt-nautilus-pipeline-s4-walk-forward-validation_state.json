@@ -38,7 +38,7 @@
       "notes": "Phase 2 kickoff"
     }
   },
-  "status": "p2_design",
+  "status": "archived",
   "status_updated": "2026-03-25 06:08",
   "current_agent": "p2_architect_design",
   "last_dispatched": "2026-03-25T06:08:15.901342+00:00",
@@ -46,7 +46,9 @@
   "phase1": {
     "stage": "p1_complete"
   },
-  "last_updated": "2026-03-25 06:08",
+  "last_updated": "2026-03-25 06:10",
   "pending_action": "p2_architect_design",
-  "p1_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review.md"
+  "p1_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_critic_review.md",
+  "archived": "2026-03-25",
+  "archive_reason": "Task complete \u2014 S4 walk-forward validation framework fully implemented and verified. Phase 2 direction referenced BLOCK-1 (DSR scaling) which was already fixed in Phase 1 (critic approved, 50/50 tests GREEN). No remaining work. Framework delivers: walk_forward.py (rolling+anchored splits, purge gap, embargo), metrics.py (Sharpe, Sortino, PSR, DSR per Bailey & Lopez de Prado 2014, max drawdown, Calmar, trade stats, significance tests), analysis.py (stability, overfitting PDR, regime, CI, verdict). 50/50 tests GREEN."
 }
