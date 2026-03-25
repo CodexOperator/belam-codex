@@ -27,7 +27,7 @@ except ImportError:
 
 WORKSPACE = Path(os.environ.get('BELAM_WORKSPACE', Path.home() / '.openclaw/workspace'))
 RENDER_STATE_FILE = Path.home() / '.belam_render_state.json'
-EXCLUDED_STATUSES = {'superseded', 'archived'}
+EXCLUDED_STATUSES = {'superseded', 'archived', 'done', 'complete'}
 
 
 # ── D5/D1b: UDS helpers for RAM-first engine integration ────────────────────
