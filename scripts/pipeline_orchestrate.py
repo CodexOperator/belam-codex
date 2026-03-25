@@ -802,12 +802,26 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                     notes=f'Auto-completed after {phase_n} phases: critic approved at {stage}, '
                           f'architect did not call complete-task')
             else:
-                # Critic blocked at p3+ — loop back to p3_architect_design (don't create p4+)
-                print(f"\n   🔄 Critic blocked at phase {phase_n} — looping back to p3_architect_design")
-                transition = (f'p3_architect_design', 'architect',
-                              f'Phase {phase_n} critic had issues. Re-entering at p3 to address blocks. '
-                              f'Review the critic report and design fixes. '
-                              f'Call complete-task if the remaining issues are acceptable.')
+                # Critic blocked at p3+ — check loop count (capped at 1 retry)
+                p3_state = load_pipeline_state(version)
+                p3_loop_count = p3_state.get('p3_loop_count', 0)
+                if p3_loop_count >= 1:
+                    # Already looped once — something is catastrophically wrong. Stop.
+                    print(f"\n   🚨 Critic blocked at p3 after {p3_loop_count} loop(s) — "
+                          f"capping here. Auto-completing with warning.")
+                    return orchestrate_complete_task(version, agent='system',
+                        notes=f'Auto-completed after p3 loop cap ({p3_loop_count} retries). '
+                              f'Critic still blocking — needs manual review.')
+                else:
+                    # First loop — retry once
+                    p3_state['p3_loop_count'] = p3_loop_count + 1
+                    save_pipeline_state(version, p3_state)
+                    print(f"\n   🔄 Critic blocked at phase {phase_n} — looping back to "
+                          f"p3_architect_design (loop {p3_loop_count + 1}/1)")
+                    transition = (f'p3_architect_design', 'architect',
+                                  f'Phase {phase_n} critic had issues. Re-entering at p3 to address blocks. '
+                                  f'Review the critic report and design fixes. '
+                                  f'Call complete-task if the remaining issues are acceptable.')
         elif direction_note:
             # Direction file found → construct next-phase transition
             transition = (f'p{next_phase}_architect_design', 'architect',
