@@ -27,7 +27,7 @@ Also supports:
   python3 scripts/pipeline_orchestrate.py --check-pending     # Check ALL pipelines for stuck handoffs
 
   complete-task: Architect declares task fully done. Archives pipeline + marks parent task done.
-                 Use at phase1_complete or phase2_complete when no further work is needed.
+                 Use at any human gate (p1_complete, p2_complete, etc.) when no further work is needed.
 
 Usage examples:
   # Architect completes design revision:
@@ -744,35 +744,44 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     stage_trans, block_trans, _, _ = get_transitions_for_pipeline(version)
     transition = stage_trans.get(stage)
 
-    # Phase 2 entry: both phase1_complete and local_analysis_complete are human gates
-    # that transition to phase2_architect_design when kicked off.
-    # Templates define the entry point via their transitions block; this block only
-    # fires if the template doesn't define an outgoing transition for the gate stage.
-    phase2_entry_stages = ('phase1_complete', 'local_analysis_complete')
-    if stage in phase2_entry_stages and not transition:
-        # Check for direction file in both workspace and research pipeline_builds/
+    # Phase gate handling: human gates (p1_complete, p2_complete, etc.) have
+    # transitions defined in templates but are gated. When kicked off via
+    # orchestrate_complete, the transition fires normally.
+    # Legacy gate names are resolved via template_parser.resolve_stage_name().
+    if not transition and '_complete' in stage:
+        # Try resolving via legacy stage name mapping
+        try:
+            from template_parser import resolve_stage_name
+            resolved = resolve_stage_name(stage, stage_trans)
+            if resolved != stage:
+                transition = stage_trans.get(resolved)
+                if transition:
+                    print(f"   📋 Resolved legacy stage '{stage}' → '{resolved}'")
+        except ImportError:
+            pass
+
+    if not transition and '_complete' in stage:
+        # Check for direction files (any phase)
         direction_note = ''
-        for fname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
-            for loc, prefix in ((BUILDS_DIR, 'pipeline_builds'), (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
+        import re as _re
+        phase_match = _re.search(r'p(\d+)_complete|phase(\d+)_complete', stage)
+        phase_n = int(phase_match.group(1) or phase_match.group(2)) if phase_match else None
+        next_phase = (phase_n or 1) + 1
+        for fname in (f'{version}_phase{next_phase}_direction.md',
+                      f'{version}_phase{next_phase}_shael_direction.md',
+                      f'{version}_phase2_direction.md',
+                      f'{version}_phase2_shael_direction.md'):
+            for loc, prefix in ((BUILDS_DIR, 'pipeline_builds'),
+                                (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
                 if (loc / fname).exists():
                     direction_note = f' Read direction at {prefix}/{fname}.'
                     break
             if direction_note:
                 break
 
-        # Try template-aware resolution for Phase 2 entry.
-        # Templates should define e.g. phase1_complete → phase2_architect_design.
-        # Convention: builder-first uses phase1_complete; research uses local_analysis_complete.
-        template_transition = stage_trans.get(stage)
-        if template_transition:
-            next_stage = template_transition[0]
-            next_agent = template_transition[1]
-            msg = template_transition[2] if len(template_transition) > 2 else ''
-            transition = (next_stage, next_agent, f'{msg}{direction_note}')
-        else:
-            # Final fallback for templates that don't define phase2 entry from human gates
-            transition = ('phase2_architect_design', 'architect',
-                          f'Phase 2 approved.{direction_note} Design Phase 2 enrichments.')
+        # Construct a generic next-phase transition
+        transition = (f'p{next_phase}_architect_design', 'architect',
+                      f'Phase {next_phase} approved.{direction_note} Design Phase {next_phase} changes.')
 
     if not transition:
         print(f"\n   ℹ️  No auto-transition for '{stage}' — no handoff needed")
@@ -829,7 +838,8 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
 
     # Step 4: Fire-and-forget dispatch to next agent
     # Use verification dispatch for verification stages (includes wiggum steer timer)
-    VERIFICATION_STAGES = {'builder_verification', 'phase2_builder_verification'}
+    VERIFICATION_STAGES = {'builder_verification', 'phase2_builder_verification',
+                           'p1_builder_verify', 'p2_builder_verify', 'p3_builder_verify'}
     if next_stage in VERIFICATION_STAGES:
         print(f"\n   🔔 Dispatching {next_agent} for VERIFICATION (with wiggum steer)...")
         result = dispatch_verification(version)
@@ -1842,6 +1852,7 @@ def run_exchange_loop(version: str, stage: str) -> dict:
 # D3: Stage flow table — defines session behavior per transition
 # session_type: 'shared' = reviewer joins existing session, 'fresh' = new session
 STAGE_FLOW = {
+    # Legacy names
     'architect_design':       ('critic_design_review', 'critic', 'shared'),
     'critic_design_review':   ('builder_implementation', 'builder', 'fresh'),
     'builder_implementation': ('builder_verification', 'builder', 'fresh'),
@@ -1852,6 +1863,7 @@ STAGE_FLOW = {
     'phase2_builder_implementation': ('phase2_builder_verification', 'builder', 'fresh'),
     'phase2_builder_verification':   ('phase2_critic_code_review', 'critic', 'shared'),
     'phase2_critic_code_review':     ('phase2_complete', 'architect', 'fresh'),
+    # Phase-based names (dynamically populated from templates if needed)
 }
 
 
@@ -1987,7 +1999,8 @@ def check_verification_result(version: str, stage: str, notes: str) -> str:
         'retry' — re-dispatch verification
         'exhausted' — max retries reached, block
     """
-    VERIFICATION_STAGES = {'builder_verification', 'phase2_builder_verification'}
+    VERIFICATION_STAGES = {'builder_verification', 'phase2_builder_verification',
+                           'p1_builder_verify', 'p2_builder_verify', 'p3_builder_verify'}
     if stage not in VERIFICATION_STAGES:
         return 'pass'
 
@@ -2375,32 +2388,62 @@ def main():
         orchestrate_report_build(version)
 
     elif action == 'kickoff':
-        # Auto-detect phase from current pipeline status
-        from pipeline_update import load_pipeline_md
+        # Generic phase kickoff: --phase N (or --phase2 for backward compat)
         md_path = WORKSPACE / 'pipelines' / f'{version}.md'
         current_status = ''
+        pending_action = ''
         if md_path.exists():
             text = md_path.read_text()
             for line in text.split('\n'):
                 if line.startswith('status:'):
                     current_status = line.split(':', 1)[1].strip()
-                    break
+                if line.startswith('pending_action:'):
+                    pending_action = line.split(':', 1)[1].strip()
 
-        # Determine which stage to complete based on current status
-        phase2_entry_stages = ('phase1_complete', 'local_analysis_complete')
-        force_phase2 = '--phase2' in sys.argv
+        # Parse --phase N or --phase2 (backward compat)
+        phase_num = None
+        if '--phase2' in sys.argv:
+            phase_num = 2
+        elif 'phase' in flags:
+            phase_num = int(flags['phase'])
         direction = flags.get('direction', '')
 
-        if current_status in phase2_entry_stages or force_phase2:
-            # Phase 2 kickoff — auto-detected or forced
-            notes = 'Phase 2 kickoff'
+        if phase_num:
+            # Phase N kickoff — find the human gate to complete
+            notes = f'Phase {phase_num} kickoff'
 
-            # Handle direction file — check both workspace and research pipeline_builds/
+            # Human gate stages end with _complete (both legacy and new format)
+            # Find which complete stage to advance from
+            # New format: p{N-1}_complete or p{N}_complete
+            # Legacy: phase1_complete, local_analysis_complete, phase2_complete, etc.
+            gate_candidates = [
+                f'p{phase_num - 1}_complete',  # New format
+                current_status,                  # Current status might be the gate
+                pending_action,                  # Or pending_action
+            ]
+            # Legacy gate names
+            legacy_gates = {
+                2: ['phase1_complete', 'local_analysis_complete', 'p1_complete'],
+                3: ['phase2_complete', 'local_analysis_complete', 'p2_complete'],
+                4: ['phase3_complete', 'p3_complete'],
+            }
+            gate_candidates.extend(legacy_gates.get(phase_num, []))
+
+            # Find a valid gate stage
+            complete_from = None
+            for candidate in gate_candidates:
+                if candidate and ('complete' in candidate or candidate == current_status):
+                    complete_from = candidate
+                    break
+
+            if not complete_from:
+                complete_from = f'p{phase_num - 1}_complete'
+
+            # Handle direction file
             ws_builds = WORKSPACE / 'pipeline_builds'
-            search_dirs = [ws_builds, BUILDS_DIR]  # workspace first, then research
+            search_dirs = [ws_builds, BUILDS_DIR]
 
             if direction:
-                # Explicit --direction flag — search multiple locations
                 direction_path = None
                 for loc in [Path(direction), BUILDS_DIR / direction, ws_builds / direction, WORKSPACE / direction]:
                     if loc.exists():
@@ -2408,35 +2451,38 @@ def main():
                         break
                 if direction_path:
                     import shutil
-                    target = ws_builds / f'{version}_phase2_shael_direction.md'
+                    target = ws_builds / f'{version}_phase{phase_num}_shael_direction.md'
                     shutil.copy2(direction_path, target)
-                    notes = f'Phase 2 kickoff. Direction at {target.name}'
+                    notes = f'Phase {phase_num} kickoff. Direction at {target.name}'
                     print(f"   📄 Direction file: {target.name}")
                 else:
                     print(f"   ❌ Direction file not found: {direction}")
                     sys.exit(1)
             else:
-                # Auto-detect direction file from both locations
+                # Auto-detect direction file
                 for loc in search_dirs:
-                    for dname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
+                    for dname in (f'{version}_phase{phase_num}_direction.md',
+                                  f'{version}_phase{phase_num}_shael_direction.md',
+                                  # Legacy names for phase 2
+                                  f'{version}_phase2_direction.md',
+                                  f'{version}_phase2_shael_direction.md'):
                         if (loc / dname).exists():
-                            notes = f'Phase 2 kickoff. Direction at {dname}'
+                            notes = f'Phase {phase_num} kickoff. Direction at {dname}'
                             print(f"   📄 Direction file found: {loc / dname}")
                             break
                     else:
                         continue
                     break
 
-            # Complete from whatever Phase 2 entry stage the pipeline is at
-            complete_from = current_status if current_status in phase2_entry_stages else 'local_analysis_complete'
-            print(f"   🔄 Phase 2 kickoff (from {complete_from})")
+            print(f"   🔄 Phase {phase_num} kickoff (from {complete_from})")
             orchestrate_complete(version, complete_from, 'belam-main', notes)
+
         elif current_status in ('', 'pipeline_created', 'created'):
             # Standard Phase 1 kickoff
             orchestrate_complete(version, 'pipeline_created', 'belam-main', 'Pipeline kickoff')
         else:
             print(f"   ⚠️  Pipeline status is '{current_status}' — not at a kickoff-ready stage")
-            print(f"   Expected: pipeline_created (Phase 1) or phase1_complete/local_analysis_complete (Phase 2)")
+            print(f"   Expected: pipeline_created (Phase 1) or use --phase N for later phases")
             print(f"   Use 'complete <stage>' for manual stage transitions")
             sys.exit(1)
 

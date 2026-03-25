@@ -6,7 +6,7 @@ importance: 4
 tags: [instance:main, codex-engine, render-engine, infrastructure, simplification]
 source: "session"
 content: "Render engine daemon (codex_render.py) was retired and archived to scripts/archived/. Cockpit plugin upgraded to V10: now calls render_supermap.py directly (no daemon, no UDS socket), supermap rendered on-demand per turn and returned via stdout. systemd codex-render.service disabled. All codex_render imports in codex_engine.py, orchestration_engine.py stubbed/removed. r0 coordinate added as manual supermap refresh in both cockpit and CLI. Namespace discovery via _scan_namespaces() auto-detects new directories with .namespace marker files on each render."
-status: active
+status: consolidated
 ---
 
 # Memory Entry

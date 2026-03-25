@@ -77,203 +77,31 @@ AGENT_DISPLAY = {
 }
 
 # ═══════════════════════════════════════════════════════════════════════
-# Stage transition map: when stage X completes, what's next?
-# Format: completed_stage → (next_pending_action, next_agent, ping_message_template)
+# Stage transitions are resolved from template YAML files exclusively.
+# No hardcoded transition dicts — templates are the single source of truth.
+# See templates/builder-first-pipeline.md and templates/research-pipeline.md.
+#
+# Legacy stage names (from existing pipeline files) are mapped to new
+# phase-based names via LEGACY_STAGE_MAP in template_parser.py.
 # ═══════════════════════════════════════════════════════════════════════
-STAGE_TRANSITIONS = {
-    # ═══════════════════════════════════════════════════════════════════
-    # Format: completed_stage → (next_pending_action, next_agent, ping_message_template, session_mode)
-    # session_mode: 'fresh' = reset agent session (default), 'continue' = keep same session
-    # Rules:
-    #   - Cross-agent transitions → 'fresh'
-    #   - Same-agent sequential stages → 'continue'
-    #   - After human gate → 'fresh'
-    #   - Block-fix round-trips to different agent → 'fresh'
-    # ═══════════════════════════════════════════════════════════════════
 
-    # Kickoff — initial pipeline creation triggers architect design
-    'pipeline_created':           ('architect_design',           'architect', 'New pipeline created. Design the notebook architecture per pipelines/{v}.md', 'fresh'),
+# Empty dicts kept for backward compatibility with imports from other modules
+STAGE_TRANSITIONS = {}
+BLOCK_TRANSITIONS = {}
+STATUS_BUMPS = {}
+START_STATUS_BUMPS = {}
 
-    # Phase 1
-    'architect_design':           ('critic_design_review',       'critic',    'Design ready for review at pipeline_builds/{v}_architect_design.md', 'fresh'),
-    'critic_design_review':       ('builder_implementation',     'builder',   'Design approved. Build spec at pipeline_builds/{v}_architect_design.md', 'fresh'),
-    'architect_design_revision':  ('critic_design_review',       'critic',    'Design revised, re-review at pipeline_builds/{v}_architect_design.md', 'fresh'),
-    'builder_implementation':     ('builder_verification',       'builder',   'Implementation done. Run verification: python3 scripts/pipeline_verify.py {v}', 'continue'),
-    'builder_verification':       ('critic_code_review',         'critic',    'Verification passed. Review the notebook.', 'fresh'),
-    'critic_code_review':         ('phase1_complete',            'architect', 'Phase 1 code review passed. Ready for Phase 2 design.', 'fresh'),
-    # Phase 1 blocks
-    'builder_apply_blocks':       ('critic_code_review',         'critic',    'Blocks fixed. Re-review the notebook.', 'fresh'),
-
-    # Phase 1 revisions (coordinator-triggered, loops back to phase1_complete)
-    'phase1_revision_architect':        ('phase1_revision_critic_review',  'critic',    'Revision design ready at pipeline_builds/{v}_phase1_revision_architect.md', 'fresh'),
-    'phase1_revision_critic_review':    ('phase1_revision_builder',        'builder',   'Revision design approved. Build per pipeline_builds/{v}_phase1_revision_architect.md', 'fresh'),
-    'phase1_revision_builder':          ('phase1_revision_code_review',    'critic',    'Revision implementation done. Review the notebook.', 'fresh'),
-    'phase1_revision_code_review':      ('phase1_complete',                'architect', 'Phase 1 revision code review passed. Back to phase1_complete.', 'fresh'),
-    # Phase 1 revision blocks
-    'phase1_revision_architect_fix':    ('phase1_revision_critic_review',  'critic',    'Revision design revised, re-review at pipeline_builds/{v}_phase1_revision_architect.md', 'fresh'),
-    'phase1_revision_builder_fix':      ('phase1_revision_code_review',    'critic',    'Revision blocks fixed. Re-review the notebook.', 'fresh'),
-
-    # Local experiment execution (process stage, not agent)
-    'local_experiment_running':   ('local_experiment_complete',  'system',    'Local experiment run completed. Results at notebooks/local_results/{v}/', 'fresh'),
-    'local_experiment_complete':  ('local_analysis_architect',   'architect', 'Experiments complete. Analyze results at notebooks/local_results/{v}/. Read the analysis MD and write a comprehensive preliminary report with any additional analysis scripts needed.', 'fresh'),
-
-    # Local analysis (architect→critic→builder loop with reasoning)
-    'local_analysis_architect':           ('local_analysis_critic_review',       'critic',    'Preliminary analysis report ready at notebooks/local_results/{v}/{v}_analysis_report.md. Review the analysis and script recommendations.', 'fresh'),
-    'local_analysis_critic_review':       ('local_analysis_builder',             'builder',   'Analysis design approved. Implement additional scripts, run them, incorporate results into the report at notebooks/local_results/{v}/', 'fresh'),
-    'local_analysis_architect_revision':  ('local_analysis_critic_review',       'critic',    'Analysis revised. Re-review at notebooks/local_results/{v}/{v}_analysis_report.md', 'fresh'),
-    'local_analysis_builder':             ('local_analysis_code_review',         'critic',    'Analysis scripts implemented and run. Review the updated report and code at notebooks/local_results/{v}/', 'fresh'),
-    'local_analysis_builder_fix':         ('local_analysis_code_review',         'critic',    'Analysis blocks fixed. Re-review at notebooks/local_results/{v}/', 'fresh'),
-    'local_analysis_code_review':         ('local_analysis_report_build',        'system',    'Analysis code review passed. Building LaTeX report.', 'fresh'),
-    'local_analysis_report_build':        ('local_analysis_complete',            'system',    'LaTeX report built. PDF at notebooks/local_results/{v}/{v}_report.pdf', 'fresh'),
-    # local_analysis_complete is a HUMAN GATE — no auto-transition to Phase 2.
-    # Shael must explicitly approve via: R kickoff <ver> --phase2
-    # 'local_analysis_complete':         ('phase2_architect_design',            'architect', 'Local analysis complete with PDF report. Design Phase 2 per ...', 'fresh'),
-
-    # Phase 2
-    'phase2_architect_design':    ('phase2_critic_design_review','critic',    'Phase 2 design ready at pipeline_builds/{v}_phase2_architect_design.md', 'fresh'),
-    'phase2_critic_design_review':('phase2_builder_implementation','builder', 'Phase 2 design approved. Build spec at pipeline_builds/{v}_phase2_architect_design.md', 'fresh'),
-    'phase2_architect_revision':  ('phase2_critic_design_review','critic',    'Phase 2 design revised, re-review at pipeline_builds/{v}_phase2_architect_design.md', 'fresh'),
-    'phase2_builder_implementation':('phase2_builder_verification', 'builder', 'Phase 2 implementation done. Run verification: python3 scripts/pipeline_verify.py {v}', 'continue'),
-    'phase2_builder_verification': ('phase2_critic_code_review',  'critic',    'Phase 2 verification passed. Review the notebook.', 'fresh'),
-    'builder_phase2_implemented': ('phase2_critic_code_review',  'critic',    'Phase 2 implementation done. Review the notebook.', 'fresh'),
-    'phase2_critic_code_review':  ('phase2_complete',            'architect', 'Phase 2 code review passed. Pipeline complete (or ready for Phase 3).', 'fresh'),
-    # Phase 2 blocks
-    'builder_apply_phase2_blocks':('phase2_critic_code_review',  'critic',    'Phase 2 analysis blocks fixed. Re-review the notebook.', 'fresh'),
-    'critic_block_fixes':         ('phase2_critic_code_review',  'critic',    'Blocks fixed. Re-review the notebook.', 'fresh'),
-
-    # Phase 3
-    'phase3_architect_design':    ('phase3_critic_review',       'critic',    'Phase 3 iteration design ready for review.', 'fresh'),
-    'phase3_critic_review':       ('phase3_builder_implementation','builder', 'Phase 3 design approved. Build it.', 'fresh'),
-    'phase3_builder_implementation':('phase3_critic_code_review','critic',    'Phase 3 implementation done. Review the notebook.', 'fresh'),
-    'phase3_critic_code_review':  ('phase3_complete',            'architect', 'Phase 3 iteration complete.', 'fresh'),
-
-    # ── Analysis Pipeline — Phase 1 (autonomous statistical analysis) ──────
-    'analysis_architect_design':          ('analysis_critic_review',            'critic',    'Analysis design ready at pipeline_builds/{v}_architect_analysis_design.md', 'fresh'),
-    'analysis_critic_review':             ('analysis_builder_implementation',   'builder',   'Analysis design approved. Implement notebook per pipeline_builds/{v}_architect_analysis_design.md', 'fresh'),
-    'analysis_architect_design_revision': ('analysis_critic_review',            'critic',    'Analysis design revised, re-review at pipeline_builds/{v}_architect_analysis_design.md', 'fresh'),
-    'analysis_builder_implementation':    ('analysis_critic_code_review',       'critic',    'Analysis notebook complete. Review implementation at notebooks/crypto_{v}_analysis.ipynb', 'fresh'),
-    'analysis_critic_code_review':        ('analysis_phase1_complete',          'architect', 'Phase 1 analysis code review passed. Notify Shael — phase 1 complete, ready for directed questions.', 'fresh'),
-    # Analysis Phase 1 block fixes
-    'analysis_builder_apply_blocks':      ('analysis_critic_code_review',       'critic',    'Analysis blocks fixed. Re-review the notebook.', 'fresh'),
-
-    # ── Analysis Pipeline — Phase 2 (Shael-directed analysis) ─────────────
-    'analysis_phase2_architect':                 ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design ready at pipeline_builds/{v}_phase2_architect_design.md', 'fresh'),
-    'analysis_phase2_architect_design':          ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design ready at pipeline_builds/{v}_phase2_architect_analysis_design.md', 'fresh'),
-    'analysis_phase2_critic_review':             ('analysis_phase2_builder_implementation',   'builder',   'Phase 2 analysis design approved. Extend notebook per pipeline_builds/{v}_phase2_architect_analysis_design.md', 'fresh'),
-    'analysis_phase2_architect_revision':        ('analysis_phase2_critic_review',            'critic',    'Phase 2 analysis design revised, re-review.', 'fresh'),
-    'analysis_phase2_builder_implementation':    ('analysis_phase2_critic_code_review',       'critic',    'Phase 2 analysis notebook extended. Review additions.', 'fresh'),
-    'analysis_phase2_critic_code_review':        ('analysis_phase2_complete',                 'architect', 'Phase 2 analysis code review passed. Pipeline complete.', 'fresh'),
-    # Analysis Phase 2 block fixes
-    'analysis_phase2_builder_apply_blocks':      ('analysis_phase2_critic_code_review',       'critic',    'Phase 2 analysis blocks fixed. Re-review the notebook.', 'fresh'),
-}
-
-# ═══════════════════════════════════════════════════════════════════════
-# Status bumps: when pending_action reaches one of these, bump overall
-# pipeline frontmatter status. Keyed on next_action.
-# ═══════════════════════════════════════════════════════════════════════
-STATUS_BUMPS = {
-    # ── Kickoff ──────────────────────────────────────────────────────
-    'architect_design':                 'phase1_design',
-
-    # ── Builder Pipeline — Phase 1 ───────────────────────────────────
-    'critic_design_review':             'phase1_review',
-    'builder_implementation':           'phase1_build',
-    'critic_code_review':               'phase1_code_review',
-    'phase1_complete':                  'phase1_complete',
-
-    # Phase 1 revisions
-    'phase1_revision_critic_review':    'phase1_revision',
-    'phase1_revision_builder':          'phase1_revision',
-    'phase1_revision_code_review':      'phase1_revision',
-
-    # ── Local Experiment Execution ────────────────────────────────────
-    'local_experiment_running':         'experiment_running',
-    'local_experiment_complete':        'experiment_complete',
-
-    # ── Local Analysis (post-experiment) ──────────────────────────────
-    'local_analysis_critic_review':     'local_analysis_in_progress',
-    'local_analysis_builder':           'local_analysis_in_progress',
-    'local_analysis_code_review':       'local_analysis_in_progress',
-    'local_analysis_report_build':      'local_analysis_report',
-    'local_analysis_complete':          'local_analysis_complete',
-
-    # ── Builder Pipeline — Phase 2 ───────────────────────────────────
-    'phase2_critic_design_review':      'phase2_review',
-    'phase2_builder_implementation':    'phase2_build',
-    'phase2_critic_code_review':        'phase2_code_review',
-    'phase2_complete':                  'phase2_complete',
-
-    # ── Builder Pipeline — Phase 3 ───────────────────────────────────
-    'phase3_critic_review':             'phase3_active',
-    'phase3_builder_implementation':    'phase3_active',
-    'phase3_critic_code_review':        'phase3_active',
-    'phase3_complete':                  'phase3_complete',
-
-    # ── Analysis Pipeline — Phase 1 ──────────────────────────────────
-    'analysis_critic_review':                   'analysis_phase1_review',
-    'analysis_builder_implementation':          'analysis_phase1_build',
-    'analysis_critic_code_review':              'analysis_phase1_code_review',
-    'analysis_phase1_complete':                 'phase1_complete',
-
-    # ── Analysis Pipeline — Phase 2 ──────────────────────────────────
-    'analysis_phase2_critic_review':            'phase2_in_progress',
-    'analysis_phase2_builder_implementation':   'phase2_in_progress',
-    'analysis_phase2_critic_code_review':       'phase2_in_progress',
-    'analysis_phase2_complete':                 'phase2_complete',
-}
-
-# ═══════════════════════════════════════════════════════════════════════
-# Start status bumps: when a stage is started, bump frontmatter status.
-# This ensures the pipeline status reflects the current active phase
-# even before the first complete call.
-# ═══════════════════════════════════════════════════════════════════════
-START_STATUS_BUMPS = {
-    # Local analysis starts
-    'local_analysis_architect':                 'local_analysis_in_progress',
-    'local_analysis_critic_review':             'local_analysis_in_progress',
-    'local_analysis_builder':                   'local_analysis_in_progress',
-    'local_analysis_code_review':               'local_analysis_in_progress',
-    'local_analysis_report_build':              'local_analysis_report',
-
-    # Analysis Phase 2 starts
-    'analysis_phase2_architect':                'phase2_in_progress',
-    'analysis_phase2_architect_design':         'phase2_in_progress',
-    'analysis_phase2_critic_review':            'phase2_in_progress',
-    'analysis_phase2_builder_implementation':   'phase2_in_progress',
-    'analysis_phase2_critic_code_review':       'phase2_in_progress',
-
-    # Phase 1 revision starts
-    'phase1_revision_architect':                'phase1_revision',
-    'phase1_revision_critic_review':            'phase1_revision',
-    'phase1_revision_builder':                  'phase1_revision',
-    'phase1_revision_code_review':              'phase1_revision',
-
-    # Local experiment starts
-    'local_experiment_running':                 'experiment_running',
-
-    # Builder Phase 2 starts
-    'phase2_architect_design':                  'phase2_in_progress',
-    'phase2_critic_design_review':              'phase2_in_progress',
-    'phase2_builder_implementation':            'phase2_in_progress',
-    'phase2_critic_code_review':                'phase2_in_progress',
-
-    # Phase 3 starts
-    'phase3_architect_design':                  'phase3_active',
-    'phase3_critic_review':                     'phase3_active',
-    'phase3_builder_implementation':            'phase3_active',
-    'phase3_critic_code_review':                'phase3_active',
-}
 
 def get_transitions_for_pipeline(version: str) -> tuple:
     """Resolve (stage_transitions, block_transitions, status_bumps, start_status_bumps) for a pipeline.
 
-    1. Read pipelines/{version}.md frontmatter → type field
-    2. Map type to template name (e.g. 'builder-first' → 'builder-first')
-    3. If template exists and type is not 'research', parse it and return its dicts
-    4. Else return hardcoded globals (backward compatible)
-
-    Pipelines without a type: field, or with type: research, use the hardcoded dicts.
+    Always resolves from template files. Pipeline type determines which template to parse.
+    Falls back to empty dicts if template not found (should not happen in practice).
+    
+    Supports legacy stage names via resolve_stage_name() in template_parser.py.
     """
+    from template_parser import parse_template, resolve_stage_name
+
     # Read pipeline type from frontmatter
     pipeline_type = None
     pf = PIPELINES_DIR / f'{version}.md'
@@ -283,78 +111,66 @@ def get_transitions_for_pipeline(version: str) -> tuple:
         if m:
             pipeline_type = m.group(1).strip()
 
-    # Default/research/infrastructure → use hardcoded dicts
-    if not pipeline_type or pipeline_type in ('research', 'infrastructure'):
-        return (STAGE_TRANSITIONS, BLOCK_TRANSITIONS, STATUS_BUMPS, START_STATUS_BUMPS)
+    # Map pipeline type to template name
+    # research, infrastructure → research template
+    # builder-first → builder-first template  
+    # Default to research if no type specified (most common)
+    template_map = {
+        'research': 'research',
+        'infrastructure': 'research',
+        'builder-first': 'builder-first',
+    }
+    template_name = template_map.get(pipeline_type, 'research') if pipeline_type else 'research'
 
-    # Try to parse template
     try:
-        from template_parser import parse_template
-        parsed = parse_template(pipeline_type)
+        parsed = parse_template(template_name)
         if parsed:
             return (
                 parsed['transitions'],
-                parsed.get('block_transitions', {}) or BLOCK_TRANSITIONS,
-                parsed.get('status_bumps', {}) or STATUS_BUMPS,
-                parsed.get('start_status_bumps', {}) or START_STATUS_BUMPS,
+                parsed.get('block_transitions', {}),
+                parsed.get('status_bumps', {}),
+                parsed.get('start_status_bumps', {}),
             )
-    except ImportError:
-        pass
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"   ⚠️  Template parse error for '{template_name}': {e}")
 
-    # Fallback to hardcoded
-    return (STAGE_TRANSITIONS, BLOCK_TRANSITIONS, STATUS_BUMPS, START_STATUS_BUMPS)
+    # Final fallback — empty dicts (should not happen with valid templates)
+    return ({}, {}, {}, {})
 
-
-BLOCK_TRANSITIONS = {
-    'critic_design_review':       ('architect_design_revision',  'architect', 'Design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'critic_code_review':         ('builder_apply_blocks',       'builder',   'Code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'phase2_critic_design_review':('phase2_architect_revision',  'architect', 'Phase 2 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'phase2_critic_code_review':  ('builder_apply_phase2_blocks','builder',   'Phase 2 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    # Phase 1 revision blocks
-    'phase1_revision_critic_review':   ('phase1_revision_architect_fix',  'architect', 'Revision design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'phase1_revision_code_review':     ('phase1_revision_builder_fix',    'builder',   'Revision code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-
-    'phase3_critic_review':       ('phase3_architect_revision',  'architect', 'Phase 3 design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'phase3_critic_code_review':  ('phase3_builder_fix',         'builder',   'Phase 3 code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-
-    # ── Local Analysis block transitions ──────────────────────────────
-    'local_analysis_critic_review':        ('local_analysis_architect_revision',        'architect', 'Analysis review has blocks. Revise report at notebooks/local_results/{v}/{v}_analysis_report.md'),
-    'local_analysis_code_review':          ('local_analysis_builder_fix',               'builder',   'Analysis code review has blocks. Fix at notebooks/local_results/{v}/'),
-
-    # ── Analysis Pipeline block transitions ────────────────────────────
-    'analysis_critic_review':              ('analysis_architect_design_revision',       'architect', 'Analysis design has methodology blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'analysis_critic_code_review':         ('analysis_builder_apply_blocks',            'builder',   'Analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'analysis_phase2_critic_review':       ('analysis_phase2_architect_revision',       'architect', 'Phase 2 analysis design has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-    'analysis_phase2_critic_code_review':  ('analysis_phase2_builder_apply_blocks',     'builder',   'Phase 2 analysis code review has blocks. Fix instructions at pipeline_builds/{v}_{artifact}'),
-}
 
 # ═══════════════════════════════════════════════════════════════════════
 # Phase detection: determine which phase a stage belongs to based on
 # its name prefix. Used for routing history table entries.
 # ═══════════════════════════════════════════════════════════════════════
-PHASE_PATTERNS = [
-    # Order matters — more specific patterns first
-    (re.compile(r'(analysis_)?phase3_|^phase3_'),    3),
-    (re.compile(r'(analysis_)?phase2_|^phase2_'),    2),
-    # Everything else is Phase 1
-]
 
 def detect_phase(stage_name: str) -> int:
-    """Determine which phase a stage belongs to (1, 2, or 3)."""
-    for pattern, phase in PHASE_PATTERNS:
-        if pattern.search(stage_name):
-            return phase
+    """Determine which phase a stage belongs to.
+    
+    Supports both legacy names (phase2_*, phase3_*) and new names (p2_*, p3_*, p4_*).
+    """
+    # New phase-based names: p1_, p2_, p3_, p4_
+    m = re.match(r'^p(\d+)_', stage_name)
+    if m:
+        return int(m.group(1))
+    
+    # Legacy patterns
+    if re.search(r'(analysis_)?phase3_|^phase3_', stage_name):
+        return 3
+    if re.search(r'(analysis_)?phase2_|^phase2_', stage_name):
+        return 2
+    if re.search(r'local_experiment|local_analysis', stage_name):
+        return 2  # Local experiment/analysis is Phase 2 in research pipelines
     return 1
 
 
 # Phase section header patterns (match common variations)
 PHASE_SECTION_PATTERNS = {
-    1: re.compile(r'^## Phase 1[:\s—–-]', re.MULTILINE),
-    2: re.compile(r'^## Phase 2[:\s—–-]', re.MULTILINE),
-    3: re.compile(r'^## Phase 3[:\s—–-]', re.MULTILINE),
+    1: re.compile(r'^## Phase 1[:\s\x97\x96-]', re.MULTILINE),
+    2: re.compile(r'^## Phase 2[:\s\x97\x96-]', re.MULTILINE),
+    3: re.compile(r'^## Phase 3[:\s\x97\x96-]', re.MULTILINE),
+    4: re.compile(r'^## Phase 4[:\s\x97\x96-]', re.MULTILINE),
 }
+
 
 
 # ═══════════════════════════════════════════════════════════════════════
