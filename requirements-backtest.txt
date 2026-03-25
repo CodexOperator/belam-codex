@@ -1,0 +1,19 @@
+# Backtesting stack — VectorBT PRO + NautilusTrader
+# Install: pip3 install -r requirements-backtest.txt --break-system-packages
+#
+# ARM64 (aarch64) compatibility verified 2026-03-25.
+# numba, numpy, scipy already installed system-wide.
+
+# Core backtesting frameworks
+# vectorbtpro>=2.0  # Requires license — install separately if available
+vectorbt>=0.26.2              # OSS fallback (installed by default)
+nautilus_trader>=1.200        # Rust-core backtesting engine
+
+# Data & analytics
+polars>=1.0                   # Fast DataFrame (Rust-backed, ARM64 wheels)
+duckdb>=1.0                   # Embedded analytics DB (ARM64 wheels)
+
+# Statistical / financial
+fracdiff>=0.9                 # Fractional differencing
+arch>=7.0                     # GARCH + volatility models
+skfolio>=0.5                  # Portfolio optimization (sklearn-compatible)

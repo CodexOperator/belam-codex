@@ -4,6 +4,7 @@ status: open
 priority: medium
 owner: builder
 tags: [backtesting, infrastructure]
+pipeline: setup-vectorbt-nautilus-pipeline-s1-environment-setup
 project: snn-applied-finance
 estimate: 1 day
 depends_on: []

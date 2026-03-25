@@ -165,87 +165,42 @@ _template_gates: dict[str, set] = {}  # template_name → set of human-gated sta
 def _parse_template_transitions(template_name: str) -> dict | None:
     """Parse stage transitions from a pipeline template markdown file.
 
-    Reads the ```yaml block under '## Stage Transitions' and extracts
-    the 'transitions' mapping. Returns dict of stage → (next_stage, agent, msg)
-    or None if template not found or unparseable.
+    Delegates to template_parser.parse_template() which handles both legacy
+    flat-YAML and phase-based YAML formats. Returns dict of stage → (next_stage,
+    agent, msg) or None if template not found or unparseable.
 
-    Also populates _template_gates with stages that have 'gate: human'.
+    Also populates _template_gates, _template_status_bumps, _template_start_status_bumps.
     """
     if template_name in _template_cache:
         return _template_cache[template_name]
 
-    template_file = TEMPLATES_DIR / f'{template_name}-pipeline.md'
-    if not template_file.exists():
+    try:
+        from template_parser import parse_template
+        parsed = parse_template(template_name)
+    except ImportError:
+        parsed = None
+
+    if not parsed or not parsed.get('transitions'):
         _template_cache[template_name] = None
+        _template_gates[template_name] = set()
+        _template_status_bumps[template_name] = {}
+        _template_start_status_bumps[template_name] = {}
         return None
 
-    content = template_file.read_text()
-
-    # Extract yaml code block after "## Stage Transitions"
-    match = re.search(
-        r'## Stage Transitions.*?```yaml\s*\n(.*?)```',
-        content, re.DOTALL
-    )
-    if not match:
-        _template_cache[template_name] = None
-        return None
-
-    yaml_block = match.group(1)
-
-    # Parse transitions, status_bumps, and start_status_bumps manually (avoid PyYAML dependency)
+    # Convert 4-tuples (next_stage, agent, msg, session_mode) to 3-tuples
+    # for backward compatibility with all callers
     transitions = {}
-    gates = set()
-    status_bumps = {}
-    start_status_bumps = {}
-    current_section = None  # 'transitions' | 'status_bumps' | 'start_status_bumps'
+    for stage, val in parsed['transitions'].items():
+        if len(val) >= 4:
+            transitions[stage] = (val[0], val[1], val[2])
+        else:
+            transitions[stage] = val
 
-    for line in yaml_block.splitlines():
-        stripped = line.strip()
-        if stripped.startswith('#') or not stripped:
-            continue
-
-        # Detect top-level section keys (no leading spaces)
-        if not line.startswith(' ') and ':' in line:
-            if stripped == 'transitions:':
-                current_section = 'transitions'
-            elif stripped == 'status_bumps:':
-                current_section = 'status_bumps'
-            elif stripped == 'start_status_bumps:':
-                current_section = 'start_status_bumps'
-            else:
-                current_section = None
-            continue
-
-        if current_section == 'transitions':
-            # Parse: stage_name: [next_stage, agent, "message"] with optional gate: human and session: mode
-            m = re.match(
-                r'\s*(\w+):\s*\[(\w+),\s*(\w+),\s*"([^"]*)"\s*(?:,\s*gate:\s*(\w+))?(?:,\s*session:\s*(\w+))?\]',
-                line
-            )
-            if m:
-                stage, next_stage, agent, msg, gate, session = m.groups()
-                transitions[stage] = (next_stage, agent, msg)
-                if gate == 'human':
-                    gates.add(next_stage)
-
-        elif current_section == 'status_bumps':
-            # Parse: stage_name:  status_string
-            m = re.match(r'\s+([\w]+):\s+(\S+)', line)
-            if m:
-                status_bumps[m.group(1)] = m.group(2)
-
-        elif current_section == 'start_status_bumps':
-            # Parse: stage_name:  status_string
-            m = re.match(r'\s+([\w]+):\s+(\S+)', line)
-            if m:
-                start_status_bumps[m.group(1)] = m.group(2)
-
-    result = transitions if transitions else None
-    _template_cache[template_name] = result
-    _template_gates[template_name] = gates
-    _template_status_bumps[template_name] = status_bumps
-    _template_start_status_bumps[template_name] = start_status_bumps
-    return result
+    _template_cache[template_name] = transitions
+    _template_gates[template_name] = parsed.get('human_gates', set())
+    _template_status_bumps[template_name] = parsed.get('status_bumps', {})
+    _template_start_status_bumps[template_name] = parsed.get('start_status_bumps', {})
+    return transitions
 
 
 def _get_pipeline_type(version: str) -> str | None:

@@ -1,9 +1,10 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: medium
 owner: builder
 tags: [backtesting, infrastructure]
+pipeline: setup-vectorbt-nautilus-pipeline-s1-environment-setup
 project: snn-applied-finance
 estimate: 4 hours
 parent_task: setup-vectorbt-nautilus-pipeline
