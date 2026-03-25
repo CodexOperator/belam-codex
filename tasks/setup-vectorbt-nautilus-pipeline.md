@@ -6,8 +6,8 @@ owner: builder
 tags: [backtesting, infrastructure]
 project: snn-applied-finance
 estimate: 1 day
-depends_on: [build-equilibrium-snn]
-upstream: [task/build-equilibrium-snn]
+depends_on: []
+upstream: []
 ---
 
 # Set Up Two-Phase Backtest Pipeline
