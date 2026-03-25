@@ -6,7 +6,7 @@ importance: 2
 tags: [instance:main, templates, pipelines, cleanup]
 source: "session"
 content: "Shael retired pipeline.md and analysis_pipeline.md from templates/. Both were non-programmatic (no machine-readable YAML transition blocks). Only builder-first-pipeline.md and research-pipeline.md remain active. Retired files moved to templates/retired/ for reference."
-status: active
+status: consolidated
 ---
 
 # Memory Entry
