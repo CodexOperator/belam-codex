@@ -3217,8 +3217,8 @@ def handle_spawn(args):
 ACTION_REGISTRY = {
     # Memory
     'log':              {'script': 'log_memory.py',             'description': 'Quick memory entry'},
-    'consolidate':      {'script': 'consolidate_memories.py',   'description': 'Run memory consolidation'},
-    'cons':             {'alias': 'consolidate'},
+    # consolidate: retired — daily log consolidation removed (2026-03-25)
+    # cons: retired — alias for consolidate
 
     # Pipelines
     'pipelines':        {'script': 'pipeline_dashboard.py',     'description': 'List all pipelines'},

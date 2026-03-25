@@ -211,27 +211,12 @@ status: active
 """
     entry_path.write_text(entry_content)
 
-    # --- Append to daily log ---
-    daily_log = memory_dir / f"{date_str}.md"
-    importance_indicator = "⚡" * min(importance, 5)
-
-    if not daily_log.exists():
-        daily_log.write_text(f"# Memory Log — {date_str}\n\n")
-
-    with daily_log.open("a") as f:
-        f.write(f"\n## {ts_full} — {category} {importance_indicator}\n\n")
-        f.write(f"{content}\n\n")
-        if tags:
-            f.write(f"*Tags: {', '.join(tags)}*\n\n")
-        f.write(f"*Source: {source}*\n\n")
-        f.write(f"*Entry: `{entry_filename}`*\n\n")
-        f.write("---\n")
+    # Daily log append removed — entries live in memory/entries/ only.
+    # Daily logs are written exclusively by sage extraction (lessons/decisions summary).
 
     rel_entry = entry_path.relative_to(workspace)
-    rel_daily = daily_log.relative_to(workspace)
     print(f"✓ [{category}] imp={importance} logged at {ts_full}")
     print(f"  Entry:  {rel_entry}")
-    print(f"  Daily:  {rel_daily}")
 
     # Trigger index re-embed (debounced, background)
     try:
