@@ -180,32 +180,43 @@ ${DEDUP_BLOCK}
 
 ## Instructions
 
-1. Read the transcript and identify:
-   - **Memories** (events, context, what happened) → use \`python3 scripts/log_memory.py\`
+1. Read the transcript and extract ONLY:
    - **Lessons** (reusable knowledge, gotchas, patterns) → use \`python3 scripts/create_primitive.py lesson <slug>\`
    - **Decisions** (architectural choices with rationale) → use \`python3 scripts/create_primitive.py decision <slug>\`
 
-2. For each primitive:
+2. **DO NOT create memory entries.** No events, no context logs, no "what happened" entries.
+   Specifically DO NOT log:
+   - Pipeline or task state transitions (stage changes, dispatches, completions, archives)
+   - Routine operations (git commits, memory consolidation, heartbeat runs)
+   - Session summaries or cross-agent status reports
+   - Anything that is already captured in pipeline/task files on disk
+
+3. Only create a primitive when there is a genuinely reusable lesson or a meaningful architectural decision.
+   If the session contains no lessons or decisions, create nothing — that's fine.
+
+4. For each primitive:
    - Assess importance (1-5 stars via --importance flag)
    - Add tags: \`instance:$INSTANCE\` on everything
 $PERSONA_TAG
    - Add upstream/downstream edges if relationships to existing primitives are obvious
    - **Check the "Already Logged Today" section above** — skip entries that duplicate existing ones
 
-3. For trivial sessions (quick checks, no real work), create ONE memory with importance 1
+5. For trivial sessions (quick checks, no real work), create NOTHING
 
-4. Append a summary to the daily memory log:
+6. Append a ONE-LINE summary to the daily memory log (only if you created any primitives):
    - File: \`memory/$TODAY.md\`
    - If it exists, append. If not, create with \`# Memory Log — $TODAY\` header
+   - Format: \`## Session $INSTANCE — $TODAY\` followed by a single line listing which lessons/decisions were created
+   - Do NOT write full session summaries, cross-agent reports, or stage-by-stage narratives
 
-5. After all primitives are created:
+7. After all primitives are created:
    \`\`\`bash
    cd $WORKSPACE && git add -A && git diff --cached --stat
    # If changes exist:
-   git commit -m "Auto-extract: $INSTANCE session memories [$TODAY]" && git push origin
+   git commit -m "Auto-extract: $INSTANCE session lessons/decisions [$TODAY]" && git push origin
    \`\`\`
 
-6. Update the tracker: write \`complete\` status to \`memory/pending_extraction.json\`
+8. Update the tracker: write \`complete\` status to \`memory/pending_extraction.json\`
 
 ## Star Ratings
 - ★☆☆☆☆ = trivial/routine (status check, greeting)

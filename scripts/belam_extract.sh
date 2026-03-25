@@ -93,13 +93,48 @@ echo "📄 Prompt file: $PROMPT_FILE ($(wc -c < "$PROMPT_FILE" | tr -d ' ') byte
 SESSION_ID="mem-extract-$(date +%s)"
 PROMPT_CONTENT=$(cat "$PROMPT_FILE")
 
+# Capture transcript path from extraction output
+TRANSCRIPT_FILE=$(echo "$EXTRACT_OUTPUT" | grep -E '^TRANSCRIPT_FILE=' | tail -1 | cut -d= -f2- | tr -d '"' || true)
+
+# --- Post-processing: stamp new lessons/decisions with source transcript ---
+stamp_new_primitives() {
+  local transcript_path="$1"
+  [[ -z "$transcript_path" ]] && return
+
+  # Find lessons and decisions modified in the last 30 seconds
+  for dir in "$WORKSPACE/lessons" "$WORKSPACE/decisions"; do
+    [[ -d "$dir" ]] || continue
+    find "$dir" -name "*.md" -newermt "30 seconds ago" -type f | while read -r f; do
+      # Skip if already has source_transcript
+      grep -q "^source_transcript:" "$f" && continue
+      # Insert source_transcript after the last frontmatter field (before closing ---)
+      sed -i "/^---$/,/^---$/ { /^---$/! { /^---$/! s|^---|source_transcript: $transcript_path\n---|; }; }" "$f" 2>/dev/null
+      # Simpler: just append before the closing ---
+      python3 -c "
+import sys
+p = sys.argv[1]
+t = sys.argv[2]
+text = open(p).read()
+# Find second --- (closing frontmatter)
+first = text.index('---')
+second = text.index('---', first + 3)
+patched = text[:second] + 'source_transcript: ' + t + '\n' + text[second:]
+open(p, 'w').write(patched)
+" "$f" "$transcript_path" 2>/dev/null && echo "   📎 Linked: $(basename "$f") → $(basename "$transcript_path")"
+    done
+  done
+}
+
 if [[ "$BACKGROUND" == true ]]; then
   echo "🤖 Spawning sage in background (session: $SESSION_ID)..."
-  nohup openclaw agent \
-    --agent sage \
-    --session-id "$SESSION_ID" \
-    --message "$PROMPT_CONTENT" \
-    > /dev/null 2>&1 &
+  # Background: stamp after sage finishes via a wrapper
+  (
+    openclaw agent \
+      --agent sage \
+      --session-id "$SESSION_ID" \
+      --message "$PROMPT_CONTENT" > /dev/null 2>&1
+    stamp_new_primitives "$TRANSCRIPT_FILE"
+  ) &
   echo "✅ Sage dispatched (pid: $!, session: $SESSION_ID)"
 else
   echo "🤖 Spawning sage agent (session: $SESSION_ID)..."
@@ -108,4 +143,5 @@ else
     --session-id "$SESSION_ID" \
     --message "$PROMPT_CONTENT"
   echo "✅ Extraction complete (session: $SESSION_ID)"
+  stamp_new_primitives "$TRANSCRIPT_FILE"
 fi

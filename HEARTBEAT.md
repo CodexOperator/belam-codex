@@ -67,11 +67,8 @@
    - If uncommitted changes: `git add -A && git commit -m "Auto-commit: research updates [$(date -u +'%Y-%m-%d %H:%M UTC')]" && git push origin`
 3. Skip silently if both clean
 
-## Task 7: Memory Maintenance
-
-1. `python3 scripts/consolidate_memories.py --check 2>/dev/null`
-2. If entries need consolidation, run `python3 scripts/consolidate_memories.py`
-3. Skip silently if nothing to consolidate
+## ~~Task 7: Memory Maintenance~~ (REMOVED 2026-03-25)
+> **Removed:** Memory consolidation retired. Extraction now only creates lessons and decisions (no memory entries). Lessons/decisions link directly to chat transcripts — no roll-up needed.
 
 _Note: embed_primitives.py is archived — supermap is injected at boot via hook._
 
