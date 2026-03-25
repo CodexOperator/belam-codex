@@ -74,7 +74,7 @@
       "notes": "APPROVED: 0 BLOCKs, 0 FLAGs. Phase 2 cleanup verified. Cockpit plugin 204\u2192169L (-35L). Diff subprocess call removed \u2014 only anchor-turn execFileSync remains (for supermap render). diffCount counter removed. Non-anchor turns return tailBlock directly \u2014 ~100-150ms savings per agent turn. 4 remaining 'diff' references are comments/legend text only (not code). T6/T7 replaced with meaningful checks. 10/10 tests pass. Full pipeline complete: codex_render.py 2184\u21921896L + cockpit 204\u2192169L = -323L total subtraction."
     }
   },
-  "status": "phase2_complete",
+  "status": "archived",
   "status_updated": "2026-03-25 00:32",
   "current_agent": "phase2_critic_review",
   "last_dispatched": "2026-03-25T00:31:09.205796+00:00",
@@ -82,9 +82,11 @@
   "phase1": {
     "stage": "phase1_complete"
   },
-  "last_updated": "2026-03-25 00:32",
+  "last_updated": "2026-03-25 00:46",
   "pending_action": "phase2_complete",
   "phase2": {
     "stage": "phase2_critic_review"
-  }
+  },
+  "archived": "2026-03-25",
+  "archive_reason": "Phase 1: stripped DiffEntry/DiffEngine/StatPoller from render engine (-314 lines). Phase 2: cleaned cockpit plugin residual comments, fixed weak tests. 10/10 tests GREEN. All success criteria met."
 }

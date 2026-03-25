@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase2_complete
+status: archived
 priority: high
 type: builder-first
 version: render-engine-simplification
@@ -11,6 +11,8 @@ supersedes:
 tags: [infrastructure, codex-engine, simplification]
 project: codex-engine
 started: 2026-03-24
+archived: 2026-03-25
+archive_reason: Phase 1: stripped DiffEntry/DiffEngine/StatPoller from render engine (-314 lines). Phase 2: cleaned cockpit plugin residual comments, fixed weak tests. 10/10 tests GREEN. All success criteria met.
 ---
 
 # Implementation Pipeline: RENDER-ENGINE-SIMPLIFICATION
