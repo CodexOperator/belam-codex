@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: complete
 priority: medium
 created: 2026-03-24
 owner: belam
