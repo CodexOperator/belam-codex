@@ -145,6 +145,37 @@ def _has_ipynb(diff_text: str) -> bool:
     return '.ipynb' in diff_text
 
 
+def _count_other_changes(repo_path: Path, old_hash: str, scoped_paths: list[str]) -> int:
+    """Count files changed outside the scoped paths since old_hash.
+
+    Returns the number of files changed that are NOT in the scoped paths.
+    """
+    if not repo_path.exists():
+        return 0
+    try:
+        # Get all changed files
+        all_result = subprocess.run(
+            ['git', 'diff', '--name-only', old_hash, 'HEAD'],
+            capture_output=True, text=True, timeout=10,
+            cwd=str(repo_path),
+        )
+        if all_result.returncode != 0:
+            return 0
+        all_files = set(all_result.stdout.strip().splitlines())
+
+        # Get scoped changed files
+        scoped_result = subprocess.run(
+            ['git', 'diff', '--name-only', old_hash, 'HEAD', '--'] + scoped_paths,
+            capture_output=True, text=True, timeout=10,
+            cwd=str(repo_path),
+        )
+        scoped_files = set(scoped_result.stdout.strip().splitlines()) if scoped_result.returncode == 0 else set()
+
+        return len(all_files - scoped_files)
+    except Exception:
+        return 0
+
+
 def snapshot_handoff_commits(version: str, stage: str, agent: str) -> dict:
     """Record current git HEAD for workspace + machinelearning repos.
 
@@ -260,12 +291,27 @@ def build_handoff_diff(version: str, agent: str) -> str:
 
                 sections.append(section)
 
-    if not sections:
-        return ''  # No relevant changes since last snapshot
+    # Count changes outside pipeline scope
+    other_count = 0
+    ws_hash = commits.get('workspace')
+    ml_hash = commits.get('machinelearning')
+    if ws_hash:
+        other_count += _count_other_changes(WORKSPACE, ws_hash, _relevant_paths(version, 'workspace'))
+    if ml_hash:
+        other_count += _count_other_changes(ML_DIR, ml_hash, _relevant_paths(version, 'machinelearning'))
+
+    if not sections and other_count == 0:
+        return ''  # No changes at all since last snapshot
 
     # Assemble the diff block
     header = f'## Changes Since Your Last Session ({prior_stage} → now)\n'
-    return header + '\n\n'.join(sections)
+    body = '\n\n'.join(sections) if sections else '_No changes to pipeline-scoped files._'
+
+    other_line = ''
+    if other_count > 0:
+        other_line = f'\n\n_{other_count} other file{"s" if other_count != 1 else ""} changed outside this pipeline\'s scope._'
+
+    return header + body + other_line
 
 
 # ─── CLI for testing ────────────────────────────────────────────────────────────

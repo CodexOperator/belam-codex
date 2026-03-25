@@ -229,9 +229,11 @@ This is a FRESH session. You have no prior context except your memory files.
        --set "status=active"
      ```
 
-**Read these files before starting:**
+**Pipeline files:**
 {files_list}
 {diff_section}
+Read the diff to see what specifically changed since your last session. Feel free to read the other files for the full picture.
+
 **Pipeline state:** `python3 scripts/pipeline_update.py {version} show`
 
 **When you finish, call the orchestrator (it auto-saves your memory):**
