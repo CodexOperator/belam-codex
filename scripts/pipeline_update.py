@@ -458,23 +458,13 @@ def notify_group(agent: str, version: str, event_type: str, stage: str, notes: s
 
 
 def trigger_memory_update(agent: str, version: str, stage: str, notes: str):
-    """Fire-and-forget: log a memory entry for the agent that just completed a stage."""
-    agent_id = agent if agent in ("architect", "critic", "builder", "main") else "main"
-    try:
-        subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPTS / "agent_memory_update.py"),
-                "--agent", agent_id,
-                "--pipeline", version,
-                "--stage", stage,
-                "--summary", notes or f"Completed stage {stage}",
-            ],
-            timeout=15,
-            check=False,
-        )
-    except Exception as e:
-        print(f"   ⚠️  Memory update skipped: {e}")
+    """Suppressed — pipeline stage transitions no longer generate memory entries.
+    
+    Pipeline state is tracked in pipeline files themselves; memory entries for
+    routine stage transitions were noise that bloated daily logs. Decisions,
+    lessons, and significant events are captured by sage extraction instead.
+    """
+    pass
 
 
 def print_ping_instruction(version, next_agent, ping_msg, artifact=None):
