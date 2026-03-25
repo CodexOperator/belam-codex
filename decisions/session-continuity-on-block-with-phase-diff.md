@@ -30,8 +30,9 @@ Three session modes based on handoff type:
 
 | Handoff Type | Session Mode | Context Mechanism |
 |---|---|---|
-| Critic block → same agent | `continue` | Agent keeps full session context + critic feedback injected |
-| Cross-agent handoff | `fresh` | File list + handoff message (existing behavior) |
+| Critic block → fixing agent | `continue` | Agent keeps full session context + critic feedback injected |
+| Fix complete → critic re-review | `continue` | Critic keeps context from initial review + diff of fixes |
+| Normal cross-agent handoff | `fresh` | File list + handoff message (existing behavior) |
 | Cross-phase same-agent | `fresh` | File list + verbose git diff from agent's last HEAD |
 
 ## Git HEAD Tracking
@@ -50,7 +51,8 @@ P1: architect designs → HEAD_architect = abc123
 P1: critic reviews design → approves
 P1: builder implements → HEAD_builder = def456  
 P1: critic blocks code review → builder continues (same session)
-P1: builder fixes → critic approves → HEAD_builder = ghi789
+P1: builder fixes → critic re-reviews (same session, continue)
+P1: critic approves → HEAD_critic set, HEAD_builder = ghi789
 P1: architect gets completion handoff
 
 P2: architect designs (fresh + diff abc123..current = sees builder's implementation)

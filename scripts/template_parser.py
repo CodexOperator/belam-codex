@@ -235,9 +235,10 @@ def _parse_phase_based(data: dict) -> dict | None:
                         # 4-tuple: (fix_stage, fix_role, fix_msg, session_mode)
                         block_transitions[block_stage] = (fix_stage, fix_role, fix_msg, block_session_mode)
 
-                        # The fix stage transitions back to the blocker — always fresh (cross-agent)
+                        # The fix stage transitions back to the blocker — continue within block cycles
+                        # (critic already has context from their initial review)
                         transitions[fix_stage] = (block_stage, blocker_role,
-                                                  f'Blocks fixed. Re-review by {blocker_role}.', 'fresh')
+                                                  f'Blocks fixed. Re-review by {blocker_role}.', 'continue')
 
     # Add extra transitions (for backward compat / special cases defined in template)
     for stage, value in extra_transitions.items():

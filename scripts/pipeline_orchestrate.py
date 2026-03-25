@@ -264,12 +264,13 @@ fully satisfies the task requirements and no Phase 2/3 is needed."""
     return msg
 
 
-def build_continue_block_message(version: str, completed_stage: str, next_stage: str,
-                                  next_agent: str, notes: str, artifact: str = '') -> str:
-    """Build a lightweight block-fix message for continue-session mode.
+def build_continue_message(version: str, completed_stage: str, next_stage: str,
+                            next_agent: str, notes: str, artifact: str = '') -> str:
+    """Build a lightweight handoff message for continue-session mode.
 
-    The agent already has full context from their previous session — they just need
-    the critic's feedback and a diff of what changed (if anything).
+    Used for both block-fix dispatches (critic→builder/architect) and re-review
+    pings (builder/architect→critic) within a block cycle. The agent already has
+    full context from their previous session — they just need the update and a diff.
     """
     diff_section = ''
     try:
@@ -280,20 +281,33 @@ def build_continue_block_message(version: str, completed_stage: str, next_stage:
 
     artifact_line = ''
     if artifact:
-        artifact_line = f'\n**Critic review artifact:** `research/pipeline_builds/{artifact}` — read this for the full block details.\n'
+        artifact_line = f'\n**Review artifact:** `research/pipeline_builds/{artifact}`\n'
 
-    msg = f"""🚫 BLOCK — Critic sent your work back for fixes
+    # Detect whether this is a block-fix or a re-review
+    is_block_fix = 'fix_blocks' in next_stage
+    if is_block_fix:
+        header = '🚫 BLOCK — Critic sent your work back for fixes'
+        action_verb = 'Address the blocks'
+    else:
+        header = '🔄 Re-review — Fixes submitted, please re-review'
+        action_verb = 'Review the changes'
+
+    msg = f"""{header}
 
 **Pipeline:** {version}
-**Blocked stage:** {completed_stage}
-**Your fix task:** {next_stage}
-**Critic notes:** {notes}
+**Completed stage:** {completed_stage}
+**Your task:** {next_stage}
+**Notes:** {notes}
 {artifact_line}
-You still have full context from your previous session. Address the blocks listed above,
-then complete the fix:
+You still have full context from your previous session. {action_verb} and complete:
 
 ```
-python3 scripts/pipeline_orchestrate.py {version} complete {next_stage} --agent {next_agent} --notes "Fixed: summary" --learnings "what the critic caught, what I learned"
+python3 scripts/pipeline_orchestrate.py {version} complete {next_stage} --agent {next_agent} --notes "summary" --learnings "key observations"
+```
+
+If you need to BLOCK, use:
+```
+python3 scripts/pipeline_orchestrate.py {version} block {next_stage} --agent {next_agent} --notes "BLOCK reason" --artifact your_review_file.md --learnings "findings"
 ```
 {diff_section}"""
 
@@ -919,8 +933,11 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
             f'Approve: <code>R kickoff {version} --phase2 [--direction file.md]</code>')
         return True
 
-    # Step 3: Build handoff message
-    handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes)
+    # Step 3: Build handoff message — lightweight for continue, full for fresh
+    if session_mode == 'continue':
+        handoff_msg = build_continue_message(version, stage, next_stage, next_agent, notes)
+    else:
+        handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes)
 
     # Step 3.5: Session mode — fresh resets the agent session, continue reuses it
     if session_mode == 'fresh':
@@ -1029,7 +1046,7 @@ def orchestrate_block(version: str, stage: str, agent: str, notes: str,
 
     # Step 4: Build handoff message — lightweight for continue, full for fresh
     if block_session_mode == 'continue':
-        handoff_msg = build_continue_block_message(version, stage, next_stage, next_agent, notes, artifact)
+        handoff_msg = build_continue_message(version, stage, next_stage, next_agent, notes, artifact)
     else:
         handoff_msg = build_handoff_message(version, stage, next_stage, next_agent, notes, artifact)
 
