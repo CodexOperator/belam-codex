@@ -1784,6 +1784,7 @@ PREFIX_TO_TYPE_WORD = {
 PREFIX_TO_CREATE_TYPE = {
     't': 'task', 'd': 'decision', 'l': 'lesson',
     'w': 'project', 'c': 'command', 's': 'skill',
+    'pt': 'pipeline-template',
 }
 
 TASK_VALID_STATUSES = {'open', 'active', 'in_pipeline', 'blocked', 'complete'}
@@ -3305,9 +3306,12 @@ def is_coordinate(arg):
     # Exclude V2 mode tokens: e0, e1, e2, e3 (bare mode indicators)
     if re.match(r'^e[0-3]$', arg, re.IGNORECASE):
         return False
-    # Must start with known prefix letters only: single letters or md/mw/lm
-    # Pattern: (md|mw|lm|[a-z])(\d+)?(-\d+)?  — must not contain other non-digit chars after prefix
-    m = re.match(r'^(md|mw|lm|[a-z])(\d+)?(?:-(\d+))?$', arg, re.IGNORECASE)
+    # Must start with known prefix: multi-letter prefixes first, then single-letter
+    # Build multi-letter prefix alternation dynamically from NAMESPACE
+    _multi = sorted([p for p in NAMESPACE if len(p) > 1], key=len, reverse=True)
+    _multi_alt = '|'.join(re.escape(p) for p in _multi) if _multi else '(?!)'
+    # Pattern: (multi-letter-prefix|single-letter)(\d+)?(-\d+)?
+    m = re.match(rf'^({_multi_alt}|[a-z])(\d+)?(?:-(\d+))?$', arg, re.IGNORECASE)
     if not m:
         return False
     prefix = m.group(1).lower()
@@ -4517,17 +4521,17 @@ def _dispatch_e0(op_args, tracker):
             desc = str(fm.get('description', slug.replace('-', ' ')))
             priority = str(fm.get('priority', 'high'))
 
-            # Resolve pipeline template: pt1=builder-first, pt2=research (or from task frontmatter)
-            PIPELINE_TEMPLATES = {
-                1: 'builder-first',
-                2: 'research',
-            }
+            # Resolve pipeline template dynamically from pt namespace
+            pt_primitives = get_primitives('pt')
             pt_idx = spec.get('pipeline_template')
-            if pt_idx and pt_idx in PIPELINE_TEMPLATES:
-                pipeline_type = PIPELINE_TEMPLATES[pt_idx]
-            elif pt_idx:
-                print(f"e0 t{task_idx}.pt{pt_idx}: unknown template (available: {', '.join(f'pt{k}={v}' for k,v in PIPELINE_TEMPLATES.items())})")
-                return 1
+            if pt_idx:
+                if pt_idx < 1 or pt_idx > len(pt_primitives):
+                    avail = ', '.join(f'pt{i+1}={s}' for i, (s, _) in enumerate(pt_primitives))
+                    print(f"e0 t{task_idx}.pt{pt_idx}: unknown template (available: {avail})")
+                    return 1
+                pt_slug = pt_primitives[pt_idx - 1][0]
+                # Strip -pipeline suffix for type resolution
+                pipeline_type = re.sub(r'-pipeline$', '', pt_slug)
             else:
                 # Default: check task frontmatter for type, fall back to builder-first
                 pipeline_type = str(fm.get('pipeline_type', fm.get('type', 'builder-first')))

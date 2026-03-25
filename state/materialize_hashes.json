@@ -1245,8 +1245,16 @@
     "i3": {
       "hash": "7445b94ce2df",
       "slug": "critic"
+    },
+    "pt1": {
+      "hash": "59a4507c8b15",
+      "slug": "agent-first-dry-run-pipeline"
+    },
+    "pt3": {
+      "hash": "2f148faeece5",
+      "slug": "test-template-pipeline"
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-23T11:07:44Z"
+  "last_incremental": "2026-03-25T22:24:22Z"
 }

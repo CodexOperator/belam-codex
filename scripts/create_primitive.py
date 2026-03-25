@@ -34,6 +34,7 @@ PRIMITIVE_DIRS = {
     "task": WORKSPACE / "tasks",
     "project": WORKSPACE / "projects",
     "command": WORKSPACE / "commands",
+    "pipeline-template": WORKSPACE / "templates",
 }
 
 
@@ -451,6 +452,49 @@ def create_command(title: str, args: argparse.Namespace) -> list[tuple[Path, str
     return [(path, content)]
 
 
+def create_pipeline_template(title: str, args: argparse.Namespace) -> list[tuple[Path, str]]:
+    """Creates a pipeline template scaffold in templates/."""
+    slug = slugify(title)
+    # Append -pipeline suffix if not already present
+    if not slug.endswith('-pipeline'):
+        slug = f"{slug}-pipeline"
+    path = PRIMITIVE_DIRS["pipeline-template"] / f"{slug}.md"
+    tags = [t.strip() for t in (args.tags or "").split(",") if t.strip()]
+    tags_line = f"tags: [{', '.join(tags)}]" if tags else "tags: []"
+    content = f"""---
+primitive: pipeline-template
+title: {title}
+{tags_line}
+---
+
+# {title} Pipeline Template
+
+## Flow
+
+```
+Phase 1: Builder (implement) → Critic (review) → [HUMAN GATE]
+```
+
+## When to Use
+- (describe when this template applies)
+
+## Stage Definitions
+
+### Phase 1
+
+#### `p1_builder_implement`
+- Receives: task spec + success criteria
+- Produces: working implementation
+- Handoff: code → critic for review
+
+#### `p1_critic_review`
+- Receives: builder output
+- Produces: review (approve or request revisions)
+- Handoff: approved → human gate | revisions → builder
+""".lstrip()
+    return [(path, content)]
+
+
 def create_skill(name: str, args: argparse.Namespace) -> list[tuple[Path, str]]:
     """Creates skill directory + SKILL.md + decision primitive."""
     skill_slug = slugify(name)
@@ -638,6 +682,7 @@ CREATORS = {
     "project": create_project,
     "command": create_command,
     "skill": create_skill,
+    "pipeline-template": create_pipeline_template,
 }
 
 

@@ -34,17 +34,21 @@ SYNC_FILES = {
     'TOOLS.md':      'TOOLS.md',
     'USER.md':       'USER.md',
 
-    # ── Templates ────────────────────────────────────────────────────────
-    'templates/task.md':              'templates/task.md',
-    'templates/lesson.md':           'templates/lesson.md',
-    'templates/decision.md':         'templates/decision.md',
-    'templates/project.md':          'templates/project.md',
-    'templates/pipeline.md':         'templates/pipeline.md',
-    'templates/analysis_pipeline.md':'templates/analysis_pipeline.md',
-    'templates/memory_log.md':       'templates/memory_log.md',
-    'templates/agent.md':            'templates/agent.md',
-    'templates/runbook.md':          'templates/runbook.md',
-    'templates/orchestrator.md':     'templates/orchestrator.md',
+    # ── Pipeline Templates ────────────────────────────────────────────────
+    'templates/builder-first-pipeline.md': 'templates/builder-first-pipeline.md',
+    'templates/research-pipeline.md':      'templates/research-pipeline.md',
+
+    # ── Schemas (primitive field definitions) ─────────────────────────────
+    'schemas/task.md':              'schemas/task.md',
+    'schemas/lesson.md':           'schemas/lesson.md',
+    'schemas/decision.md':         'schemas/decision.md',
+    'schemas/project.md':          'schemas/project.md',
+    'schemas/memory_log.md':       'schemas/memory_log.md',
+    'schemas/agent.md':            'schemas/agent.md',
+    'schemas/runbook.md':          'schemas/runbook.md',
+    'schemas/orchestrator.md':     'schemas/orchestrator.md',
+    'schemas/heartbeat.md':        'schemas/heartbeat.md',
+    'schemas/launch-pipeline.md':  'schemas/launch-pipeline.md',
 }
 
 # Directories to sync (all .py files in scripts/, all .md in primitives)
