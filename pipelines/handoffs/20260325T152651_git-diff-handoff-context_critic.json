@@ -1,0 +1,15 @@
+{
+  "version": "git-diff-handoff-context",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-25T15:26:51.008704+00:00",
+  "pipeline_session_id": "c36ce6d2-3262-46d7-8a9e-4bf38b633bb5",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
