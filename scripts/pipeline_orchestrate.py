@@ -849,6 +849,57 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
             if direction_note:
                 break
 
+        # Auto-complete on clean critic pass (0 BLOCKs, 0 FLAGs of any severity)
+        # Only when the template opts in via auto_complete_on_clean_pass: true
+        if phase_n and not direction_note:
+            try:
+                from template_parser import parse_template
+                import re as _re_tpl
+                # Resolve template name from pipeline type (same logic as pipeline_update)
+                _pf = PIPELINES_DIR / f'{version}.md'
+                _ptype = None
+                if _pf.exists():
+                    _m = _re_tpl.search(r'^type:\s*(.+)$', _pf.read_text(errors='replace'), _re_tpl.MULTILINE)
+                    if _m:
+                        _ptype = _m.group(1).strip()
+                _tpl_map = {'research': 'research', 'infrastructure': 'research', 'builder-first': 'builder-first'}
+                _tpl_name = _tpl_map.get(_ptype, 'research') if _ptype else 'research'
+                tpl = parse_template(_tpl_name)
+                auto_clean = tpl.get('auto_complete_on_clean_pass', False) if tpl else False
+            except Exception:
+                auto_clean = False
+
+            if auto_clean:
+                # Look for critic review and check for clean pass (0 blocks, 0 flags)
+                import re as _re2
+                clean_pass = False
+                for loc in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+                    for suffix in ('_critic_review.md', '_critic_code_review.md'):
+                        candidate = loc / f'{version}{suffix}'
+                        if candidate.exists():
+                            review_text = candidate.read_text()
+                            if 'APPROVED' not in review_text:
+                                break
+                            # Check all FLAG counts are 0
+                            # Verdict format: "0 BLOCKs, 0 HIGH FLAGs, 0 MED FLAG, 0 LOW FLAGs"
+                            # or simpler: "0 BLOCKs, 0 FLAGs"
+                            flag_counts = _re2.findall(
+                                r'(\d+)\s+(?:HIGH\s+|MED\s+|LOW\s+)?FLAG', review_text)
+                            block_counts = _re2.findall(r'(\d+)\s+BLOCK', review_text)
+                            if (block_counts and all(int(c) == 0 for c in block_counts)
+                                    and flag_counts and all(int(c) == 0 for c in flag_counts)):
+                                clean_pass = True
+                            break
+                    if clean_pass:
+                        break
+
+                if clean_pass:
+                    print(f"\n   ✅ Phase {phase_n} critic: clean pass (0 blocks, 0 flags) "
+                          f"→ auto-completing task (auto_complete_on_clean_pass)")
+                    return orchestrate_complete_task(version, agent='system',
+                        notes=f'Auto-completed: critic clean pass at {stage} '
+                              f'(0 blocks, 0 flags). Template: auto_complete_on_clean_pass.')
+
         # Auto-complete logic: only at p3_complete (architect had 3 chances to call complete-task)
         # At p1_complete and p2_complete, architect reviews and decides — don't auto-complete
         if phase_n and phase_n >= 3 and not direction_note:

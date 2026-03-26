@@ -101,12 +101,20 @@ block_routing:
   critic:
     review: { agent: builder, session: continue }
 
+# When critic passes with 0 BLOCKs and 0 FLAGs (any severity),
+# auto-complete the task at p1_complete/p2_complete instead of
+# dispatching architect for review. If any FLAGs remain, the
+# architect gets dispatched as usual to decide on Phase 2.
+auto_complete_on_clean_pass: true
+
 complete_task_agent: architect
 ```
 
 ## Human Gates
 
-Both `p1_complete` and `p2_complete` are **human gates** — the pipeline stops and waits for manual action. No auto-dispatch occurs.
+Both `p1_complete` and `p2_complete` are **human gates** — the pipeline pauses for review.
+
+**With `auto_complete_on_clean_pass: true`:** If the critic's verdict is APPROVED with **0 BLOCKs and 0 FLAGs** (all severities), the task auto-completes at the gate — no architect dispatch needed. If any FLAGs remain (even LOW), the architect is dispatched to review and decide on Phase 2 or completion.
 
 ### Actions at a Human Gate
 

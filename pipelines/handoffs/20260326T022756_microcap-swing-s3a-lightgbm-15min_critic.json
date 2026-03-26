@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s3a-lightgbm-15min",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T02:27:56.831809+00:00",
+  "pipeline_session_id": "704030d7-9c31-4450-be9c-ac7af2c8cbc2",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

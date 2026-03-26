@@ -1,6 +1,112 @@
 {
   "version": "microcap-swing-s3a-lightgbm-15min",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-26 02:17"
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 02:27",
+      "agent": "unknown",
+      "notes": "auto_wiggum: hard timeout reached, marking complete"
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 02:27",
+      "agent": "builder",
+      "notes": "Re-completing after Wiggum hard-timeout duplicate dispatch. Bugfix already applied in prior session: 5 fixes (config mutation via copy.copy, Counter import moved to top-level, unused imports removed, dead config fields commented, empty-df label_atr column added). 102/102 tests passing. Critic already dispatched."
+    },
+    "p1_critic_review_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-26 02:36",
+      "agent": "critic",
+      "notes": "BLOCK-1: Walk-forward split val_end formula bug. val_end = train_end + (fold+1)*segment_size grows quadratically \u2014 causes overlapping validation sets across folds (pooled metrics double-count rows) and out-of-bounds indices crash with default n_folds=5. Fix: change to val_end = min_train_rows + (fold+1)*segment_size. Also add cross-fold val overlap test. Labels module is PASS. All 5 bugfixes verified."
+    },
+    "p1_builder_fix_blocks": {
+      "status": "complete",
+      "completed_at": "2026-03-26 02:37",
+      "agent": "builder",
+      "notes": "BLOCK-1 fixed: val_end formula changed from train_end + (fold+1)*segment_size (quadratic growth, caused overlapping val sets and OOB crash at n_folds=5) to min_train_rows + (fold+1)*segment_size (linear, correct). Also: moved import copy to module top-level (FLAG-1). Added 3 new tests: cross-fold val overlap, default n_folds=5 with realistic size, val_end linear growth verification. 105/105 tests pass."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 02:37",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 FLAGs. BLOCK-1 fix verified correct \u2014 val_end now uses min_train_rows base (linear growth). All 5 folds produce equal-size non-overlapping val windows (152 rows each for n=1500/folds=5). No OOB indices. FLAG-1 also fixed (copy at module level). 3 new regression tests: cross-fold overlap, default config realistic size, linear growth verification. 105/105 tests GREEN. Review at: pipeline_builds/microcap-swing-s3a-lightgbm-15min_critic_review.md"
+    }
+  },
+  "status": "p1_complete",
+  "status_updated": "2026-03-26 02:37",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T02:24:40.504831+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T02:26:36.436797+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "unknown",
+      "timestamp": "2026-03-26T02:27:22.469118+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T02:27:50.011949+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T02:36:09.093009+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p1_builder_fix_blocks",
+      "agent": "builder",
+      "timestamp": "2026-03-26T02:37:12.060407+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T02:37:55.571940+00:00",
+      "commits": {
+        "workspace": "ab5a9818100c7259eb89578221d28ef371a76fcd",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_critic_review"
+  },
+  "last_updated": "2026-03-26 02:37",
+  "pending_action": "p1_complete",
+  "current_agent": "p1_complete",
+  "last_dispatched": "2026-03-26T02:38:02.705642+00:00",
+  "dispatch_claimed": false,
+  "p1_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/microcap-swing-s3a-lightgbm-15min_critic_review.md",
+  "pending_session_mode": "continue"
 }

@@ -103,6 +103,7 @@ def _parse_phase_based(data: dict) -> dict | None:
     phases = data.get('phases', {})
     block_routing = data.get('block_routing', {})
     complete_task_agent = data.get('complete_task_agent', 'architect')
+    auto_complete_on_clean_pass = data.get('auto_complete_on_clean_pass', False)
 
     # Also parse any extra_transitions for backward compat / special cases
     extra_transitions = data.get('extra_transitions', {})
@@ -267,6 +268,7 @@ def _parse_phase_based(data: dict) -> dict | None:
             'stages': all_stage_names,
         },
         'complete_task_agent': complete_task_agent,
+        'auto_complete_on_clean_pass': auto_complete_on_clean_pass,
     }
 
 
