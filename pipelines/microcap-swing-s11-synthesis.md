@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_review
+status: p1_complete
 priority: critical
 type: builder-first
 version: microcap-swing-s11-synthesis
@@ -32,6 +32,7 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_builder_bugfix | 2026-03-26 | builder | Bugfix pass: removed 8 unused imports (LGBMConfig, NON_FEATURE_COLS, compute_metrics from model_lightgbm; compute_cross_correlation, get_cross_token_feature_names from cross_token; compute_volatility_regime, compute_trend_regime from regime_detection; classify_btc_regimes from btc_control). No logic bugs found. 560/560 tests GREEN. |
 | p1_builder_implement | 2026-03-26 | unknown | auto_wiggum: hard timeout reached, marking complete |
 | p1_builder_bugfix | 2026-03-26 | builder | Re-completing after wiggum hard-timeout duplicate dispatch. Bugfix already applied: 8 unused imports removed. 560/560 tests GREEN. Critic already dispatched. |
+| p1_critic_review | 2026-03-26 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. 49/49 S11 tests GREEN, 560/560 total GREEN (independently verified). 8 independent verifications passed. Clean synthesis module — aggregates S8/S9/S10 correctly. Feature importance walk-forward verified (linear val_end, no cross-fold overlap). Feature survival sort/filter correct. Directional accuracy by regime: precision/recall division-by-zero guarded, fraction_of_total sums to 1.0. Momentum scoring dimensions all capped at 2.0. Cross-experiment table correctly excludes S9 from best-experiment selection. FLAG-1 MED: single-ref scoring ceiling (5/10 max with 1 ref, same as S9 FLAG-1). FLAG-2 LOW: from __future__ import annotations dead import. Review at: pipeline_builds/microcap-swing-s11-synthesis_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
