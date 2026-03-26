@@ -1,6 +1,8 @@
 ---
 primitive: pipeline
-status: p1_review
+status: archived
+archive_date: 2026-03-26T01:16Z
+archive_reason: "Phase 1 complete, critic approved"
 priority: critical
 type: builder-first
 version: microcap-swing-s1-data-pipeline-v4
@@ -32,6 +34,8 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_builder_bugfix | 2026-03-26 | builder | Bugfix pass: (1) Added MAX_RETRIES=5 to CEX retry loops preventing infinite hangs on persistent network errors. (2) Removed unused imports (json, sys). (3) Fixed quality_report_only mode to load existing parquet data instead of collecting. (4) Replaced slow map_elements lambda in F&G regime duration with native pl.lit(1).cum_sum().over(). (5) Added schema validation on incremental merge to prevent concat crashes. (6) Added __main__.py for proper module invocation. 25/25 tests still passing. |
 | p1_builder_implement | 2026-03-26 | unknown | auto_wiggum: hard timeout reached, marking complete |
 | p1_builder_bugfix | 2026-03-26 | builder | Duplicate dispatch — bugfix already completed in prior turn. All 6 fixes applied: MAX_RETRIES on CEX loops, unused imports removed, quality_report_only mode fixed, map_elements replaced with native Polars, schema validation on incremental merge, __main__.py added. 25/25 tests passing. Critic already dispatched at 00:56. |
+| p1_critic_review | 2026-03-26 | critic | CODE APPROVED: Clean S1 data pipeline. 25/25 tests green. No blockers. 4 low-priority flags (no retry on DEX/F&G, empty DexScreener pair_addresses, F&G quality gap). See critic_code_review.md for full review. |
+| p1_critic_review | 2026-03-26 | unknown | auto_wiggum: hard timeout reached, marking complete |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
