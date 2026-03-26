@@ -476,62 +476,12 @@ AGENT_WORKSPACES = {
 
 def consolidate_agent_memory(agent: str, version: str, stage: str, notes: str,
                               learnings: str = '') -> bool:
+    """No-op — daily log writing retired per decision/retire-daily-log-writers-extraction-only.
+
+    Pipeline stage transitions are tracked in pipeline .md files and _state.json.
+    Memory extraction (sage) handles lesson/decision creation from session transcripts.
+    Kept as stub so callers don't break.
     """
-    Write memory entry for the calling agent BEFORE the handoff.
-    
-    This is the agent's continuity mechanism — each session starts fresh,
-    so everything worth keeping must be written to disk here.
-    
-    Args:
-        agent: The agent completing the stage (architect/critic/builder)
-        version: Pipeline version
-        stage: Stage being completed
-        notes: Completion notes (always logged)
-        learnings: Optional freeform learnings text (--learnings flag)
-    
-    Returns True if memory was written successfully.
-    """
-    workspace = AGENT_WORKSPACES.get(agent)
-    if not workspace:
-        print(f"   ⚠️  No workspace mapping for agent '{agent}' — skipping memory")
-        return False
-
-    memory_dir = workspace / 'memory'
-    memory_dir.mkdir(parents=True, exist_ok=True)
-
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    now = datetime.now(timezone.utc).strftime('%H:%M UTC')
-    memory_file = memory_dir / f'{today}.md'
-
-    # Build memory entry
-    entry_lines = [
-        f"\n### {now} — Pipeline {version}: {stage} complete",
-        f"- **Stage:** {stage}",
-        f"- **Notes:** {notes}",
-        f"- **Tags:** instance:{agent}, pipeline:{version}, stage:{stage}",
-    ]
-    if learnings:
-        entry_lines.append(f"- **Learnings:**")
-        for line in learnings.strip().split('\n'):
-            entry_lines.append(f"  - {line.strip()}")
-
-    entry = '\n'.join(entry_lines) + '\n'
-
-    # Append to daily memory file
-    if memory_file.exists():
-        content = memory_file.read_text()
-    else:
-        content = f"# Memory Log — {today}\n"
-
-    content += entry
-    memory_file.write_text(content)
-    print(f"   💾 Memory written: {memory_file.relative_to(workspace)}")
-
-    # NOTE: Removed auto log_memory.py call here. Pipeline stage transitions
-    # are tracked in pipeline .md files and _state.json — no need to also
-    # create indexed memory entries for routine completions. Agents can still
-    # call log_memory.py manually for genuine insights/findings.
-
     return True
 
 
