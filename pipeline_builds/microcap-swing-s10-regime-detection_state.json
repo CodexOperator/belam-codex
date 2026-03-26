@@ -1,6 +1,62 @@
 {
   "version": "microcap-swing-s10-regime-detection",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-26 12:31"
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 12:41",
+      "agent": "unknown",
+      "notes": "auto_wiggum: hard timeout reached, marking complete"
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 12:43",
+      "agent": "builder",
+      "notes": "S10 regime_detection.py verified clean \u2014 67 dedicated tests, 511 full suite pass, zero regressions. Implementation covers: (1) volatility regime via rolling vol z-score, (2) trend regime via dual-MA + ADX, (3) composite regime with BTC confirmation, (4) self-contained Gaussian HMM (Baum-Welch + Viterbi, no hmmlearn dependency), (5) regime gating with cooldown + confidence filtering, (6) walk-forward evaluation comparing filtered vs unfiltered performance. Integration smoke test confirms all methods produce valid regime distributions."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 12:48",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. 67/67 S10 tests GREEN, 511/511 total GREEN (independently verified). 12 independent verifications passed. Self-contained Gaussian HMM (Baum-Welch + Viterbi, log-space, Cholesky + diagonal fallback) verified correct \u2014 probabilities sum to 1.0, states sorted by mean return. Walk-forward splits use linear val_end (min_train base), no cross-fold overlap, 48-candle purge gaps. All 4 regime classifiers (vol, trend, composite, HMM) verified causal (backward-looking rolling ops). Gating direction filtering correct (bull+long=pass, bull+short=block, etc.). Cooldown and confidence suppression work correctly. FLAG-1 MED: BTCControlConfig imported but unused (same pattern as S4-S8). FLAG-2 LOW: df_train computed but unused for non-HMM methods. Review at: pipeline_builds/microcap-swing-s10-regime-detection_critic_review.md"
+    }
+  },
+  "status": "p1_complete",
+  "status_updated": "2026-03-26 12:48",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "unknown",
+      "timestamp": "2026-03-26T12:41:41.484236+00:00",
+      "commits": {
+        "workspace": "e2907ac4c61784e338e0ae8f4cc7bdf50f5c3d17",
+        "machinelearning": "5a48cfea604083fd17b5038f923fc579d5b18009"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T12:43:10.137338+00:00",
+      "commits": {
+        "workspace": "e2907ac4c61784e338e0ae8f4cc7bdf50f5c3d17",
+        "machinelearning": "5a48cfea604083fd17b5038f923fc579d5b18009"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T12:48:45.572216+00:00",
+      "commits": {
+        "workspace": "e2907ac4c61784e338e0ae8f4cc7bdf50f5c3d17",
+        "machinelearning": "5a48cfea604083fd17b5038f923fc579d5b18009"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_critic_review"
+  },
+  "last_updated": "2026-03-26 12:48",
+  "pending_action": "p1_complete",
+  "current_agent": "p1_complete",
+  "last_dispatched": "2026-03-26T12:48:52.348813+00:00",
+  "dispatch_claimed": false
 }

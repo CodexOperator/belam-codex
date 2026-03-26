@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: p1_complete
 priority: critical
 type: builder-first
 version: microcap-swing-s10-regime-detection
@@ -28,6 +28,9 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-26 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-26 | unknown | auto_wiggum: hard timeout reached, marking complete |
+| p1_builder_bugfix | 2026-03-26 | builder | S10 regime_detection.py verified clean — 67 dedicated tests, 511 full suite pass, zero regressions. Implementation covers: (1) volatility regime via rolling vol z-score, (2) trend regime via dual-MA + ADX, (3) composite regime with BTC confirmation, (4) self-contained Gaussian HMM (Baum-Welch + Viterbi, no hmmlearn dependency), (5) regime gating with cooldown + confidence filtering, (6) walk-forward evaluation comparing filtered vs unfiltered performance. Integration smoke test confirms all methods produce valid regime distributions. |
+| p1_critic_review | 2026-03-26 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. 67/67 S10 tests GREEN, 511/511 total GREEN (independently verified). 12 independent verifications passed. Self-contained Gaussian HMM (Baum-Welch + Viterbi, log-space, Cholesky + diagonal fallback) verified correct — probabilities sum to 1.0, states sorted by mean return. Walk-forward splits use linear val_end (min_train base), no cross-fold overlap, 48-candle purge gaps. All 4 regime classifiers (vol, trend, composite, HMM) verified causal (backward-looking rolling ops). Gating direction filtering correct (bull+long=pass, bull+short=block, etc.). Cooldown and confidence suppression work correctly. FLAG-1 MED: BTCControlConfig imported but unused (same pattern as S4-S8). FLAG-2 LOW: df_train computed but unused for non-HMM methods. Review at: pipeline_builds/microcap-swing-s10-regime-detection_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_

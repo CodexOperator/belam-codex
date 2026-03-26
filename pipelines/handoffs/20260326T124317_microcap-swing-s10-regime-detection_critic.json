@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s10-regime-detection",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T12:43:17.052686+00:00",
+  "pipeline_session_id": "89ec9d34-c539-45d8-8d70-0b480706303c",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
