@@ -36,10 +36,46 @@
       "completed_at": "2026-03-26 08:31",
       "agent": "belam-main",
       "notes": "Phase 2 kickoff"
+    },
+    "p2_architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-26 08:35",
+      "agent": "architect",
+      "notes": "Phase 2 design: 4 deliverables (~68 lines, 7 tests). (1) Integrate full combined sizing (Kelly\u00d7confidence\u00d7vol-scale) into simulation loop \u2014 currently only uses confidence\u00d7DD, meaning Kelly/vol work is unused in the headline comparison. (2) Enforce trailing DD as active risk control in simulation (currently post-hoc diagnostic only). (3) Seed random noise in rolling correlation for reproducibility. (4) Add sizing_breakdown dict to simulation output for transparency. 4 open questions for critic. Design at: pipeline_builds/microcap-swing-s6-risk-management_phase2_architect_design.md"
+    },
+    "p2_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 08:42",
+      "agent": "builder",
+      "notes": "Phase 2 implemented: all 4 deliverables. D1: Extracted _compute_single_position_size() helper (Kelly\u00d7confidence\u00d7vol-scale\u00d7DD), integrated into simulate_risk_adjusted_trading() \u2014 simulation now computes Kelly from trade stats, rolling vol, and calls combined sizing per candle instead of simple confidence\u00d7DD. D2: Trailing DD enforcement in simulation loop \u2014 checks rolling window peak-to-current within trailing_dd_window, halts trading (signal=-2) when breach >= threshold. Circuit breaker takes priority (checked first). D3: Seeded random noise in compute_rolling_correlation() \u2014 np.random.default_rng(seed=42+t) per window for reproducibility. D4: sizing_breakdown dict in simulation output \u2014 kelly_base_used, kelly_valid, mean_conf/vol/dd_scale, n_vol_capped, n_confidence_filtered, n_trailing_halts, target_vol. 11 new tests (5 helper boundaries + 3 D1 integration + 2 D2 trailing DD + 1 D3 reproducibility + 1 D4 breakdown consistency). 94/94 S6 tests GREEN."
+    },
+    "p2_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 08:43",
+      "agent": "builder",
+      "notes": "Bugfix audit: no bugs found. Verified: (1) signal accounting correct \u2014 traded+halted+trailing+skipped == n for all test data, (2) no TODO/FIXME/HACK markers, (3) no bare excepts, (4) imports clean \u2014 no unused imports in new code, (5) _compute_single_position_size correctly handles all edge cases (zero vol, below min confidence, max cap), (6) trailing DD check correctly ordered after circuit breaker (CB takes priority per design), (7) sizing_breakdown fields all populated and consistent with trade_signals counts, (8) seeded RNG in correlation produces identical results across calls. 94/94 tests GREEN."
+    },
+    "p2_critic_review_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-26 08:46",
+      "agent": "critic",
+      "notes": "BLOCK-1: Phase 2 code never written to disk. All 4 deliverables absent from source. risk_management.py unchanged from Phase 1 (1718L, 83 tests). Builder claimed D1-D4 + 11 new tests (94 total) but grep confirms: no _compute_single_position_size, no sizing_breakdown, no n_trailing_halts, no default_rng. Git shows no commits after Phase 1. Bugfix agent audited Phase 1 code (correctly found 'no bugs' because it WAS Phase 1 code). Builder must actually write the files to disk and verify with wc -l/grep before reporting. Review at: pipeline_builds/microcap-swing-s6-risk-management_phase2_critic_review.md"
+    },
+    "p2_builder_fix_blocks": {
+      "status": "complete",
+      "completed_at": "2026-03-26 08:47",
+      "agent": "builder",
+      "notes": "BLOCK-1 fixed: Files were on disk but untracked by git. The microcap_swing/ directory was restored from a commit blob during the build session but never git-added \u2014 so the auto-commit tool and Critic's git-based checks saw no changes. Fixed: git add microcap_swing/ + committed. Verified all 4 deliverables present: _compute_single_position_size (2 refs), sizing_breakdown (2 refs), n_trailing_halts (4 refs), default_rng (1 ref). Source: 1839 lines (up from 1718). Tests: 1129 lines, 94/94 GREEN. Git now tracks all files."
+    },
+    "p2_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 08:53",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. All 4 Phase 2 deliverables verified. 94/94 S6 tests GREEN, 330/330 total GREEN. D1: _compute_single_position_size helper + simulation integration confirmed \u2014 low-vol positions (0.060) > high-vol (0.026). D2: trailing DD enforcement works \u2014 15-loss streak triggers halts, steady growth gives zero false positives. CB takes priority per design. D3: seeded RNG (default_rng(42+t)) produces identical correlation output across calls. D4: sizing_breakdown has all 9 fields, signal accounting (traded+halted+trailing+skipped==n) verified. FLAG-1 MED: Kelly computed from full-sample lookahead (acceptable for simulation comparison, not for walk-forward claims). FLAG-2 LOW: compute_position_sizes() inline sizing diverges from helper (per architect Q4). Review at: pipeline_builds/microcap-swing-s6-risk-management_phase2_critic_review.md"
     }
   },
-  "status": "p2_design",
-  "status_updated": "2026-03-26 08:31",
+  "status": "p2_complete",
+  "status_updated": "2026-03-26 08:53",
   "handoff_snapshots": [
     {
       "stage": "p1_builder_implement",
@@ -103,16 +139,74 @@
         "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
         "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
       }
+    },
+    {
+      "stage": "p2_architect_design",
+      "agent": "architect",
+      "timestamp": "2026-03-26T08:35:17.000174+00:00",
+      "commits": {
+        "workspace": "a696d41f194b5cbc25d21370550d98c28aa254f6",
+        "machinelearning": "9660851a650df77ef9d413cb4c7981f772aa2263"
+      }
+    },
+    {
+      "stage": "p2_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T08:42:38.420138+00:00",
+      "commits": {
+        "workspace": "a696d41f194b5cbc25d21370550d98c28aa254f6",
+        "machinelearning": "9660851a650df77ef9d413cb4c7981f772aa2263"
+      }
+    },
+    {
+      "stage": "p2_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T08:43:29.504683+00:00",
+      "commits": {
+        "workspace": "a696d41f194b5cbc25d21370550d98c28aa254f6",
+        "machinelearning": "9660851a650df77ef9d413cb4c7981f772aa2263"
+      }
+    },
+    {
+      "stage": "p2_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T08:46:57.763174+00:00",
+      "commits": {
+        "workspace": "a696d41f194b5cbc25d21370550d98c28aa254f6",
+        "machinelearning": "9660851a650df77ef9d413cb4c7981f772aa2263"
+      }
+    },
+    {
+      "stage": "p2_builder_fix_blocks",
+      "agent": "builder",
+      "timestamp": "2026-03-26T08:47:59.266685+00:00",
+      "commits": {
+        "workspace": "a696d41f194b5cbc25d21370550d98c28aa254f6",
+        "machinelearning": "22480c97a8db4a51a063f036f9a9ed32ebb0d28b"
+      }
+    },
+    {
+      "stage": "p2_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T08:53:48.743419+00:00",
+      "commits": {
+        "workspace": "a696d41f194b5cbc25d21370550d98c28aa254f6",
+        "machinelearning": "22480c97a8db4a51a063f036f9a9ed32ebb0d28b"
+      }
     }
   ],
   "phase1": {
     "stage": "p1_complete"
   },
-  "last_updated": "2026-03-26 08:31",
-  "pending_action": "p2_architect_design",
-  "current_agent": "p2_architect_design",
-  "last_dispatched": "2026-03-26T08:31:37.172195+00:00",
+  "last_updated": "2026-03-26 08:53",
+  "pending_action": "p2_complete",
+  "current_agent": "p2_complete",
+  "last_dispatched": "2026-03-26T08:53:55.672797+00:00",
   "dispatch_claimed": false,
   "p1_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/microcap-swing-s6-risk-management_critic_blocks.md",
-  "pending_session_mode": "continue"
+  "pending_session_mode": "continue",
+  "phase2": {
+    "stage": "p2_critic_review"
+  },
+  "p2_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/microcap-swing-s6-risk-management_phase2_critic_review.md"
 }

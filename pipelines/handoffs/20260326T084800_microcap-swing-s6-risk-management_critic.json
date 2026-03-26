@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s6-risk-management",
+  "completed_stage": "p2_builder_fix_blocks",
+  "next_stage": "p2_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T08:48:00.160293+00:00",
+  "pipeline_session_id": "",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
