@@ -1269,8 +1269,12 @@
     "t27": {
       "hash": "eaa20ac1a299",
       "slug": "snn-statistical-process-models"
+    },
+    "d70": {
+      "hash": "1cffdc612a5e",
+      "slug": "quant-baseline-no-lstm-ensemble"
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-26T03:40:33Z"
+  "last_incremental": "2026-03-26T15:29:57Z"
 }
