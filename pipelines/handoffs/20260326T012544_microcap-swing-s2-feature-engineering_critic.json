@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s2-feature-engineering",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T01:25:44.948828+00:00",
+  "pipeline_session_id": "0dce7ebd-15d9-45cc-b996-e9f575bacc47",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
