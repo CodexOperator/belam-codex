@@ -24,10 +24,34 @@
       "completed_at": "2026-03-26 04:14",
       "agent": "critic",
       "notes": "Critic approved Phase 1 \u2014 clean pass"
+    },
+    "p2_architect_design": {
+      "status": "complete",
+      "completed_at": "2026-03-26 04:17",
+      "agent": "architect",
+      "notes": "Phase 2 design: 4 deliverables (~123 lines, 7 tests). (1) Session-windowed VWAP addressing FLAG-1 MED \u2014 rolling 96-candle VWAP to complement cumulative. (2) Cross-asset temp column cleanup for FLAG-3 LOW. (3) Feature manifest JSON for S3A/S3B downstream readiness. (4) Graceful stubs for unavailable spec features (onchain, market structure) with stable function signatures. Design at: pipeline_builds/microcap-swing-s2-feature-engineering_phase2_architect_design.md"
+    },
+    "p2_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 04:21",
+      "agent": "builder",
+      "notes": "Phase 2 implemented: all 4 deliverables. D1: compute_session_vwap() \u2014 rolling windowed VWAP (96 candles = 24h default) with price_session_vwap_dist, added to FeatureConfig.session_vwap_windows, wired into compute_all_features. D2: _token_return cleanup in compute_cross_asset_features() \u2014 one-liner drop guard, no more temp column leakage on standalone use. D3: generate_feature_manifest() + save_feature_manifest() \u2014 machine-readable JSON with per-feature dtype/category/null_rate/stats, category_counts summary, auto-generated on --feature-report. D4: compute_onchain_features() + compute_market_structure_features() stubs \u2014 check for optional data dirs, load parquet + as-of join if present, return df unchanged if absent. No dummy columns. Both wired into compute_all_features. 7 new tests (2 session VWAP, 1 cross-asset cleanup, 2 manifest, 2 stubs). 37/37 S2 tests GREEN, 112/112 total tests GREEN."
+    },
+    "p2_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 04:22",
+      "agent": "builder",
+      "notes": "Bugfix audit: no bugs found. Verified: (1) all imports used (json added for manifest, no dead imports), (2) no TODO/FIXME/HACK markers, (3) session VWAP rolling_sum produces correct null pattern (null for first w-1 rows, valid after), (4) _token_return cleanup guard works correctly \u2014 column dropped when present, no-op when absent, (5) feature manifest generates valid JSON with all required keys, (6) onchain/market structure stubs return df unchanged with correct column set when data dirs absent, (7) no temp columns leak from any new function. 112/112 tests GREEN."
+    },
+    "p2_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 04:25",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 FLAGs. All 4 Phase 2 deliverables verified: (1) Session VWAP rolling_sum produces correct null pattern and responsive distance metric, (2) _token_return cleanup guard works both ways, (3) Feature manifest generates valid JSON with all required keys and zero null rates, (4) Onchain/market structure stubs return df unchanged with no dummy columns. 37/37 S2 tests GREEN, 112/112 total tests GREEN (independently verified). All Phase 1 FLAGs resolved. Review at: pipeline_builds/microcap-swing-s2-feature-engineering_phase2_critic_review.md"
     }
   },
-  "status": "p2_design",
-  "status_updated": "2026-03-26 04:14",
+  "status": "p2_complete",
+  "status_updated": "2026-03-26 04:25",
   "handoff_snapshots": [
     {
       "stage": "p1_builder_implement",
@@ -82,14 +106,53 @@
         "workspace": "5b0b0e74ac953f10494e08d0ba2edb10bc6ba495",
         "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
       }
+    },
+    {
+      "stage": "p2_architect_design",
+      "agent": "architect",
+      "timestamp": "2026-03-26T04:17:46.296457+00:00",
+      "commits": {
+        "workspace": "9b31b6f0d494765e66c7934174a830aecdf7b5fa",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p2_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T04:21:27.712657+00:00",
+      "commits": {
+        "workspace": "9b31b6f0d494765e66c7934174a830aecdf7b5fa",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p2_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T04:22:35.432722+00:00",
+      "commits": {
+        "workspace": "9b31b6f0d494765e66c7934174a830aecdf7b5fa",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
+    },
+    {
+      "stage": "p2_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T04:25:33.024724+00:00",
+      "commits": {
+        "workspace": "9b31b6f0d494765e66c7934174a830aecdf7b5fa",
+        "machinelearning": "d68484b45ab1ef1de2fb1f83f1a98c1d1cc72879"
+      }
     }
   ],
   "phase1": {
     "stage": "p1_complete"
   },
-  "last_updated": "2026-03-26 04:14",
-  "pending_action": "p2_architect_design",
-  "current_agent": "p2_architect_design",
-  "last_dispatched": "2026-03-26T04:14:51.163536+00:00",
-  "dispatch_claimed": false
+  "last_updated": "2026-03-26 04:25",
+  "pending_action": "p2_complete",
+  "current_agent": "p2_complete",
+  "last_dispatched": "2026-03-26T04:25:43.899076+00:00",
+  "dispatch_claimed": false,
+  "phase2": {
+    "stage": "p2_critic_review"
+  }
 }

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: archived
+status: p2_complete
 priority: critical
 type: builder-first
 version: microcap-swing-s2-feature-engineering
@@ -38,6 +38,14 @@ _Architect designs → Critic reviews → Builder implements_
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| p2_architect_design | 2026-03-26 | architect | Phase 2 design: 4 deliverables (~123 lines, 7 tests). (1) Session-windowed VWAP addressing FLAG-1 MED — rolling 96-candle VWAP to complement cumulative. (2) Cross-asset temp column cleanup for FLAG-3 LOW. (3) Feature manifest JSON for S3A/S3B downstream readiness. (4) Graceful stubs for unavailable spec features (onchain, market structure) with stable function signatures. Design at: pipeline_builds/microcap-swing-s2-feature-engineering_phase2_architect_design.md |
+| p2_builder_implement | 2026-03-26 | builder | Phase 2 implemented: all 4 deliverables. D1: compute_session_vwap() — rolling windowed VWAP (96 candles = 24h default) with price_session_vwap_dist, added to FeatureConfig.session_vwap_windows, wired into compute_all_features. D2: _token_return cleanup in compute_cross_asset_features() — one-liner drop guard, no more temp column leakage on standalone use. D3: generate_feature_manifest() + save_feature_manifest() — machine-readable JSON with per-feature dtype/category/null_rate/stats, category_counts summary, auto-generated on --feature-report. D4: compute_onchain_features() + compute_market_structure_features() stubs — check for optional data dirs, load parquet + as-of join if present, return df unchanged if absent. No dummy columns. Both wired into compute_all_features. 7 new tests (2 session VWAP, 1 cross-asset cleanup, 2 manifest, 2 stubs). 37/37 S2 tests GREEN, 112/112 total tests GREEN. |
+| p2_builder_bugfix | 2026-03-26 | builder | Bugfix audit: no bugs found. Verified: (1) all imports used (json added for manifest, no dead imports), (2) no TODO/FIXME/HACK markers, (3) session VWAP rolling_sum produces correct null pattern (null for first w-1 rows, valid after), (4) _token_return cleanup guard works correctly — column dropped when present, no-op when absent, (5) feature manifest generates valid JSON with all required keys, (6) onchain/market structure stubs return df unchanged with correct column set when data dirs absent, (7) no temp columns leak from any new function. 112/112 tests GREEN. |
+| p2_critic_review | 2026-03-26 | critic | APPROVED: 0 BLOCKs, 0 FLAGs. All 4 Phase 2 deliverables verified: (1) Session VWAP rolling_sum produces correct null pattern and responsive distance metric, (2) _token_return cleanup guard works both ways, (3) Feature manifest generates valid JSON with all required keys and zero null rates, (4) Onchain/market structure stubs return df unchanged with no dummy columns. 37/37 S2 tests GREEN, 112/112 total tests GREEN (independently verified). All Phase 1 FLAGs resolved. Review at: pipeline_builds/microcap-swing-s2-feature-engineering_phase2_critic_review.md |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_

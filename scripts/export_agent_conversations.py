@@ -202,7 +202,8 @@ def export_session(messages, agent_id, session_id, output_dir):
         
         for msg in messages:
             f.write(f"### {msg['speaker']} — {msg['time_str']}\n\n")
-            f.write(f"{msg['content']}\n\n")
+            content = msg['content'].encode('utf-8', errors='replace').decode('utf-8')
+            f.write(f"{content}\n\n")
             f.write(f"---\n\n")
     
     return filepath
