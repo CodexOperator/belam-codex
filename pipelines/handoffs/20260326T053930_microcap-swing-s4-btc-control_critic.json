@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s4-btc-control",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T05:39:30.821528+00:00",
+  "pipeline_session_id": "00673c2f-e85c-4e7b-80ee-cbff01ae222c",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

@@ -1,6 +1,80 @@
 {
   "version": "microcap-swing-s4-btc-control",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-26 05:31"
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 05:41",
+      "agent": "unknown",
+      "notes": "auto_wiggum: hard timeout reached, marking complete"
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 05:42",
+      "agent": "builder",
+      "notes": "Re-completing bugfix (auto_wiggum race condition caused duplicate dispatch). Original bugfix already verified: all imports clean, CLI works, NaN guards in place, 203/203 tests pass, no bugs found."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 05:48",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 2 LOW FLAGs. 50/50 S4 tests GREEN, 203/203 total tests GREEN (independently verified). 12 independent verifications passed. All imports clean, CLI works, NaN guards functional. FLAG-1 MED: 7 unused imports from S3A/S3B modules (LGBMConfig, NON_FEATURE_COLS, compute_metrics, generate_walk_forward_splits, prepare_features, run_walk_forward, S3BConfig, run_s3b_pipeline) plus unused math \u2014 adds coupling, no runtime impact. FLAG-2 LOW: Sharpe annualization sqrt(252) vs sqrt(8760) for crypto \u2014 same issue as S3B FLAG-1, sign-preserving for alpha comparison. FLAG-3 LOW: CLI uses btc_actuals as regime proxy instead of classify_btc_regimes() since OHLCV not in prediction parquets \u2014 pragmatic but undocumented. Core math verified: cross-entropy, KL divergence, NMI, Jensen-Shannon, Spearman IC, regime alpha. Review at: pipeline_builds/microcap-swing-s4-btc-control_critic_review.md"
+    }
+  },
+  "status": "p1_complete",
+  "status_updated": "2026-03-26 05:48",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T05:38:56.917487+00:00",
+      "commits": {
+        "workspace": "6afcb3dc9b782bfddddc98cbdd3c8c9b72124ccd",
+        "machinelearning": "ead0306cd0e61f16d6c9d7d78d7f95991e2f37df"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T05:39:24.057021+00:00",
+      "commits": {
+        "workspace": "6afcb3dc9b782bfddddc98cbdd3c8c9b72124ccd",
+        "machinelearning": "ead0306cd0e61f16d6c9d7d78d7f95991e2f37df"
+      }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "unknown",
+      "timestamp": "2026-03-26T05:41:41.329892+00:00",
+      "commits": {
+        "workspace": "6afcb3dc9b782bfddddc98cbdd3c8c9b72124ccd",
+        "machinelearning": "ead0306cd0e61f16d6c9d7d78d7f95991e2f37df"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T05:42:20.583263+00:00",
+      "commits": {
+        "workspace": "6afcb3dc9b782bfddddc98cbdd3c8c9b72124ccd",
+        "machinelearning": "ead0306cd0e61f16d6c9d7d78d7f95991e2f37df"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T05:48:08.497284+00:00",
+      "commits": {
+        "workspace": "6afcb3dc9b782bfddddc98cbdd3c8c9b72124ccd",
+        "machinelearning": "ead0306cd0e61f16d6c9d7d78d7f95991e2f37df"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_critic_review"
+  },
+  "last_updated": "2026-03-26 05:48",
+  "pending_action": "p1_complete",
+  "current_agent": "p1_complete",
+  "last_dispatched": "2026-03-26T05:48:15.284899+00:00",
+  "dispatch_claimed": false
 }
