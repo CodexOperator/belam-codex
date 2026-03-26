@@ -36,7 +36,7 @@
 ## ~~Task 5.5: Render Engine Health Check~~ (REMOVED 2026-03-25)
 > **Removed:** Render daemon retired. Supermap is now rendered on-demand by `scripts/render_supermap.py` (called directly by cockpit plugin V10). No daemon to health-check.
 
-## Task 5: Microcap Swing Subtask Queue (S1–S12)
+## Task 5: Microcap Swing Subtask Queue (S1–S11)
 
 **Scope:** Sequential pipeline queue for `microcap-swing-signal-extraction` subtasks.
 **Template:** builder-first (builder → bugfix → critic → human gate)
@@ -58,7 +58,7 @@
 | S9 | Cross-Token Momentum | S4 | microcap-swing-s9-cross-token |
 | S10 | Regime Detection Pre-Filter | S4, S5 | microcap-swing-s10-regime-detection |
 | S11 | Experiment Synthesis Report | S8, S9, S10 | microcap-swing-s11-synthesis |
-| S12 | Paper Trading Infrastructure | S8, S6 | microcap-swing-s12-paper-trading |
+| ~~S12~~ | ~~Paper Trading Infrastructure~~ | ~~S8, S6~~ | ~~removed — Nautilus infra covers backtesting; defer live paper trading until S11 go/no-go~~ |
 
 ### Execution Logic (Fully Autonomous)
 

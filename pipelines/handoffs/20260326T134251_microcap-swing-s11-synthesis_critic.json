@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s11-synthesis",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T13:42:51.305822+00:00",
+  "pipeline_session_id": "b6785923-08a0-4268-a1b8-30cc07d99e4a",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
