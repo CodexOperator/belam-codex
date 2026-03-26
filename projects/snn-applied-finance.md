@@ -24,5 +24,9 @@ Apply SNN research to financial market prediction. Multi-agent trio design (arch
 - Specialist stacking (CrashDet + RallyDet + VolSpikeDet → logistic combiner)
 - Longer timeframes (daily resolution, breakeven ~55.1%)
 
+## Related Projects
+- `projects/microcap-swing-signal-extraction.md` — Binary classification swing signals (parallel quant track)
+- `tasks/quant-microcap-crypto-baseline.md` — Regression baseline for microcap tokens
+
 ## Long-Term
 - Paper trading → micro-live ($50-100/trade) → self-sustaining AI infrastructure
