@@ -1,6 +1,96 @@
 {
   "version": "microcap-swing-s5-calibration",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-26 06:31"
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 06:41",
+      "agent": "unknown",
+      "notes": "auto_wiggum: hard timeout reached, marking complete"
+    },
+    "p1_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 06:39",
+      "agent": "builder",
+      "notes": "No bugs found \u2014 all 236 tests pass, module imports cleanly, CLI works. Advancing to critic review."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 06:46",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 2 LOW FLAGs. 33/33 calibration tests GREEN, 236/236 total tests GREEN (independently verified). 12 independent verifications passed. All core math correct: ECE, MCE, Brier decomposition (gap <0.001 at 10 bins), Platt scaling, isotonic regression, multiclass OVR. Label mapping {-1,0,1}\u2192{0,1,2} verified correct. Walk-forward calibration has no temporal leakage (cal precedes test in each chunk). Threshold analysis monotonicity verified. FLAG-1 MED: 4 unused imports (math, softmax, NON_FEATURE_COLS, annotations) \u2014 NON_FEATURE_COLS adds coupling to S3A. FLAG-2 LOW: walk_forward_calibrate uses equal chunks not expanding-window (valid, slightly misleading name). FLAG-3 LOW: Brier decomposition binning approximation gap is inherent to Murphy 1973 method. Review at: pipeline_builds/microcap-swing-s5-calibration_critic_review.md"
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 06:40",
+      "agent": "builder",
+      "notes": "No bugs found. Verified: imports clean, smoke test with synthetic data passes (ECE=0.048, quality=good), all 236 tests green. Module ready for critic code review."
+    }
+  },
+  "status": "p1_complete",
+  "status_updated": "2026-03-26 06:46",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T06:39:18.954040+00:00",
+      "commits": {
+        "workspace": "e87d07fc2729757ef70bee87a9b612c312303a44",
+        "machinelearning": "673d6796f058bbeb1a9a8c56519137173a31139a"
+      }
+    },
+    {
+      "stage": "p1_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T06:39:32.247040+00:00",
+      "commits": {
+        "workspace": "e87d07fc2729757ef70bee87a9b612c312303a44",
+        "machinelearning": "673d6796f058bbeb1a9a8c56519137173a31139a"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "builder",
+      "timestamp": "2026-03-26T06:39:41.901002+00:00",
+      "commits": {
+        "workspace": "e87d07fc2729757ef70bee87a9b612c312303a44",
+        "machinelearning": "673d6796f058bbeb1a9a8c56519137173a31139a"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T06:40:51.231680+00:00",
+      "commits": {
+        "workspace": "e87d07fc2729757ef70bee87a9b612c312303a44",
+        "machinelearning": "673d6796f058bbeb1a9a8c56519137173a31139a"
+      }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "unknown",
+      "timestamp": "2026-03-26T06:41:31.193876+00:00",
+      "commits": {
+        "workspace": "e87d07fc2729757ef70bee87a9b612c312303a44",
+        "machinelearning": "673d6796f058bbeb1a9a8c56519137173a31139a"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T06:46:15.321303+00:00",
+      "commits": {
+        "workspace": "e87d07fc2729757ef70bee87a9b612c312303a44",
+        "machinelearning": "673d6796f058bbeb1a9a8c56519137173a31139a"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_critic_review",
+    "started": "2026-03-26"
+  },
+  "last_updated": "2026-03-26 06:46",
+  "pending_action": "p1_complete",
+  "current_agent": "p1_complete",
+  "last_dispatched": "2026-03-26T06:46:22.025869+00:00",
+  "dispatch_claimed": false
 }

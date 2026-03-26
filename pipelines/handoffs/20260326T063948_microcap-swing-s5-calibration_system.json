@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s5-calibration",
+  "completed_stage": "p1_critic_review",
+  "next_stage": "p1_complete",
+  "next_agent": "system",
+  "timestamp": "2026-03-26T06:39:48.662332+00:00",
+  "pipeline_session_id": "0d403c8d-73ef-4bea-90d1-a8d545007ef1",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
