@@ -1,12 +1,11 @@
 {
   "status": "complete",
-  "session": "664f8725-21ee-464d-8af6-8215ac39f38e",
+  "session": "056b4b86-5ae4-4390-958b-74071b08f172",
   "instance": "main",
   "date": "2026-03-26",
   "primitives_created": [
-    "lesson/external-spec-as-design-doc-skip-architect-phase",
-    "lesson/atr-dynamic-threshold-vs-fixed-for-binary-classification",
-    "lesson/mfe-labeling-for-swing-signal-extraction",
-    "decision/builder-agent-dual-mode-colab-and-local-scripts"
+    "decision/builder-first-auto-complete-on-clean-critic-pass",
+    "lesson/critic-review-clean-pass-zero-blocks-zero-flags",
+    "lesson/pipeline-p1-complete-dispatches-architect-by-default"
   ]
 }
