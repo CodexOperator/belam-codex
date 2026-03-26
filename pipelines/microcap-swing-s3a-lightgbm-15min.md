@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_complete
+status: archived
 priority: critical
 type: builder-first
 version: microcap-swing-s3a-lightgbm-15min
@@ -11,6 +11,7 @@ supersedes:
 tags: [quant, crypto, microcap]
 project: microcap-swing-signal-extraction
 started: 2026-03-26
+archived: 2026-03-26
 ---
 
 # Implementation Pipeline: MICROCAP-SWING-S3A-LIGHTGBM-15MIN

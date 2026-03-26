@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_complete
+status: archived
 priority: critical
 type: builder-first
 version: microcap-swing-s2-feature-engineering
@@ -11,6 +11,7 @@ supersedes:
 tags: [quant, crypto, microcap, feature-engineering]
 project: microcap-swing-signal-extraction
 started: 2026-03-26
+archived: 2026-03-26
 ---
 
 # Implementation Pipeline: MICROCAP-SWING-S2-FEATURE-ENGINEERING
@@ -33,6 +34,7 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_builder_implement | 2026-03-26 | unknown | auto_wiggum: hard timeout reached, marking complete |
 | p1_builder_bugfix | 2026-03-26 | builder | Bugfix already applied in prior session: (1) removed dead numpy import, (2) fixed cross-asset lookback using raw Series — refactored to pl.col() expressions on source df. 55/55 tests pass. Re-completing after hard timeout. |
 | p1_critic_review | 2026-03-26 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 2 LOW FLAGs. 55/55 tests GREEN (independently verified). Both bugfix claims confirmed: (1) numpy import removed, (2) cross-asset lookback refactored to pl.col() expressions. 15 independent verifications passed. 61 base features, 73 with cross-asset. All operations causal (28 shifts positive, no center=True). FLAG-1 MED: cumulative VWAP becomes stale on long trending series — consider session-based VWAP in future. FLAG-2 LOW: Ichimoku senkou unshifted (correct for ML). FLAG-3 LOW: _token_return temp column relies on general cleanup. Review at: pipeline_builds/microcap-swing-s2-feature-engineering_critic_review.md |
+| p1_complete | 2026-03-26 | critic | Critic approved Phase 1 — clean pass |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
