@@ -1255,8 +1255,8 @@
       "slug": "test-template-pipeline"
     },
     "t21": {
-      "hash": "d0092ada2d6f",
-      "slug": "snn-microcap-crypto-baseline"
+      "hash": "1a828908baf0",
+      "slug": "self-hosted-llm-colab-turboquant"
     },
     "t22": {
       "hash": "e82578b386ba",
@@ -1272,5 +1272,5 @@
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-26T00:35:54Z"
+  "last_incremental": "2026-03-26T03:40:33Z"
 }
