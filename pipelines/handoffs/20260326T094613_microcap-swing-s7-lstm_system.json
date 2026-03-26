@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s7-lstm",
+  "completed_stage": "p1_critic_review",
+  "next_stage": "p1_complete",
+  "next_agent": "system",
+  "timestamp": "2026-03-26T09:46:13.839449+00:00",
+  "pipeline_session_id": "2c69e2f8-a271-45f1-b820-cc9c0a07acee",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

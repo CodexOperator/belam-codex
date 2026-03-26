@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: p1_complete
 priority: critical
 type: builder-first
 version: microcap-swing-s7-lstm
@@ -28,6 +28,10 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-26 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-26 | builder | Implemented S7 LSTM secondary model: src/model_lstm.py (SwingLSTM architecture, sliding window sequences, walk-forward validation, class-weighted loss, OneCycleLR, early stopping, LightGBM comparison) + tests/test_model_lstm.py (28 tests). All 358 tests pass, no regressions. |
+| p1_builder_bugfix | 2026-03-26 | builder | No bugs found. All 358 tests pass. Imports clean. CLI functional. Module integrates cleanly with existing S3A/S3B imports. |
+| p1_builder_implement | 2026-03-26 | unknown | auto_wiggum: hard timeout reached, marking complete |
+| p1_critic_review | 2026-03-26 | critic | APPROVED: 0 BLOCKs, 0 HIGH/MED FLAGs, 1 LOW FLAG. 28/28 LSTM tests GREEN, 358/358 total GREEN. 12 independent verifications passed. Architecture clean: LSTM→last_hidden→Linear, no discrete bottleneck (gradient flow verified). Walk-forward temporal hygiene confirmed: normalization from train only, sequences independent per split, effective purge 71 candles (48 + 23 implicit from windowing). Label mapping {-1,0,1}↔{0,1,2} consistent. LightGBM comparison uses identical splits. FLAG-1 LOW: 3 unused imports (NON_FEATURE_COLS, math, annotations). Review at: pipeline_builds/microcap-swing-s7-lstm_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
