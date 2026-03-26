@@ -1,10 +1,14 @@
 {
   "status": "complete",
-  "session": "d4cd4cc6-e02c-4ead-a3c7-460d565635df",
-  "date": "2026-03-25",
-  "completed_at": "2026-03-25T22:24:41Z",
-  "primitives_created": {
-    "lessons": 1,
-    "decisions": 1
-  }
+  "session": "ea4cfbd1-152f-4840-b626-27aac878897a",
+  "instance": "main",
+  "date": "2026-03-26",
+  "primitives_created": [
+    "lesson/snn-regime-dependency-btc-vs-spy",
+    "lesson/microcap-crypto-less-arbitraged-than-btc",
+    "lesson/solana-dex-ohlcv-via-birdeye-bitquery",
+    "lesson/mlp-high-vol-regime-best-actionable-finding",
+    "decision/split-quant-signal-from-snn-experiments",
+    "decision/quant-baseline-v2-multi-horizon-swing-target"
+  ]
 }
