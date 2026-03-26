@@ -1,6 +1,118 @@
 {
   "version": "microcap-swing-s6-risk-management",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-26 07:31"
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 07:41",
+      "agent": "unknown",
+      "notes": "auto_wiggum: hard timeout reached, marking complete"
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 07:40",
+      "agent": "builder",
+      "notes": "No bugs found. All 318 tests pass across all modules. Fixed one overflow warning in recovery metrics (annualized return computation). Module clean, ready for critic review."
+    },
+    "p1_critic_review_blocked": {
+      "status": "blocked",
+      "blocked_at": "2026-03-26 07:46",
+      "agent": "critic",
+      "notes": "BLOCK-1: Unmanaged equity curve accumulation bug in simulate_risk_adjusted_trading(). Equity initialized to all 1.0; no-trade candles leave equity[i+1] at 1.0 instead of carrying forward. Next trade reads 1.0 as base instead of accumulated value, dropping all prior PnL. Deterministic repro: 4 wins with gaps \u2192 only 1 win's PnL survives (0.000450 vs expected 0.001800). Fix: add equity[i+1] = equity[i] at loop start (same pattern as managed equity). Remove post-loop forward-fill. Add regression test. Also: FLAG-1 MED sqrt(252*24*4) annualization (same as S3B/S4), FLAG-2 LOW 5 unused imports (CalibrationConfig, compute_ece, compute_threshold_analysis, NON_FEATURE_COLS, compute_metrics), FLAG-3 LOW rolling correlation injects noise into input array view. 82/82 S6 tests GREEN, 318/318 total GREEN. Review at: pipeline_builds/microcap-swing-s6-risk-management_critic_review.md"
+    },
+    "p1_builder_fix_blocks": {
+      "status": "complete",
+      "completed_at": "2026-03-26 07:48",
+      "agent": "builder",
+      "notes": "Fixed all Critic findings. BLOCK-1: unmanaged equity carry-forward bug \u2014 added equity[i+1]=equity[i] at loop start, removed broken post-loop forward-fill, added deterministic regression test. FLAG-1: replaced magic sqrt(252*24*4) with CANDLES_PER_YEAR_15M constant. FLAG-2: removed 5 unused imports. FLAG-3: .copy() on window slice before noise injection. 319/319 tests green."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 07:49",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 FLAGs. All 4 fixes verified: (1) BLOCK-1 unmanaged equity carry-forward fixed \u2014 equity[i+1]=equity[i] at loop start, post-loop forward-fill removed. Regression test passes (4 gapped wins accumulate correctly: 0.001800 expected, 0.001800 actual). (2) FLAG-1 sqrt(252*24*4) replaced with CANDLES_PER_YEAR_15M=35040 constant, used in both rolling vol and Calmar annualization. (3) FLAG-2 all 5 unused imports removed (CalibrationConfig, compute_ece, compute_threshold_analysis, NON_FEATURE_COLS, compute_metrics). Only LGBMConfig remains (used in main()). (4) FLAG-3 .copy() added to window slice before noise injection. 83/83 S6 tests GREEN (+1 regression), 319/319 total GREEN. Review at: pipeline_builds/microcap-swing-s6-risk-management_critic_review.md"
+    },
+    "p1_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-26 08:31",
+      "agent": "belam-main",
+      "notes": "Phase 2 kickoff"
+    }
+  },
+  "status": "p2_design",
+  "status_updated": "2026-03-26 08:31",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T07:39:46.537895+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T07:40:40.768041+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "unknown",
+      "timestamp": "2026-03-26T07:41:34.068703+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T07:46:42.461027+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    },
+    {
+      "stage": "p1_builder_fix_blocks",
+      "agent": "builder",
+      "timestamp": "2026-03-26T07:48:45.022589+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T07:49:50.536497+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    },
+    {
+      "stage": "p1_complete",
+      "agent": "belam-main",
+      "timestamp": "2026-03-26T08:31:30.277206+00:00",
+      "commits": {
+        "workspace": "e9106fee4c135dfe3d9a399787475fe121f92442",
+        "machinelearning": "8a35f21e8794417cf909b160c3573fb9a2a7f46a"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_complete"
+  },
+  "last_updated": "2026-03-26 08:31",
+  "pending_action": "p2_architect_design",
+  "current_agent": "p2_architect_design",
+  "last_dispatched": "2026-03-26T08:31:37.172195+00:00",
+  "dispatch_claimed": false,
+  "p1_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/microcap-swing-s6-risk-management_critic_blocks.md",
+  "pending_session_mode": "continue"
 }
