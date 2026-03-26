@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s8-ensemble",
+  "completed_stage": "p1_critic_review",
+  "next_stage": "p1_complete",
+  "next_agent": "system",
+  "timestamp": "2026-03-26T10:47:39.165603+00:00",
+  "pipeline_session_id": "0d1a0afa-97fb-4980-be37-9063c5849300",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

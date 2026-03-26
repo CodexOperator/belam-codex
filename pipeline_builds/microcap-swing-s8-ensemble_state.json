@@ -1,6 +1,72 @@
 {
   "version": "microcap-swing-s8-ensemble",
-  "stages": {},
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-26 10:31"
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-26 10:41",
+      "agent": "unknown",
+      "notes": "auto_wiggum: hard timeout reached, marking complete"
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-26 10:41",
+      "agent": "builder",
+      "notes": "Self-review bugfix pass: (1) Fixed LSTM duplicate index issue \u2014 deduplicate by keeping last occurrence per fold. (2) Fixed 1h LightGBM model using identical config to 15m \u2014 now uses distinct hyperparams and seed for diversity. (3) Fixed stacking+agreement alignment bug \u2014 properly maps stacking val indices to gate positions via aligned index lookup. (4) Removed unused imports (copy, math) and dead code (dummy val_data in LightGBM meta, unused y_val_mapped). All 387 tests pass."
+    },
+    "p1_critic_review": {
+      "status": "complete",
+      "completed_at": "2026-03-26 10:47",
+      "agent": "critic",
+      "notes": "APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. 29/29 ensemble tests GREEN, 387/387 total GREEN (independently verified). All 4 bugfix claims verified: (1) LSTM dedup keeps last occurrence per fold (correct \u2014 more training data preferred). (2) 1h LightGBM uses distinct hyperparams (num_leaves=63, max_depth=8, lr=0.03) and seed+2. (3) Stacking+agreement alignment uses aligned_idx_to_pos lookup (correct). (4) Unused imports (copy, math) and dead code removed. FLAG-1 MED: stacking_plus_agreement hardcodes min_agree=2 instead of cfg.min_agreement. FLAG-2 LOW: 3 unused imports (annotations, NON_FEATURE_COLS, SwingLSTM). Architecture clean: walk-forward everywhere, proper stacking on probabilities (not predictions), graceful degradation. Review at: pipeline_builds/microcap-swing-s8-ensemble_critic_review.md"
+    }
+  },
+  "status": "p1_complete",
+  "status_updated": "2026-03-26 10:47",
+  "phase1": {
+    "stage": "p1_critic_review",
+    "started": "2026-03-26"
+  },
+  "last_updated": "2026-03-26 10:47",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-26T10:38:58.882045+00:00",
+      "commits": {
+        "workspace": "63f98c4dedab10ff031025861790afbda64357e5",
+        "machinelearning": "a5eb7e0b16c7885dcc804ed449b7b8f1116dbbb3"
+      }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "unknown",
+      "timestamp": "2026-03-26T10:41:35.251071+00:00",
+      "commits": {
+        "workspace": "63f98c4dedab10ff031025861790afbda64357e5",
+        "machinelearning": "a5eb7e0b16c7885dcc804ed449b7b8f1116dbbb3"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-26T10:41:43.314245+00:00",
+      "commits": {
+        "workspace": "63f98c4dedab10ff031025861790afbda64357e5",
+        "machinelearning": "a5eb7e0b16c7885dcc804ed449b7b8f1116dbbb3"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-03-26T10:47:32.335702+00:00",
+      "commits": {
+        "workspace": "63f98c4dedab10ff031025861790afbda64357e5",
+        "machinelearning": "a5eb7e0b16c7885dcc804ed449b7b8f1116dbbb3"
+      }
+    }
+  ],
+  "pending_action": "p1_complete",
+  "current_agent": "p1_complete",
+  "last_dispatched": "2026-03-26T10:47:39.186191+00:00",
+  "dispatch_claimed": false
 }
