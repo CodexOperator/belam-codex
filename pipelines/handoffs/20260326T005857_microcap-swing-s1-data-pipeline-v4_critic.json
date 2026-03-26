@@ -1,0 +1,15 @@
+{
+  "version": "microcap-swing-s1-data-pipeline-v4",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-26T00:58:57.730357+00:00",
+  "pipeline_session_id": "7c3f7e2e-fb23-4b4a-aa5d-5e046fdf2a27",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

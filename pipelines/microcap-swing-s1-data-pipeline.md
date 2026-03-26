@@ -1,6 +1,8 @@
 ---
 primitive: pipeline
-status: blocked
+status: archived
+archive_date: 2026-03-26
+archive_reason: "Wrong template (research instead of builder-first). Relaunching."
 priority: critical
 type: research
 version: microcap-swing-s1-data-pipeline

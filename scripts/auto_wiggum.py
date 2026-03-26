@@ -64,43 +64,81 @@ def session_key(agent: str) -> str:
 
 
 def reset_session(agent: str) -> bool:
-    """Reset agent session for a fresh context. Returns True on success."""
+    """Reset agent session for a fresh context via gateway RPC. Returns True on success."""
+    import json as _json
     key = session_key(agent)
     log(f"Resetting session {key} …")
     result = subprocess.run(
-        ["openclaw", "session", "reset", key],
+        ["openclaw", "gateway", "call", "sessions.reset",
+         "--json", "--params", _json.dumps({"key": key})],
         capture_output=True,
         text=True,
+        timeout=15,
     )
     if result.returncode != 0:
         log(f"ERROR: session reset failed (exit {result.returncode}): {result.stderr.strip()}")
         return False
-    log(f"Session reset OK.")
-    return True
-
-
-def send_message(agent: str, message: str) -> bool:
-    """Send a message to agent session. Returns True on success."""
-    key = session_key(agent)
-    result = subprocess.run(
-        ["openclaw", "session", "send", key, message],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        log(f"ERROR: session send failed (exit {result.returncode}): {result.stderr.strip()}")
+    try:
+        data = _json.loads(result.stdout)
+        if data.get("ok"):
+            sid = data.get("entry", {}).get("sessionId", "")
+            log(f"Session reset OK: {sid[:8]}...")
+            return True
+        else:
+            log(f"ERROR: session reset returned ok=false: {result.stdout.strip()}")
+            return False
+    except _json.JSONDecodeError:
+        log(f"ERROR: session reset returned non-JSON: {result.stdout.strip()}")
         return False
-    return True
 
 
-def send_message_with_retry(agent: str, message: str, retries: int = 1) -> bool:
+def send_message(agent: str, message: str, background: bool = False) -> bool:
+    """Send a message to agent session via openclaw agent CLI.
+    
+    If background=True, launches via Popen (fire-and-forget) and returns immediately.
+    If background=False, uses gateway call sessions.send (non-blocking inject).
+    Returns True on success.
+    """
+    import json as _json
+    if background:
+        # Fire-and-forget: launch openclaw agent as detached subprocess
+        log(f"Dispatching {agent} via openclaw agent (Popen) …")
+        try:
+            subprocess.Popen(
+                ["openclaw", "agent", "--agent", agent, "--message", message],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                start_new_session=True,
+            )
+            return True
+        except Exception as e:
+            log(f"ERROR: Popen dispatch failed: {e}")
+            return False
+    else:
+        # Inject message into existing session via gateway RPC
+        key = session_key(agent)
+        log(f"Injecting message to {agent} via gateway sessions.send …")
+        result = subprocess.run(
+            ["openclaw", "gateway", "call", "sessions.send",
+             "--json", "--params", _json.dumps({"key": key, "message": message})],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if result.returncode != 0:
+            log(f"ERROR: session send failed (exit {result.returncode}): {result.stderr.strip()[:200]}")
+            return False
+        return True
+
+
+def send_message_with_retry(agent: str, message: str, retries: int = 1, background: bool = False) -> bool:
     """Send with one retry on failure."""
-    if send_message(agent, message):
+    if send_message(agent, message, background=background):
         return True
     for attempt in range(1, retries + 1):
         log(f"Retrying send (attempt {attempt}/{retries}) …")
         time.sleep(2)
-        if send_message(agent, message):
+        if send_message(agent, message, background=background):
             return True
     return False
 
@@ -184,12 +222,12 @@ def run(args: argparse.Namespace) -> int:
     elif not reset_session(args.agent):
         return 1
 
-    # ── 2. Send task ───────────────────────────────────────────────────────
-    log(f"Sending task to {args.agent} …")
-    if not send_message_with_retry(args.agent, task_text):
-        log("ERROR: could not send task message after retry. Exiting.")
+    # ── 2. Send task (fire-and-forget via Popen — agent runs in background) ─
+    log(f"Dispatching task to {args.agent} …")
+    if not send_message_with_retry(args.agent, task_text, background=True):
+        log("ERROR: could not dispatch task after retry. Exiting.")
         return 1
-    log("Task sent.")
+    log("Task dispatched.")
 
     start_time = time.monotonic()
 
