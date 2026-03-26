@@ -683,3 +683,7 @@
 2026-03-26T02:27:56.690Z [warn] No workspaceDir in context
 2026-03-26T02:37:59.502Z [warn] No workspaceDir in context
 2026-03-26T02:38:02.553Z [warn] No workspaceDir in context
+2026-03-26T03:30:47.575Z [info] Hook fired: new {"instance":"main","workspaceDir":"/home/ubuntu/.openclaw/workspace"}
+2026-03-26T03:30:47.578Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-03-26-0330.md
+2026-03-26T03:30:48.021Z [info] Prompt ready at /tmp/session_extract_prompt_main_056b4b86-5ae4-4390-958b-74071b08f172.md, spawning sage via codex engine
+2026-03-26T03:30:48.030Z [info] Sage spawn dispatched via codex engine {"pid":3336727}
