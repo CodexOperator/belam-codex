@@ -74,7 +74,7 @@
       "notes": "APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 1 LOW FLAG. All 4 Phase 2 deliverables verified. 94/94 S6 tests GREEN, 330/330 total GREEN. D1: _compute_single_position_size helper + simulation integration confirmed \u2014 low-vol positions (0.060) > high-vol (0.026). D2: trailing DD enforcement works \u2014 15-loss streak triggers halts, steady growth gives zero false positives. CB takes priority per design. D3: seeded RNG (default_rng(42+t)) produces identical correlation output across calls. D4: sizing_breakdown has all 9 fields, signal accounting (traded+halted+trailing+skipped==n) verified. FLAG-1 MED: Kelly computed from full-sample lookahead (acceptable for simulation comparison, not for walk-forward claims). FLAG-2 LOW: compute_position_sizes() inline sizing diverges from helper (per architect Q4). Review at: pipeline_builds/microcap-swing-s6-risk-management_phase2_critic_review.md"
     }
   },
-  "status": "p2_design",
+  "status": "archived",
   "status_updated": "2026-03-26 11:31",
   "handoff_snapshots": [
     {
@@ -207,7 +207,7 @@
   "phase1": {
     "stage": "p1_complete"
   },
-  "last_updated": "2026-03-26 11:31",
+  "last_updated": "2026-03-26 11:32",
   "pending_action": "p2_architect_design",
   "current_agent": "p2_architect_design",
   "last_dispatched": "2026-03-26T11:31:35.620076+00:00",
@@ -217,5 +217,7 @@
   "phase2": {
     "stage": "p2_critic_review"
   },
-  "p2_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/microcap-swing-s6-risk-management_phase2_critic_review.md"
+  "p2_critic_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/microcap-swing-s6-risk-management_phase2_critic_review.md",
+  "archived": "2026-03-26",
+  "archive_reason": "Task complete \u2014 Phase 1 built full risk management module (position sizing, drawdown management, correlation hedging, simulation). Phase 2 integrated combined sizing into simulation loop, enforced trailing DD as active control, seeded RNG for reproducibility, added sizing breakdown transparency. 94/94 S6 tests GREEN, 330/330 total GREEN. Critic approved 0 BLOCKs."
 }

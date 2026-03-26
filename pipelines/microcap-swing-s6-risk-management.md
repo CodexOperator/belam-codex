@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p2_design
+status: archived
 priority: critical
 type: builder-first
 version: microcap-swing-s6-risk-management
@@ -11,6 +11,8 @@ supersedes:
 tags: [quant, crypto, microcap]
 project: microcap-swing-signal-extraction
 started: 2026-03-26
+archived: 2026-03-26
+archive_reason: Task complete — Phase 1 built full risk management module (position sizing, drawdown management, correlation hedging, simulation). Phase 2 integrated combined sizing into simulation loop, enforced trailing DD as active control, seeded RNG for reproducibility, added sizing breakdown transparency. 94/94 S6 tests GREEN, 330/330 total GREEN. Critic approved 0 BLOCKs.
 ---
 
 # Implementation Pipeline: MICROCAP-SWING-S6-RISK-MANAGEMENT
