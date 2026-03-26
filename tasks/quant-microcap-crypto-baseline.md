@@ -20,12 +20,24 @@ Pure quant signal analysis. NO SNN/neural-temporal models — those belong in th
 
 ## Design
 
-### Assets
-- **BTC/USDT 4h** (reference — rerun from V1 but with expanded horizon + features)
-- **5-10 microcap tokens** selected by Shael, including:
-  - Binance-listed microcaps (via ccxt)
-  - **Solana DEX tokens** (Jupiter/Raydium) via Birdeye API or Bitquery V2 GraphQL
-  - Mix of established microcaps (6+ months data) and newer tokens (2-3 months)
+### Assets (Shael's Picks)
+
+**Controls:**
+- BTC/USDT 4h (via ccxt — reference from V1, rerun with expanded horizons)
+- ETH/USDT 4h (via ccxt — secondary reference)
+
+**Solana DEX Tokens (via Birdeye API):**
+- **JLP** (Jupiter Perps LP) — perp collateral-backed token with structural positive drift from funding rates. Crypto ETF dynamics. ~$3.6M daily vol.
+- **KWEEN** — true microcap, thin orderbook, $5-10 trade sizes. *(Contract address TBD — Shael has helper doc)*
+- **FARTCOIN** — Solana meme coin. May also have CEX listing.
+
+**BNB Chain Tokens (via DexScreener/Bitquery or Binance CEX):**
+- **$4** — meme coin on BNB chain *(exact contract TBD)*
+- **BONK** — established meme coin *(confirm: Binance CEX or BNB chain DEX?)*
+- **HYPER** — BNB chain *(exact token TBD)*
+- **ASTER** (`0x000Ae...556A`) — DEX and perp hub on BNB. PancakeSwap V3. ~$381K daily vol.
+
+**Asset registry with addresses, data sources, and quality gates:** `research/microcap_asset_registry.md`
 
 ### Data Pipeline
 - **CEX tokens:** ccxt (Binance, KuCoin) — 4h candles, paginate for full history
@@ -118,5 +130,9 @@ Every model × every feature set × every horizon × every asset:
 - Swing trading focus: the 5-20 candle horizons are the primary research output
 - Golden/death cross features may be strongest on BTC and larger microcaps — test per-asset
 - Solana DEX tokens will have shorter history — adjust fold structure accordingly
-- Shael to provide specific token list (microcap picks)
+- Shael's token list confirmed — see asset registry. Need contract addresses for: KWEEN, $4, HYPER
+- Shael has a helper doc for KWEEN (thin orderbook handling) — incorporate when available
+- JLP is structurally unique: funding rate accrual = positive drift. May need special baseline (predict deviation from drift, not raw return)
+- BONK has deepest history if using Binance CEX listing (Solana original since late 2022)
+- Transaction costs: 0.1% CEX (Binance), 0.3% DEX (Solana swap fees + slippage), 0.5% for thinnest tokens (KWEEN)
 - This task produces QUANT-ONLY results. SNN experiments use these results as baseline reference.
