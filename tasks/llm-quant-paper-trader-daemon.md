@@ -1,232 +1,305 @@
 # Task: Live Paper Trading Daemon (15m Resolution)
 
-**Scope:** Build and test a lightweight daemon that runs LightGBM trading signals against dYdX testnet in real-time, executing on every 15-minute candle close.
+**Dependency:** Task `llm-quant-dydx-adapter` must be complete first. `DydxExecutor` and `dydx_types.py` must exist at `backtesting/strategies/`.
 
-**Deliverables:**
-1. `llm-quant-finance/backtesting/live/paper_trader.py` — Main daemon loop
-2. `llm-quant-finance/backtesting/live/lgbm_signal_generator.py` — LightGBM signal wrapper
-3. Integration test against real Binance data + dYdX testnet
-4. README with deployment instructions
+**Scope:** Build the signal generation layer (LightGBM → regime filter → signal) and a 15-minute daemon that executes those signals via `DydxExecutor` on dYdX testnet.
 
-## Daemon Architecture
+**Working directory:** `/home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance/`
+**Python venv:** `.venv/` — activate before running anything
 
-### Signal Pipeline (per 15m candle close)
+---
 
-```
-[Binance 15m candle] → [Load & preprocess] → [LightGBM model] 
-                                                    ↓
-                              [Regime filter + gate] → [SignalType.LONG/SHORT/FLAT]
-                                                    ↓
-                              [Confidence scale size] → [dYdX market order]
-                                                    ↓
-                              [Log trade + update state]
-```
+## Critical context: Model is NOT serialized
 
-### Core Components
+The LightGBM model from S3A **was not saved to disk** — `model_lightgbm.py` saves predictions and metrics, not model artifacts. The `LgbmSignalGenerator` must therefore:
 
-**LgbmSignalGenerator class:**
-- Wraps trained LightGBM model from `llm-quant-finance/microcap_swing/models/`
-- Inputs: 15m candles from Binance (fetched live via `backtesting/data/`)
-- Feature computation: reuse `microcap_swing/src/features.py` exactly (no copy, import)
-- Regime detection: import `src/live_regime.py` for current state
-- Confidence calibration: load from `llm-quant-finance/microcap_swing/data/results/` (from S5)
-- Outputs: `SignalSeries` (implements `SignalGenerator` protocol)
+1. **Re-train the model on startup** using walk-forward on existing cached data, OR
+2. **Add model serialization** to `model_lightgbm.py` first, then load the saved model
 
-**PaperTraderDaemon class:**
-- Runs on 15-minute schedule (via cron or systemd timer, not polling)
-- Fetches latest Binance 15m candle
-- Generates signal via LgbmSignalGenerator
-- Executes via DydxExecutor (from Task 1)
-- Logs all signals, orders, P&L to JSONL file
-- Handles graceful shutdown on SIGTERM
+**Recommended approach (Option 2):** Add a `--save-model` flag to `model_lightgbm.py` that saves the final fold's booster as `data/models/{token}_{timeframe}_final.lgb`. Then call it once during setup to produce the model files, and load them in `LgbmSignalGenerator`.
 
-**Execution Logic:**
-- Signal: LONG → Check open SHORT → close if any → open LONG ($25 notional)
-- Signal: SHORT → Check open LONG → close if any → open SHORT ($25 notional)
-- Signal: FLAT → close all positions, no new entry
-- Position size = $25 × confidence (confidence in [0.3, 1.0], below 0.3 = FLAT)
-- Stop-loss: 1.5x ATR below entry (long) / above entry (short), limit order
+The full-history data is already cached at:
+- `../microcap_swing/data/features_500d_baseline/{token}/{token}_15m.parquet` (500-day baseline)
+- Full history parquets may need re-fetching via `src/data_pipeline.py`
 
-**Tokens:**
-- BTC-USD, ETH-USD, SOL-USD (only majors available on dYdX)
-- $25 notional per active position (total exposure ~$75 max)
-- Total testnet USDC: $500 (from Task 1 setup)
+---
 
-### Key Design Decisions
+## Deliverables
 
-**Why 15m, not 1m or 5m:**
-- LightGBM trained on 15m candles (S3A best performance)
-- Avoids high-frequency noise and tick-by-tick fill issues
-- dYdX testnet orderbook has enough depth for $25 orders
+1. **`microcap_swing/src/model_lightgbm.py`** — add `--save-model` flag + `save_model()` function
+2. **`backtesting/live/lgbm_signal_generator.py`** — `LgbmSignalGenerator` class
+3. **`backtesting/live/paper_trader.py`** — `PaperTraderDaemon` class + CLI entrypoint
+4. **`backtesting/live/tests/test_paper_trader.py`** — 9 integration tests
+5. **`backtesting/live/README.md`** — deployment instructions
 
-**Why schedule-based, not streaming:**
-- Simpler to reason about (one signal per candle close, not multiple per bar)
-- Lower dYdX testnet load (1 order per token per 15m = ~12 orders/token/day)
-- Deterministic behavior: same signal at same time always
+---
 
-**Confidence Scaling:**
-- Model outputs confidence [0.3, 1.0] (from S5 calibration)
-- Position size = $25 × min(1.0, confidence)
-- Example: confidence 0.5 → $12.50 position
+## Step 0: Add model serialization and generate model files
 
-### Signature
+First, modify `microcap_swing/src/model_lightgbm.py`:
 
 ```python
+# Add to save_results():
+import lightgbm as lgb
+
+def save_results(token, timeframe, results, report):
+    # ... existing code ...
+
+    # NEW: Save final fold booster
+    if results.get("final_booster") is not None:
+        models_dir = PROJECT_ROOT / "data" / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        model_path = models_dir / f"{token.lower()}_{timeframe}_final.lgb"
+        results["final_booster"].save_model(str(model_path))
+        paths["model"] = model_path
+        log.info(f"Saved model to {model_path}")
+```
+
+Also ensure the last fold's booster is added to the results dict as `"final_booster"`.
+
+Then run for BTC, ETH, SOL using the 500d baseline data:
+```bash
+cd /home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance
+source .venv/bin/activate
+cd microcap_swing
+python -m src.model_lightgbm --token BTC --timeframe 15m
+python -m src.model_lightgbm --token ETH --timeframe 15m
+python -m src.model_lightgbm --token SOL --timeframe 15m
+```
+
+Verify model files exist:
+```
+microcap_swing/data/models/btc_15m_final.lgb
+microcap_swing/data/models/eth_15m_final.lgb
+microcap_swing/data/models/sol_15m_final.lgb
+```
+
+---
+
+## LgbmSignalGenerator Design
+
+```python
+# backtesting/live/lgbm_signal_generator.py
+
 class LgbmSignalGenerator:
-    """Generate signals from trained LightGBM model and live candles.
-    
+    """Generate trading signals from trained LightGBM model + live Binance candles.
+
+    Imports (do not copy):
+      - microcap_swing.src.features for feature engineering
+      - microcap_swing.src.live_regime for regime state
+        (live_regime.py is at: ../microcap_swing/src/live_regime.py)
+      - backtesting.data.binance_fetcher for live candles
+
     Args:
-        model_path: Path to trained model (pickle or joblib)
+        model_dir: Path to directory with *.lgb model files
+                   Default: Path("../microcap_swing/data/models")
         symbols: ["BTC-USD", "ETH-USD", "SOL-USD"]
+        confidence_threshold: Below this, emit FLAT (default 0.30)
+
+    Usage:
+        gen = LgbmSignalGenerator()
+        signal = await gen.generate_signal("BTC-USD")
+        # signal.signal: SignalType.LONG / SHORT / FLAT
+        # signal.confidence: float in [0, 1]
     """
-    
-    async def generate_signals(self, symbol: str) -> TradingSignal:
-        """Fetch latest candles, compute features, run model, return signal.
-        
-        Returns:
-            Single TradingSignal for the just-closed 15m candle
+
+    def __init__(self, model_dir: Path = None, symbols: list[str] = None,
+                 confidence_threshold: float = 0.30):
+        ...
+
+    async def generate_signal(self, symbol: str) -> TradingSignal:
         """
+        1. Fetch last 200 bars of 15m candles from Binance public API
+           symbol mapping: "BTC-USD" → "BTCUSDT"
+        2. Compute features using microcap_swing.src.features.compute_features()
+        3. Get regime state via microcap_swing.src.live_regime.get_regime(symbol)
+        4. Run LightGBM model on last row of features
+        5. Convert multiclass probabilities to SignalType:
+           - class 2 (up) probability > threshold → LONG
+           - class 0 (down) probability > threshold → SHORT
+           - else → FLAT
+        6. Confidence = max(p_up, p_down) if not FLAT, else 0.0
+        7. If regime is "bear" and signal is LONG → downgrade to FLAT
+           (don't fight the regime)
+        8. Return TradingSignal(timestamp, signal, confidence)
+        """
+```
+
+**Symbol mapping** (Binance vs dYdX):
+- `"BTC-USD"` → Binance: `"BTCUSDT"`, dYdX: `"BTC-USD"`
+- `"ETH-USD"` → Binance: `"ETHUSDT"`, dYdX: `"ETH-USD"`
+- `"SOL-USD"` → Binance: `"SOLUSDT"`, dYdX: `"SOL-USD"`
+
+**Feature computation:** Import from `microcap_swing.src.features` (the module is in `../microcap_swing/src/features.py` relative to `llm-quant-finance/`). Add `microcap_swing/` to sys.path or use importlib if needed.
+
+**Live regime:** `microcap_swing/src/live_regime.py` — use its one-shot mode or call `get_regime_state(symbol)` if that function exists. Check the file to find the right entry point.
+
+---
+
+## PaperTraderDaemon Design
+
+```python
+# backtesting/live/paper_trader.py
 
 class PaperTraderDaemon:
-    """Live paper trading daemon (15m resolution).
-    
+    """15-minute paper trading daemon.
+
+    Runs run_once() every 15 minutes. On each cycle:
+    1. For each symbol: generate signal
+    2. Compare to current position
+    3. Execute via DydxExecutor if action needed
+    4. Log result
+
     Args:
-        signal_gen: LgbmSignalGenerator instance
-        executor: DydxExecutor instance
-        log_dir: Directory for trade logs
-        symbols: List of symbols to trade
-    
-    Methods:
-        async run_once() -> None: Fetch candles, generate signals, execute
-        async run_daemon() -> None: Schedule run_once every 15 minutes
+        signal_gen: LgbmSignalGenerator
+        executor: DydxExecutor (already connected)
+        symbols: ["BTC-USD", "ETH-USD", "SOL-USD"]
+        position_size_usd: Base position size (default $25)
+        log_dir: Where to write JSONL trade logs
     """
-    
-    async def run_once(self) -> None
-    async def run_daemon(self) -> None
-    def _log_trade(self, symbol: str, signal: TradingSignal, order: Order) -> None
+
+    async def run_once(self) -> list[dict]:
+        """Run one full cycle across all symbols. Returns list of trade log entries."""
+
+    async def run_daemon(self) -> None:
+        """Run run_once() every 15 minutes. Handles SIGTERM gracefully."""
+
+    def _log_trade(self, entry: dict) -> None:
+        """Append to logs/paper_trader_YYYY-MM-DD.jsonl"""
 ```
 
-## Test Strategy
-
-**Integration Test (Real Binance + dYdX Testnet):**
-- [ ] Test 1: Instantiate LgbmSignalGenerator, load model
-- [ ] Test 2: Generate signal for BTC (fetch live candles, compute features, run model)
-- [ ] Test 3: Verify signal type is in {LONG, SHORT, FLAT}
-- [ ] Test 4: Verify confidence is in [0.3, 1.0]
-- [ ] Test 5: Run one full cycle: signal → dYdX order → log
-- [ ] Test 6: Open long BTC, daemon runs next cycle, generates FLAT, closes position
-- [ ] Test 7: Position sizing: confidence 0.6 → actual order $15 (0.6 × $25)
-- [ ] Test 8: Multi-token: all three tokens trade, no cross-margin issues
-- [ ] Test 9: Error handling: network timeout on candle fetch → skip signal, log error, retry next cycle
-- [ ] Test 10: Graceful shutdown: SIGTERM → close all positions, sync logs, exit
-
-**Real Data:**
-- Live Binance API for 15m candles (via `backtesting/data/BinanceFetcher`)
-- Real dYdX testnet for order execution
-- Real LightGBM model from S3A
-
-**No Mocks:**
-- ❌ Do NOT mock Binance API or dYdX client
-- ✅ Use real Binance public API (no auth needed for fetching candles)
-- ✅ Real dYdX testnet (free USDC)
-
-## Dependencies
-
-**New:**
-- `schedule >= 1.2.0` (for cron-like scheduling)
-- `python-dotenv` (for env var loading, if not present)
-
-**Existing (from Task 1):**
-- `dydx-v4-client >= 1.0.0`
-- `llm-quant-finance/backtesting/` modules (DydxExecutor, data fetchers)
-- `llm-quant-finance/microcap_swing/` (trained model, features.py, live_regime.py)
-
-## File Structure
-
+**Execution logic per symbol:**
 ```
-llm-quant-finance/
-├── backtesting/live/
-│   ├── __init__.py
-│   ├── paper_trader.py           (main daemon, ~300-400 lines)
-│   ├── lgbm_signal_generator.py  (signal wrapper, ~150-200 lines)
-│   ├── tests/
-│   │   └── test_paper_trader.py  (10 integration tests, ~350 lines)
-│   ├── logs/                      (auto-created, holds JSONL trade logs)
-│   │   └── .gitkeep
-│   └── TESTNET_ADDRESS.txt        (from Task 1, referenced here)
-├── requirements-backtest.txt      (already has dydx-v4-client, add schedule)
-└── microcap_swing/
-    └── (existing: models/, src/features.py, src/live_regime.py, data/results/)
+current_pos = await executor.get_position(symbol)
+signal = await signal_gen.generate_signal(symbol)
+size = position_size_usd * signal.confidence
+
+if signal.signal == LONG:
+    if current_pos and current_pos.side == "SHORT":
+        await executor.close_position(symbol)
+    if not current_pos or current_pos.side != "LONG":
+        await executor.market_order(symbol, "BUY", size)
+
+elif signal.signal == SHORT:
+    if current_pos and current_pos.side == "LONG":
+        await executor.close_position(symbol)
+    if not current_pos or current_pos.side != "SHORT":
+        await executor.market_order(symbol, "SELL", size)
+
+elif signal.signal == FLAT:
+    if current_pos:
+        await executor.close_position(symbol)
 ```
 
-## Signal Flow Example
+**CLI entrypoint:**
+```bash
+# Run once (for testing)
+python -m backtesting.live.paper_trader --once
 
-**Scenario:** Current time = 2026-03-27 08:00:00 UTC, just closed 15m candle.
+# Run daemon
+python -m backtesting.live.paper_trader --daemon
+```
 
-1. **Fetch candles:** Get BTC/ETH/SOL 15m candles from Binance, last 100 bars
-2. **Compute features:** `features.py` → 84-feature vectors
-3. **Regime gate:** `live_regime.py` → current regime + confidence
-4. **LightGBM predict:** model.predict(features[-1:]) → raw probability
-5. **Confidence calibration:** S5 calibration curve → adjusted confidence
-6. **Signal:** If probability > threshold → LONG/SHORT, else FLAT
-7. **Size scaling:** Confidence × $25 → actual notional
-8. **dYdX order:** Market buy/sell or close existing
-9. **Log:** `logs/paper_trader_2026-03-27.jsonl` entry:
-   ```json
-   {
-     "timestamp": "2026-03-27T08:00:00Z",
-     "symbol": "BTC-USD",
-     "signal": "LONG",
-     "confidence": 0.72,
-     "position_size_usd": 18.0,
-     "order_id": "0x...",
-     "fill_price": 43250.5,
-     "status": "filled"
-   }
-   ```
+**SIGTERM handling:** On SIGTERM, finish current cycle, close all positions, write final log entry, exit cleanly.
+
+---
+
+## Integration Tests
+
+Tests live in `backtesting/live/tests/test_paper_trader.py`.
+
+**Setup** (run once before tests):
+```bash
+export DYDX_MNEMONIC=$(cat backtesting/live/TESTNET_MNEMONIC.txt)
+```
+
+**Test list:**
+1. `test_model_files_exist` — verify btc/eth/sol `.lgb` files are present in `microcap_swing/data/models/`
+2. `test_signal_generator_loads` — instantiate `LgbmSignalGenerator`, verify models load without error
+3. `test_generate_signal_btc` — call `generate_signal("BTC-USD")`, verify returns `TradingSignal` with signal in {LONG, SHORT, FLAT}
+4. `test_generate_signal_confidence` — verify confidence is float in [0.0, 1.0]
+5. `test_generate_all_symbols` — generate signals for all 3 symbols, all return valid TradingSignal
+6. `test_run_once_full_cycle` — instantiate daemon with real executor, call `run_once()`, verify log entries written for all 3 symbols
+7. `test_position_sizing` — mock signal with confidence=0.6, verify actual order size = 0.6 × $25 = $15
+8. `test_flat_closes_position` — open $15 BTC long, then call `run_once()` with signal patched to FLAT, verify position closed
+9. `test_log_format` — after `run_once()`, read JSONL log, verify entries have: timestamp, symbol, signal, confidence, position_size_usd, status
+
+**Note on Test 6:** Do NOT wait for two 15-minute cycles. Call `run_once()` directly — it's a synchronous-ish call that runs one full cycle. The daemon schedule is separate from the per-cycle logic.
+
+**Note on Test 8:** Patch the signal generator to return FLAT using `unittest.mock.patch` on `generate_signal`. The executor calls are still real testnet.
+
+---
 
 ## Acceptance Criteria
 
-- [ ] All 10 integration tests pass
-- [ ] Daemon runs 15m schedule without drift (cron or systemd timer)
-- [ ] Signals use real Binance candles (not synthetic/old data)
-- [ ] dYdX orders confirmed on real testnet
-- [ ] Logs are valid JSONL, one entry per trade
-- [ ] Error handling: network timeouts → log + retry (no crash)
-- [ ] Graceful shutdown: SIGTERM closes all positions + syncs logs
-- [ ] Type hints: full Pydantic models, mypy strict mode
-- [ ] Code review: ruff linting passes
+- [ ] Model files generated and present for BTC, ETH, SOL
+- [ ] All 9 tests pass
+- [ ] `run_once()` completes within 30s (signal gen + 3 orders)
+- [ ] JSONL logs written with correct schema per trade
+- [ ] SIGTERM handler closes positions cleanly
+- [ ] `ruff check` passes
+- [ ] README documents: setup, env vars, run commands, log format
 
-## Deployment (Manual, Testnet Only)
+---
+
+## README Template
+
+````markdown
+# Live Paper Trader
+
+Trades BTC-USD, ETH-USD, SOL-USD on dYdX v4 testnet using LightGBM signals.
+
+## Setup
 
 ```bash
-# 1. Install dependencies
 cd llm-quant-finance
+source .venv/bin/activate
 pip install -r requirements-backtest.txt
-pip install schedule python-dotenv
-
-# 2. Set env vars
-export DYDX_MNEMONIC="<your testnet seed phrase>"
-export BINANCE_API_KEY="<public key, not needed for public candles>"
-
-# 3. Run once (test)
-python -m backtesting.live.paper_trader --once
-
-# 4. Run daemon (background)
-nohup python -m backtesting.live.paper_trader > logs/daemon.log 2>&1 &
+export DYDX_MNEMONIC="<your 24-word seed phrase>"
 ```
 
-## Notes
+## First Run
 
-- **Testnet-only phase:** This is paper trading on free testnet USDC. Not real money.
-- **Next phase:** Mainnet with real capital (requires separate task, API key rotation, risk framework)
-- **Monitoring:** Logs accumulate in `backtesting/live/logs/`; use daily rotation script if running long-term
-- **Regime tracking:** `live_regime.py` already updated every run; this daemon just reads current state
-- **Stop-loss logic:** Limit orders placed on dYdX; if trade moves against stop-loss before it fills, we're okay (position still open, will close on next signal)
+```bash
+# Generate testnet wallet (one-time)
+python -m backtesting.live.setup_testnet
 
-## Related Tasks
+# Run one cycle (test)
+python -m backtesting.live.paper_trader --once
 
-- **Dependency:** Task 1 (dYdX Adapter) must complete first
-- **Feeds into:** Future mainnet adapter (Task 3, if approved)
-- **Uses:** Trained models from S3A (microcap_swing)
-- **Uses:** Regime data from S10 (microcap_swing)
+# Run daemon (background, 15m cycles)
+nohup python -m backtesting.live.paper_trader --daemon > backtesting/live/logs/daemon.log 2>&1 &
+```
+
+## Log Format
+
+Logs are written to `backtesting/live/logs/paper_trader_YYYY-MM-DD.jsonl`:
+```json
+{"timestamp": "...", "symbol": "BTC-USD", "signal": "LONG",
+ "confidence": 0.72, "position_size_usd": 18.0,
+ "order_id": "...", "fill_price": 84250.0, "status": "FILLED"}
+```
+````
+
+---
+
+## Files to Create / Modify
+
+```
+llm-quant-finance/
+├── microcap_swing/
+│   ├── src/
+│   │   └── model_lightgbm.py          MODIFY: add final_booster to results + save_model()
+│   └── data/
+│       └── models/                     CREATE (auto by script)
+│           ├── btc_15m_final.lgb
+│           ├── eth_15m_final.lgb
+│           └── sol_15m_final.lgb
+└── backtesting/
+    └── live/
+        ├── lgbm_signal_generator.py    CREATE
+        ├── paper_trader.py             CREATE
+        ├── README.md                   CREATE
+        └── tests/
+            └── test_paper_trader.py   CREATE
+```
