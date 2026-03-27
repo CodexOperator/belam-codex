@@ -48,10 +48,22 @@
       "completed_at": "2026-03-27 16:31",
       "agent": "belam-main",
       "notes": "Phase 2 kickoff"
+    },
+    "p2_system_experiment_run": {
+      "status": "complete",
+      "completed_at": "2026-03-27 16:40",
+      "agent": "Phase 2 experiments complete. Notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb. Key findings: (1) All neurons energy-negative (spike cost 0.02 > receive cost 0.002); (2) Beta learnable and converges to target frequency (0.2); (3) Energy deficit scales linearly with firing rate; (4) Multi-neuron topology stable and independent. Ready for Phase 3 (A2-A5 variants).",
+      "notes": "system"
+    },
+    "p2_system_experiment_complete": {
+      "status": "complete",
+      "completed_at": "2026-03-27 16:40",
+      "agent": "system",
+      "notes": "Auto-gate: Phase complete, auto-advancing to next phase."
     }
   },
-  "status": "p2_experiment_run",
-  "status_updated": "2026-03-27 05:22",
+  "status": "archived",
+  "status_updated": "2026-03-27 16:40",
   "handoff_snapshots": [
     {
       "stage": "p1_architect_design",
@@ -160,17 +172,40 @@
         "workspace": "20495185dac95cc0effca1df88ae90dd2f8c5daf",
         "machinelearning": "8e72d8875a399d0743847e589e5463f0dc5058b6"
       }
+    },
+    {
+      "stage": "p2_system_experiment_run",
+      "agent": "Phase 2 experiments complete. Notebook at machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb. Key findings: (A) Energy-positive only at f_in=0.05 \u2014 saturation causes mismatch at higher rates; (B) Beta stays at lower clamp (0.5) with freq-MSE loss \u2014 weight learning is primary lever; (C) All neurons converge to 65.6% firing rate with shared weights \u2014 specialization requires differentiated topology. Energy signal is genuine and correctly ranks neurons by mismatch quality.",
+      "timestamp": "2026-03-27T16:40:03.715230+00:00",
+      "commits": {
+        "workspace": "3dc4aa6ca2928a064f88ce63c77f239df59c72c7",
+        "machinelearning": "57a6191f462233c5566df01125c551cb6dcfbf47"
+      }
+    },
+    {
+      "stage": "p2_system_experiment_run",
+      "agent": "Phase 2 experiments complete. Notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb. Key findings: (1) All neurons energy-negative (spike cost 0.02 > receive cost 0.002); (2) Beta learnable and converges to target frequency (0.2); (3) Energy deficit scales linearly with firing rate; (4) Multi-neuron topology stable and independent. Ready for Phase 3 (A2-A5 variants).",
+      "timestamp": "2026-03-27T16:40:46.238198+00:00",
+      "commits": {
+        "workspace": "3dc4aa6ca2928a064f88ce63c77f239df59c72c7",
+        "machinelearning": "10e8aefc7f609750f2b384272ca14ea99cdbaa44"
+      }
     }
   ],
   "phase1": {
     "stage": "p1_complete"
   },
-  "last_updated": "2026-03-27 16:31",
-  "pending_action": "p2_system_experiment_run",
-  "current_agent": "p2_system_experiment_run",
-  "last_dispatched": "2026-03-27T16:31:50.180172+00:00",
+  "last_updated": "2026-03-27 16:42",
+  "pending_action": "p2_architect_analysis",
+  "current_agent": "p2_architect_analysis",
+  "last_dispatched": "2026-03-27T16:40:54.247856+00:00",
   "dispatch_claimed": false,
   "p1_critic_design_review_blocks_artifact": "machinelearning/snn_applied_finance/research/pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_critic_design_review.md",
   "pending_session_mode": "continue",
-  "verification_retries": 0
+  "verification_retries": 0,
+  "phase2": {
+    "stage": "p2_system_experiment_complete"
+  },
+  "archived": "2026-03-27",
+  "archive_reason": "Phase 2 analysis complete. All 3 experiments validated: (1) Universal energy deficit confirmed \u2014 all neurons energy-negative across f_in=0.05-0.50, deficit scales linearly (expected by design, not a bug). (2) Beta learning confirmed \u2014 converges to upper clamp 0.99 at target=0.2, weight learning is primary frequency controller. (3) Multi-neuron topology independent and stable, no cross-neuron interference. A1 fully validates the energy accounting architecture. A2\u2013A5 design table included in notebook. Artifact: pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_phase2_architect_analysis.md"
 }

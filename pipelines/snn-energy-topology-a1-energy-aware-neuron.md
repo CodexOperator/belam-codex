@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p2_experiment_run
+status: archived
 priority: high
 type: research
 version: snn-energy-topology-a1-energy-aware-neuron
@@ -11,6 +11,8 @@ supersedes:
 tags: [snn, research, neuron-architecture, energy-model]
 project: snn-energy-topology-research
 started: 2026-03-27
+archived: 2026-03-27
+archive_reason: Phase 2 analysis complete. All 3 experiments validated: (1) Universal energy deficit confirmed — all neurons energy-negative across f_in=0.05-0.50, deficit scales linearly (expected by design, not a bug). (2) Beta learning confirmed — converges to upper clamp 0.99 at target=0.2, weight learning is primary frequency controller. (3) Multi-neuron topology independent and stable, no cross-neuron interference. A1 fully validates the energy accounting architecture. A2–A5 design table included in notebook. Artifact: pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_phase2_architect_analysis.md
 ---
 
 # Implementation Pipeline: SNN-ENERGY-TOPOLOGY-A1-ENERGY-AWARE-NEURON
@@ -43,6 +45,14 @@ _Architect designs → Critic reviews → Builder implements_
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
+
+### Stage History
+| Stage | Date | Agent | Notes |
+|-------|------|-------|-------|
+| p2_system_experiment_run | 2026-03-27 | Phase 2 experiments complete. Notebook at machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb. Key findings: (A) Energy-positive only at f_in=0.05 — saturation causes mismatch at higher rates; (B) Beta stays at lower clamp (0.5) with freq-MSE loss — weight learning is primary lever; (C) All neurons converge to 65.6% firing rate with shared weights — specialization requires differentiated topology. Energy signal is genuine and correctly ranks neurons by mismatch quality. | system |
+| p2_system_experiment_complete | 2026-03-27 | system | Auto-gate: Phase complete, auto-advancing to next phase. |
+| p2_system_experiment_run | 2026-03-27 | Phase 2 experiments complete. Notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb. Key findings: (1) All neurons energy-negative (spike cost 0.02 > receive cost 0.002); (2) Beta learnable and converges to target frequency (0.2); (3) Energy deficit scales linearly with firing rate; (4) Multi-neuron topology stable and independent. Ready for Phase 3 (A2-A5 variants). | system |
+| p2_system_experiment_complete | 2026-03-27 | system | Auto-gate: Phase complete, auto-advancing to next phase. |
 
 ### Feedback
 _(Shael's feedback goes here when Phase 1 is complete and reviewed)_
