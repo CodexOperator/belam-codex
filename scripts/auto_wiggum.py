@@ -50,8 +50,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--stage", help="Pipeline stage (optional context)")
     p.add_argument("--no-reset", action="store_true",
                    help="Skip session reset (use for continue-mode or recovery into existing session)")
-    p.add_argument("--complete-on-exit", action="store_true",
-                   help="After timeout, call pipeline_orchestrate.py to complete the stage")
+
+    exit_group = p.add_mutually_exclusive_group()
+    exit_group.add_argument("--complete-on-exit", action="store_true",
+                   help="After timeout, call pipeline_orchestrate.py to complete the stage (ADVANCES pipeline). "
+                        "WARNING: only use this if you are certain partial work is acceptable. "
+                        "Default (no flag) is to restart the stage.")
+    exit_group.add_argument("--restart-on-exit", action="store_true",
+                   help="After timeout, reset the pipeline status back to the current stage so it can be "
+                        "re-kicked. This is the safe default for hard timeouts.")
     return p
 
 
@@ -147,6 +154,42 @@ def send_message_with_retry(agent: str, message: str, retries: int = 1, backgrou
 # Steer message
 # ---------------------------------------------------------------------------
 
+def abort_session(agent: str) -> bool:
+    """Send sessions.abort to stop any active run so the steer message lands cleanly.
+    
+    Returns True if abort succeeded or there was nothing to abort.
+    The agent session stays alive — only the current in-progress run is stopped.
+    """
+    import json as _json
+    key = session_key(agent)
+    log(f"Aborting active run on {key} so steer message lands cleanly …")
+    result = subprocess.run(
+        ["openclaw", "gateway", "call", "sessions.abort",
+         "--json", "--params", _json.dumps({"key": key})],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    if result.returncode != 0:
+        log(f"WARNING: sessions.abort failed (exit {result.returncode}): {result.stderr.strip()[:200]}")
+        return False
+    try:
+        data = _json.loads(result.stdout)
+        if data.get("ok"):
+            aborted = data.get("abortedRunId")
+            if aborted:
+                log(f"Aborted run: {aborted}")
+            else:
+                log("No active run to abort (agent was already idle).")
+            return True
+        else:
+            log(f"WARNING: sessions.abort returned ok=false: {result.stdout.strip()}")
+            return False
+    except _json.JSONDecodeError:
+        log(f"WARNING: sessions.abort returned non-JSON: {result.stdout.strip()}")
+        return False
+
+
 def build_steer_message(remaining_seconds: int, pipeline: str | None, stage: str | None) -> str:
     pipeline_line = ""
     if pipeline and stage:
@@ -183,6 +226,28 @@ def complete_pipeline_stage(pipeline: str, stage: str) -> bool:
         log(f"WARNING: pipeline complete failed (exit {result.returncode}): {result.stderr.strip()}")
         return False
     log(f"Pipeline stage marked complete.")
+    return True
+
+
+def restart_pipeline_stage(pipeline: str, stage: str) -> bool:
+    """Reset pipeline status back to the current stage so it can be re-kicked.
+    
+    This is the safe timeout path — the stage is incomplete due to hard timeout,
+    so we rewind status to the stage name rather than advancing past it.
+    Returns True on success.
+    """
+    workspace = Path(__file__).parent.parent
+    script = workspace / "scripts" / "pipeline_orchestrate.py"
+    log(f"Resetting pipeline status to stage: {pipeline} {stage} (timeout restart) …")
+    result = subprocess.run(
+        ["python3", str(script), pipeline, "status", stage],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        log(f"WARNING: pipeline status reset failed (exit {result.returncode}): {result.stderr.strip()}")
+        return False
+    log(f"Pipeline status reset to {stage} — ready to be re-kicked.")
     return True
 
 
@@ -235,7 +300,14 @@ def run(args: argparse.Namespace) -> int:
     log(f"Sleeping {steer_delay}s until steer threshold …")
     time.sleep(steer_delay)
 
-    # ── 4. Send steer message ──────────────────────────────────────────────
+    # ── 4. Abort active run + send steer message ───────────────────────────
+    # Abort first so the agent stops mid-execution and actually reads the steer.
+    # Without this, a long tool call (e.g. running tests) would finish before
+    # the steer message is processed, leaving no time to write the summary.
+    abort_session(args.agent)
+    # Small grace period for the abort to propagate before injecting the steer.
+    time.sleep(2)
+
     steer_msg = build_steer_message(remaining_at_steer, args.pipeline, args.stage)
     log(f"Sending steer message ({remaining_at_steer}s remaining) …")
     if not send_message_with_retry(args.agent, steer_msg):
@@ -252,8 +324,14 @@ def run(args: argparse.Namespace) -> int:
     # ── 6. Finalize ───────────────────────────────────────────────────────
     log(f"Hard timeout reached for agent={args.agent}.")
 
-    if args.complete_on_exit and args.pipeline and args.stage:
-        complete_pipeline_stage(args.pipeline, args.stage)
+    if args.pipeline and args.stage:
+        if args.complete_on_exit:
+            # Explicit forward-advance — caller opted in
+            complete_pipeline_stage(args.pipeline, args.stage)
+        else:
+            # Default safe path: restart the stage (rewind status, don't advance)
+            # Covers both --restart-on-exit (explicit) and no flag (implicit default)
+            restart_pipeline_stage(args.pipeline, args.stage)
 
     log("Auto-Wiggum done. Exit 0.")
     return 0

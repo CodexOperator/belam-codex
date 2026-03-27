@@ -662,7 +662,9 @@ def main():
                 '--task', task_msg,
                 '--pipeline', args.version,
                 '--stage', first_stage,
-                '--complete-on-exit',
+                # Default (no flag): restart stage on hard timeout — safe recovery path.
+                # Use --complete-on-exit only if caller explicitly wants forward-advance.
+                '--restart-on-exit',
             ]
             # Launch in background (nohup-style)
             proc = _sp.Popen(
