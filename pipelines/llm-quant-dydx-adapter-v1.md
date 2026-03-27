@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_complete
+status: archived
 priority: critical
 type: builder-first
 version: llm-quant-dydx-adapter-v1

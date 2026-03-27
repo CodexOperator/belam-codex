@@ -1,7 +1,7 @@
 ---
 primitive: task
-status: open
-priority: medium
+status: complete
+priority: critical
 created: 2026-03-27
 owner: belam
 depends_on: []

@@ -1,0 +1,15 @@
+{
+  "version": "llm-quant-paper-trader-v1",
+  "completed_stage": "pipeline_created",
+  "next_stage": "p1_builder_implement",
+  "next_agent": "builder",
+  "timestamp": "2026-03-27T16:00:05.077521+00:00",
+  "pipeline_session_id": "528190c5-ec67-47e7-bb06-5ff8e257d9f7",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
