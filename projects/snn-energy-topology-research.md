@@ -71,4 +71,8 @@ Uses 1-minute candle data from microcap swing data pipeline, resampled to 15m/1h
 
 ## Implementation
 
-Pure PyTorch — build from scratch. No snnTorch (too rigid for custom energy/topology dynamics). Keep neuron implementation clean and modular so each component (energy, frequency matching, topology) can be tested independently.
+- **Code directory:** `machinelearning/snn_applied_finance/snn_energy_topology/`
+- **Pure PyTorch** — build from scratch. No snnTorch (too rigid for custom energy/topology dynamics).
+- **Pipeline template:** research-pipeline (NOT builder-first — this is exploratory research)
+- **Synthetic data:** Group A ONLY (pure neuron mechanics validation). All architecture comparisons (Group B+) use real market data from the start. Lesson: synthetic performance doesn't predict market performance, and synthetic-to-real integration causes bugs.
+- Keep neuron implementation clean and modular so each component (energy, frequency matching, topology) can be tested independently.

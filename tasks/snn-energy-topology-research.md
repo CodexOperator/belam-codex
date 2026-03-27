@@ -100,7 +100,7 @@ Everything else is gated on this group. If energy-aware frequency matching doesn
 
 ## Group B: Architecture Variants
 
-Test topology variants on synthetic signal detection before market data.
+Test topology variants on **real market data** (BTC 15-min candles). No synthetic data — synthetic performance doesn't predict market performance and causes integration bugs later.
 
 ### B1: Architecture Baseline — Fixed Feedforward SNN
 **Depends:** A1, A2, A3
@@ -109,9 +109,10 @@ Test topology variants on synthetic signal detection before market data.
 - Fixed architecture: Input → Hidden → Output
 - Same energy model and frequency matching as custom variants
 - This is the control group — how much does self-organization add?
-- Test on: synthetic time series with regime changes, simple pattern detection
+- **Test on:** BTC 15-min candles from `snn_applied_finance/microcap_swing/data/`, next-10-candle direction prediction
+- Establish baseline accuracy and energy metrics
 **Acceptance:**
-- [ ] Baseline accuracy and energy metrics established
+- [ ] Baseline accuracy and energy metrics established on real market data
 - [ ] Comparison framework ready (metrics: accuracy, energy efficiency, adaptation speed)
 
 ### B2: Self-Organizing Processing Cluster — Variant A
@@ -121,10 +122,10 @@ Test topology variants on synthetic signal detection before market data.
 - Processing neurons subscribe to input and each other (pull-only)
 - Output neurons subscribe to processing neurons only
 - All connection rules enforced
-- Same synthetic tests as B1 for direct comparison
+- **Same BTC 15-min data as B1** for direct comparison
 - Analyze: what topology emerges? Do processing neurons specialize?
 **Acceptance:**
-- [ ] Network trains and converges
+- [ ] Network trains and converges on real data
 - [ ] Outperforms or matches B1 baseline
 - [ ] Topology analysis: connection graph visualization, neuron specialization metrics
 - [ ] Energy efficiency comparison vs B1
@@ -136,7 +137,7 @@ Test topology variants on synthetic signal detection before market data.
 - Compare: does direct input access help or hurt output quality?
 - Hypothesis: might help for simple signals, hurt for complex ones (bypasses processing)
 **Acceptance:**
-- [ ] Direct comparison with B2 on same test suite
+- [ ] Direct comparison with B2 on same BTC 15-min data
 - [ ] Analysis of when/why output neurons choose to read input directly vs through processing
 
 ### B4: Connection Limits & Scaling — Max K Connections
