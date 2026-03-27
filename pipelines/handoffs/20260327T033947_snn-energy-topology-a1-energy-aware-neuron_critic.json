@@ -1,0 +1,15 @@
+{
+  "version": "snn-energy-topology-a1-energy-aware-neuron",
+  "completed_stage": "p1_architect_design",
+  "next_stage": "p1_critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-27T03:39:47.585702+00:00",
+  "pipeline_session_id": "917cc808-7381-4d94-8b4d-0d5ba73ba172",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
