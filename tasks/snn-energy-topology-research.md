@@ -9,12 +9,14 @@ upstream: [snn-standard-model, microcap-swing-signal-extraction]
 downstream: []
 tags: [snn, research, neuron-architecture, energy-model, topology, frequency-matching]
 project: snn-energy-topology-research
-subtasks: ["{'id': 'A1', 'title': 'Energy-Aware LIF Neuron — Base Implementation', 'status': 'open', 'depends_on': []}", "{'id': 'A2', 'title': 'Frequency Matching Loss Function', 'status': 'open', 'depends_on': ['A1']}", "{'id': 'A3', 'title': 'Frequency Band Quantization', 'status': 'open', 'depends_on': ['A2']}", "{'id': 'A4', 'title': 'Differential Output Under Energy Pressure', 'status': 'open', 'depends_on': ['A1', 'A2']}", "{'id': 'A5', 'title': 'Pull-Only Connection Dynamics', 'status': 'open', 'depends_on': ['A1']}", "{'id': 'B1', 'title': 'Architecture Baseline — Fixed Feedforward SNN', 'status': 'open', 'depends_on': ['A1', 'A2', 'A3']}", "{'id': 'B2', 'title': 'Self-Organizing Processing Cluster — Variant A (output reads processing only)', 'status': 'open', 'depends_on': ['A5', 'B1']}", "{'id': 'B3', 'title': 'Self-Organizing Processing Cluster — Variant B (output reads processing + input)', 'status': 'open', 'depends_on': ['B2']}", "{'id': 'B4', 'title': 'Connection Limits & Scaling — Max K Connections', 'status': 'open', 'depends_on': ['B2']}", "{'id': 'C1', 'title': 'Single-Indicator Micro-Networks — Candles Only', 'status': 'open', 'depends_on': ['B2']}", "{'id': 'C2', 'title': 'Single-Indicator Micro-Networks — Individual Indicators', 'status': 'open', 'depends_on': ['C1']}", "{'id': 'C3', 'title': 'Micro-Network Ensemble — Combine Trained Specialists', 'status': 'open', 'depends_on': ['C1', 'C2']}", "{'id': 'D1', 'title': 'All-Indicators Monolithic Network', 'status': 'open', 'depends_on': ['B2']}", "{'id': 'D2', 'title': 'Ensemble vs Monolithic Comparison', 'status': 'open', 'depends_on': ['C3', 'D1']}", "{'id': 'E1', 'title': 'Multi-Horizon Prediction — 5/10/50 Candle Windows', 'status': 'open', 'depends_on': ['D2']}", "{'id': 'E2', 'title': 'Energy-Optimal Spike Rates Across Horizons', 'status': 'open', 'depends_on': ['E1']}", "{'id': 'F1', 'title': 'Research Synthesis & Architecture Recommendations', 'status': 'open', 'depends_on': ['D2', 'E2']}"]
+subtasks: ["{'id': 'A1', 'title': 'Energy-Aware LIF Neuron — Base Implementation', 'status': 'open', 'depends_on': []}", "{'id': 'A2', 'title': 'Frequency Matching Loss Function', 'status': 'open', 'depends_on': ['A1']}", "{'id': 'A3', 'title': 'Frequency Band Quantization', 'status': 'open', 'depends_on': ['A2']}", "{'id': 'A4', 'title': 'Differential Output Under Energy Pressure', 'status': 'open', 'depends_on': ['A1', 'A2']}", "{'id': 'A5a', 'title': 'Pull-Only Connection Mechanics — Subscribe/Unsubscribe', 'status': 'open', 'depends_on': ['A1']}", "{'id': 'A5b', 'title': 'Fold-Based Connection Restructuring & Meta-Learning', 'status': 'open', 'depends_on': ['A5a']}", "{'id': 'A5c', 'title': 'Connection Energy Economics — Formation Cost & Natural Decay', 'status': 'open', 'depends_on': ['A5a']}", "{'id': 'A5d', 'title': 'Layer Rule Enforcement & Small Cluster Integration', 'status': 'open', 'depends_on': ['A5b', 'A5c']}", "{'id': 'B1', 'title': 'Architecture Baseline — Fixed Feedforward SNN on BTC Data', 'status': 'open', 'depends_on': ['A1', 'A2', 'A3']}", "{'id': 'B2a', 'title': 'Full Architecture Assembly — Input/Processing/Output on BTC Data', 'status': 'open', 'depends_on': ['A5d', 'B1']}", "{'id': 'B2b', 'title': 'Topology Analysis — Connection Graphs & Neuron Specialization', 'status': 'open', 'depends_on': ['B2a']}", "{'id': 'B3', 'title': 'Self-Organizing Variant B — Output Reads Processing + Input', 'status': 'open', 'depends_on': ['B2a']}", "{'id': 'B4', 'title': 'Connection Limits & Scaling — Max K Connections', 'status': 'open', 'depends_on': ['B2a']}", "{'id': 'C1', 'title': 'Single-Indicator Micro-Networks — Candles Only', 'status': 'open', 'depends_on': ['B2a']}", "{'id': 'C2a', 'title': 'Single-Indicator Micro-Networks — Indicator Only (Various Formats)', 'status': 'open', 'depends_on': ['C1']}", "{'id': 'C2b', 'title': 'Paired Micro-Networks — Single Indicator + Candle Data (Various Formats)', 'status': 'open', 'depends_on': ['C1']}", "{'id': 'C3', 'title': 'Micro-Network Ensemble — Combine Trained Specialists', 'status': 'open', 'depends_on': ['C1', 'C2a', 'C2b']}", "{'id': 'D1', 'title': 'All-Indicators Monolithic Network', 'status': 'open', 'depends_on': ['B2a']}", "{'id': 'D2', 'title': 'Ensemble vs Monolithic Comparison', 'status': 'open', 'depends_on': ['C3', 'D1']}", "{'id': 'E1', 'title': 'Multi-Horizon Prediction — 5/10/50 Candle Windows', 'status': 'open', 'depends_on': ['D2']}", "{'id': 'E2', 'title': 'Energy-Optimal Spike Rates Across Horizons', 'status': 'open', 'depends_on': ['E1']}", "{'id': 'F1', 'title': 'Research Synthesis & Architecture Recommendations', 'status': 'open', 'depends_on': ['D2', 'E2']}"]
 ---
 
 # SNN Energy-Topology Research — Subtask Breakdown
 
 Master task for the energy-aware, self-organizing SNN architecture research.
+All code lives in `machinelearning/snn_applied_finance/snn_energy_topology/`.
+Pipeline template: **research-pipeline** for all subtasks.
 
 ## Project Reference
 `projects/snn-energy-topology-research.md`
@@ -23,13 +25,13 @@ Master task for the energy-aware, self-organizing SNN architecture research.
 
 ## Group A: Core Neuron Mechanics (Foundation)
 
-Everything else is gated on this group. If energy-aware frequency matching doesn't produce meaningful behavior on synthetic signals, we retool before using market data.
+Everything else is gated on this group. If energy-aware frequency matching doesn't produce meaningful behavior on synthetic signals, we retool before using market data. Group A is the ONLY group that uses synthetic data — all subsequent groups use real market data.
 
 ### A1: Energy-Aware LIF Neuron — Base Implementation
 **Depends:** None
 **Scope:**
 - Pure PyTorch implementation of a leaky integrate-and-fire neuron with energy accounting
-- Energy costs: spike emission (high), spike reception (low), connection maintenance (low/ongoing)
+- Energy costs: spike emission (high), spike reception (low)
 - Energy earned: proportional to frequency match accuracy
 - Net energy tracked per neuron per batch
 - Weight clamping: 0.1–10 range
@@ -79,20 +81,64 @@ Everything else is gated on this group. If energy-aware frequency matching doesn
 - [ ] Total energy consumption measurably lower than unconstrained version
 - [ ] Rate differential between classes is clear and consistent
 
-### A5: Pull-Only Connection Dynamics
+### A5a: Pull-Only Connection Mechanics — Subscribe/Unsubscribe
 **Depends:** A1
 **Scope:**
-- Implement connection formation/breaking mechanism: per-batch topology updates
-- Each neuron decides which inputs to subscribe to (pull-only)
-- Connection cost: forming costs energy, maintenance is ongoing drain, breaking is free
-- Unused connections (low signal contribution) naturally decay when energy budget is tight
-- Per-sample weight adjustment (fine-tune within batch)
-- Per-batch structural adjustment (subscribe/unsubscribe)
-- Enforce layer rules: processing can't connect to output, input doesn't initiate
-- Test on small (5-10 neuron) processing cluster: do stable connection patterns emerge?
+- Implement the core pull-only connection mechanism: each neuron decides which inputs to subscribe to
+- Per-sample weight adjustment (fine-tuning within batch — small learning rate)
+- Per-batch structural adjustment (subscribe/unsubscribe decisions — topology changes)
+- **Per-fold connection restructuring:** After each fold, the network reviews how it could have done the fold better, adjusts connections, then re-tests on the same fold with new connections. Repeat 3× per fold before moving on.
+- Folds are small (mini-folds)
+- Interleave folds from different market regimes (bull/bear/sideways) to force generalization
+- Between folds: weights get a randomized offset from their previous state (not reset, nudged) — prevents memorization while preserving meaningful learned structure
+- Connection state persists across folds — the network accumulates structural knowledge
+- Test: does the network develop stable connection patterns that generalize across regime-interleaved folds?
 **Acceptance:**
-- [ ] Connections form and break based on energy economics
-- [ ] Layer rules enforced (no illegal connections)
+- [ ] Subscribe/unsubscribe mechanism works (neurons can add/drop inputs)
+- [ ] Per-sample fine weight adjustment implemented
+- [ ] Per-batch structural adjustment implemented
+- [ ] 3× fold replay with connection restructuring shows measurable improvement
+- [ ] Randomized weight offset preserves meaningful state between folds
+- [ ] Network handles regime-interleaved folds without catastrophic forgetting
+
+### A5b: Fold-Based Connection Restructuring & Meta-Learning
+**Depends:** A5a
+**Scope:**
+- Formalize the fold-replay-restructure loop as a training protocol
+- Analyze: what does the network learn from the 3× replay? Does the 3rd pass consistently beat the 1st?
+- Track connection churn: how many connections change per replay? Does it stabilize?
+- Track weight offset impact: how far do weights drift from their nudged starting point?
+- Document the meta-learning dynamics: is the network learning *how to restructure* or just *which connections to keep*?
+**Acceptance:**
+- [ ] Replay improvement curve documented (1st vs 2nd vs 3rd pass per fold)
+- [ ] Connection churn analysis (convergence rate)
+- [ ] Weight drift analysis
+- [ ] Meta-learning characterization
+
+### A5c: Connection Energy Economics — Formation Cost & Natural Decay
+**Depends:** A5a
+**Scope:**
+- Connection formation costs energy (investment to subscribe)
+- Connection maintenance is ongoing energy drain per batch
+- Connection breaking is free — just stop spending (natural atrophy from disuse)
+- Energy budget constrains total connections: neurons that earn more energy can afford more connections
+- Test: does energy pressure create meaningful sparsity? Do useful connections survive and useless ones decay?
+**Acceptance:**
+- [ ] Formation/maintenance costs correctly deducted
+- [ ] Unused connections decay naturally when energy is tight
+- [ ] Energy-rich neurons maintain more connections than energy-poor ones
+- [ ] Resulting topology is meaningfully sparser than unconstrained version
+
+### A5d: Layer Rule Enforcement & Small Cluster Integration
+**Depends:** A5b, A5c
+**Scope:**
+- Enforce layer rules: processing can subscribe to input + processing only (not output), output subscribes to processing (variant A) or processing + input (variant B), input doesn't initiate connections
+- Integration test: 5-10 neuron processing cluster with 3-4 inputs and 2 outputs
+- Full stack: energy accounting + pull-only connections + energy economics + layer rules + fold-based training
+- Verify everything works together on synthetic data before Group B hits real market data
+**Acceptance:**
+- [ ] Layer rules enforced (no illegal connections form)
+- [ ] Full stack integration works (no component conflicts)
 - [ ] Stable topology emerges after training on consistent signal
 - [ ] Topology changes when signal characteristics change
 
@@ -102,7 +148,7 @@ Everything else is gated on this group. If energy-aware frequency matching doesn
 
 Test topology variants on **real market data** (BTC 15-min candles). No synthetic data — synthetic performance doesn't predict market performance and causes integration bugs later.
 
-### B1: Architecture Baseline — Fixed Feedforward SNN
+### B1: Architecture Baseline — Fixed Feedforward SNN on BTC Data
 **Depends:** A1, A2, A3
 **Scope:**
 - Standard feedforward SNN with energy-aware neurons but NO self-organizing topology
@@ -115,33 +161,46 @@ Test topology variants on **real market data** (BTC 15-min candles). No syntheti
 - [ ] Baseline accuracy and energy metrics established on real market data
 - [ ] Comparison framework ready (metrics: accuracy, energy efficiency, adaptation speed)
 
-### B2: Self-Organizing Processing Cluster — Variant A
-**Depends:** A5, B1
+### B2a: Full Architecture Assembly — Input/Processing/Output on BTC Data
+**Depends:** A5d, B1
 **Scope:**
-- Full architecture: Input (broadcast) → Processing cluster (self-organizing) → Output (reads processing only)
+- Assemble the full architecture: Input (broadcast) → Processing cluster (self-organizing) → Output (reads processing only — Variant A)
 - Processing neurons subscribe to input and each other (pull-only)
 - Output neurons subscribe to processing neurons only
 - All connection rules enforced
-- **Same BTC 15-min data as B1** for direct comparison
-- Analyze: what topology emerges? Do processing neurons specialize?
+- **Train on BTC 15-min candles**, same target as B1 for direct comparison
+- Focus on: does it converge? Does it match or beat B1?
 **Acceptance:**
-- [ ] Network trains and converges on real data
-- [ ] Outperforms or matches B1 baseline
-- [ ] Topology analysis: connection graph visualization, neuron specialization metrics
-- [ ] Energy efficiency comparison vs B1
+- [ ] Network trains and converges on real BTC data
+- [ ] Accuracy comparison vs B1 baseline documented
+- [ ] Energy efficiency comparison vs B1 documented
 
-### B3: Self-Organizing Processing Cluster — Variant B
-**Depends:** B2
+### B2b: Topology Analysis — Connection Graphs & Neuron Specialization
+**Depends:** B2a
 **Scope:**
-- Same as B2 but output neurons can also subscribe to input neurons directly
+- Analyze the topology that emerged from B2a training
+- Connection graph visualization (who subscribes to whom)
+- Neuron specialization metrics: do processing neurons develop distinct roles?
+- Compare topology across different training runs — is it stable or random?
+- Energy distribution: which neurons are energy-rich vs energy-poor?
+**Acceptance:**
+- [ ] Connection graph visualizations generated
+- [ ] Neuron specialization quantified
+- [ ] Topology stability across runs assessed
+- [ ] Energy distribution analysis
+
+### B3: Self-Organizing Variant B — Output Reads Processing + Input
+**Depends:** B2a
+**Scope:**
+- Same as B2a but output neurons can also subscribe to input neurons directly
 - Compare: does direct input access help or hurt output quality?
 - Hypothesis: might help for simple signals, hurt for complex ones (bypasses processing)
 **Acceptance:**
-- [ ] Direct comparison with B2 on same BTC 15-min data
+- [ ] Direct comparison with B2a on same BTC 15-min data
 - [ ] Analysis of when/why output neurons choose to read input directly vs through processing
 
 ### B4: Connection Limits & Scaling — Max K Connections
-**Depends:** B2
+**Depends:** B2a
 **Scope:**
 - Add configurable max connections per neuron (K)
 - Test K = 2, 5, 10, unlimited on networks of size 10, 20, 50 processing neurons
@@ -156,10 +215,10 @@ Test topology variants on **real market data** (BTC 15-min candles). No syntheti
 
 ## Group C: Single-Indicator Micro-Networks & Ensemble
 
-Now apply to real market data. Each micro-network is tiny (3-10 processing neurons).
+Apply to real market data. Each micro-network is tiny (3-10 processing neurons).
 
 ### C1: Single-Indicator Micro-Networks — Candles Only
-**Depends:** B2
+**Depends:** B2a
 **Scope:**
 - Micro-network (input: OHLCV for one token, output: next N-candle direction)
 - Best architecture from Group B
@@ -172,20 +231,43 @@ Now apply to real market data. Each micro-network is tiny (3-10 processing neuro
 - [ ] Energy model behaves sensibly on real data
 - [ ] Firing patterns documented per token
 
-### C2: Single-Indicator Micro-Networks — Individual Indicators
+### C2a: Single-Indicator Micro-Networks — Indicator Only (Various Formats)
 **Depends:** C1
 **Scope:**
-- One micro-network per indicator: RSI, MACD, OBV, Bollinger %B, Volume ROC, ATR, Fear & Greed
+- One micro-network per indicator, taking ONLY the indicator as input (no candle data)
+- Indicators: RSI, MACD, OBV, Bollinger %B, Volume ROC, ATR, Fear & Greed
+- Test multiple input encoding formats per indicator:
+  - Raw value
+  - Normalized/z-scored
+  - Rate of change
+  - Discretized (binned)
 - Same architecture, same energy budget, same prediction target as C1
-- Which indicators produce the strongest individual signal?
-- Do different indicators produce different topology patterns?
+- Which indicators produce signal on their own? Which input format works best?
 **Acceptance:**
 - [ ] All indicator networks trained and evaluated
 - [ ] Ranking by accuracy and energy efficiency
+- [ ] Best input format identified per indicator
 - [ ] Topology comparison across indicators
 
+### C2b: Paired Micro-Networks — Single Indicator + Candle Data (Various Formats)
+**Depends:** C1
+**Scope:**
+- One micro-network per indicator, taking indicator + corresponding OHLCV candle data together
+- Same indicator set as C2a
+- Test input format combinations:
+  - Raw indicator + raw candles
+  - Normalized indicator + normalized candles
+  - Indicator ROC + candle ROC
+- Key question: does adding candle context improve indicator signal? By how much?
+- Compare directly against C2a (indicator-only) and C1 (candle-only)
+**Acceptance:**
+- [ ] All paired networks trained and evaluated
+- [ ] Comparison vs C2a: does adding candles help each indicator?
+- [ ] Comparison vs C1: does adding an indicator help candle-only?
+- [ ] Best pairing format identified per indicator
+
 ### C3: Micro-Network Ensemble — Combine Trained Specialists
-**Depends:** C1, C2
+**Depends:** C1, C2a, C2b
 **Scope:**
 - Feed spike outputs from all trained micro-networks into a combiner network
 - Compare combination methods:
@@ -204,12 +286,12 @@ Now apply to real market data. Each micro-network is tiny (3-10 processing neuro
 ## Group D: Monolithic Comparison
 
 ### D1: All-Indicators Monolithic Network
-**Depends:** B2
+**Depends:** B2a
 **Scope:**
 - Single larger network takes ALL indicators as input simultaneously
 - Same energy and topology rules, just bigger processing cluster
 - Larger network (20-50 processing neurons)
-- Same prediction targets as C1/C2
+- Same prediction targets as C1/C2a/C2b
 **Acceptance:**
 - [ ] Network trains and converges
 - [ ] Accuracy and energy metrics comparable with ensemble
