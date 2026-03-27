@@ -1,0 +1,15 @@
+{
+  "version": "llm-quant-dydx-adapter-v1",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-27T15:28:59.062278+00:00",
+  "pipeline_session_id": "aff3952b-33cd-4b8e-a7d7-ef310f527a44",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

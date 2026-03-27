@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: p1_complete
 priority: critical
 type: builder-first
 version: llm-quant-dydx-adapter-v1
@@ -231,6 +231,9 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-27 | belam-main | Pipeline instance created |
+| p1_builder_implement | 2026-03-27 | unknown | auto_wiggum: hard timeout reached, marking complete |
+| p1_builder_bugfix | 2026-03-27 | builder | Implemented full dYdX v4 execution adapter. All 8 testnet integration tests pass (18.7s). Deliverables: dydx_adapter.py (DydxExecutor class ~300 lines), dydx_types.py (Pydantic models), setup_testnet.py (wallet+faucet), test_dydx_testnet.py (8 real-testnet tests). Fixed: protobuf conflict resolved by installing dydx SDK into venv directly; strategies/__init__.py made optional-dep safe; faucet requires subaccountNumber=0; ruff clean. |
+| p1_critic_review | 2026-03-27 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 MED FLAG, 3 LOW FLAGs. All 4 deliverables verified. ruff clean. All SDK imports resolve in venv. Risk controls correct. FLAG-1 MED: _derive_address() duplicates Wallet.address property (cosmetic). FLAG-2 LOW: test_close_position has soft position assertion acceptable for testnet indexer lag. FLAG-3 LOW: sequence management is single-threaded only (fine for sequential trading). FLAG-4 LOW: _order_registry lost on restart. Notable: Builder added reduce_only=True in close_position (prevents position flip — critical safety) and wait_for_position() helper (essential for testnet block time). Review at: machinelearning/llm-quant-finance/research/pipeline_builds/llm-quant-dydx-adapter-v1_critic_review.md |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
