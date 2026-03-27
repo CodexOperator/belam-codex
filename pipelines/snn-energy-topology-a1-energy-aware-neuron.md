@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_complete
+status: p2_experiment_run
 priority: high
 type: research
 version: snn-energy-topology-a1-energy-aware-neuron
@@ -38,6 +38,7 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_builder_verify | 2026-03-27 | builder | Verification complete: all imports clean (no unused), package exports correct, multi-batch tensor shapes verified (8,4), spike values binary. No dead code found. 49/49 tests pass. Implementation faithful to design doc. |
 | p1_builder_verify | 2026-03-27 | builder | Verification GREEN: 9/9 tests pass. T1: imports OK. T2: file structure matches design. T3: 31 unit tests pass (energy, clamping, gradient, reset, beta). T4: deterministic input verified. T5: energy math matches doc table (f01=+1.56, f02=+1.12, f05=-0.20). T6: batch shapes (8,4) correct. T7: git committed. T8: constant frequency training OK. T9: varying frequency adaptation OK. Results: pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_test_results.md |
 | p1_critic_code_review | 2026-03-27 | critic | APPROVED: 0 BLOCKs, 0 HIGH FLAGs, 1 LOW FLAG. 49/49 tests GREEN (independently verified). 12 independent verifications passed. All 9 design decisions (D1-D9) correctly implemented. Energy math verified at all 3 frequencies (f01=+1.56, f02=+1.12, f05=-0.20). Gradient flow through beta and surrogate confirmed. No unused imports. Clean module separation (neuron/energy/surrogate). FLAG-1 LOW: unit test test_beta_gradient_flows checks grad existence but not magnitude on single-timestep-from-zero — cosmetic, covered by integration tests. Review at: pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_critic_code_review.md |
+| p1_complete | 2026-03-27 | belam-main | Phase 2 kickoff |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
