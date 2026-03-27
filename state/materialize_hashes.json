@@ -67,8 +67,8 @@
       "slug": "microcap-swing-signal-extraction"
     },
     "t6": {
-      "hash": "3b956fb3bc28",
-      "slug": "lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment"
+      "hash": "941d986c8ba8",
+      "slug": "llm-quant-dydx-adapter-desc-build-dydx-v4-execution-adapter-with-testnet-integration-tests-real-binance-candles-real-dydx-orders-part-1-of-live-paper-trading-pipeline-tags-quantdydxexecutorcrypto-priority-critical"
     },
     "t7": {
       "hash": "e5d891905afb",
@@ -1276,5 +1276,5 @@
     }
   },
   "sort_mode": "alpha",
-  "last_incremental": "2026-03-26T15:29:57Z"
+  "last_incremental": "2026-03-27T08:14:37Z"
 }
