@@ -912,6 +912,42 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
     session_mode = transition[3] if len(transition) > 3 else 'fresh'
     print(f"\n   📋 Transition: {stage} → {next_stage} ({next_agent}) [session: {session_mode}]")
 
+    # Auto-gate chain: if next_stage is a phase-complete gate with gate=auto,
+    # skip dispatching system and chain directly through to the stage after it.
+    # e.g. p1_critic_code_review → p1_complete (auto) → p2_system_experiment_run
+    if '_complete' in next_stage and next_agent == 'system':
+        try:
+            from template_parser import parse_template
+            import re as _re_gate
+            _pf = PIPELINES_DIR / f'{version}.md'
+            _ptype = None
+            if _pf.exists():
+                _m = _re_gate.search(r'^type:\s*(.+)$', _pf.read_text(errors='replace'), _re_gate.MULTILINE)
+                if _m:
+                    _ptype = _m.group(1).strip()
+            _tpl_map = {'research': 'research', 'infrastructure': 'research', 'builder-first': 'builder-first'}
+            _tpl_name = _tpl_map.get(_ptype, 'research') if _ptype else 'research'
+            tpl = parse_template(_tpl_name)
+            human_gates = tpl.get('human_gates', set())
+            if next_stage not in human_gates:
+                # Auto-gate: complete the intermediate stage and chain through
+                chain_transition = stage_trans.get(next_stage)
+                if chain_transition:
+                    print(f"\n   ⚡ Auto-gate: {next_stage} is not a human gate — chaining through")
+                    # Complete the intermediate _complete stage via pipeline_update
+                    run_pipeline_update([
+                        version, 'complete', next_stage,
+                        '--agent', 'system',
+                        '--notes', f'Auto-gate: Phase complete, auto-advancing to next phase.'
+                    ])
+                    # Use the chained transition instead
+                    transition = chain_transition
+                    next_stage, next_agent = transition[0], transition[1]
+                    session_mode = transition[3] if len(transition) > 3 else 'fresh'
+                    print(f"   📋 Chained transition: → {next_stage} ({next_agent}) [session: {session_mode}]")
+        except Exception as e:
+            print(f"   ⚠️  Auto-gate check failed (non-fatal): {e}")
+
     # Special case: local_analysis_code_review → report build (process stage, not agent)
     if stage == 'local_analysis_code_review':
         print(f"\n   📄 Analysis approved — triggering LaTeX report build...")
