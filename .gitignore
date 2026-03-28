@@ -4,3 +4,4 @@ __pycache__/
 knowledge-repo
 knowledge-repo/
 .codex_runtime/
+.env.*
