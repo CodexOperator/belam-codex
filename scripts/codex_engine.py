@@ -341,6 +341,35 @@ def get_primitives(prefix, active_only=True):
         return items
 
 
+def _get_archived_slugs(prefix):
+    """Get archived/done/superseded/complete slugs for a namespace, newest-mtime first."""
+    _, directory, special = NAMESPACE[prefix]
+    if directory is None or special:
+        return []
+    base = WORKSPACE / directory
+    if not base.exists():
+        return []
+    items = []
+    for f in base.glob('*.md'):
+        st = _quick_status(f)
+        if st and st in EXCLUDED_STATUSES:
+            items.append((f.stem, f.stat().st_mtime))
+    items.sort(key=lambda x: -x[1])  # newest first
+    return [slug for slug, _ in items]
+
+
+def _render_archived_footer(prefix, lines):
+    """Append a compact archived footer to the supermap lines for a namespace."""
+    archived = _get_archived_slugs(prefix)
+    if not archived:
+        return
+    # Truncate slugs to 40 chars for readability
+    truncated = [s[:40] + ('…' if len(s) > 40 else '') for s in archived[:3]]
+    shown = ', '.join(truncated)
+    more = f' +{len(archived) - 3} more' if len(archived) > 3 else ''
+    lines.append(f"│  ╶─ ({len(archived)} archived) {shown}{more}")
+
+
 def _quick_status(filepath):
     """Read just the frontmatter status of a file without full parse. Returns str or None."""
     try:
@@ -1342,6 +1371,7 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
                         else:
                             child_summary = _supermap_summary(prefix, child_slug, child_fp, slug_index)
                             lines.append(f"│  │  ╶─ {child_coord_full:<7} {child_summary}")
+            _render_archived_footer(prefix, lines)
             continue
 
         # ── Standard namespace rendering (non-task) ──
@@ -1388,6 +1418,8 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
             else:
                 summary = _supermap_summary(prefix, slug, fp, slug_index)
                 lines.append(f"│  ╶─ {coord:<5} {summary}")
+
+        _render_archived_footer(prefix, lines)
 
     # ── Memory section ──────────────────────────────────────────────────────────
     if only_prefixes is not None and 'm' not in only_prefixes and 'md' not in only_prefixes:
