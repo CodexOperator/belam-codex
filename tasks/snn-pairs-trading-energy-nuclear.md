@@ -1,73 +1,37 @@
 ---
 primitive: task
 status: open
-priority: critical
+priority: high
 created: 2026-03-25
 owner: belam
 depends_on: [quant-pairs-trading-energy-nuclear]
 upstream: []
 downstream: []
-tags: [snn, pairs-trading, energy, nuclear, temporal, jump-detection]
+tags: [quant, microcap-swing, model-architecture]
 ---
 
-# SNN Pairs Trading: Energy & Nuclear Indices
+## Teacher-Student: High-Confidence Label Distillation
 
-## Research Question
-Can an SNN's spike dynamics detect Poisson-distributed jump events and mean-reversion timing in energy/nuclear pair spreads better than conventional quant models? The SNN's biological analogy — neurons detecting homeostatic deviations — maps directly to spread trading.
+### Goal
+Use LGBM high-confidence predictions (>=0.80 threshold, 88-93% dir accuracy) as pseudo-labels to train student networks (ANN, SNN, LSTM) that can generalize the pattern to lower-confidence regions.
 
-## Scope
-SNN and temporal models on pair spread dynamics. Uses quant task's cointegrated pairs, OU parameters, and feature sets as floor.
+### Key Insight
+At confidence >=0.80, LGBM achieves 88-93% directional accuracy but only fires on 5-15% of candles. A student network trained on these clean labels might learn the temporal structure of what precedes a high-confidence signal and fire earlier or on edge cases LGBM misses.
 
-## Design
+### Implementation Plan
+1. Extract LGBM predictions where max class probability >= 0.80 from walk-forward CV
+2. Use these as training labels (instead of raw triple-barrier labels)
+3. Train student networks: LSTM (sequence model), ANN (feedforward), SNN (spiking)
+4. Evaluate students on full dataset - do they maintain accuracy while increasing signal rate?
+5. Compare student signal rate at matched accuracy to LGBM threshold gating
 
-### Core Hypothesis: Spike = Jump
-In the OU + Poisson framework, jumps are exactly what biological neurons are designed to detect — sudden deviations from baseline. The SNN should naturally excel at:
-1. **Jump detection:** Is this spread move a Poisson jump (don't trade) or an OU deviation (trade)?
-2. **Reversion timing:** Given a deviation, when will mean-reversion accelerate?
-3. **Regime classification:** Is the spread currently in OU regime (tradeable) or jump regime (dangerous)?
+### SNN Training Variant
+- Use the filtered high-confidence signals as spike timing targets
+- SNN can naturally encode confidence as firing rate
+- Rhythm neuron architecture maps well to regime persistence patterns
+- Links directly to SNN applied finance research (w5)
 
-### Encoding Design
-
-**Spread-native encoding:**
-- Spread Z-score → rate coding (continuous input proportional to deviation magnitude)
-- Spread velocity → delta encoding (change detection)
-- Jump indicator → binary spike input (1 when jump detected by Lee-Mykland)
-- OU residual → deviation from model prediction as continuous input
-
-**Multi-channel architecture:**
-Channel 1: Spread dynamics (Z-score, velocity, acceleration) — 6 features
-Channel 2: Market context (VIX, uranium spot, rates) — 4 features  
-Channel 3: Jump features (Poisson λ, bipower variation, jump magnitude) — 4 features
-Total: 14 input channels (same as V1 by coincidence — good for architecture reuse)
-
-### Neuron Models
-- **Adaptive LIF** — threshold adaptation after jump events creates natural "cooldown" (don't re-enter immediately after a jump)
-- **Synaptic** — dual τ captures fast reversion (hours) vs slow regime shifts (weeks)
-- **Leaky (baseline)** — standard comparison
-- **LSTM/GRU** — matched capacity baselines
-
-### Architecture Configurations
-Same grid as SNN microcap task: Small/Medium/Large/Deep/Readout variants
-Sequence lengths T ∈ [10, 20, 40] on daily data (2-8 weeks of lookback)
-
-### Evaluation
-- DM tests against quant floor (OU-based strategy, ML-enhanced strategy)
-- Jump detection accuracy: precision/recall on known jump events
-- Reversion timing: MAE on predicted days-to-reversion vs actual
-- Trading metrics: Sharpe, drawdown, win rate
-- Per-pair analysis: does SNN advantage correlate with jump frequency?
-
-## Acceptance Criteria
-- [ ] Spread-native encoding implemented
-- [ ] All neuron models × architectures tested on cointegrated pairs
-- [ ] Jump detection accuracy analysis
-- [ ] DM tests against quant floor and LSTM baselines
-- [ ] Trading strategy backtest with SNN signals
-- [ ] Per-pair diagnostic
-- [ ] Results exported + summary report
-
-## Notes
-- The biological analogy (homeostasis detection) is strong here — lean into it
-- Adaptive LIF is the theoretically motivated choice for jump/no-jump classification
-- Daily data means fewer samples — may need to pool across pairs for training
-- Jump events are rare — class imbalance is real, use appropriate handling
+### Success Criteria
+- Student network achieves >85% dir accuracy on >20% of candles (vs LGBM's 88% on 15%)
+- Signal quality maintained in walk-forward validation
+- SNN variant demonstrates frequency-domain advantages

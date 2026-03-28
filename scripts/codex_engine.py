@@ -131,17 +131,43 @@ def _mtime_sort_key(fp):
         return 0
 
 
+def _created_sort_key(fp, fm):
+    """Sort key: newest first using 'created' frontmatter field, falling back to mtime.
+
+    Reads the 'created:' frontmatter field (supports date/datetime objects from PyYAML
+    and common string formats). Falls back to file mtime if field is absent or unparseable.
+    """
+    created = fm.get('created', None)
+    if created is not None:
+        try:
+            # PyYAML may parse as date/datetime objects directly
+            if isinstance(created, datetime.datetime):
+                return -created.timestamp()
+            if isinstance(created, datetime.date):
+                return -datetime.datetime.combine(created, datetime.time.min).timestamp()
+            # String parsing fallback
+            s = str(created).strip()
+            for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d'):
+                try:
+                    return -datetime.datetime.strptime(s, fmt).timestamp()
+                except ValueError:
+                    continue
+        except Exception:
+            pass
+    return _mtime_sort_key(fp)
+
+
 SORT_MODES = {
     'alpha':    lambda slug, fp, fm: slug,
     'reverse':  lambda slug, fp, fm: '~' + slug,  # ~ sorts high → reverse alpha
     'priority': lambda slug, fp, fm: (_priority_sort_key(fm), slug),
-    'recent':   lambda slug, fp, fm: (_mtime_sort_key(fp), slug),
+    'recent':   lambda slug, fp, fm: (_created_sort_key(fp, fm), slug),
     'shuffle':  None,  # special: random.shuffle post-sort
 }
 
 _SORT_MODE_CYCLE = ['alpha', 'priority', 'recent', 'reverse']
 
-_current_sort_mode = 'alpha'
+_current_sort_mode = 'recent'
 
 
 def _load_persisted_sort_mode():
@@ -151,7 +177,7 @@ def _load_persisted_sort_mode():
     if hash_file.exists():
         try:
             data = json.loads(hash_file.read_text(encoding='utf-8'))
-            mode = data.get('sort_mode', 'alpha')
+            mode = data.get('sort_mode', 'recent')
             if mode in SORT_MODES:
                 _current_sort_mode = mode
         except Exception:
@@ -179,7 +205,7 @@ def set_sort_mode(mode):
         idx = _SORT_MODE_CYCLE.index(_current_sort_mode) if _current_sort_mode in _SORT_MODE_CYCLE else -1
         mode = _SORT_MODE_CYCLE[(idx + 1) % len(_SORT_MODE_CYCLE)]
     if mode == 'reset':
-        mode = 'alpha'
+        mode = 'recent'
     if mode == 'shuffle':
         _current_sort_mode = 'shuffle'
     elif mode in SORT_MODES:

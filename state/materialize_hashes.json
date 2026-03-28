@@ -47,8 +47,8 @@
       "slug": "snn-standard-benchmarks"
     },
     "t1": {
-      "hash": "878d9729ebef",
-      "slug": "codex-engine-enum-field-indexing"
+      "hash": "23cbf64528cd",
+      "slug": "4h-12h-daily-lightgbm-with-higher-tf-features"
     },
     "t2": {
       "hash": "968924d64d5f",
@@ -63,20 +63,20 @@
       "slug": "git-diff-handoff-context"
     },
     "t5": {
-      "hash": "c67009101d76",
-      "slug": "microcap-swing-signal-extraction"
+      "hash": "b3f330edd062",
+      "slug": "git-diff-handoff-context"
     },
     "t6": {
       "hash": "941d986c8ba8",
       "slug": "llm-quant-dydx-adapter-desc-build-dydx-v4-execution-adapter-with-testnet-integration-tests-real-binance-candles-real-dydx-orders-part-1-of-live-paper-trading-pipeline-tags-quantdydxexecutorcrypto-priority-critical"
     },
     "t7": {
-      "hash": "e5d891905afb",
-      "slug": "orchestration-engine-v2-temporal-autoclave"
+      "hash": "ffd88f22e562",
+      "slug": "indexed-subops-e0-e3"
     },
     "t8": {
-      "hash": "20e4d6378fe7",
-      "slug": "pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop"
+      "hash": "0fd13a03b118",
+      "slug": "iterative-model-improvement-loop-architecture"
     },
     "t9": {
       "hash": "d53a62f6804b",
@@ -1273,8 +1273,20 @@
     "d70": {
       "hash": "1cffdc612a5e",
       "slug": "quant-baseline-no-lstm-ensemble"
+    },
+    "t31": {
+      "hash": "409506f320a3",
+      "slug": "snn-cross-asset-stablecoin-spreads"
+    },
+    "t34": {
+      "hash": "065eba8abdc7",
+      "slug": "snn-pairs-trading-energy-nuclear"
+    },
+    "t37": {
+      "hash": "9c66760fca90",
+      "slug": "spiking-transformer-integration-research"
     }
   },
-  "sort_mode": "alpha",
-  "last_incremental": "2026-03-27T08:14:37Z"
+  "sort_mode": "recent",
+  "last_incremental": "2026-03-28T02:21:56Z"
 }

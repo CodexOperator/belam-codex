@@ -1,62 +1,40 @@
 ---
 primitive: task
 status: open
-priority: critical
+priority: high
 created: 2026-03-25
 owner: belam
 depends_on: [quant-cross-asset-stablecoin-spreads]
 upstream: [quant-baseline-v1]
 downstream: []
-tags: [snn, cross-asset, stablecoin, arbitrage, spreads, temporal]
+tags: [quant, microcap-swing, model-architecture]
 ---
 
-# SNN Cross-Asset & Stablecoin Spread Models
+## Specialist Stacking: LSTM + LGBM Cross-Model Ensemble
 
-## Research Question
-Can SNN spike dynamics detect spread regime transitions and Poisson-distributed depeg events faster than conventional quant models? The SNN's change-detection inductive bias maps naturally to spread deviations — every spread move away from equilibrium is a "spike" event.
+### Goal
+Combine LSTM and LightGBM probability outputs into a proper stacking ensemble that exploits their complementary strengths.
 
-## Scope
-SNN and temporal models on spread/basis dynamics. Uses quant task's data pipeline and results as floor.
+### Key Insight
+LSTM has high bull recall (62%) but low precision (31%). LGBM has high bull precision (62%) but low recall (28%). Stacking should AND these signals for high-precision, moderate-recall bull detection.
 
-## Design
+### Implementation Plan
+1. Enable `use_lstm=True` in synthesis config for 30m timeframe
+2. Run LSTM at both 15m and 30m to get probability outputs
+3. Feed [LGBM_P(bear,chop,bull), LSTM_P(bear,chop,bull)] as 6-dim feature vector to meta-learner
+4. Train meta-learner (logistic, small LGBM, small NN) with strict walk-forward splits
+5. Evaluate on same CV scheme as base models
+6. Compare: ensemble dir_acc vs best single model, especially bull recall + precision
 
-### Unique SNN Angle: Spread-as-Spike Encoding
-Instead of delta-encoding price features, encode the **spread deviation itself** as a spike signal:
-- Spread > threshold → excitatory spike (deviation detected)
-- Spread velocity > threshold → rate-coded urgency signal
-- This is a natural fit: biological neurons detect deviations from homeostasis, spreads ARE deviations from equilibrium
+### Cross-Timeframe Variant
+- Stack 15m LGBM + 30m LGBM + 15m LSTM + 30m LSTM = 12-dim stacking vector
+- This captures both temporal scale diversity AND model type diversity
 
-### Neuron Model Focus
-- **Adaptive LIF** — threshold adaptation creates natural "alert fatigue" → fresh sensitivity after calm periods
-- **Synaptic** — dual time constants can capture fast spread moves (short τ) vs regime shifts (long τ)
-- All standard models (Leaky, Alpha, RLeaky) for comparison
+### Success Criteria
+- Ensemble lift > best single model by >0.5%
+- Bull F1 improvement over LGBM alone
+- No degradation in bear detection
 
-### Multi-Scale Temporal Processing
-Stablecoin spreads revert on different timescales:
-- Seconds-minutes: DEX arbitrage bots (not our horizon)
-- Hours: CEX settlement, institutional rebalancing — **our target**
-- Days: Structural trust/yield differentials
-
-Test SNN with multi-scale T: [10, 20, 50, 100] on 1h candles
-
-### Hawkes Process Integration
-Self-exciting events (one depeg increases probability of another — contagion). Model as Hawkes process and use the intensity function as an SNN input feature:
-```
-λ(t) = μ + Σ α·exp(-β(t - tᵢ)) for all past events tᵢ
-```
-The SNN should learn whether to amplify or dampen the Hawkes signal.
-
-### Evaluation
-Same as quant task plus:
-- DM tests: SNN vs LSTM vs best quant model on each spread type
-- Event detection latency: how many candles before the model detects a depeg/spread widening?
-- False positive rate on depeg alerts
-- Regime transition detection speed: SNN vs rolling correlation methods
-
-## Acceptance Criteria
-- [ ] Spread-as-spike encoding implemented and compared to standard delta encoding
-- [ ] All neuron models tested on all three sub-modules
-- [ ] Hawkes process features integrated
-- [ ] DM tests against quant floor
-- [ ] Event detection latency analysis
-- [ ] Results exported + summary report
+### Dependencies
+- Current multi-TF run must complete (BTC, ETH, SOL done)
+- LSTM needs to run at 30m (currently only 15m)

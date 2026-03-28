@@ -1,33 +1,52 @@
 ---
 primitive: task
 status: open
-priority: medium
+priority: high
 created: 2026-03-24
 owner: belam
-depends_on: [persistent-e3-registry]
+depends_on: [t31, t34, t8]
 upstream: [persistent-extend-and-indexed-subops]
 downstream: []
-tags: [engine, indexed-subops, infrastructure]
+tags: [quant, microcap-swing, model-architecture]
 project: codex-engine
 ---
 
-# Indexed Sub-Operations for e0 and e3
+## Iterative Model Improvement Loop Architecture
 
-## Description
+### Goal
+Design a systematic loop that chains specialist stacking, teacher-student distillation, and signal generation into a self-improving research pipeline.
 
-Index all remaining word-based sub-operations across e0 (orchestrate) and e3 (extend) into numeric/coordinate-addressable operations. This is the final step to eliminate English words from the engine command grammar.
+### Architecture
+```
+Loop N:
+  1. Base models (LGBM, LSTM) produce predictions
+  2. High-confidence outputs become teacher labels
+  3. Student models (ANN/SNN) train on teacher labels  
+  4. Student outputs become new features for base models
+  5. Retrain base models with augmented features
+  6. Ensemble all models with updated stacking
+  7. Measure: did overall lift improve? If yes, loop N+1
+```
 
-## Scope
+### Convergence Criteria
+- Lift improvement < 0.1% between iterations → stop
+- Max 5 iterations (diminishing returns expected)
+- Walk-forward validation at every step (no leakage)
 
-1. Audit all e0 sub-operations (sweep, status, checkpoint, etc.) — assign numeric indices
-2. Audit all e3 sub-operations (register, unregister, list) — assign numeric indices
-3. Update engine parser to resolve indexed sub-ops
-4. Update LM entries with new indexed forms
-5. Backward-compatible: word forms still work, indices are aliases
+### Implementation Notes
+- Each iteration needs fresh walk-forward splits
+- Track feature importance evolution across iterations
+- Log which model type contributes most per iteration
+- Risk: overfitting cascade - each loop adds complexity
+- Mitigation: holdout test set never touched during loop
 
-## Success Criteria
+### Dependencies
+- t31 (specialist stacking) — provides the ensemble framework
+- t34 (teacher-student) — provides the distillation step
+- t8 (signal generation) — provides the feature augmentation step
+- All three must work individually before chaining
 
-- Every e0/e3 sub-operation has a numeric index
-- `e0.1` works the same as `e0 sweep` (etc.)
-- LM entries updated with indexed forms
-- Word forms remain as aliases for readability
+### Research Value
+- Proves/disproves whether iterative stacking converges or diverges
+- Identifies the information ceiling for this feature set
+- Maps which model architectures contribute unique signal
