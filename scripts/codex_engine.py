@@ -359,22 +359,178 @@ def _quick_status(filepath):
     return None
 
 
+def _build_task_tree():
+    """Build a task parent→children tree from parent_task: frontmatter fields.
+
+    Returns dict with:
+      'parents': OrderedDict of parent_slug → [(child_slug, child_fp, child_fm), ...]
+      'top_level': [(slug, fp, fm), ...] — tasks with no parent and no children
+      'parent_order': [parent_slug, ...] — ordered parent slugs
+      'all_coords': [(coord_str, slug, fp), ...] — flat list of all coords including dotted
+      'coord_to_file': {coord_str: fp} — coord → filepath mapping
+    """
+    primitives = get_primitives('t')
+
+    # Read frontmatter for all tasks
+    task_fm = {}  # slug → (fp, fm_dict)
+    for slug, fp in primitives:
+        try:
+            text = fp.read_text(encoding='utf-8', errors='replace')
+            fm_raw, _ = parse_frontmatter(text)
+            fm = dict(fm_raw)
+        except Exception:
+            fm = {}
+        task_fm[slug] = (fp, fm)
+
+    # Build parent→children map
+    parent_children = {}  # parent_slug → [(child_slug, child_fp, child_fm)]
+    children_set = set()  # slugs that are children
+    task_slugs = set(task_fm.keys())
+
+    for slug, (fp, fm) in task_fm.items():
+        parent = fm.get('parent_task', None)
+        if parent and isinstance(parent, str):
+            parent = parent.strip()
+            if parent in task_slugs:
+                if parent not in parent_children:
+                    parent_children[parent] = []
+                parent_children[parent].append((slug, fp, fm))
+                children_set.add(slug)
+            else:
+                # parent_task references non-existent slug — treat as top-level
+                import sys as _sys
+                print(f"Warning: task '{slug}' has parent_task '{parent}' which doesn't exist", file=_sys.stderr)
+
+    # Sort children within each parent by created date (newest first, matching 'recent' sort)
+    for parent_slug in parent_children:
+        children = parent_children[parent_slug]
+        children.sort(key=lambda x: _created_sort_key(x[1], x[2]))
+
+    # Determine parent ordering: by most recent child's created date
+    def _parent_sort_key(parent_slug):
+        children = parent_children.get(parent_slug, [])
+        if children:
+            # Most recent child drives parent position
+            best = min(_created_sort_key(c[1], c[2]) for c in children)
+            return best
+        # Parent with no children (shouldn't happen here, but fallback)
+        fp, fm = task_fm[parent_slug]
+        return _created_sort_key(fp, fm)
+
+    parent_order = sorted(parent_children.keys(), key=_parent_sort_key)
+
+    # Top-level tasks: not a child, not a parent
+    top_level = []
+    for slug, fp in primitives:
+        if slug in children_set:
+            continue
+        if slug in parent_children:
+            continue  # it's a parent — will be rendered with its children
+        _, fm = task_fm[slug]
+        top_level.append((slug, fp, fm))
+
+    # Build ordered list: parents (with children) + top-level, respecting sort
+    # Parents go first (sorted by most recent child), then top-level (sorted by current sort mode)
+    # Actually, interleave them by sort key so they appear naturally ordered
+    all_items = []  # (sort_key, 'parent'|'top', slug, fp, fm)
+
+    for parent_slug in parent_order:
+        fp, fm = task_fm[parent_slug]
+        sk = _parent_sort_key(parent_slug)
+        all_items.append((sk, 'parent', parent_slug, fp, fm))
+
+    for slug, fp, fm in top_level:
+        sk = _created_sort_key(fp, fm) if _current_sort_mode == 'recent' else slug
+        all_items.append((sk, 'top', slug, fp, fm))
+
+    all_items.sort(key=lambda x: x[0])
+
+    # Assign coordinates
+    all_coords = []  # (coord, slug, fp)
+    coord_to_file = {}
+    parent_idx = 0
+
+    for sk, item_type, slug, fp, fm in all_items:
+        parent_idx += 1
+        coord = f't{parent_idx}'
+        all_coords.append((coord, slug, fp))
+        coord_to_file[coord] = fp
+
+        if item_type == 'parent':
+            children = parent_children[slug]
+            for ci, (child_slug, child_fp, child_fm) in enumerate(children, 1):
+                child_coord = f't{parent_idx}.{ci}'
+                all_coords.append((child_coord, child_slug, child_fp))
+                coord_to_file[child_coord] = child_fp
+
+    return {
+        'parents': parent_children,
+        'top_level': top_level,
+        'parent_order': parent_order,
+        'all_items': all_items,
+        'all_coords': all_coords,
+        'coord_to_file': coord_to_file,
+        'task_fm': task_fm,
+    }
+
+
+def _resolve_dotted_task_coord(dotted_coord):
+    """Resolve a dotted task coordinate like 't1.1' to (slug, filepath) or None.
+
+    Returns dict with: prefix, index, filepath, slug, type, coord
+    """
+    m = re.match(r'^t(\d+)\.(\d+)$', dotted_coord, re.IGNORECASE)
+    if not m:
+        return None
+
+    tree = _build_task_tree()
+    coord_to_file = tree['coord_to_file']
+    coord_str = f't{m.group(1)}.{m.group(2)}'
+
+    if coord_str not in coord_to_file:
+        return None
+
+    fp = coord_to_file[coord_str]
+    slug = fp.stem if fp.name != 'SKILL.md' else fp.parent.name
+
+    return {
+        'prefix': 't',
+        'index': coord_str,  # dotted string, not int
+        'filepath': fp,
+        'slug': slug,
+        'type': 'tasks',
+        'coord': coord_str,
+    }
+
+
 def build_slug_index():
     """Build reverse index: slug → coord (e.g. 'indexed-command-interface' → 'd9').
-    Also maps 'decision/indexed-command-interface' style refs."""
+    Also maps 'decision/indexed-command-interface' style refs.
+    For tasks, also includes dotted subtask coordinates (e.g. 't1.1')."""
     index = {}
     for prefix in NAMESPACE:
-        primitives = get_primitives(prefix)
-        for i, (slug, filepath) in enumerate(primitives, 1):
-            coord = f'{prefix}{i}'
-            # Direct slug lookup
-            index[slug.lower()] = coord
-            # Also strip type prefixes for path-style refs like 'decision/foo'
-            for type_word in TYPE_WORD_TO_PREFIX:
-                prefix_path = type_word + '/'
-                if slug.lower().startswith(prefix_path):
-                    bare = slug[len(prefix_path):]
-                    index[bare.lower()] = coord
+        if prefix == 't':
+            # Use task tree to generate correct dotted coordinates
+            tree = _build_task_tree()
+            for coord, slug, fp in tree['all_coords']:
+                index[slug.lower()] = coord
+                for type_word in TYPE_WORD_TO_PREFIX:
+                    prefix_path = type_word + '/'
+                    if slug.lower().startswith(prefix_path):
+                        bare = slug[len(prefix_path):]
+                        index[bare.lower()] = coord
+        else:
+            primitives = get_primitives(prefix)
+            for i, (slug, filepath) in enumerate(primitives, 1):
+                coord = f'{prefix}{i}'
+                # Direct slug lookup
+                index[slug.lower()] = coord
+                # Also strip type prefixes for path-style refs like 'decision/foo'
+                for type_word in TYPE_WORD_TO_PREFIX:
+                    prefix_path = type_word + '/'
+                    if slug.lower().startswith(prefix_path):
+                        bare = slug[len(prefix_path):]
+                        index[bare.lower()] = coord
     return index
 
 
@@ -584,6 +740,15 @@ def resolve_coords(args):
             except ImportError:
                 pass
             continue
+
+        # Dotted task coordinate: t1.1, t3.2, etc.
+        if '.' in arg:
+            dot_task_m = re.match(r'^t(\d+)\.(\d+)$', arg, re.IGNORECASE)
+            if dot_task_m:
+                item = _resolve_dotted_task_coord(arg)
+                if item:
+                    resolved.append(item)
+                continue
 
         # Dot-syntax sub-index: {coord}.l{N} — delegate to LM renderer
         if '.' in arg:
@@ -1104,6 +1269,82 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
             mode = 'full'
 
         type_label = NAMESPACE[prefix][0]
+
+        # ── Special handling for tasks: render as parent→child tree ──
+        if prefix == 't':
+            primitives = get_primitives(prefix)
+            # Apply tag filter if set
+            if tag_filter:
+                filtered = []
+                for slug, fp in primitives:
+                    tags = _quick_tags(fp)
+                    if tag_filter.lower() in [t.lower() for t in tags]:
+                        filtered.append((slug, fp))
+                primitives = filtered
+
+            count = len(primitives)
+
+            if mode == 'summary':
+                lines.append(f"╶─ {prefix:<3} {type_label} ({count})  [summary]")
+                continue
+
+            lines.append(f"╶─ {prefix:<3} {type_label} ({count})")
+
+            tree = _build_task_tree()
+            compact = count > 50
+
+            for sk, item_type, slug, fp, fm in tree['all_items']:
+                # Apply tag filter for tree items
+                if tag_filter:
+                    tags = _quick_tags(fp)
+                    if tag_filter.lower() not in [t.lower() for t in tags]:
+                        # Skip parent only if none of its children match either
+                        if item_type == 'parent':
+                            children = tree['parents'].get(slug, [])
+                            has_matching_child = False
+                            for cs, cfp, cfm in children:
+                                ctags = _quick_tags(cfp)
+                                if tag_filter.lower() in [t.lower() for t in ctags]:
+                                    has_matching_child = True
+                                    break
+                            if not has_matching_child:
+                                continue
+                        else:
+                            continue
+
+                # Find coord for this slug
+                coord = None
+                for c, s, f in tree['all_coords']:
+                    if s == slug and '.' not in c:
+                        coord = c
+                        break
+                if coord is None:
+                    continue
+
+                if compact:
+                    lines.append(f"│  ╶─ {coord:<5} {slug}")
+                else:
+                    summary = _supermap_summary(prefix, slug, fp, slug_index)
+                    lines.append(f"│  ╶─ {coord:<5} {summary}")
+
+                # Render children if this is a parent
+                if item_type == 'parent':
+                    children = tree['parents'].get(slug, [])
+                    for ci, (child_slug, child_fp, child_fm) in enumerate(children, 1):
+                        if tag_filter:
+                            ctags = _quick_tags(child_fp)
+                            if tag_filter.lower() not in [t.lower() for t in ctags]:
+                                continue
+                        child_coord = f"{coord[1:]}"  # strip 't' prefix
+                        child_coord_full = f"t{child_coord}.{ci}"
+                        if compact:
+                            lines.append(f"│  │  ╶─ {child_coord_full:<7} {child_slug}")
+                        else:
+                            child_summary = _supermap_summary(prefix, child_slug, child_fp, slug_index)
+                            lines.append(f"│  │  ╶─ {child_coord_full:<7} {child_summary}")
+            continue
+
+        # ── Standard namespace rendering (non-task) ──
         # get_primitives now returns only active (non-archived/superseded) primitives
         # and for 'k' only those with primitive: in frontmatter
         primitives = get_primitives(prefix)
@@ -1124,11 +1365,12 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
             lines.append(f"╶─ {prefix:<3} {type_label} ({count})  [summary]")
             continue
 
-        # Full mode: show individual items
-        MAX_SHOW = 5 if count > 10 else count
+        # Full mode: show ALL items, fully unrolled (no truncation)
+        # >50 items: compact single-line format (no status/priority suffix)
+        compact = count > 50
 
         lines.append(f"╶─ {prefix:<3} {type_label} ({count})")
-        for i, (slug, fp) in enumerate(primitives[:MAX_SHOW], 1):
+        for i, (slug, fp) in enumerate(primitives, 1):
             # For modes, use the coordinate field from frontmatter (e0, e1, etc.)
             if prefix == 'e':
                 try:
@@ -1140,11 +1382,12 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
                     coord = f"{prefix}{i}"
             else:
                 coord = f"{prefix}{i}"
-            summary = _supermap_summary(prefix, slug, fp, slug_index)
-            lines.append(f"│  ╶─ {coord:<5} {summary}")
 
-        if count > MAX_SHOW:
-            lines.append(f"│  ... (+{count - MAX_SHOW} more)")
+            if compact:
+                lines.append(f"│  ╶─ {coord:<5} {slug}")
+            else:
+                summary = _supermap_summary(prefix, slug, fp, slug_index)
+                lines.append(f"│  ╶─ {coord:<5} {summary}")
 
     # ── Memory section ──────────────────────────────────────────────────────────
     if only_prefixes is not None and 'm' not in only_prefixes and 'md' not in only_prefixes:
@@ -1290,7 +1533,8 @@ def render_zoom(coords_or_args, field_selections=None):
         slug = item['slug']
         fp = item['filepath']
         ptype = item['type']
-        coord = f"{prefix}{idx}"
+        # For dotted coords (e.g. t2.1), item['coord'] is already set
+        coord = item.get('coord', f"{prefix}{idx}")
 
         if not first:
             lines.append('')  # blank separator between primitives
@@ -2136,6 +2380,17 @@ def _parse_edit_args(raw_args):
     current_item = None
     while i < len(raw_args):
         arg = raw_args[i]
+        # Try as dotted task coord: t1.1, t3.2
+        dot_m = re.match(r'^t(\d+)\.(\d+)$', arg, re.IGNORECASE)
+        if dot_m:
+            item = _resolve_dotted_task_coord(arg)
+            if item:
+                current_item = item
+                i += 1
+                continue
+            else:
+                print(f"Error: dotted task coordinate {arg} not found")
+                return None
         # Try as coord: letters+digits (but NOT pure digits)
         coord_m = re.match(r'^(md|mw|[a-z]+)(\d+)$', arg, re.IGNORECASE)
         if coord_m:
@@ -3324,7 +3579,7 @@ def _resolve_alias(word):
 
 
 def is_coordinate(arg):
-    """Return True if arg looks like a primitive coordinate (e.g. t1, p5, md2, t, md, t1-t3).
+    """Return True if arg looks like a primitive coordinate (e.g. t1, p5, md2, t, md, t1-t3, t1.1).
     Does NOT match action words or flags.
     Excludes e0-e3 (V2 mode tokens) — those are handled by the V2 parser."""
     if not arg or arg.startswith('-'):
@@ -3332,6 +3587,9 @@ def is_coordinate(arg):
     # Exclude V2 mode tokens: e0, e1, e2, e3 (bare mode indicators)
     if re.match(r'^e[0-3]$', arg, re.IGNORECASE):
         return False
+    # Dotted task coordinate: t1.1, t3.2
+    if re.match(r'^t\d+\.\d+$', arg, re.IGNORECASE):
+        return True
     # Must start with known prefix: multi-letter prefixes first, then single-letter
     # Build multi-letter prefix alternation dynamically from NAMESPACE
     _multi = sorted([p for p in NAMESPACE if len(p) > 1], key=len, reverse=True)
