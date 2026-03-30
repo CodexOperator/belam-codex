@@ -1,0 +1,81 @@
+{
+  "version": "spiking-transformer-integration-research",
+  "stages": {
+    "p1_builder_implement": {
+      "status": "complete",
+      "completed_at": "2026-03-30 04:20",
+      "agent": "builder",
+      "notes": "Phase 1 implementation complete. 4 architectures built and benchmarked on SOL 1h (3-fold WF CV): LGBM baseline (0.643 acc, 1.76x lift), TabNet (0.450 acc, 1.32x lift, best ANN bull recall 0.625), Temporal CNN (0.363 acc, 0.97x lift), Dense Transformer (0.371 acc, 0.53x lift), Spiking Transformer (0.361 acc, 0.32x lift \u2014 scale fix needed). Notebook: snn_crypto_predictor_spiking-transformer-integration-research.ipynb. Results JSON saved. Phase 2 proposals: TabNet full-scale + Spiking TF beta/dm tuning + seq_len ablation."
+    },
+    "p1_builder_bugfix": {
+      "status": "complete",
+      "completed_at": "2026-03-30 04:25",
+      "agent": "builder",
+      "notes": "Root-cause bug found and fixed in SpikingTransformer. BUG: forward pass scaled input by 1/T (h=x/T) before LIF neurons \u2014 with threshold=1.0 and input std~0.33, almost no spikes fired, making Q/K all-zeros and attention degenerate. This caused bull_recall=0.003. FIX 1: Remove /T from input (pass full activation each timestep, average outputs only). FIX 2: Add BatchNorm1d before LIF Q/K projections in SpikingAttentionBlock to decouple spike rate from dm/T choices. Both fixes applied to notebook. All 24 code cells parse cleanly. Other 4 architectures unaffected."
+    }
+  },
+  "status": "p1_review",
+  "status_updated": "2026-03-30 06:00",
+  "recovery_attempts": {
+    "p1_builder_implement": 1,
+    "p1_review": 3
+  },
+  "recovery_log": [
+    {
+      "time": "2026-03-30T04:15:01.113624+00:00",
+      "stage": "p1_builder_implement",
+      "attempt": 1,
+      "timeout": 600,
+      "agent": "builder"
+    },
+    {
+      "time": "2026-03-30T05:00:01.732052+00:00",
+      "stage": "p1_review",
+      "attempt": 1,
+      "timeout": 600,
+      "agent": "builder"
+    },
+    {
+      "time": "2026-03-30T05:30:02.068943+00:00",
+      "stage": "p1_review",
+      "attempt": 2,
+      "timeout": 900,
+      "agent": "builder"
+    },
+    {
+      "time": "2026-03-30T06:00:01.372723+00:00",
+      "stage": "p1_review",
+      "attempt": 3,
+      "timeout": 1350,
+      "agent": "builder"
+    }
+  ],
+  "last_dispatched": "2026-03-30T06:00:01.372761+00:00",
+  "handoff_snapshots": [
+    {
+      "stage": "p1_builder_implement",
+      "agent": "builder",
+      "timestamp": "2026-03-30T04:20:16.892806+00:00",
+      "commits": {
+        "workspace": "de64a6fc8acacba85fc381a47bc236e55db9f080",
+        "machinelearning": "c455782b3070f6cdd4a2ddf25873ec5db9f17aea"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-03-30T04:25:57.167142+00:00",
+      "commits": {
+        "workspace": "de64a6fc8acacba85fc381a47bc236e55db9f080",
+        "machinelearning": "c455782b3070f6cdd4a2ddf25873ec5db9f17aea"
+      }
+    }
+  ],
+  "phase1": {
+    "stage": "p1_builder_bugfix"
+  },
+  "last_updated": "2026-03-30 04:25",
+  "pending_action": "p1_critic_review",
+  "current_agent": "p1_critic_review",
+  "dispatch_claimed": false
+}

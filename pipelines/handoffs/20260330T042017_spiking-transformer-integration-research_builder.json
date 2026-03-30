@@ -1,0 +1,15 @@
+{
+  "version": "spiking-transformer-integration-research",
+  "completed_stage": "p1_builder_implement",
+  "next_stage": "p1_builder_bugfix",
+  "next_agent": "builder",
+  "timestamp": "2026-03-30T04:20:17.810311+00:00",
+  "pipeline_session_id": "",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

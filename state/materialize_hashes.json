@@ -47,8 +47,8 @@
       "slug": "snn-standard-benchmarks"
     },
     "t1": {
-      "hash": "23cbf64528cd",
-      "slug": "4h-12h-daily-lightgbm-with-higher-tf-features"
+      "hash": "e7cafe96be0b",
+      "slug": "comprehensive-backtest-sweep-all-models"
     },
     "t2": {
       "hash": "968924d64d5f",
@@ -1285,8 +1285,12 @@
     "t37": {
       "hash": "9c66760fca90",
       "slug": "spiking-transformer-integration-research"
+    },
+    "t40": {
+      "hash": "39881dd8a3dd",
+      "slug": "spiking-transformer-integration-research"
     }
   },
   "sort_mode": "recent",
-  "last_incremental": "2026-03-28T02:42:22Z"
+  "last_incremental": "2026-03-30T03:37:35Z"
 }

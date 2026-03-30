@@ -1,7 +1,7 @@
 ---
 primitive: task
 status: open
-priority: medium
+priority: high
 created: 2026-03-21
 owner: belam
 project: snn-applied-finance
@@ -9,6 +9,7 @@ depends_on: []
 upstream: []
 downstream: [quant, microcap-swing, model-architecture]
 tags: [snn, transformer, temporal, research]
+pipeline: spiking-transformer-integration-research
 ---
 
 ## ANN Topology Exploration: TabNet, Temporal CNN, Transformer
