@@ -23,6 +23,8 @@ from pathlib import Path
 WORKSPACE = Path(__file__).parent.parent
 MEMORY_DIR = WORKSPACE / "memory"
 KNOWLEDGE_DIR = WORKSPACE / "knowledge"
+LESSONS_DIR = WORKSPACE / "lessons"
+DECISIONS_DIR = WORKSPACE / "decisions"
 CONVERSATIONS_BASE = WORKSPACE / "machinelearning" / "snn_applied_finance" / "conversations"
 
 # Topic keywords for wiki detection
@@ -307,6 +309,92 @@ def link_recent_memories(daily_file: Path, date_str: str, days_back: int = 3,
     return linked
 
 
+# ─── d) Lessons / decisions linking ────────────────────────────────────────────
+
+def find_primitives_for_date(date_str: str) -> tuple[list[Path], list[Path]]:
+    """Find lessons and decisions created on a given date (by frontmatter date: field)."""
+    lessons = []
+    decisions = []
+
+    for d, out in [(LESSONS_DIR, lessons), (DECISIONS_DIR, decisions)]:
+        if not d.exists():
+            continue
+        for f in sorted(d.glob("*.md")):
+            try:
+                text = f.read_text()
+                for line in text.split("\n")[:10]:
+                    m = re.match(r"^date:\s*(\d{4}-\d{2}-\d{2})", line)
+                    if m and m.group(1) == date_str:
+                        out.append(f)
+                        break
+            except OSError:
+                continue
+
+    return lessons, decisions
+
+
+def link_daily_to_primitives(daily_file: Path, date_str: str, dry_run: bool = False) -> int:
+    """
+    Find lessons/decisions created on this date and cross-link them into the daily.
+    Returns number of primitives linked.
+    """
+    if not daily_file.exists():
+        return 0
+
+    lessons, decisions = find_primitives_for_date(date_str)
+
+    if not lessons and not decisions:
+        print(f"  No lessons or decisions found for {date_str}")
+        return 0
+
+    links = []
+    for lesson in lessons:
+        slug = lesson.stem
+        title = slug.replace("-", " ").title()
+        # Read first line for actual title if available
+        try:
+            first_lines = lesson.read_text().split("\n")
+            for line in first_lines:
+                if line.startswith("# "):
+                    title = line[2:].strip()
+                    break
+                elif line.startswith("title:"):
+                    title = line.split(":", 1)[1].strip().strip('"')
+                    break
+        except OSError:
+            pass
+        rel = f"../lessons/{lesson.name}"
+        links.append(f"- [📝 Lesson: {title}]({rel})")
+
+    for decision in decisions:
+        slug = decision.stem
+        title = slug.replace("-", " ").title()
+        try:
+            first_lines = decision.read_text().split("\n")
+            for line in first_lines:
+                if line.startswith("# "):
+                    title = line[2:].strip()
+                    break
+                elif line.startswith("title:"):
+                    title = line.split(":", 1)[1].strip().strip('"')
+                    break
+        except OSError:
+            pass
+        rel = f"../decisions/{decision.name}"
+        links.append(f"- [⚖️ Decision: {title}]({rel})")
+
+    changed = append_see_also(daily_file, links, dry_run=dry_run)
+
+    if not dry_run and changed:
+        for link in links:
+            # Extract the name portion for logging
+            match = re.search(r"\[([^\]]+)\]", link)
+            name = match.group(1) if match else link
+            print(f"  → {name}")
+
+    return len(lessons) + len(decisions)
+
+
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -351,7 +439,12 @@ Examples:
     n_recent = link_recent_memories(daily_file, date_str, days_back=3, dry_run=args.dry_run)
     print(f"   Cross-linked with {n_recent} recent daily file(s)")
 
-    total = n_wiki + n_transcripts + n_recent
+    # ── d) Lessons / decisions linking ────────────────────────────────────────
+    print(f"\n📝 d) Lessons & decisions linking")
+    n_primitives = link_daily_to_primitives(daily_file, date_str, dry_run=args.dry_run)
+    print(f"   Linked {n_primitives} primitive(s)")
+
+    total = n_wiki + n_transcripts + n_recent + n_primitives
     print(f"\n{'[DRY RUN] ' if args.dry_run else ''}✅ Daily linking complete — {total} links added")
 
 
