@@ -107,13 +107,21 @@ def parse_frontmatter(filepath: Path) -> tuple[dict, str]:
             v_stripped = v.strip().strip('"').strip("'")
             fm[k.strip()] = v_stripped
     # Parse tags/list fields
-    for key in ("tags", "applies_to", "sources", "related"):
+    for key in ("tags", "applies_to", "sources", "related", "upstream", "downstream", "contradicts"):
         if key in fm:
             raw = fm[key].strip("[]")
             fm[key] = [t.strip().strip('"').strip("'") for t in raw.split(",") if t.strip()]
         else:
             fm[key] = []
     return fm, body
+
+
+PROMOTION_THRESHOLD = {"candidate", "promoted", "validated"}
+
+
+def get_topic_tags(fm: dict) -> list[str]:
+    """Get tags excluding instance:* prefixed ones."""
+    return [t for t in fm.get("tags", []) if not t.startswith("instance:")]
 
 
 def detect_topics(text: str) -> list[str]:
