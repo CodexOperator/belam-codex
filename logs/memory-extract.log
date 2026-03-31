@@ -964,3 +964,4 @@
 2026-03-31T16:52:09.676Z [info] Prompt ready at /tmp/session_extract_prompt_main_1e809f69-01e6-4cea-a5f3-eb43d90241b0.md, spawning sage via codex engine
 2026-03-31T16:52:09.695Z [info] Sage spawn dispatched via codex engine {"pid":3628679}
 2026-03-31T17:38:57.555Z [warn] No workspaceDir in context
+2026-03-31T17:59:22.133Z [warn] No workspaceDir in context
