@@ -25,6 +25,7 @@ WORKSPACE = Path(__file__).parent.parent
 MEMORY_DIR = WORKSPACE / "memory"
 ENTRIES_DIR = MEMORY_DIR / "entries"
 LESSONS_DIR = WORKSPACE / "lessons"
+DECISIONS_DIR = WORKSPACE / "decisions"
 KNOWLEDGE_DIR = WORKSPACE / "knowledge"
 ARCHIVE_MEMORY_DIR = MEMORY_DIR / "archive"
 ARCHIVE_ENTRIES_DIR = ARCHIVE_MEMORY_DIR / "entries"
@@ -149,11 +150,11 @@ def load_knowledge_file(slug: str) -> tuple[dict, list[str]]:
     if not kf.exists():
         return {}, []
     fm, body = parse_frontmatter(kf)
-    # Extract existing key findings
+    # Extract existing findings from ## Claim or legacy ## Key Findings
     findings = []
     in_findings = False
     for line in body.splitlines():
-        if re.match(r"^## Key Findings", line):
+        if re.match(r"^## (Claim|Key Findings)", line):
             in_findings = True
             continue
         if in_findings:
@@ -208,13 +209,21 @@ related: {related_yaml}
 
 # {topic_name}
 
-## Key Findings
+## Claim
 
 {findings_text}
 
-## Notes
+## Mechanism
 
-*(Add contextual notes here as patterns emerge)*
+*(Why/how these patterns work — causal chains and structural explanations)*
+
+## Boundary
+
+*(When these patterns stop being true — scope limits, assumptions, failure modes)*
+
+## Contradiction
+
+*(Tensions/exceptions — conflicting evidence, unresolved questions, edge cases)*
 """
 
     if dry_run:
@@ -227,7 +236,7 @@ related: {related_yaml}
 
 
 def load_week_lessons(week_start: datetime) -> list[tuple[Path, dict, str]]:
-    """Load lessons created in the past week."""
+    """Load lessons created in the past week with promotion_status >= candidate."""
     if not LESSONS_DIR.exists():
         return []
     week_end = week_start + timedelta(days=7)
@@ -242,7 +251,32 @@ def load_week_lessons(week_start: datetime) -> list[tuple[Path, dict, str]]:
         except ValueError:
             continue
         if week_start <= lesson_date < week_end:
-            results.append((f, fm, body))
+            # Only include primitives that have passed the quality gate
+            status = fm.get("promotion_status", "exploratory")
+            if status in PROMOTION_THRESHOLD:
+                results.append((f, fm, body))
+    return results
+
+
+def load_promoted_decisions(week_start: datetime) -> list[tuple[Path, dict, str]]:
+    """Load decisions created in the past week with promotion_status >= candidate."""
+    if not DECISIONS_DIR.exists():
+        return []
+    week_end = week_start + timedelta(days=7)
+    results = []
+    for f in sorted(DECISIONS_DIR.glob("*.md")):
+        fm, body = parse_frontmatter(f)
+        date_str = fm.get("date", "")
+        if not date_str:
+            continue
+        try:
+            dec_date = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except ValueError:
+            continue
+        if week_start <= dec_date < week_end:
+            status = fm.get("promotion_status", "exploratory")
+            if status in PROMOTION_THRESHOLD:
+                results.append((f, fm, body))
     return results
 
 
@@ -481,12 +515,13 @@ def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) 
 
     # --- A. Load source material ---
     lessons = load_week_lessons(week_start)
+    decisions = load_promoted_decisions(week_start)
     if all_agents:
         # Load entries from all agent workspaces (returns (path, fm, agent_name) tuples)
         memory_entries = load_all_agent_memory_entries(week_start)
     else:
         memory_entries = load_week_memory_entries(week_start)
-    print(f"📚 Source material: {len(lessons)} lessons, {len(memory_entries)} memory entries")
+    print(f"📚 Source material: {len(lessons)} lessons, {len(decisions)} decisions (promoted), {len(memory_entries)} memory entries")
 
     # --- B. Build topic data ---
     # topic_slug → {topic, tags, findings, sources, related, created}
@@ -524,9 +559,22 @@ def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) 
                 "n_findings": 0,
             }
 
-    def integrate_text(text: str, source_ref: str, date_str: str):
-        """Detect topics in text and add findings."""
-        topics = detect_topics(text)
+    def integrate_text(text: str, source_ref: str, date_str: str, fm_tags: list[str] | None = None):
+        """Detect topics in text and add findings.
+
+        Uses fm_tags (excluding instance:*) for grouping when available,
+        falls back to keyword detection for entries without relevant tags.
+        """
+        # Prefer tag-based topic detection for primitives with tags
+        tag_topics = []
+        if fm_tags:
+            topic_tags = [t for t in fm_tags if not t.startswith("instance:")]
+            # Map tags to existing topic slugs via keyword overlap
+            for slug, keywords in TOPIC_KEYWORDS.items():
+                if any(tag in keywords or tag == slug for tag in topic_tags):
+                    tag_topics.append(slug)
+
+        topics = tag_topics if tag_topics else detect_topics(text)
         for slug in topics:
             if slug not in topic_data:
                 topic_data[slug] = {
@@ -564,15 +612,23 @@ def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) 
             if source_ref not in td["sources"]:
                 td["sources"].append(source_ref)
 
-    # Process lessons
+    # Process lessons (promotion_status >= candidate)
     n_lessons_integrated = 0
     for path, fm, body in lessons:
         date_str = fm.get("date", today.strftime("%Y-%m-%d"))
         source_ref = str(path.relative_to(WORKSPACE))
-        # Combine tags and body text for topic detection
         all_text = " ".join(fm.get("tags", [])) + " " + body
-        integrate_text(all_text, source_ref, date_str)
+        integrate_text(all_text, source_ref, date_str, fm_tags=fm.get("tags", []))
         n_lessons_integrated += 1
+
+    # Process decisions (promotion_status >= candidate)
+    n_decisions_integrated = 0
+    for path, fm, body in decisions:
+        date_str = fm.get("date", today.strftime("%Y-%m-%d"))
+        source_ref = str(path.relative_to(WORKSPACE))
+        all_text = " ".join(fm.get("tags", [])) + " " + body
+        integrate_text(all_text, source_ref, date_str, fm_tags=fm.get("tags", []))
+        n_decisions_integrated += 1
 
     # Process memory entries
     n_memories_integrated = 0
@@ -596,7 +652,7 @@ def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) 
             integrate_text(all_text, source_ref, date_str)
             n_memories_integrated += 1
 
-    print(f"✓ Integrated {n_lessons_integrated} lessons, {n_memories_integrated} memory entries")
+    print(f"✓ Integrated {n_lessons_integrated} lessons, {n_decisions_integrated} decisions, {n_memories_integrated} memory entries")
 
     # Build cross-references (topics that share sources or keywords)
     for slug_a in topic_data:
@@ -659,6 +715,7 @@ def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) 
 
     stats = {
         "lessons": n_lessons_integrated,
+        "decisions": n_decisions_integrated,
         "memories": n_memories_integrated,
         "knowledge_files": n_files_written,
         "archived": n_archived,
@@ -667,7 +724,7 @@ def sync(week_start: datetime, dry_run: bool = False, all_agents: bool = False) 
     }
 
     print(f"\n{'[DRY RUN] ' if dry_run else ''}✅ Weekly sync complete:")
-    print(f"   {n_lessons_integrated} lessons + {n_memories_integrated} memories → {n_files_written} knowledge files")
+    print(f"   {n_lessons_integrated} lessons + {n_decisions_integrated} decisions + {n_memories_integrated} memories → {n_files_written} knowledge files")
     print(f"   {n_archived} files archived")
 
     return stats
