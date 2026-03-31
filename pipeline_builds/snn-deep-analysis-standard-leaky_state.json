@@ -77,9 +77,21 @@
   },
   "last_updated": "2026-03-31 19:58",
   "status": "p1_critic_review",
-  "status_updated": "2026-03-31 20:05",
+  "status_updated": "2026-03-31 20:45",
   "pending_action": "p1_complete",
   "current_agent": "p1_complete",
-  "last_dispatched": "2026-03-31T19:58:23.182823+00:00",
-  "dispatch_claimed": false
+  "last_dispatched": "2026-03-31T20:45:01.886143+00:00",
+  "dispatch_claimed": false,
+  "recovery_attempts": {
+    "p1_critic_review": 1
+  },
+  "recovery_log": [
+    {
+      "time": "2026-03-31T20:45:01.886135+00:00",
+      "stage": "p1_critic_review",
+      "attempt": 1,
+      "timeout": 600,
+      "agent": "critic"
+    }
+  ]
 }

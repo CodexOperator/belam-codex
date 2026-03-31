@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_architect_design
+status: p1_bugfix
 priority: high
 type: builder-first
 version: snn-deep-analysis-standard-synaptic-alpha
@@ -46,6 +46,9 @@ _Architect designs → Critic reviews → Builder implements_
 | pipeline_created | 2026-03-31 | belam-main | Pipeline instance created |
 | p1_architect_design | 2026-03-31 | architect | Design doc created with 6 script specs, report structure, data dependency confirmation, feasibility analysis, and Leaky comparison |
 | p1_architect_design | 2026-03-31 | architect | Design created: 6 viz scripts spec'd for Synaptic/Alpha dual timescale analysis with cross-neuron comparison |
+| p1_builder_implement | 2026-03-31 | builder | All 6 viz scripts written and executed. PNGs generated: synaptic dynamics, alpha dynamics, alpha-beta sweep heatmaps, cross-neuron comparison, dual timescale analysis, cost function convergence. REPORT.md compiled with full analysis. |
+| p1_builder_bugfix | 2026-03-31 | builder | Self-review passed: all 6 scripts re-run cleanly with consistent output, all PNGs regenerated without errors, REPORT.md verified. No bugs found — clean first-pass build. |
+| p1_builder_implement | 2026-03-31 | builder | All 6 viz scripts executed, PNGs generated, REPORT.md compiled |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
