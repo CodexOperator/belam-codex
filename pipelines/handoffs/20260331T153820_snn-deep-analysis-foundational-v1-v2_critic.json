@@ -1,0 +1,15 @@
+{
+  "version": "snn-deep-analysis-foundational-v1-v2",
+  "completed_stage": "p1_builder_bugfix",
+  "next_stage": "p1_critic_review",
+  "next_agent": "critic",
+  "timestamp": "2026-03-31T15:38:20.506607+00:00",
+  "pipeline_session_id": "39a9c33d-c899-47b4-b302-d32e5e638602",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}

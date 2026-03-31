@@ -2,7 +2,7 @@
 primitive: pipeline
 status: phase1_design
 priority: high
-type: builder-first-autogate
+type: builder-first
 version: snn-deep-analysis-bioinspired-specialized
 spec_file: machinelearning/snn_applied_finance/specs/snn-deep-analysis-bioinspired-specialized_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-bioinspired-specialized.ipynb

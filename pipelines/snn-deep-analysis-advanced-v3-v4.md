@@ -2,7 +2,7 @@
 primitive: pipeline
 status: phase1_design
 priority: high
-type: builder-first-autogate
+type: builder-first
 version: snn-deep-analysis-advanced-v3-v4
 spec_file: machinelearning/snn_applied_finance/specs/snn-deep-analysis-advanced-v3-v4_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-advanced-v3-v4.ipynb
