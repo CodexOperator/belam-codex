@@ -44,6 +44,8 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-31 | belam-main | Pipeline instance created |
+| p1_architect_design | 2026-03-31 | architect | Design doc created with 6 script specs, report structure, data dependency confirmation, feasibility analysis, and Leaky comparison |
+| p1_architect_design | 2026-03-31 | architect | Design created: 6 viz scripts spec'd for Synaptic/Alpha dual timescale analysis with cross-neuron comparison |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
