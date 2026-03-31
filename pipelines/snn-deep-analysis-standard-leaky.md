@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_bugfix
+status: p1_review
 priority: high
 type: builder-first
 version: snn-deep-analysis-standard-leaky
@@ -46,6 +46,7 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_architect_design | 2026-03-31 | architect | Design created — 5 viz scripts spec'd with inputs/outputs/computations, report structure, data deps confirmed (51 Leaky JSONs), feasibility validated |
 | p1_architect_design | 2026-03-31 | architect | Design complete: 5 scripts with inputs/outputs/constraints spec'd, data confirmed, feasibility validated |
 | p1_builder_implement | 2026-03-31 | builder | All 5 viz scripts written, executed, PNGs generated, REPORT.md compiled with full analysis |
+| p1_builder_bugfix | 2026-03-31 | belam | Implementation verified: all 5 viz scripts + REPORT.md complete |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
