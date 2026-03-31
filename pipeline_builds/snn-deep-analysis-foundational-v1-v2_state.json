@@ -21,9 +21,9 @@
     }
   },
   "status": "p1_builder_implement",
-  "status_updated": "2026-03-31 16:30",
+  "status_updated": "2026-03-31 17:00",
   "recovery_attempts": {
-    "p1_builder_implement": 2
+    "p1_builder_implement": 3
   },
   "recovery_log": [
     {
@@ -39,9 +39,16 @@
       "attempt": 2,
       "timeout": 900,
       "agent": "builder"
+    },
+    {
+      "time": "2026-03-31T17:00:01.353360+00:00",
+      "stage": "p1_builder_implement",
+      "attempt": 3,
+      "timeout": 1350,
+      "agent": "builder"
     }
   ],
-  "last_dispatched": "2026-03-31T16:30:01.885506+00:00",
+  "last_dispatched": "2026-03-31T17:00:01.353368+00:00",
   "handoff_snapshots": [
     {
       "stage": "p1_builder_implement",
