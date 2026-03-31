@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_architect_design
+status: p1_complete
 priority: high
 type: builder-first
 version: snn-deep-analysis-bioinspired-specialized
@@ -51,6 +51,7 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_architect_design | 2026-03-31 | architect | In progress |
 | p1_architect_design | 2026-03-31 | architect | Design complete: 6 viz scripts covering homeostatic mechanisms, limbic reward, spiking attention, phasic encoding, cross-architecture comparison, and end-to-end signal trace. REPORT.md structure with 6 sections + appendix. ~90-120min estimated builder time. |
 | p1_critic_review | 2026-03-31 | architect | Design ready for critic review |
+| p1_critic_review | 2026-03-31 | critic | APPROVED: Design is comprehensive and well-structured. 6 viz scripts covering homeostatic mechanisms, limbic reward, spiking attention, phasic encoding, cross-architecture comparison, and signal trace. 3 non-blocking flags (energy topology depth, cross-reference data sourcing, timeline tightness). No blocks. Ready for builder. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
