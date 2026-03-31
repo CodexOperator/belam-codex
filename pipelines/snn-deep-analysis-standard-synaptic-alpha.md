@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: phase1_design
+status: p1_architect_design
 priority: high
 type: builder-first
 version: snn-deep-analysis-standard-synaptic-alpha
