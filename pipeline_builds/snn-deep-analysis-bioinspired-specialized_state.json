@@ -1,0 +1,15 @@
+{
+  "version": "snn-deep-analysis-bioinspired-specialized",
+  "stages": {
+    "p1_architect_design": {
+      "status": "in_progress",
+      "started_at": "2026-03-31 17:38",
+      "agent": "architect"
+    }
+  },
+  "phase1": {
+    "stage": "p1_architect_design",
+    "started": "2026-03-31"
+  },
+  "last_updated": "2026-03-31 17:38"
+}

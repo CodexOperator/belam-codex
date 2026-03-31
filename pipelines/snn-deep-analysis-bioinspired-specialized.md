@@ -48,6 +48,7 @@ _Architect designs → Critic reviews → Builder implements_
 | Stage | Date | Agent | Notes |
 |-------|------|-------|-------|
 | pipeline_created | 2026-03-31 | belam-main | Pipeline instance created |
+| p1_architect_design | 2026-03-31 | architect | In progress |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
