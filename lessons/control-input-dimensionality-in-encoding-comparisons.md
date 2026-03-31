@@ -6,6 +6,9 @@ confidence: high
 project: snn-applied-finance
 tags: [snn, encoding, experimental-design]
 applies_to: [snn-applied-finance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Control Input Dimensionality When Comparing Encoding Schemes

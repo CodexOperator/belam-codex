@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, state-json, orchestration]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # pipeline-state-pending-action-is-agent-role-not-stage-name

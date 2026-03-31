@@ -17,6 +17,9 @@ project: quant-knowledge-skills
 tags: [derivatives, pricing, volatility, knowledge]
 knowledge: derivative-specialist
 cli: "R lessons (for derivative-related findings)"
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Decision: Derivative Specialist Skill

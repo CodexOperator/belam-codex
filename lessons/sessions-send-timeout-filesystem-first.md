@@ -5,6 +5,9 @@ severity: high
 discovered: 2026-03-15
 context: v4 pipeline — Critic→Builder sessions_send timeout
 tags: [multi-agent, coordination, sessions-send, timeout]
+promotion_status: exploratory
+doctrine_richness: 9
+contradicts: []
 ---
 
 # Lesson: sessions_send Timeouts — Use Filesystem-First Coordination

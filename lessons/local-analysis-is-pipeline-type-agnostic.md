@@ -5,6 +5,9 @@ importance: 3
 tags: [instance:main, pipeline, infrastructure, local-analysis, autorun]
 upstream: [infra-pipelines-use-local-analysis]
 downstream: []
+promotion_status: exploratory
+doctrine_richness: 7
+contradicts: []
 ---
 
 # local-analysis-is-pipeline-type-agnostic

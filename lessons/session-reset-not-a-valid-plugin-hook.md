@@ -7,6 +7,9 @@ upstream: []
 downstream: []
 tags: [instance:main, cockpit, plugin, hooks, gotcha]
 importance: 3
+promotion_status: candidate
+doctrine_richness: 6
+contradicts: []
 ---
 
 # session-reset-not-a-valid-plugin-hook

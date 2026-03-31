@@ -6,6 +6,9 @@ confidence: high
 upstream: [unclaimed-dispatch-recovery-in-sweep]
 downstream: []
 tags: [instance:main, orchestration, pipeline, bug-fix]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # fire-and-forget-dispatch-timeout-1-killed-all-agents

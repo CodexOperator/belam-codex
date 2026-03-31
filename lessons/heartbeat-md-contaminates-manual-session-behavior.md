@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, heartbeat, lm, coordinate-grammar]
+promotion_status: promoted
+doctrine_richness: 6
+contradicts: []
 ---
 
 # heartbeat-md-contaminates-manual-session-behavior

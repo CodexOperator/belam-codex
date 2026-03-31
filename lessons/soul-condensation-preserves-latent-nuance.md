@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: [pipeline:codex-layer-context-injection]
 tags: [instance:main, soul, codex-layer, consciousness-architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # soul-condensation-preserves-latent-nuance

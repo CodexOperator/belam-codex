@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, e3, e2, namespace, design-pattern]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # e3-chains-e2-after-namespace-registration

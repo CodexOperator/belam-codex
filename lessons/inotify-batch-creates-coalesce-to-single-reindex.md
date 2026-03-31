@@ -7,6 +7,9 @@ importance: 4
 upstream: [render-engine-pid-file-and-force-flag]
 downstream: []
 tags: [instance:main, render-engine, inotify, debugging, codex-engine-v4]
+promotion_status: promoted
+doctrine_richness: 7
+contradicts: []
 ---
 
 # inotify-batch-creates-coalesce-to-single-reindex

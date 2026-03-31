@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, supermap, codex-engine, anchor, diff, cockpit-plugin]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # supermap-anchor-diff-flags-in-codex-engine

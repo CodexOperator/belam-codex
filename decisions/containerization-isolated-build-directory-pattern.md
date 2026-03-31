@@ -4,6 +4,9 @@ importance: 4
 tags: [instance:main, containerization, infrastructure, safety, architecture]
 related: [containerization-must-use-isolated-build-directory, infrastructure-pipeline-must-not-modify-live-host]
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 9
+contradicts: []
 ---
 
 # Containerization: Isolated Build Directory Pattern

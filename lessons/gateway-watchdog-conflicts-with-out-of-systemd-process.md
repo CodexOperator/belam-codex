@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, gateway, watchdog, systemd, cron, incident]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # gateway-watchdog-conflicts-with-out-of-systemd-process

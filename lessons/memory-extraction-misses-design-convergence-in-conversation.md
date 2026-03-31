@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, memory-extract, sage, design, extraction-limits]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # memory-extraction-misses-design-convergence-in-conversation

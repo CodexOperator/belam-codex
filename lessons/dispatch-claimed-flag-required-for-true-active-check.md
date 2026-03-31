@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, orchestration, dispatch]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # dispatch-claimed-flag-required-for-true-active-check

@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, experiments, notebooks]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # notebook-runs-need-phase-aware-cell-targeting

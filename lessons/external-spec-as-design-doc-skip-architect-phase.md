@@ -6,6 +6,9 @@ confidence: ?
 upstream: [builder-first-pipeline-template-pattern]
 downstream: []
 tags: [instance:main, pipeline, builder-first, research]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # external-spec-as-design-doc-skip-architect-phase

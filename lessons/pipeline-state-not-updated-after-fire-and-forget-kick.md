@@ -7,6 +7,9 @@ importance: 3
 upstream: [decision/orchestration-fire-and-forget-dispatch]
 downstream: []
 tags: [instance:main, pipelines, heartbeat, state-management, orchestration]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # pipeline-state-not-updated-after-fire-and-forget-kick

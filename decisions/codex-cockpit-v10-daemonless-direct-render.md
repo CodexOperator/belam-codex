@@ -9,6 +9,9 @@ consequences: [codex_render-archived, systemd-service-disabled, render_supermap-
 upstream: [render-engine-simplification-subtract-before-build]
 downstream: []
 tags: [instance:main, codex-engine, cockpit, infrastructure, simplification]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # codex-cockpit-v10-daemonless-direct-render

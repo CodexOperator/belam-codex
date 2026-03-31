@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, openclaw, pipeline, boot-context, stale-data]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # boot-context-pipeline-status-can-be-stale

@@ -7,6 +7,9 @@ project: snn-applied-finance
 tags: [snn, hyperparameters, convergence]
 applies_to: [snn-applied-finance]
 downstream: []
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # β Convergence Is Market-Determined

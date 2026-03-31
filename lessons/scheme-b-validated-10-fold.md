@@ -5,6 +5,9 @@ source: validate-scheme-b pipeline — 2 experiments, 10 folds, cross-validation
 confidence: high
 priority: critical
 tags: [snn, validation, scheme-b, statistics, confirmed]
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Scheme B Accuracy Validated Across 10 Folds

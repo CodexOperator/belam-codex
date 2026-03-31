@@ -14,6 +14,9 @@ consequences:
 upstream: []
 downstream: []
 tags: [instance:main, gaming, research, design, llm]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # llm-human-asymmetric-gaming-architecture

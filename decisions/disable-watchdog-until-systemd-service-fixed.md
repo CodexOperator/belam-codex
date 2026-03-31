@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, gateway, watchdog, systemd, cron, deferred]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # disable-watchdog-until-systemd-service-fixed

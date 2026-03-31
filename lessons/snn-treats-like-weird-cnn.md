@@ -6,6 +6,9 @@ confidence: high
 project: snn-applied-finance
 tags: [snn, architecture, critical]
 applies_to: [snn-applied-finance, equilibrium-snn]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Don't Treat SNNs Like Weird CNNs

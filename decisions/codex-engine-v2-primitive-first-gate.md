@@ -9,6 +9,9 @@ consequences: []
 upstream: [decisions/codex-engine-v1-architecture]
 downstream: []
 tags: [instance:main, codex-engine, v2, commands, primitives, registry]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # codex-engine-v2-primitive-first-gate

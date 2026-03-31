@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, tasks, pipeline, archival, orchestration]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # task-auto-archive-follows-downstream-work

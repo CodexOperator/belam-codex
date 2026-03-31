@@ -9,6 +9,9 @@ consequences: []
 upstream: [lesson/subagent-timeout-recovery-ralph-wiggum-pattern]
 downstream: []
 tags: [instance:main, subagents, orchestration, recovery, skill]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # ralph-wiggum-skill-for-subagent-recovery

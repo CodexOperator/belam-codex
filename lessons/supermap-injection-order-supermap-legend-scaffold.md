@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, codex-cockpit, supermap, injection-order, context]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # supermap-injection-order-supermap-legend-scaffold

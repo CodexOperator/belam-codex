@@ -6,6 +6,9 @@ confidence: high
 upstream: [quant-baseline-no-lstm-ensemble]
 downstream: []
 tags: [instance:main, quant, lstm, calibration]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # lstm-1h-ensemble-calibration-sample-size-collapse

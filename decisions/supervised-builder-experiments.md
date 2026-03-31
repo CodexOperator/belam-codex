@@ -7,6 +7,9 @@ alternatives: [direct notebook execution, reactive builder recovery, manual Cola
 rationale: Proactive supervision catches bugs before they crash, creates knowledge, and self-heals
 consequences: [self-healing experiments, automatic primitive creation, builder busy during runs, one-at-a-time enforced]
 tags: [infrastructure, experiments, builder, architecture]
+promotion_status: candidate
+doctrine_richness: 9
+contradicts: []
 ---
 
 # Supervised Builder Agent for Experiment Execution

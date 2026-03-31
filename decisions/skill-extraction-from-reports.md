@@ -8,6 +8,9 @@ rationale: Skills are the right abstraction — they're discoverable by any agen
 consequences: [New domain reports → extract into skills + agent knowledge files, Skills symlinked to ~/.openclaw/skills/ for discovery, Reference files for deep detail keep SKILL.md lean]
 project: quant-knowledge-skills
 tags: [skills, knowledge, workflow]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Extract Domain Reports Into Skills + Knowledge Files

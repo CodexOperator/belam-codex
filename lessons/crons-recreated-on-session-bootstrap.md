@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, cron, gateway, bootstrap]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # crons-recreated-on-session-bootstrap

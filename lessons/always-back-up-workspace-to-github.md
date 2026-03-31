@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/belam-codex-resurrection]
 downstream: []
 tags: [infrastructure, git, backup, redundancy]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Always Back Up Workspace to GitHub

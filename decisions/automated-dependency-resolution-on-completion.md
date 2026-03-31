@@ -6,6 +6,9 @@ owner: belam
 upstream: [decision/orchestration-architecture, task/persistent-extend-and-indexed-subops]
 downstream: []
 tags: [orchestration, dependencies, automation, cascading]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Automated Dependency Resolution on Completion

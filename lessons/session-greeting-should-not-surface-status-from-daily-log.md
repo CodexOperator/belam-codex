@@ -6,6 +6,9 @@ confidence: ?
 upstream: [memory-extraction-lessons-decisions-only]
 downstream: []
 tags: [instance:main]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # session-greeting-should-not-surface-status-from-daily-log

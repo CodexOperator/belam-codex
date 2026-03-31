@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, memory-extraction, bootstrap-hook, automation]
+promotion_status: candidate
+doctrine_richness: 9
+contradicts: []
 ---
 
 # auto-memory-extraction-on-bootstrap

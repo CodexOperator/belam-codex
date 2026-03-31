@@ -5,6 +5,9 @@ source: build-equilibrium-snn pipeline — 27 experiments, 81 runs, ablation stu
 confidence: high
 priority: high
 tags: [snn, architecture, ablation, equilibrium, phasic]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Phasic-Only Ablation Wins in Equilibrium SNN

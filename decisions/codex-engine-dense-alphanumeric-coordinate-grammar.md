@@ -9,6 +9,9 @@ consequences: []
 upstream: [decisions/codex-engine-v1-architecture, decisions/codex-engine-modes-as-primitives]
 downstream: []
 tags: ["instance:main", codex-engine, v2, grammar, coordinates, tokens, attention]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # codex-engine-dense-alphanumeric-coordinate-grammar

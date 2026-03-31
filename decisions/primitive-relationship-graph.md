@@ -9,6 +9,9 @@ consequences: ["primitives become a navigable graph", "audit can detect orphaned
 upstream: [decisions/indexed-command-interface]
 downstream: [memory/2026-03-20_033917_primitive-relationship-graph-deployed-al, task/build-codex-engine, decision/codex-engine-v1-architecture]
 tags: [infrastructure, primitives, knowledge-graph, conventions]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Primitive Relationship Graph

@@ -12,6 +12,9 @@ tags:
   - plugin-sdk
   - before_prompt_build
   - codex-cockpit
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # openclaw-plugin-definePluginEntry-import-path

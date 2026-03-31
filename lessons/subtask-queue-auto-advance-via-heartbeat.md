@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, heartbeat, automation]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # subtask-queue-auto-advance-via-heartbeat

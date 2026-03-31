@@ -4,6 +4,9 @@ severity: high
 created: 2026-03-24
 source: incident
 tags: [infrastructure, docker, containerization, safety]
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Containerization Must Use Isolated Build Directory

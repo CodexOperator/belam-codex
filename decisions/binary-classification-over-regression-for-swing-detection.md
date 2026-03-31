@@ -5,6 +5,9 @@ created: 2026-03-26
 author: shael+belam
 tags: [quant, ml, swing-trading, classification]
 related: [microcap-swing-signal-extraction, quant-microcap-crypto-baseline]
+promotion_status: exploratory
+doctrine_richness: 8
+contradicts: []
 ---
 
 # Binary Classification Over Regression for Swing Detection

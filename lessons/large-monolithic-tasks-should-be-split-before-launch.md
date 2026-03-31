@@ -4,6 +4,9 @@ importance: 4
 tags: [instance:main, task-management, codex-engine, architecture]
 related: [codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Large Monolithic Tasks Should Be Split Before Launch

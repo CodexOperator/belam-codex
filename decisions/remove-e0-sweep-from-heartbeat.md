@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, heartbeat, e0, orchestration, gateway]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # remove-e0-sweep-from-heartbeat

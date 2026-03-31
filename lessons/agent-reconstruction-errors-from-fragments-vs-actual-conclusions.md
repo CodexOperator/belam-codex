@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, memory, continuity, reconstruction, session-startup]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # agent-reconstruction-errors-from-fragments-vs-actual-conclusions

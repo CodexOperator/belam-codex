@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # consolidate-agent-memory-was-stage-spam-source

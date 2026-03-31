@@ -6,6 +6,9 @@ confidence: high
 upstream: [regime-filter-low-passrate-high-quality-tradeoff]
 downstream: []
 tags: [instance:main, quant, regime, btc]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # chop-regime-is-net-bullish-on-exit

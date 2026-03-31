@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, run-experiment, architecture]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # run-experiment-phase-flag-for-notebook-cell-targeting

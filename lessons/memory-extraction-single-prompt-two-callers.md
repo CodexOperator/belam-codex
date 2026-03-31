@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, memory, extraction, architecture]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # memory-extraction-single-prompt-two-callers

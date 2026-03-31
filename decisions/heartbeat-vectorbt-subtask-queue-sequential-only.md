@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, heartbeat, pipeline, vectorbt]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # heartbeat-vectorbt-subtask-queue-sequential-only

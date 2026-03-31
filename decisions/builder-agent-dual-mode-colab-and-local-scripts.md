@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, agent, builder, quant, infrastructure]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # builder-agent-dual-mode-colab-and-local-scripts

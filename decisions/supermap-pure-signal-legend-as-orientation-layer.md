@@ -22,6 +22,9 @@ tags:
   - legend
   - r-command
 importance: 3
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # supermap-pure-signal-legend-as-orientation-layer

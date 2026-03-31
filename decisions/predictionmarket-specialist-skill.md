@@ -16,6 +16,9 @@ consequences:
 project: quant-knowledge-skills
 tags: [prediction-markets, microstructure, market-making, knowledge]
 knowledge: predictionmarket-specialist
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Decision: Prediction Market Specialist Skill

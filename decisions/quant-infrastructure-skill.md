@@ -18,6 +18,9 @@ tags: [infrastructure, backtesting, gpu, data, knowledge]
 knowledge: quant-infrastructure
 cli: "R lessons (for infrastructure-related findings)"
 downstream: [memory/2026-03-17_033419_built-two-major-systems-tonight-1-analys, memory/2026-03-17_134119_major-session-built-three-infrastructure]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Decision: Quant Infrastructure Skill

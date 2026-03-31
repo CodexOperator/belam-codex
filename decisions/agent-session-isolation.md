@@ -20,6 +20,9 @@ tags: [infrastructure, agents, orchestration]
 skill: launch-pipeline
 upstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure, memory/2026-03-17_033425_all-three-agents-architect-critic-builde]
 downstream: [decision/orchestration-architecture, lesson/checkpoint-and-resume-pattern, memory/2026-03-18_001630_updated-pipeline-orchestratepy-session-r, lesson/session-reset-targets-main-not-group]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Decision: Agent Session Isolation

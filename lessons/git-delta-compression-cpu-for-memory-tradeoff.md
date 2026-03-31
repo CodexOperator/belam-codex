@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, v4, git, ram, performance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # git-delta-compression-cpu-for-memory-tradeoff

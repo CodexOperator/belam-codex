@@ -6,6 +6,9 @@ confidence: ?
 upstream: [decision/render-engine-nice-vs-greedy-mode, decision/codex-cockpit-plugin-architecture]
 downstream: []
 tags: [instance:main, render-engine, cockpit, bug]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # cockpit-plugin-respawns-engine-without-mode-flag

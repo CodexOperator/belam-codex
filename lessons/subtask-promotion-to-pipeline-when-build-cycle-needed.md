@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, pipeline-design]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # subtask-promotion-to-pipeline-when-build-cycle-needed

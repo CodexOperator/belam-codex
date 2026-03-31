@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, archival]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # pipeline-force-archive-when-status-blocking

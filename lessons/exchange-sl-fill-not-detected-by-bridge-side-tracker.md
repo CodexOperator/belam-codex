@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, live-trading, bridge, stop-loss]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # exchange-sl-fill-not-detected-by-bridge-side-tracker

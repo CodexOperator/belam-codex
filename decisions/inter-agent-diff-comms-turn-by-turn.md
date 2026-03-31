@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-engine-v2-live-diff-architecture, decision/build-codex-layer-v1]
 downstream: [decision/lm-design-tool-patterns-navigable-runnable]
 tags: [instance:main, codex-layer, inter-agent, diff, token-efficiency, architecture]
+promotion_status: exploratory
+doctrine_richness: 3
+contradicts: []
 ---
 
 # inter-agent-diff-comms-turn-by-turn

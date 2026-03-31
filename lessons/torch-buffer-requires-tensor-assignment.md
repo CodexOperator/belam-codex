@@ -4,6 +4,9 @@ date: 2026-03-19
 source: build-equilibrium-snn pipeline, Shael experiment run
 confidence: high
 tags: [snn, pytorch, debugging]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # torch.nn.Buffer Requires Tensor Assignment, Not Float

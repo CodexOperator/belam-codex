@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/codex-engine-v1-architecture]
 downstream: []
 tags: [codex-engine, architecture, attention, ux]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Codex Engine Feels Native at V1

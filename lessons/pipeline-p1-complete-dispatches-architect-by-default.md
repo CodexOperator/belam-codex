@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, orchestration, latency]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # pipeline-p1-complete-dispatches-architect-by-default

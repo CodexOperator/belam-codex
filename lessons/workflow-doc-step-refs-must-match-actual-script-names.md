@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, lm, workflow, documentation, orchestrate]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # workflow-doc-step-refs-must-match-actual-script-names

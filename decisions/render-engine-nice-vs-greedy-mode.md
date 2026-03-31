@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-engine-v2-live-diff-architecture, decision/render-engine-as-default-context-layer]
 downstream: []
 tags: [instance:main, render-engine, architecture, diffing]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # render-engine-nice-vs-greedy-mode

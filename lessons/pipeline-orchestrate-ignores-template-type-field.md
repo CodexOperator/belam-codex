@@ -7,6 +7,9 @@ importance: 4
 upstream: [builder-first-pipeline-template-pattern]
 downstream: []
 tags: [instance:main, pipelines, orchestration, builder-first, gotcha]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # pipeline-orchestrate-ignores-template-type-field

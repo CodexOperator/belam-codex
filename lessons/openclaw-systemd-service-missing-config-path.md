@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, gateway, systemd, config, openclaw]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # openclaw-systemd-service-missing-config-path

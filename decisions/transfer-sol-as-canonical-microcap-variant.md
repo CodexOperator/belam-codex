@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, transfer-learning]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # transfer-sol-as-canonical-microcap-variant

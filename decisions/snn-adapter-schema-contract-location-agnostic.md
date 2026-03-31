@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, snn, adapter, quant, architecture]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # snn-adapter-schema-contract-location-agnostic

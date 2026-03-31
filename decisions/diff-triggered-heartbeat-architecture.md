@@ -5,6 +5,9 @@ title: Diff-Triggered Heartbeat Architecture
 importance: 4
 tags: [instance:main, render-engine, heartbeat, diff, architecture]
 created: 2026-03-23
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Decision: Diff-Triggered Heartbeat Architecture

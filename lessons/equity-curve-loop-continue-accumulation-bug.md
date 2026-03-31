@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, simulation, numpy, debugging]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # equity-curve-loop-continue-accumulation-bug

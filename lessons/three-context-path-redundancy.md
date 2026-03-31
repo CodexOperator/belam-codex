@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: [decision:codex-cockpit-before-prompt-build-per-turn-injection]
 tags: [instance:main, context-injection, render-engine, architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # three-context-path-redundancy

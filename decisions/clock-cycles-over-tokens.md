@@ -8,6 +8,9 @@ rationale: Every deterministic operation should be code, not reasoning
 consequences: [R CLI and autorun scripts are the right pattern, continuously migrate]
 tags: [infrastructure, cost, design-principle, tokens]
 upstream: [memory/2026-03-19_204801_design-principle-from-shael-clock-cycles]
+promotion_status: promoted
+doctrine_richness: 7
+contradicts: []
 ---
 
 # Clock Cycles Over Tokens

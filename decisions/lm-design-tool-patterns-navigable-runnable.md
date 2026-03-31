@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/legendary-map-as-lm-namespace-on-supermap]
 downstream: [decision/lm-dot-syntax-workflow-hierarchy]
 tags: [instance:main, legendary-map, lm, codex-engine, token-efficiency, design]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # lm-design-tool-patterns-navigable-runnable

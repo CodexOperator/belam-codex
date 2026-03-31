@@ -6,6 +6,9 @@ upstream: [codex-cockpit-plugin-architecture, codex-render-foreground-ram-tree, 
 downstream: []
 tags: [instance:main, codex-engine, render, zoom, context-efficiency]
 importance: 3
+promotion_status: exploratory
+doctrine_richness: 9
+contradicts: []
 ---
 
 # zoom-replaces-supermap-injection-option

@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, orchestration, notifications]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # builder-first-kickoff-flag-bypasses-orchestration-notifications

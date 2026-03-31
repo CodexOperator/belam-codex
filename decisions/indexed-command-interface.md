@@ -6,6 +6,9 @@ upstream: [decisions/clock-cycles-over-tokens]
 downstream: [decisions/primitive-relationship-graph, decision/codex-engine-v1-architecture]
 tags: [infrastructure, cli, ux, belam]
 superseded_by: decision/codex-engine-v1-architecture
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Indexed Command Interface as Default R UX

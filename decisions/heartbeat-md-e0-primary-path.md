@@ -9,6 +9,9 @@ consequences: []
 upstream: [lesson/heartbeat-md-contaminates-manual-session-behavior]
 downstream: []
 tags: [instance:main, heartbeat, lm, coordinate-grammar, pipeline]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # heartbeat-md-e0-primary-path

@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/orchestration-architecture]
 downstream: []
 tags: [instance:main, orchestration, pipeline, infrastructure, architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # orchestration-fire-and-forget-dispatch

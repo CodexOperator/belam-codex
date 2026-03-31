@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, sage, session-key, agent-rename, openclaw]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # sage-agent-session-key-stale-after-rename

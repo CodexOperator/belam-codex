@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, trading, live, safety, architecture]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # app-level-sl-trailing-stop-not-exchange-side

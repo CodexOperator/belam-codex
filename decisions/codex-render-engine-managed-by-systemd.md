@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/render-engine-pid-file-and-force-flag, decision/codex-cockpit-v7-single-prepend-block-architecture]
 downstream: []
 tags: [instance:main, render-engine, systemd, infrastructure, architecture]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # codex-render-engine-managed-by-systemd

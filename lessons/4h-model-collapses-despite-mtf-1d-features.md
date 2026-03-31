@@ -6,6 +6,9 @@ confidence: high
 upstream: [lgbm-selects-rsi-from-next-major-timeframe]
 downstream: []
 tags: [instance:main, quant, lightgbm, mtf]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # 4h-model-collapses-despite-mtf-1d-features

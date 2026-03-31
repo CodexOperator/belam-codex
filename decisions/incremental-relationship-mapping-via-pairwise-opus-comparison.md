@@ -9,6 +9,9 @@ consequences: [knowledge-graph-densifies-over-days, canvas-visualization-becomes
 upstream: [decision/primitive-relationship-graph, decision/clock-cycles-over-tokens, memory/2026-03-20_033917_primitive-relationship-graph-deployed-al]
 downstream: [task/build-incremental-relationship-mapper]
 tags: [infrastructure, knowledge-graph, primitives, relationships]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Incremental Relationship Mapping via Pairwise Opus Comparison

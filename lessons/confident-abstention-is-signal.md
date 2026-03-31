@@ -6,6 +6,9 @@ confidence: medium
 project: snn-applied-finance
 tags: [snn, trading, abstention]
 applies_to: [snn-applied-finance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Confident Abstention Is a Real Signal Type

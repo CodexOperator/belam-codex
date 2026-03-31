@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, codex-cockpit, plugin, v7, architecture]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # codex-cockpit-v7-single-prepend-block-architecture

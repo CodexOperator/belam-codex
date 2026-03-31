@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, baseline]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # quant-baseline-microcap-tokens-only

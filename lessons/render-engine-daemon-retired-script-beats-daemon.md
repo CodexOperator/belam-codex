@@ -6,6 +6,9 @@ confidence: high
 upstream: [render-engine-simplification-subtract-before-build]
 downstream: [codex-cockpit-v10-daemonless-direct-render]
 tags: [instance:main, codex-engine, render-engine, infrastructure, simplification]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # render-engine-daemon-retired-script-beats-daemon

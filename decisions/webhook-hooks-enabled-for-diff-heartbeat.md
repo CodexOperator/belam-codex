@@ -5,6 +5,9 @@ title: Webhook Hooks Enabled for Diff-Triggered Heartbeat
 importance: 3
 tags: [instance:main, hooks, webhook, heartbeat, config]
 created: 2026-03-23
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Decision: Webhook Hooks Enabled for Diff-Triggered Heartbeat

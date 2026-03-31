@@ -5,6 +5,9 @@ source: stack-specialists pipeline — 15 experiments, 42 runs, full stacking ev
 confidence: high
 priority: high
 tags: [snn, ensemble, stacking, architecture, dead-end]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Stacking Specialist Micro-Networks Is a Dead End

@@ -7,6 +7,9 @@ importance: 3
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, experiment, recovery, pid]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # dead-pid-recovery-must-update-pipeline-state

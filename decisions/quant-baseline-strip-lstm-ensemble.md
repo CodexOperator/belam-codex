@@ -9,6 +9,9 @@ consequences: []
 upstream: [quant-baseline-no-lstm-ensemble]
 downstream: []
 tags: [instance:main, quant, baseline, architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # quant-baseline-strip-lstm-ensemble

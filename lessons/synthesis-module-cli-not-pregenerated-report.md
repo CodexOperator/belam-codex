@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, pipeline, s11]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # synthesis-module-cli-not-pregenerated-report

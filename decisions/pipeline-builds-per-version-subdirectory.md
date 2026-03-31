@@ -4,6 +4,9 @@ status: accepted
 created: 2026-03-23
 importance: 4
 tags: [pipeline, convention, infrastructure]
+promotion_status: exploratory
+doctrine_richness: 7
+contradicts: []
 ---
 
 # Pipeline Builds: Per-Version Subdirectories

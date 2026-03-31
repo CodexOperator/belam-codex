@@ -8,6 +8,9 @@ downstream: []
 tags: [instance:main, embed-primitives, supermap, boot-context, cleanup, archive-pattern]
 status: superseded
 superseded_by: decision/codex-engine-v1-architecture
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # archive-embed-primitives-when-supermap-replaces-it

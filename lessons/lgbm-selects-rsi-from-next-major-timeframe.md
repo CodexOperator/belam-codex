@@ -6,6 +6,9 @@ confidence: high
 upstream: [mtf-1h-rsi14-top-feature-all-tokens]
 downstream: []
 tags: [instance:main, quant, lightgbm, mtf]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # lgbm-selects-rsi-from-next-major-timeframe

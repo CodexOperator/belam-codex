@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, crypto, signal, backtesting]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # microcap-crypto-less-arbitraged-than-btc

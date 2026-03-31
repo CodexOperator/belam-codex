@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/heartbeat-priority-order-infra-tasks, decision/orchestration-fire-and-forget-dispatch]
 downstream: []
 tags: [instance:main, pipeline, orchestration, depends_on, heartbeat]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # cross-pipeline-ordering-requires-heartbeat-not-runtime

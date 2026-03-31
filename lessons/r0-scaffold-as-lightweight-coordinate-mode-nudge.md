@@ -6,6 +6,9 @@ confidence: high
 upstream: [lm-entries-must-be-compelling-to-displace-raw-scripts]
 downstream: []
 tags: [instance:main, coordinate-system, codex-layer, lm, boot, scaffold]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # r0-scaffold-as-lightweight-coordinate-mode-nudge

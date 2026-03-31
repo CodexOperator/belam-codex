@@ -7,6 +7,9 @@ upstream: [builder-first-pipeline-template-pattern]
 downstream: []
 tags: [instance:main, pipeline, orchestration, critic, architect, role-separation]
 importance: 3
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # complete-task-is-architect-only-decision

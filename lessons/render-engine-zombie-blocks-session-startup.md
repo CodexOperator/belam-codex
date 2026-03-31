@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/codex-cockpit-before-prompt-build-per-turn-injection]
 downstream: []
 tags: [instance:main, render-engine, session-startup, robustness]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # render-engine-zombie-blocks-session-startup

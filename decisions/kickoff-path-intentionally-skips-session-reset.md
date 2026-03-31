@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, orchestration, session-management]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # kickoff-path-intentionally-skips-session-reset

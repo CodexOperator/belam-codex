@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/render-engine-nice-vs-greedy-mode]
 downstream: []
 tags: [instance:main, render-engine, deadlock, threading, architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # render-engine-flush-worker-decoupling

@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, pipeline, builder]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # builder-agents-implement-code-not-executed-analysis

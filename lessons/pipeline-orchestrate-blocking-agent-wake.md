@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, orchestration, pipeline, infrastructure, hanging]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # pipeline-orchestrate-blocking-agent-wake

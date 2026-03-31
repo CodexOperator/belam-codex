@@ -14,6 +14,9 @@ consequences:
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, infrastructure, local-analysis]
+promotion_status: promoted
+doctrine_richness: 8
+contradicts: []
 ---
 
 # infra-pipelines-use-local-analysis

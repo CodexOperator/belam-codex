@@ -6,6 +6,9 @@ confidence: high
 project: snn-applied-finance
 tags: [pipeline, infrastructure, markdown, debugging]
 applies_to: [pipeline_update.py, pipeline primitives]
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Pipeline Table Separator Required for Update Script

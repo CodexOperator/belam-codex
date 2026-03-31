@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, snn, architecture, repo-layout]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # snn-applied-finance-separate-from-quant-infra

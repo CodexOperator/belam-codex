@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-cockpit-plugin-architecture, decision/codex-engine-v1-architecture]
 downstream: []
 tags: [instance:main, render-engine, cli, architecture]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # r-command-render-layer-cli

@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision:indexed-command-interface, decision:r-command-render-layer-cli]
 downstream: []
 tags: [instance:main, codex-engine, symbolic-dispatch, coordinate-grammar, architecture]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # symbolic-dispatch-architecture

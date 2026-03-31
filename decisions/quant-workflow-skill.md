@@ -17,6 +17,9 @@ consequences:
 project: quant-knowledge-skills
 tags: [methodology, statistics, overfitting, workflow, knowledge]
 knowledge: quant-workflow
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Decision: Quant Workflow Skill

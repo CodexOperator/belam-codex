@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-cockpit-plugin-architecture, decision/render-engine-as-default-context-layer]
 downstream: [decision/legendary-map-as-lm-namespace-on-supermap]
 tags: [instance:main, codex-engine, R-command, context-injection, legendary-map]
+promotion_status: exploratory
+doctrine_richness: 3
+contradicts: []
 ---
 
 # r-command-default-shows-legend-plus-supermap

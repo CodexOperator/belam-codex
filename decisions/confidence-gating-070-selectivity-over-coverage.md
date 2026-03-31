@@ -5,6 +5,9 @@ created: 2026-03-26
 author: shael+belam
 tags: [quant, risk-management, swing-trading]
 related: [microcap-swing-signal-extraction, binary-classification-over-regression-for-swing-detection]
+promotion_status: exploratory
+doctrine_richness: 4
+contradicts: []
 ---
 
 # Confidence Gating at 0.70 — Selectivity Over Coverage

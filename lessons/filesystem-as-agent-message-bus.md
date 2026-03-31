@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, agents, architecture, filesystem, comms]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # filesystem-as-agent-message-bus

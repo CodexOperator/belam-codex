@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, codex-cockpit, plugin, openclaw, prependSystemContext, appendSystemContext]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # appendSystemContext-not-reliable-use-prependSystemContext

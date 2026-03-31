@@ -9,6 +9,9 @@ consequences: [Use PyTorch autograd or JAX for all Greeks computation, Finite di
 project: snn-applied-finance
 tags: [derivatives, greeks, infrastructure]
 upstream: []
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # AAD Over Finite Differences for Greeks

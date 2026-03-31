@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision:codex-engine-v2-dense-alphanumeric-grammar]
 downstream: []
 tags: [instance:main, codex-engine, output-codec, coordinate-grammar, architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # output-codec-coordinate-compression

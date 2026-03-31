@@ -5,6 +5,9 @@ title: Scrap R Labels, Keep F Labels as Raw Git Diff
 importance: 5
 tags: [instance:main, render-engine, diff, codex-engine, architecture, simplification]
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Decision: Scrap R Labels, Keep F Labels as Raw Git Diff

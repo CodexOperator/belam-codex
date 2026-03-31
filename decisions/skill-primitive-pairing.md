@@ -16,6 +16,9 @@ consequences:
 project: workspace-conventions
 tags: [skills, primitives, conventions, knowledge-management]
 downstream: [memory/2026-03-18_192651_convention-established-every-workspace-s]
+promotion_status: exploratory
+doctrine_richness: 5
+contradicts: []
 ---
 
 # Decision: Every Skill Gets a Primitive

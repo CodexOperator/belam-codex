@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-cockpit-before-prompt-build-per-turn-injection, decision/codex-render-foreground-ram-tree]
 downstream: []
 tags: [instance:main, render-engine, architecture, context-injection, codex-cockpit]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # render-engine-as-default-context-layer

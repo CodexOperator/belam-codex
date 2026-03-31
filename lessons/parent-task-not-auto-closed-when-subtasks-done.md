@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, tasks]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # parent-task-not-auto-closed-when-subtasks-done

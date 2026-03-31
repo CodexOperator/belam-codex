@@ -7,6 +7,9 @@ importance: 3
 upstream: []
 downstream: []
 tags: [instance:main, gateway, systemd, telegram, debugging]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # gateway-systemd-can-crash-while-process-survives

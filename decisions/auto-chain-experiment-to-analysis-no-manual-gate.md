@@ -6,6 +6,9 @@ importance: 3
 upstream: [phase2-human-gate, analysis-phase2-gate-mandatory]
 downstream: []
 tags: [instance:main, pipeline, gate, experiment, analysis]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # auto-chain-experiment-to-analysis-no-manual-gate

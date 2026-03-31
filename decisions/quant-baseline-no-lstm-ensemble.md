@@ -10,6 +10,9 @@ upstream: [microcap-swing-signal-extraction]
 downstream: []
 tags: [quant, crypto, microcap]
 status: accepted
+promotion_status: exploratory
+doctrine_richness: 5
+contradicts: []
 ---
 
 # quant-baseline-no-lstm-ensemble

@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/pipeline-kick-duplicate-dispatch-guard]
 downstream: []
 tags: [instance:main, orchestration, pipeline, stall-recovery]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # stall-recovery-bypasses-kick-pipeline-guard

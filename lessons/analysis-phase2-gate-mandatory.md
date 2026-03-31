@@ -6,6 +6,9 @@ tags: [pipeline, methodology, analysis, gate]
 project: snn-applied-finance
 source: Shael directive 2026-03-17
 downstream: []
+promotion_status: exploratory
+doctrine_richness: 8
+contradicts: []
 ---
 
 # Lesson: Analysis Phase 2 is a Mandatory Gate Before New Versions

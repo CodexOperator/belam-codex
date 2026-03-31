@@ -6,6 +6,9 @@ confidence: ?
 upstream: [decision:codex-engine-dense-alphanumeric-coordinate-grammar]
 downstream: []
 tags: [instance:main, codex-engine, symbolic-dispatch, coordinate-grammar]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # coordinate-dispatch-without-r-prefix

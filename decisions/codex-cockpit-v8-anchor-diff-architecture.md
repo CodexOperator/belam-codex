@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, cockpit, supermap, render-engine]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # codex-cockpit-v8-anchor-diff-architecture

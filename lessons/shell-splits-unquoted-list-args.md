@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/indexed-command-interface, memory/2026-03-18_225239_major-workspace-infrastructure-session-1]
 downstream: []
 tags: [infrastructure, cli, debugging, belam, argparse]
+promotion_status: promoted
+doctrine_richness: 8
+contradicts: []
 ---
 
 # Shell Splits Unquoted List Arguments

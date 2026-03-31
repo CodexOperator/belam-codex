@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, transfer-learning]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # transfer-learning-dominates-low-data-microcap

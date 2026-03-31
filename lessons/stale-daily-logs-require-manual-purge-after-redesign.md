@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # stale-daily-logs-require-manual-purge-after-redesign

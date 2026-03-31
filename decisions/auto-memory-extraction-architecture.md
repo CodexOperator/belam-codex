@@ -5,6 +5,9 @@ status: accepted
 upstream: []
 downstream: []
 tags: [instance:main, memory-extraction, automation, architecture, hook]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # auto-memory-extraction-architecture

@@ -6,6 +6,9 @@ confidence: high
 upstream: [fire-and-forget-dispatch-timeout-1-killed-all-agents]
 downstream: []
 tags: [instance:main, pipeline, launch, imports, scripting]
+promotion_status: promoted
+doctrine_richness: 7
+contradicts: []
 ---
 
 # launch-pipeline-kickoff-path-had-stale-imports

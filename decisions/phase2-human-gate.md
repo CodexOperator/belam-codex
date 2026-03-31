@@ -9,6 +9,9 @@ consequences: [pipelines pause at local_analysis_complete, autorun never touches
 tags: [pipeline, gate, phase2, infrastructure]
 upstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
 downstream: [memory/2026-03-17_134119_phase-2-cold-start-protocol-agent-contex]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Phase 2 Requires Explicit Human Approval

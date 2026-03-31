@@ -6,6 +6,9 @@ confidence: ?
 upstream: [lesson/pipeline-state-file-split-brain-pattern]
 downstream: []
 tags: [instance:main, pipeline, e0, orchestration]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # e0-sweep-corrupts-active-pipeline-state

@@ -7,6 +7,9 @@ upstream: []
 downstream: []
 tags: [instance:main, openclaw, install, path, gateway]
 importance: 3
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # openclaw-dual-install-path-conflict

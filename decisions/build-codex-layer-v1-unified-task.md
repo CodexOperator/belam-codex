@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/symbolic-dispatch-architecture, decision/output-codec-coordinate-compression]
 downstream: []
 tags: [instance:main, codex-layer, tasks, architecture]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # build-codex-layer-v1-unified-task

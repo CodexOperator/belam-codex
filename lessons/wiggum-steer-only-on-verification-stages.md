@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, orchestration, recovery, ralph-wiggum]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # wiggum-steer-only-on-verification-stages

@@ -6,6 +6,9 @@ confidence: medium
 upstream: []
 downstream: []
 tags: [instance:main, research, gaming, world-model, jepa]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # lewm-jepa-world-model-for-llm-gaming

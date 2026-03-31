@@ -5,6 +5,9 @@ title: Diff Updates Are Turn-Based, Not Mid-Turn
 importance: 3
 tags: [instance:main, render-engine, diff, architecture, context]
 created: 2026-03-23
+promotion_status: exploratory
+doctrine_richness: 4
+contradicts: []
 ---
 
 # Lesson: Diff Updates Are Turn-Based, Not Mid-Turn

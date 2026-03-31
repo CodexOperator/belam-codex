@@ -7,6 +7,9 @@ upstream: []
 downstream: []
 tags: [instance:main, codex-engine, task-management, filtering]
 importance: 3
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # done-complete-missing-from-excluded-statuses

@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, engine:codex, v3, phase2, dulwich]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # codex-render-test-mode-dulwich-session-branch

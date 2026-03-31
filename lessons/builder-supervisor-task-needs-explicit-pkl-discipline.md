@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, builder, experiments]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # builder-supervisor-task-needs-explicit-pkl-discipline

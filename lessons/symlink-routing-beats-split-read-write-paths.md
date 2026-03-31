@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, v4, agents, architecture, symlinks]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # symlink-routing-beats-split-read-write-paths

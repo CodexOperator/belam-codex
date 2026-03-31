@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, builder-first, template, orchestration]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # builder-first-auto-complete-on-clean-critic-pass

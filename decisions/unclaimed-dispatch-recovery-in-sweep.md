@@ -9,6 +9,9 @@ consequences: []
 upstream: [lesson/dispatch-claimed-flag-required-for-true-active-check]
 downstream: []
 tags: [instance:main, pipeline, orchestration, e0, resilience]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # unclaimed-dispatch-recovery-in-sweep

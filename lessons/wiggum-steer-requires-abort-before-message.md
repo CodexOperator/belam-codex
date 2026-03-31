@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, wiggum, pipeline, sessions]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # wiggum-steer-requires-abort-before-message

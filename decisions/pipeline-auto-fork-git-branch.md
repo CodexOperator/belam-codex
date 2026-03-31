@@ -9,6 +9,9 @@ consequences: []
 upstream: [agent-session-isolation, ralph-wiggum-skill-for-subagent-recovery]
 downstream: []
 tags: [instance:main, pipeline, git, verification, wiggum, testing]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # pipeline-auto-fork-git-branch

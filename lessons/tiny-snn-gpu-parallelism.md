@@ -8,6 +8,9 @@ project: snn-applied-finance
 tags: [gpu, parallelism, performance, infrastructure]
 applies_to: [pipeline-template, v4, v5+]
 superseded_by: gpu-parallel-thrashing-t4
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Tiny SNN Models Need GPU Throughput Optimization, Not Memory Caution

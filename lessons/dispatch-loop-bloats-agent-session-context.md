@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, orchestration, dispatch, session, context]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # dispatch-loop-bloats-agent-session-context

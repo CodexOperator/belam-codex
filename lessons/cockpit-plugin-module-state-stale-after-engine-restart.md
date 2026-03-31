@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, cockpit, render-engine, supermap]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # cockpit-plugin-module-state-stale-after-engine-restart

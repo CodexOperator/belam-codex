@@ -10,6 +10,9 @@ upstream: []
 downstream: []
 tags: [instance:main, cockpit, plugin, config]
 importance: 4
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # codex-cockpit-allowpromptinjection-required

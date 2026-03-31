@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, critic, quality-gate, template]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # critic-review-clean-pass-zero-blocks-zero-flags

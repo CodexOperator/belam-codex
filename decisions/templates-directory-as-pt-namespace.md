@@ -10,6 +10,9 @@ upstream: [template-aware-pipeline-orchestration, codex-engine-v2-dense-alphanum
 downstream: []
 tags: [instance:main, codex-engine, templates, pipelines, namespace]
 importance: 4
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # templates-directory-as-pt-namespace

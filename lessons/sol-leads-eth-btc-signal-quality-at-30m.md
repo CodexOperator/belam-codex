@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, lightgbm, microcap, sol, eth, btc]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # sol-leads-eth-btc-signal-quality-at-30m

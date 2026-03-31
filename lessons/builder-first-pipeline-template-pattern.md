@@ -6,6 +6,9 @@ importance: 3
 tags: [instance:main, pipeline, orchestration, template, builder-first]
 confidence: high
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Lesson: Builder-First Pipeline Template Pattern

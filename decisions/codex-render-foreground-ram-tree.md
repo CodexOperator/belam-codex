@@ -9,6 +9,9 @@ consequences: []
 upstream: [codex-engine-v3-architecture]
 downstream: []
 tags: [instance:main, engine:codex, v3, phase2]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # codex-render-foreground-ram-tree

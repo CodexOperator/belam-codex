@@ -7,6 +7,9 @@ upstream: []
 downstream: []
 tags: [instance:main, cockpit, plugin, before_prompt_build, gotcha]
 importance: 4
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # before-prompt-build-requires-allowpromptinjection

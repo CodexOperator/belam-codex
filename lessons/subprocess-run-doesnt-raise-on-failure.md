@@ -5,6 +5,9 @@ date: 2026-03-19
 context: run_experiment.py papermill detection set papermill_available=True even when papermill wasn't installed
 tags: [python, debugging, infrastructure]
 downstream: [memory/2026-03-19_191633_supervised-builder-experiment-runner-wor]
+promotion_status: exploratory
+doctrine_richness: 7
+contradicts: []
 ---
 
 # subprocess.run Does Not Raise on Non-Zero Exit Code

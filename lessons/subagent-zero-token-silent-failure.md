@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, subagent, reliability]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # subagent-zero-token-silent-failure

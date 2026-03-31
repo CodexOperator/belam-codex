@@ -8,6 +8,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, boot-hook, supermap, infrastructure]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # supermap-boot-hook-via-embed-primitives

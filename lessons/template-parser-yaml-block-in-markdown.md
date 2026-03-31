@@ -7,6 +7,9 @@ importance: 3
 upstream: [builder-first-pipeline-template-pattern]
 downstream: [template-aware-pipeline-orchestration]
 tags: [instance:main, pipelines, templates, patterns, infrastructure]
+promotion_status: promoted
+doctrine_richness: 8
+contradicts: []
 ---
 
 # template-parser-yaml-block-in-markdown

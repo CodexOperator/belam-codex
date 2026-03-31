@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, supermap, agents-md, codex-cockpit, staleness]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # agents-md-embedded-supermap-conflicts-with-cockpit-plugin

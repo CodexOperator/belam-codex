@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, lightgbm, labeling]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # small-sample-1h-labels-collapse-multiclass

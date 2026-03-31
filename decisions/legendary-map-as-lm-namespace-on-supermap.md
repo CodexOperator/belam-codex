@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-engine-v3-architecture, decision/codex-engine-dense-alphanumeric-coordinate-grammar]
 downstream: []
 tags: [instance:main, codex-engine, legendary-map, supermap, architecture]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # legendary-map-as-lm-namespace-on-supermap

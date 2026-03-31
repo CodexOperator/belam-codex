@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, snn, quant, ml, backtesting]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # snn-regime-dependency-btc-vs-spy

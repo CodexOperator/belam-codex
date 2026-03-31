@@ -7,6 +7,9 @@ project: snn-applied-finance
 tags: [infrastructure, agents, openclaw, debugging]
 applies_to: [orchestrator, pipeline-autorun, agent-management]
 upstream: [decision/agent-session-isolation]
+promotion_status: exploratory
+doctrine_richness: 7
+contradicts: []
 ---
 
 # Lesson: OpenClaw Agent CLI Uses `main` Session, Not Group Session

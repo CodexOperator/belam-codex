@@ -7,6 +7,9 @@ tags: [infrastructure, memory-system, cron, knowledge-graph]
 project: workspace-infrastructure
 decided_by: [Shael, Belam]
 downstream: [memory/2026-03-17_223924_built-hierarchical-memory-system-dailywe, memory/2026-03-17_221720_hierarchical-memory-system-built-and-dep]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Hierarchical Memory Consolidation System

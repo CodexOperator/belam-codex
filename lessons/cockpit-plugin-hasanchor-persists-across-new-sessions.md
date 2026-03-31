@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, cockpit, supermap, session-management]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # cockpit-plugin-hasanchor-persists-across-new-sessions

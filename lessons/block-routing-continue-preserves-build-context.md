@@ -7,6 +7,9 @@ project: snn-applied-finance
 tags: [instance:main, orchestration, agents, session-management]
 applies_to: [pipeline_orchestrate, template_parser, block_routing]
 upstream: [decision/session-continuity-on-block-with-phase-diff, decision/agent-session-isolation]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Lesson: Block Routing Should Use `continue` to Preserve Build Context

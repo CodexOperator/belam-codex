@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, lm, coordinate-grammar, ux]
+promotion_status: promoted
+doctrine_richness: 8
+contradicts: []
 ---
 
 # lm-entries-must-be-compelling-to-displace-raw-scripts

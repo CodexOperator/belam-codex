@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, crypto, data, solana]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # solana-dex-ohlcv-via-birdeye-bitquery

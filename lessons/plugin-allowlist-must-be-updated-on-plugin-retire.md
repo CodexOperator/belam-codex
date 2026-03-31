@@ -7,6 +7,9 @@ importance: 3
 upstream: []
 downstream: []
 tags: [instance:main, plugin, openclaw, config, infrastructure]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # plugin-allowlist-must-be-updated-on-plugin-retire

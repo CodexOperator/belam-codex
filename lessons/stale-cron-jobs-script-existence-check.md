@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, cron, infrastructure, maintenance]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # stale-cron-jobs-script-existence-check

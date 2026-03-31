@@ -9,6 +9,9 @@ consequences: [engine-parser-rewrite, mode-switch-capability, multi-pane-renderi
 upstream: [decision/codex-engine-v1-architecture, decision/codex-engine-modes-as-primitives]
 downstream: [task/codex-engine-v2-modes-mcp-temporal]
 tags: [codex-engine, v2, grammar, tokenizer, attention, architecture]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Codex Engine v2: Dense Alphanumeric Grammar

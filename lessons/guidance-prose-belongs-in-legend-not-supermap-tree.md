@@ -15,6 +15,9 @@ tags:
   - r-command
   - design
 importance: 3
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # guidance-prose-belongs-in-legend-not-supermap-tree

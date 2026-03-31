@@ -5,6 +5,9 @@ created: 2026-03-21
 tags: [codex-engine, live-diffs, infrastructure, v3]
 upstream: [decision/codex-engine-v1-architecture]
 downstream: []
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Live Diff Streaming Architecture

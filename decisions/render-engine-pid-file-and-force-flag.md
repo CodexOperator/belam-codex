@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/codex-cockpit-before-prompt-build-per-turn-injection, lesson/render-engine-zombie-blocks-session-startup]
 downstream: []
 tags: [instance:main, render-engine, robustness, session-startup]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # render-engine-pid-file-and-force-flag

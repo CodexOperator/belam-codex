@@ -9,6 +9,9 @@ consequences: [Use VectorBT PRO for parameter sweeps and robustness analysis, Us
 project: snn-applied-finance
 tags: [backtesting, infrastructure, workflow]
 downstream: [memory/2026-03-17_134119_major-session-built-three-infrastructure]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # Two-Phase Backtest Workflow

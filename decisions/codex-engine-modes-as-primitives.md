@@ -9,6 +9,9 @@ consequences: [modes-directory-created, e-namespace-for-modes, e0-e3-replace-fla
 upstream: [decision/codex-engine-v1-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar]
 downstream: [task/codex-engine-v2-modes-mcp-temporal, task/build-orchestration-engine-v1]
 tags: [codex-engine, v2, modes, primitives, architecture]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Codex Engine: Modes as Primitives

@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, trading, live, safety]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # daemon-without-exchange-sl-leaves-positions-unprotected

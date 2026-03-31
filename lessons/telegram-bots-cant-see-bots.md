@@ -6,6 +6,9 @@ confidence: high
 project: multi-agent-infrastructure
 tags: [telegram, agents, infrastructure]
 applies_to: [multi-agent-infrastructure]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Telegram Bots Cannot See Other Bots' Messages

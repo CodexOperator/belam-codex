@@ -7,6 +7,9 @@ importance: 4
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, state-file, bug]
+promotion_status: promoted
+doctrine_richness: 8
+contradicts: []
 ---
 
 # pipeline-state-file-split-brain-pattern

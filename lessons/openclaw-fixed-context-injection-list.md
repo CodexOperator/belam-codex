@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, openclaw, context, boot, infrastructure]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # openclaw-fixed-context-injection-list

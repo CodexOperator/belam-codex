@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, ml, microcap, labeling]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # mfe-labeling-for-swing-signal-extraction

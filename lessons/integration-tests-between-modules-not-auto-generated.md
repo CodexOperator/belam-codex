@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, testing, snn-finance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # integration-tests-between-modules-not-auto-generated

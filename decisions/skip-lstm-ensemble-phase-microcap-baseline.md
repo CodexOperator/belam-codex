@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # skip-lstm-ensemble-phase-microcap-baseline

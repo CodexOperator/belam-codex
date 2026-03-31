@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, v4, git, ram, undo]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # git-turn-boundary-commit-enables-undo

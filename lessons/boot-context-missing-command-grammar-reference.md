@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, context-injection, boot-context]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # boot-context-missing-command-grammar-reference

@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/indexed-command-interface, decision/clock-cycles-over-tokens, decision/memory-as-index-not-store, decision/primitive-relationship-graph]
 downstream: [task/build-codex-engine, task/limit-soul-read-write, lesson/codex-engine-feels-native-at-v1]
 tags: [codex-engine, infrastructure, architecture, attention]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Codex Engine V1 Architecture

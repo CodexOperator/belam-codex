@@ -10,6 +10,9 @@ project: snn-applied-finance
 upstream: [decision/two-phase-backtest-workflow, decision/phase-n-generic-pipeline-template-architecture]
 downstream: []
 tags: [instance:main, backtesting, infrastructure, vectorbt, nautilus, subtasks]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # VectorBT + NautilusTrader Subtask Decomposition

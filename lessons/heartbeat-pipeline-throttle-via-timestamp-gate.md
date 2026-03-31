@@ -7,6 +7,9 @@ importance: 3
 upstream: [decision/heartbeat-md-e0-primary-path, decision/remove-e0-sweep-from-heartbeat]
 downstream: []
 tags: [instance:main, heartbeat, pipeline, rate-limiting, infrastructure]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # heartbeat-pipeline-throttle-via-timestamp-gate

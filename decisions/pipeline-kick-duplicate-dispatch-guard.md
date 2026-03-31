@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/orchestration-fire-and-forget-dispatch]
 downstream: []
 tags: [instance:main, orchestration, pipeline, dedup]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # pipeline-kick-duplicate-dispatch-guard

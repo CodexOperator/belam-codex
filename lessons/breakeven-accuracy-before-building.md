@@ -6,6 +6,9 @@ confidence: high
 project: snn-applied-finance
 tags: [trading, costs, validation]
 applies_to: [snn-applied-finance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Calculate Breakeven Accuracy Before Building

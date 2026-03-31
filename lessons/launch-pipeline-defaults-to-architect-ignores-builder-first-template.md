@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/template-aware-pipeline-orchestration, lesson/pipeline-orchestrate-ignores-template-type-field]
 downstream: []
 tags: [instance:main, pipeline, builder-first, orchestration, bug]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # launch-pipeline-defaults-to-architect-ignores-builder-first-template

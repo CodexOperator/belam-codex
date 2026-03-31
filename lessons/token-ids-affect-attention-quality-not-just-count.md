@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, tokenizer, attention, llm, coordinate-design, tokens]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # token-ids-affect-attention-quality-not-just-count

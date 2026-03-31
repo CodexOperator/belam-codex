@@ -5,6 +5,9 @@ title: DiffEntry Content Field Required for F-Label Display
 importance: 3
 tags: [instance:main, render-engine, diff, implementation]
 created: 2026-03-23
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Lesson: DiffEntry Content Field Required for F-Label Display

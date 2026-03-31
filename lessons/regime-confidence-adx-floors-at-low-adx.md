@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, trading, regime, quant]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # regime-confidence-adx-floors-at-low-adx

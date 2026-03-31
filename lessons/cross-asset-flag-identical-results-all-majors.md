@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, lightgbm, btc, eth, sol, cross-asset, bug]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # cross-asset-flag-identical-results-all-majors

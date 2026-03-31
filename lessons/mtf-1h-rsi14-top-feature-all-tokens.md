@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, features]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # mtf-1h-rsi14-top-feature-all-tokens

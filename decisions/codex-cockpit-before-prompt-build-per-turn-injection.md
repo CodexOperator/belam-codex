@@ -12,6 +12,9 @@ tags:
   - openclaw-plugin
   - supermap
   - cockpit
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # codex-cockpit: Use before_prompt_build for Per-Turn Supermap Injection

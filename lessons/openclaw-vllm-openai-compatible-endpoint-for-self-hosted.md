@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, infra, self-hosted, openclaw]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # openclaw-vllm-openai-compatible-endpoint-for-self-hosted

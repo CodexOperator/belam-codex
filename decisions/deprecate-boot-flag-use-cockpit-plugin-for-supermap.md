@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, supermap, codex-engine, cockpit-plugin, boot-flag]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # deprecate-boot-flag-use-cockpit-plugin-for-supermap

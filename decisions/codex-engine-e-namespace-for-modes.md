@@ -9,6 +9,9 @@ consequences: []
 upstream: [decisions/codex-engine-modes-as-primitives, decisions/codex-engine-dense-alphanumeric-coordinate-grammar]
 downstream: []
 tags: [instance:main, codex-engine, v2, modes, namespace, e0, e1, e2, e3]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # codex-engine-e-namespace-for-modes

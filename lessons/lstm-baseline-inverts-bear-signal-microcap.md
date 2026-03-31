@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, lstm]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # lstm-baseline-inverts-bear-signal-microcap

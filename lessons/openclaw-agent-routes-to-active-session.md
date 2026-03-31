@@ -6,6 +6,9 @@ confidence: high
 upstream: [decisions/agent-session-isolation, decision/orchestration-architecture]
 downstream: []
 tags: [infrastructure, agents, openclaw, session-routing]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # openclaw agent CLI Routes to Active Session, Not Isolated

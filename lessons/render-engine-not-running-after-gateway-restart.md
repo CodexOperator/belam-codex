@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/codex-render-engine-managed-by-systemd]
 downstream: []
 tags: [instance:main, render-engine, debugging, gotcha]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # render-engine-not-running-after-gateway-restart

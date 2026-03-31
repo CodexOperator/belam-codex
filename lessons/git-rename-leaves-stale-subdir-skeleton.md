@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, git, pipeline, recovery]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # git-rename-leaves-stale-subdir-skeleton

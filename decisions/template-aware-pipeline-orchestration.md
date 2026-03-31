@@ -6,6 +6,9 @@ importance: 4
 upstream: [builder-first-pipeline-template-pattern, orchestration-architecture]
 downstream: []
 tags: [instance:main, pipelines, orchestration, builder-first, templates, infrastructure]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # template-aware-pipeline-orchestration

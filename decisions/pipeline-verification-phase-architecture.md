@@ -9,6 +9,9 @@ consequences: []
 upstream: [ralph-wiggum-skill-for-subagent-recovery, agent-trio-architecture]
 downstream: []
 tags: [instance:main, pipeline, verification, testing, architecture, infra]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # pipeline-verification-phase-architecture

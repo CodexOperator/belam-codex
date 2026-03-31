@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, regime]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # regime-filter-low-passrate-high-quality-tradeoff

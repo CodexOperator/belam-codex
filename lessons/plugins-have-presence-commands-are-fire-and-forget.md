@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, openclaw, plugins, commands, architecture, primitives]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # plugins-have-presence-commands-are-fire-and-forget

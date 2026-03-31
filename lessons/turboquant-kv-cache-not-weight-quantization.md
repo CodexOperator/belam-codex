@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, infra, self-hosted, llm]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # turboquant-kv-cache-not-weight-quantization

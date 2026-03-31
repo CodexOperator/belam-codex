@@ -20,6 +20,9 @@ upstream:
   - lesson/checkpoint-and-resume-pattern
 downstream: []
 tags: [infrastructure, orchestration, agents, session-management]
+promotion_status: exploratory
+doctrine_richness: 9
+contradicts: []
 ---
 
 # Decision: Session Continuity on Block + Phase-Level Git Diff

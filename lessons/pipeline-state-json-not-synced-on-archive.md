@@ -7,6 +7,9 @@ importance: 3
 upstream: []
 downstream: []
 tags: [instance:main, pipeline, bug, infrastructure]
+promotion_status: promoted
+doctrine_richness: 8
+contradicts: []
 ---
 
 # pipeline-state-json-not-synced-on-archive

@@ -6,6 +6,9 @@ confidence: high
 project: snn-applied-finance
 tags: [snn, specialists, architecture]
 applies_to: [snn-applied-finance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Simple SNNs Detect Events, Not States

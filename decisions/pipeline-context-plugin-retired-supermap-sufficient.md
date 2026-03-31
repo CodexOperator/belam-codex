@@ -6,6 +6,9 @@ importance: 3
 upstream: [supermap-boot-hook-via-embed-primitives]
 downstream: []
 tags: [instance:main, pipeline, plugin, supermap, prompt-optimization]
+promotion_status: promoted
+doctrine_richness: 7
+contradicts: []
 ---
 
 # pipeline-context-plugin-retired-supermap-sufficient

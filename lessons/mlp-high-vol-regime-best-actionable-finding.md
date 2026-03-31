@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, ml, snn, backtesting]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # mlp-high-vol-regime-best-actionable-finding

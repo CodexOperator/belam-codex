@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, live-trading, bridge, risk]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # cooldown-after-stop-out-prevents-chasing

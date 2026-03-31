@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, live-trading, bridge]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # bridge-position-reconciliation-cooldown-equity-sync

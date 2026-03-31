@@ -6,6 +6,9 @@ confidence: medium
 upstream: []
 downstream: []
 tags: [instance:main, hooks, memory-extract, bash, session-files]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # memory-extract-hook-session-file-detection-mismatch

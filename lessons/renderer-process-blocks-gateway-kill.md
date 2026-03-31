@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, renderer, codex-cockpit, gateway]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # renderer-process-blocks-gateway-kill

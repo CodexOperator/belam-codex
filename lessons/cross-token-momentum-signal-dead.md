@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, cross-token]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # cross-token-momentum-signal-dead

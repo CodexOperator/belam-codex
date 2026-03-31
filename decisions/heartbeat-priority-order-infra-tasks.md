@@ -4,6 +4,9 @@ importance: 3
 tags: [instance:main, heartbeat, orchestration, prioritization, infrastructure]
 related: [heartbeat-md-e0-primary-path, remove-e0-sweep-from-heartbeat]
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Heartbeat: Priority-Ordered Infra Task Launch

@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, hooks, memory-extract, session-memory, error-handling]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # memory-extract-hook-error-handling-fix

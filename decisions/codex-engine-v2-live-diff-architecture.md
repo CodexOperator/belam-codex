@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, v2, v3, live-diffs, r-labels, daemon]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # codex-engine-v2-live-diff-architecture

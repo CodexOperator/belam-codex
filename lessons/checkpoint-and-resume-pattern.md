@@ -7,6 +7,9 @@ project: snn-applied-finance
 tags: [infrastructure, agents, orchestration, pattern]
 applies_to: [orchestrator, pipeline-autorun, agent-management]
 upstream: [decision/agent-session-isolation, decision/orchestration-architecture]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Lesson: Checkpoint-and-Resume for Long Agent Tasks

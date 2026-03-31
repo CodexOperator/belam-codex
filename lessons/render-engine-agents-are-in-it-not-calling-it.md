@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/render-engine-as-default-context-layer]
 downstream: []
 tags: [instance:main, render-engine, context-injection, architecture, llm-context]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # render-engine-agents-are-in-it-not-calling-it

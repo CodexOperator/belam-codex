@@ -6,6 +6,9 @@ confidence: high
 upstream: [lgbm-selects-rsi-from-next-major-timeframe]
 downstream: []
 tags: [instance:main, quant, lightgbm, eth, btc]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # eth-30m-outperforms-btc-30m-on-bull-recall

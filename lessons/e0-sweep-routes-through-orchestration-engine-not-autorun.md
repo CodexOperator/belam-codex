@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, e0, orchestration, pipeline]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # e0-sweep-routes-through-orchestration-engine-not-autorun

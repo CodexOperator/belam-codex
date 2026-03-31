@@ -6,6 +6,9 @@ decider: shael+belam
 upstream: [legendary-map-as-lm-namespace-on-supermap, lm-design-tool-patterns-navigable-runnable, r0-scaffold-as-lightweight-coordinate-mode-nudge]
 downstream: []
 tags: [instance:main, lm, infrastructure, coordinate-system, scaffold]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # lm-v2-task-coordinate-native-launch-and-scaffold

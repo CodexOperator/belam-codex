@@ -7,6 +7,9 @@ importance: 4
 upstream: [diff-triggered-heartbeat-architecture]
 downstream: []
 tags: [instance:main, telegram, lane-queue, system-events, diff-trigger]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # main-session-lane-backup-from-event-bursts

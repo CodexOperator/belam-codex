@@ -6,6 +6,9 @@ confidence: high
 upstream: [decision/render-engine-nice-vs-greedy-mode]
 downstream: []
 tags: [instance:main, render-engine, nice-mode, bug, locking]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # nice-mode-flush-supermap-command-ordering

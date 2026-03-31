@@ -6,6 +6,9 @@ importance: 3
 tags: [instance:main, render-engine, simplification, architecture, sequencing]
 confidence: high
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Lesson: Subtract First, Then Build

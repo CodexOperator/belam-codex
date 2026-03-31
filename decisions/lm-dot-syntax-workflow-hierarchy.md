@@ -9,6 +9,9 @@ consequences: []
 upstream: [decision/lm-design-tool-patterns-navigable-runnable, decision/codex-engine-dense-alphanumeric-coordinate-grammar]
 downstream: []
 tags: [instance:main, legendary-map, lm, dot-syntax, coordinate-grammar, codex-engine]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # lm-dot-syntax-workflow-hierarchy

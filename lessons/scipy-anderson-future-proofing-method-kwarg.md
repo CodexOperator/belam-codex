@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, scipy, testing, maintenance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # scipy-anderson-future-proofing-method-kwarg

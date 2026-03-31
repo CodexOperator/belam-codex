@@ -9,6 +9,9 @@ consequences: []
 upstream: [auto-memory-extraction-architecture]
 downstream: []
 tags: [instance:main, boot-context, supermap, memory-architecture, infrastructure]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # boot-context-trim-static-indexes

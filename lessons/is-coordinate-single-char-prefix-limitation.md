@@ -7,6 +7,9 @@ upstream: [codex-engine-v2-dense-alphanumeric-grammar, legendary-map-as-lm-names
 downstream: []
 tags: [instance:main, codex-engine, lm, bug, regex]
 importance: 3
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # is-coordinate-single-char-prefix-limitation

@@ -7,6 +7,9 @@ upstream: [codex-engine-v2-dense-alphanumeric-grammar, lm-design-tool-patterns-n
 downstream: []
 tags: [instance:main, codex-engine, lm, dot-syntax, dispatch, bug]
 importance: 3
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # dot-syntax-lN-workflow-dispatch-unreachable

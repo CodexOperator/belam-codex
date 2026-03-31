@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, tooling, monitoring]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # pipeline-dashboard-watch-flag-vs-linux-watch

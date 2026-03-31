@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, render-engine, uds, nice-mode, supermap, anchor]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # render-engine-uds-supermap-command-triggers-file-write

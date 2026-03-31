@@ -6,6 +6,9 @@ confidence: high
 upstream: [d8-codex-cockpit-plugin-architecture, d7-orchestration-architecture]
 downstream: []
 tags: [orchestration, pipeline, self-reference, infrastructure, meta]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # orchestration-engine-v1-self-built-through-legacy-pipeline

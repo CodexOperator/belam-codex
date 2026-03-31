@@ -5,6 +5,9 @@ created: 2026-03-26
 author: shael+belam
 tags: [quant, research, swing-trading]
 related: [microcap-swing-signal-extraction]
+promotion_status: exploratory
+doctrine_richness: 4
+contradicts: []
 ---
 
 # Research-First Mandate — Prove Signal Before Profit

@@ -6,6 +6,9 @@ confidence: high
 upstream: [confidence-gating-070-selectivity-over-coverage]
 downstream: []
 tags: [instance:main, quant, lightgbm, confidence, microcap]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # confidence-threshold-80pct-nonlinear-uplift

@@ -4,6 +4,9 @@ importance: 5
 tags: [instance:main, containerization, infrastructure, pipeline, safety]
 related: [containerization-must-use-isolated-build-directory]
 created: 2026-03-24
+promotion_status: exploratory
+doctrine_richness: 6
+contradicts: []
 ---
 
 # Infrastructure Pipelines Must Not Modify the Live Host

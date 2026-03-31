@@ -5,6 +5,9 @@ source: session
 confidence: high
 tags: [infrastructure, primitives, conventions, clock-cycles]
 upstream: [memory/2026-03-19_204801_design-principle-from-shael-clock-cycles]
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # use-scaffold-then-edit-not-overwrite

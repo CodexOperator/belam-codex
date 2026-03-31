@@ -9,6 +9,9 @@ consequences: [supermap-boot hook disabled (superseded), exec calls for orientat
 upstream: [d6-codex-engine-v1-architecture, d28-codex-engine-dense-alphanumeric-coordinate-grammar]
 downstream: [t4-limit-soul-read-write]
 tags: [cockpit, plugin, supermap, r-labels, architecture, before-prompt-build]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # codex-cockpit-plugin-architecture

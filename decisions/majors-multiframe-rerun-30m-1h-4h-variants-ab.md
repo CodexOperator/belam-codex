@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, quant, btc, eth, sol, multiframe]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # majors-multiframe-rerun-30m-1h-4h-variants-ab

@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, orchestration, session-management, bug]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # fresh-session-mode-missing-reset-agent-session

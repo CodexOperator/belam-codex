@@ -5,6 +5,9 @@ created: 2026-03-26
 author: shael
 tags: [quant, swing-trading, timeframe]
 related: [microcap-swing-signal-extraction]
+promotion_status: exploratory
+doctrine_richness: 2
+contradicts: []
 ---
 
 # Dual Timeframe (15-min / 1-hour) as Parallel Subtasks

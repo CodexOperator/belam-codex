@@ -7,6 +7,9 @@ project: snn-applied-finance
 tags: [instance:main, orchestration, agents, git, handoff]
 applies_to: [pipeline_orchestrate, handoff_diff, agent-context]
 upstream: [decision/session-continuity-on-block-with-phase-diff]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Lesson: Per-Agent Git HEAD Enables Targeted Cross-Phase Diffs

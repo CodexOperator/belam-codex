@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, commands, primitives, cleanup]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # legacy-view-command-primitives-redundant-after-engine

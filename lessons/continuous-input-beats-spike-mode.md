@@ -6,6 +6,9 @@ confidence: high
 project: snn-applied-finance
 tags: [snn, encoding, input-mode]
 applies_to: [snn-applied-finance]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Continuous Input Mode Consistently Outperforms Spike Mode

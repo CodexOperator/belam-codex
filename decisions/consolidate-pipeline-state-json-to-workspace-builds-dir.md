@@ -5,6 +5,9 @@ status: accepted
 upstream: [pipeline-state-json-not-synced-on-archive]
 downstream: []
 tags: [instance:main, orchestration, pipeline, infra]
+promotion_status: exploratory
+doctrine_richness: 9
+contradicts: []
 ---
 
 # consolidate-pipeline-state-json-to-workspace-builds-dir

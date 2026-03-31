@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, subagents, orchestration, recovery, skill]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # subagent-timeout-recovery-ralph-wiggum-pattern

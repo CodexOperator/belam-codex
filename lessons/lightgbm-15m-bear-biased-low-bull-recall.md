@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, quant, microcap, lightgbm]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # lightgbm-15m-bear-biased-low-bull-recall

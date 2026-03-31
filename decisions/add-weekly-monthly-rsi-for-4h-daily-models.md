@@ -9,6 +9,9 @@ consequences: []
 upstream: [4h-model-collapses-despite-mtf-1d-features]
 downstream: []
 tags: [instance:main, quant, mtf, lightgbm]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # add-weekly-monthly-rsi-for-4h-daily-models

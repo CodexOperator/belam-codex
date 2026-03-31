@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, cockpit, plugin-hooks, gateway]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # ctx-sessionid-available-in-before-prompt-build

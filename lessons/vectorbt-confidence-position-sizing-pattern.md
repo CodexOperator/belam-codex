@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, quant, backtesting, vectorbt, confidence]
+promotion_status: candidate
+doctrine_richness: 8
+contradicts: []
 ---
 
 # vectorbt-confidence-position-sizing-pattern

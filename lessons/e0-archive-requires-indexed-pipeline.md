@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, codex-engine, pipeline, supermap]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # e0-archive-requires-indexed-pipeline

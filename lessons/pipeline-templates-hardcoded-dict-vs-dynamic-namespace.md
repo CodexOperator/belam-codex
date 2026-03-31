@@ -7,6 +7,9 @@ upstream: [templates-directory-as-pt-namespace, is-coordinate-single-char-prefix
 downstream: []
 tags: [instance:main, codex-engine, templates, pipelines]
 importance: 3
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # pipeline-templates-hardcoded-dict-vs-dynamic-namespace

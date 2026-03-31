@@ -6,6 +6,9 @@ confidence: high
 upstream: []
 downstream: []
 tags: [instance:main, subagents, diagnosis, timeout]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # large-file-diagnosis-subagent-needs-bigger-timeout

@@ -5,6 +5,9 @@ title: R/F Label Split by Agent Role
 importance: 4
 tags: [instance:main, render-engine, diff, cockpit, context]
 created: 2026-03-23
+promotion_status: exploratory
+doctrine_richness: 9
+contradicts: []
 ---
 
 # Decision: R/F Label Split by Agent Role

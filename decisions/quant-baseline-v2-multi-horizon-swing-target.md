@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main, quant, research, design]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # quant-baseline-v2-multi-horizon-swing-target

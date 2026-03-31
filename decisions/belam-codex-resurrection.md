@@ -9,6 +9,9 @@ consequences: [heartbeat auto-commits push to both repos, incarnate.sh enables o
 upstream: [decision/clock-cycles-over-tokens, decision/hierarchical-memory-system]
 downstream: [lesson/always-back-up-workspace-to-github, memory/entries/2026-03-20_041755_belam-codex-resurrection-architecture-es]
 tags: [infrastructure, git, backup, continuity]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # Belam Codex Resurrection Architecture

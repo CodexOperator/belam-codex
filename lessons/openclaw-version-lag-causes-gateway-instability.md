@@ -7,6 +7,9 @@ upstream: [disable-watchdog-until-systemd-service-fixed]
 downstream: []
 tags: [instance:main, openclaw, gateway, telegram, stability, updates]
 importance: 3
+promotion_status: promoted
+doctrine_richness: 7
+contradicts: []
 ---
 
 # openclaw-version-lag-causes-gateway-instability

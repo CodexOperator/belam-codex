@@ -9,6 +9,9 @@ rationale: >
 upstream: [confidence-gating-070-selectivity-over-coverage, quant-baseline-v2-multi-horizon-swing-target]
 downstream: []
 tags: [instance:main, quant, backtesting, lightgbm, microcap]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # comprehensive-backtest-sweep-sl-tp-optimization

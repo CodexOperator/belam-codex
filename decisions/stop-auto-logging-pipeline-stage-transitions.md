@@ -9,6 +9,9 @@ consequences: []
 upstream: []
 downstream: []
 tags: [instance:main]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # stop-auto-logging-pipeline-stage-transitions

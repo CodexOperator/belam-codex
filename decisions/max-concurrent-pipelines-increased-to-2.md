@@ -6,6 +6,9 @@ decider: shael
 upstream: [orchestration-fire-and-forget-dispatch, pipeline-kick-duplicate-dispatch-guard]
 downstream: []
 tags: [instance:main, pipeline, orchestration, concurrency, gate]
+promotion_status: exploratory
+doctrine_richness: 10
+contradicts: []
 ---
 
 # max-concurrent-pipelines-increased-to-2

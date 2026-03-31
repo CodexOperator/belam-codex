@@ -7,6 +7,9 @@ importance: 3
 upstream: [decision/orchestration-fire-and-forget-dispatch, lesson/pipeline-orchestrate-blocking-agent-wake]
 downstream: []
 tags: [instance:main, orchestration, pipeline, sessions_spawn, dispatch]
+promotion_status: promoted
+doctrine_richness: 10
+contradicts: []
 ---
 
 # orchestration-dispatch-payload-spawn-relay

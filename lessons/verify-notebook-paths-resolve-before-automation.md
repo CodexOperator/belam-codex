@@ -4,6 +4,9 @@ date: 2026-03-19
 source: (add source)
 confidence: high
 tags: [infrastructure, naming, automation, debugging]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Verify Notebook Paths Resolve Before Automation

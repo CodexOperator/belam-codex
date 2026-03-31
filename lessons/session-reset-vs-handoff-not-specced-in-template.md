@@ -7,6 +7,9 @@ upstream: [builder-first-pipeline-template-pattern]
 downstream: []
 tags: [instance:main, pipeline, orchestration, session-reset, template, spec]
 importance: 3
+promotion_status: promoted
+doctrine_richness: 9
+contradicts: []
 ---
 
 # session-reset-vs-handoff-not-specced-in-template

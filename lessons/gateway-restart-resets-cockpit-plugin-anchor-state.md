@@ -6,6 +6,9 @@ confidence: ?
 upstream: []
 downstream: []
 tags: [instance:main, cockpit, gateway, supermap]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # gateway-restart-resets-cockpit-plugin-anchor-state

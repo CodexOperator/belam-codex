@@ -9,6 +9,9 @@ consequences: []
 upstream: [lesson/render-engine-flush-worker-decoupling]
 downstream: []
 tags: [instance:main, render-engine, threading, architecture]
+promotion_status: exploratory
+doctrine_richness: 1
+contradicts: []
 ---
 
 # render-engine-flush-worker-thread-architecture

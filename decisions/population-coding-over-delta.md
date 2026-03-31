@@ -8,6 +8,9 @@ rationale: Population coding (35 inputs) beats delta encoding (14 inputs) by +2.
 consequences: [Population coding is default for V4+, Delta encoding reserved for specialist sub-networks (crash/rally detection), Hybrid encode remains worth exploring]
 project: snn-applied-finance
 tags: [encoding, snn, decision]
+promotion_status: exploratory
+doctrine_richness: 0
+contradicts: []
 ---
 
 # Population Coding Over Delta Encoding (Default)
