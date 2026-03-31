@@ -54,8 +54,20 @@
   "last_updated": "2026-03-31 16:03",
   "pending_action": "p1_complete",
   "status": "p1_builder_implement",
-  "status_updated": "2026-03-31 16:05",
+  "status_updated": "2026-03-31 16:45",
   "current_agent": "p1_complete",
-  "last_dispatched": "2026-03-31T16:03:24.587287+00:00",
-  "dispatch_claimed": false
+  "last_dispatched": "2026-03-31T16:45:02.029721+00:00",
+  "dispatch_claimed": false,
+  "recovery_attempts": {
+    "p1_builder_implement": 1
+  },
+  "recovery_log": [
+    {
+      "time": "2026-03-31T16:45:02.029712+00:00",
+      "stage": "p1_builder_implement",
+      "attempt": 1,
+      "timeout": 600,
+      "agent": "builder"
+    }
+  ]
 }
