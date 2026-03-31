@@ -189,6 +189,8 @@ ${DEDUP_BLOCK}
    - Pipeline or task state transitions (stage changes, dispatches, completions, archives)
    - Routine operations (git commits, memory consolidation, heartbeat runs)
    - Session summaries or cross-agent status reports
+   - Live project status or progress snapshots (e.g. "3 of 5 components done", "script at 291 lines")
+   - Implementation details mid-build (file lists, line counts, function names written)
    - Anything that is already captured in pipeline/task files on disk
 
 3. Only create a primitive when there is a genuinely reusable lesson or a meaningful architectural decision.
@@ -207,7 +209,8 @@ $PERSONA_TAG
    - File: \`memory/$TODAY.md\`
    - If it exists, append. If not, create with \`# Memory Log — $TODAY\` header
    - Format: \`## Session $INSTANCE — $TODAY\` followed by a single line listing which lessons/decisions were created
-   - Do NOT write full session summaries, cross-agent reports, or stage-by-stage narratives
+   - Do NOT write full session summaries, cross-agent reports, stage-by-stage narratives, or project status updates
+   - The daily log is a PRIMITIVE INDEX, not a journal — just list what was created, nothing more
 
 7. After all primitives are created:
    \`\`\`bash
