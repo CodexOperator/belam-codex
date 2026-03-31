@@ -67,8 +67,8 @@
       "slug": "git-diff-handoff-context"
     },
     "t6": {
-      "hash": "941d986c8ba8",
-      "slug": "llm-quant-dydx-adapter-desc-build-dydx-v4-execution-adapter-with-testnet-integration-tests-real-binance-candles-real-dydx-orders-part-1-of-live-paper-trading-pipeline-tags-quantdydxexecutorcrypto-priority-critical"
+      "hash": "f191e67f05d8",
+      "slug": "test-task-debug"
     },
     "t7": {
       "hash": "ffd88f22e562",
@@ -1292,5 +1292,5 @@
     }
   },
   "sort_mode": "recent",
-  "last_incremental": "2026-03-30T03:37:35Z"
+  "last_incremental": "2026-03-31T15:52:23Z"
 }

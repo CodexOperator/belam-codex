@@ -46,6 +46,7 @@ export default function register(api: any) {
     "🔧 Missing a coord? Create it: e2 for primitives, e3 for new action namespaces.",
     "🚀 Need work done? e0 t{n} to launch a pipeline, sessions_spawn for sub-agents.",
     "❌ Do NOT use grep/cat/echo/ls on workspace files — there is a coordinate for it.",
+    "⚠️ Shell: pass e-mode args as separate tokens, not one quoted string: `e2 t \"title\"` ✅ `'e2 t \"title\"'` ❌",
   ].join("\n");
 
   api.on("after_compaction", () => {
