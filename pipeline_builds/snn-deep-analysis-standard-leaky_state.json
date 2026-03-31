@@ -77,13 +77,13 @@
   },
   "last_updated": "2026-03-31 19:58",
   "status": "p1_critic_review",
-  "status_updated": "2026-03-31 21:15",
+  "status_updated": "2026-03-31 21:45",
   "pending_action": "p1_complete",
   "current_agent": "p1_complete",
-  "last_dispatched": "2026-03-31T21:15:02.017958+00:00",
+  "last_dispatched": "2026-03-31T21:45:02.031828+00:00",
   "dispatch_claimed": false,
   "recovery_attempts": {
-    "p1_critic_review": 2
+    "p1_critic_review": 3
   },
   "recovery_log": [
     {
@@ -98,6 +98,13 @@
       "stage": "p1_critic_review",
       "attempt": 2,
       "timeout": 900,
+      "agent": "critic"
+    },
+    {
+      "time": "2026-03-31T21:45:02.031819+00:00",
+      "stage": "p1_critic_review",
+      "attempt": 3,
+      "timeout": 1350,
       "agent": "critic"
     }
   ]
