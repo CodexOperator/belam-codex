@@ -812,7 +812,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                     _m = _re_tpl.search(r'^type:\s*(.+)$', _pf.read_text(errors='replace'), _re_tpl.MULTILINE)
                     if _m:
                         _ptype = _m.group(1).strip()
-                _tpl_map = {'research': 'research', 'infrastructure': 'research', 'builder-first': 'builder-first'}
+                _tpl_map = {'research': 'research', 'infrastructure': 'research', 'builder-first': 'builder-first', 'builder-first-autogate': 'builder-first-autogate'}
                 _tpl_name = _tpl_map.get(_ptype, 'research') if _ptype else 'research'
                 tpl = parse_template(_tpl_name)
                 auto_clean = tpl.get('auto_complete_on_clean_pass', False) if tpl else False
@@ -925,7 +925,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                 _m = _re_gate.search(r'^type:\s*(.+)$', _pf.read_text(errors='replace'), _re_gate.MULTILINE)
                 if _m:
                     _ptype = _m.group(1).strip()
-            _tpl_map = {'research': 'research', 'infrastructure': 'research', 'builder-first': 'builder-first'}
+            _tpl_map = {'research': 'research', 'infrastructure': 'research', 'builder-first': 'builder-first', 'builder-first-autogate': 'builder-first-autogate'}
             _tpl_name = _tpl_map.get(_ptype, 'research') if _ptype else 'research'
             tpl = parse_template(_tpl_name)
             human_gates = tpl.get('human_gates', set())
