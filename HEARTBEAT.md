@@ -16,8 +16,8 @@
 |---|----------|--------|
 | 1 | `snn-deep-analysis-foundational-v1-v2` | ✅ p1_complete |
 | 2 | `snn-deep-analysis-advanced-v3-v4` | ✅ p1_complete |
-| 3 | `snn-deep-analysis-bioinspired-specialized` | queued |
-| 4 | `snn-deep-analysis-standard-leaky` | queued |
+| 3 | `snn-deep-analysis-bioinspired-specialized` | ✅ p1_complete |
+| 4 | `snn-deep-analysis-standard-leaky` | ✅ p1_complete |
 | 5 | `snn-deep-analysis-standard-synaptic-alpha` | queued |
 
 ### Decision Logic
