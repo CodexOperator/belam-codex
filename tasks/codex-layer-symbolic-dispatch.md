@@ -9,8 +9,11 @@ depends_on: [codex-layer-output-codec]
 upstream: [codex-layer-output-codec]
 downstream: []
 tags: [codex-layer, symbolic-dispatch, infrastructure]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Codex Layer Symbolic Dispatch
 
 ## Description

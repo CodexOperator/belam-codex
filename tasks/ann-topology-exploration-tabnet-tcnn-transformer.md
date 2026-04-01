@@ -8,8 +8,11 @@ depends_on: []
 upstream: []
 downstream: []
 tags: [quant, microcap-swing]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # ann-topology-exploration-tabnet-tcnn-transformer
 
 ## Description

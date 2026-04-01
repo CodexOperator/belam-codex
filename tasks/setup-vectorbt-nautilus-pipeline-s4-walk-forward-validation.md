@@ -10,8 +10,11 @@ estimate: 5 hours
 parent_task: setup-vectorbt-nautilus-pipeline
 depends_on: [setup-vectorbt-nautilus-pipeline-s3-strategy-adapter]
 upstream: [task/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter]
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # S4: Walk-Forward Validation with Combinatorial Purged Cross-Validation
 
 ## Scope

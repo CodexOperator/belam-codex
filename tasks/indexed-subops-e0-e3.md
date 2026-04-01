@@ -9,8 +9,11 @@ upstream: [persistent-extend-and-indexed-subops]
 downstream: []
 tags: [quant, microcap-swing, model-architecture]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 ## Iterative Model Improvement Loop Architecture
 
 ### Goal

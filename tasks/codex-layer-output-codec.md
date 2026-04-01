@@ -9,8 +9,11 @@ depends_on: [codex-layer-context-injection]
 upstream: [codex-layer-context-injection]
 downstream: [codex-layer-symbolic-dispatch]
 tags: [codex-layer, output-codec, infrastructure]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Codex Layer Output Codec
 
 ## Description

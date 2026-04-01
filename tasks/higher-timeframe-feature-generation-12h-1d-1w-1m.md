@@ -8,8 +8,11 @@ depends_on: []
 upstream: []
 downstream: []
 tags: [quant, microcap-swing]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # higher-timeframe-feature-generation-12h-1d-1w-1M
 
 ## Description

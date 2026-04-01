@@ -9,8 +9,11 @@ upstream: [limit-soul-read-write]
 downstream: [primitive-access-compliance-tracking]
 tags: [infrastructure, codex-engine, architecture, convention]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Coordinate-First Boot Convention
 
 ## Description

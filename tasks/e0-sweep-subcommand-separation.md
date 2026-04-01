@@ -7,8 +7,11 @@ pipeline: e0-sweep-subcommand-separation
 project: workspace
 created: 2026-03-24
 depends_on: []
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Split e0 Orchestration Sweep into Focused Sub-Commands
 
 ## Problem

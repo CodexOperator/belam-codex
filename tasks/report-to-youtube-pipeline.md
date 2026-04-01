@@ -9,8 +9,11 @@ upstream: []
 downstream: []
 tags: [video, youtube, automation, infrastructure, manim, tts]
 pipeline: report-to-youtube-pipeline
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Build Report-to-YouTube Video Pipeline
 
 ## Description

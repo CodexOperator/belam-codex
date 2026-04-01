@@ -2,7 +2,7 @@
 primitive: task
 status: archived
 priority: critical
-pipeline: codex-engine-v3-legendary-map
+pipeline: codex-engine-v3
 created: 2026-03-22
 archived: 2026-03-23
 archive_reason: pipeline codex-engine-v3-legendary-map archived
@@ -13,8 +13,11 @@ downstream: [build-codex-layer-v1]
 tags: [codex-engine, legendary-map, v3-phase3, attention-architecture]
 pipeline: codex-engine-v3
 phase: 3
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Codex Engine V3 Phase 3: Legendary Map
 
 ## Description

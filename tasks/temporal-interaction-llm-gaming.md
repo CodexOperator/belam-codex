@@ -7,8 +7,11 @@ depends_on: []
 tags: [research, infrastructure, spacetimedb, temporal, gaming]
 pipeline: temporal-interaction-llm-gaming
 created: 2026-03-21
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Temporal Interaction Layer & LLM-Native Gaming Foundation
 
 ## Description

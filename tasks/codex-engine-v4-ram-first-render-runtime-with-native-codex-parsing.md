@@ -10,8 +10,11 @@ downstream: [ram-git-worktree-bootstrap, ram-git-diff-pipeline, ram-git-sync-dae
 tags: [codex-engine, render-engine, ram, codex-format, research]
 notes: D7 deliverables extracted into 5 standalone sub-tasks (2026-03-24). This task retains D1-D6 (RAM-first render runtime). D7.4 (agent branch isolation) deferred to Phase 3.
 pipeline: codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Engine Render Modes: RAM-First Render Runtime
 
 ## Vision

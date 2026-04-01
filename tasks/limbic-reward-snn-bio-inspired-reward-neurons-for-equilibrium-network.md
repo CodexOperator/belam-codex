@@ -9,8 +9,11 @@ upstream: []
 downstream: []
 tags: [snn, limbic, reward, equilibrium, research]
 pipeline: limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Limbic Reward SNN: Bio-Inspired Reward Neurons for Equilibrium Network
 
 ## Context

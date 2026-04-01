@@ -10,8 +10,11 @@ downstream: [ram-git-s4-e1-undo-command]
 tags: [infrastructure, codex-engine, ram, git, f-labels, builder-first]
 project: codex-engine
 pipeline_type: builder-first
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # S3: F Labels as Raw Git Diff Output
 
 ## Builder Spec

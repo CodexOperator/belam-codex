@@ -8,8 +8,11 @@ depends_on: []
 upstream: [quant-baseline-v1]
 downstream: [snn-cross-asset-stablecoin-spreads]
 tags: [quant, cross-asset, stablecoin, arbitrage, spreads]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Quant Cross-Asset & Stablecoin Spread Models
 
 ## Research Question

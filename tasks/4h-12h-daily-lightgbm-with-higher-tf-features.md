@@ -8,8 +8,11 @@ depends_on: [higher-timeframe-feature-generation-12h-1d-1w-1m]
 upstream: []
 downstream: []
 tags: [quant, microcap-swing, model-training]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 ## 4h / 12h / Daily LightGBM with Higher-TF Features
 
 ### Goal

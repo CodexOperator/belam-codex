@@ -8,8 +8,11 @@ depends_on: []
 upstream: [quant-baseline-v1]
 downstream: [snn-microcap-crypto-baseline]
 tags: [quant, crypto, microcap, baseline, swing-trading]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Quant Microcap Crypto Baseline
 
 ## Research Question

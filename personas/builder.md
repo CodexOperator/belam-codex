@@ -5,6 +5,11 @@ coordinate: i2
 role: builder
 traits: [implementation, debugging, testing, code-quality]
 supermap_weight: [t, c, p, k]
+render_config:
+  full: [t, c, p, s, w, k]
+  summary: [l, d]
+  tree: [p]
+mode_access: [0, 1, 2, 3]
 tags: [persona, core-trio]
 ---
 

@@ -9,8 +9,11 @@ upstream: [quant-microcap-crypto-baseline]
 downstream: []
 tags: [quant, crypto, microcap, swing-trading, ml, sentiment, binary-classification]
 subtasks: ["{'id': 'S1', 'title': 'Data Pipeline — CEX + DEX + Fear & Greed', 'status': 'done', 'depends_on': []}", "{'id': 'S2', 'title': 'Feature Engineering — Technical + Sentiment + Cross-Asset + Temporal', 'status': 'done', 'depends_on': ['S1']}", "{'id': 'S3A', 'title': 'Label Construction & LightGBM — 15-min candles', 'status': 'done', 'depends_on': ['S2']}", "{'id': 'S3B', 'title': 'Label Construction & LightGBM — 1-hour candles', 'status': 'done', 'depends_on': ['S2']}", "{'id': 'S4', 'title': 'BTC Control Analysis', 'status': 'done', 'depends_on': ['S3A', 'S3B']}", "{'id': 'S5', 'title': 'Confidence Calibration — Platt/Isotonic + Reliability Diagrams', 'status': 'done', 'depends_on': ['S3A', 'S3B']}", "{'id': 'S6', 'title': 'Risk Management Overlay', 'status': 'done', 'depends_on': ['S5']}", "{'id': 'S7', 'title': 'LSTM Secondary Model', 'status': 'done', 'depends_on': ['S3A', 'S3B']}", "{'id': 'S8', 'title': 'Ensemble & Meta-Learning — Stacking + Agreement Gating', 'status': 'done', 'depends_on': ['S5', 'S7']}", "{'id': 'S9', 'title': 'Cross-Token Momentum Analysis', 'status': 'done', 'depends_on': ['S4']}", "{'id': 'S10', 'title': 'Regime Detection Pre-Filter', 'status': 'done', 'depends_on': ['S4', 'S5']}", "{'id': 'S11', 'title': 'Experiment Synthesis & Feature Survival Report', 'status': 'done', 'depends_on': ['S8', 'S6']}"]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Microcap Swing Signal Extraction
 
 Binary classification approach to swing signal detection in microcap crypto tokens. Parallel track to `quant-microcap-crypto-baseline` (regression), incorporating its learnings while pursuing the ATR-dynamic threshold + confidence gating framework from the Research Directive v1.0.

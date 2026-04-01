@@ -8,8 +8,11 @@ depends_on: []
 upstream: [t13]
 downstream: []
 tags: [quant, backtest, lightgbm, microcap, majors, vectorbt]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # comprehensive-backtest-sweep-all-models
 
 ## Description

@@ -8,8 +8,11 @@ depends_on: []
 upstream: [quant-baseline-v1]
 downstream: [snn-statistical-process-models]
 tags: [quant, garch, hawkes, poisson, fractional-differentiation, process-models]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Quant Statistical Process Models
 
 ## Research Question

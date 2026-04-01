@@ -8,8 +8,11 @@ tags: [engine, codex, modes, grammar, v2]
 created: 2026-03-21
 archived: 2026-03-22
 archive_reason: status: complete
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Codex Engine v2: Dense Alphanumeric Modes
 
 ## Overview

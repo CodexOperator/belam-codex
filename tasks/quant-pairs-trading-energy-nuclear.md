@@ -8,8 +8,11 @@ depends_on: []
 upstream: []
 downstream: [snn-pairs-trading-energy-nuclear]
 tags: [quant, pairs-trading, energy, nuclear, ornstein-uhlenbeck, poisson]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Quant Pairs Trading: Energy & Nuclear Indices
 
 ## Research Question

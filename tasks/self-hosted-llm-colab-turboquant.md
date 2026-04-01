@@ -8,8 +8,11 @@ depends_on: []
 upstream: []
 downstream: []
 tags: [quant, infra, self-hosted]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Self-Hosted LLM via Colab + TurboQuant
 
 ## Description

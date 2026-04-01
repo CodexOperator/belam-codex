@@ -9,8 +9,11 @@ upstream: [codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]
 downstream: [ram-git-undo-primitive]
 tags: [infrastructure, codex-engine, ram, git, diff]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # RAM Git Diff Pipeline
 
 ## Description

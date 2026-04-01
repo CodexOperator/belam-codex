@@ -9,8 +9,11 @@ project: snn-applied-finance
 estimate: 4h
 depends_on: []
 version_label: v5-validation
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Validate Scheme B Sharpe with 7+ Folds
 
 V3 Scheme B (+0.45 Sharpe via abstention) is the only positive net Sharpe result but has n=3, t-stat≈0.48, p≈0.67 — NOT significant. Rerun with 7+ walk-forward folds to get proper statistical power.

@@ -10,8 +10,11 @@ estimate: 6 hours
 parent_task: setup-vectorbt-nautilus-pipeline
 depends_on: [setup-vectorbt-nautilus-pipeline-s2-data-pipeline]
 upstream: [task/setup-vectorbt-nautilus-pipeline-s2-data-pipeline]
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # S3: Strategy Adapter — Unified Interface for VectorBT + NautilusTrader
 
 ## Scope

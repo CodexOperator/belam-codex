@@ -8,8 +8,11 @@ pipeline: git-diff-handoff-context
 upstream: []
 downstream: []
 created: "quant,microcap-swing,feature-engineering"
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 ## Higher Timeframe Feature Generation: 12h, 1d, 1w, 1M
 
 ### Goal

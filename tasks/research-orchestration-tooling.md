@@ -10,8 +10,11 @@ upstream: []
 downstream: []
 tags: [orchestration, research, mcp, frameworks]
 superseded_by: build-orchestration-engine-v1
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # research-orchestration-tooling
 
 **SUPERSEDED** — Research findings from `research-openclaw-internals` pipeline landed. Remaining tooling research folded into `build-orchestration-engine-v1` as prerequisite hook integration work.

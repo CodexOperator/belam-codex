@@ -6,8 +6,11 @@ project: multi-agent-infrastructure
 depends_on: []
 tags: [research, gaming, llm, world-model, multiplayer, fun]
 created: 2026-03-26
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # LLM-Human Interactive Gaming
 
 ## Description

@@ -9,8 +9,11 @@ upstream: []
 downstream: [render-engine-simplification]
 tags: [infrastructure, codex-engine, pipelines, builder-first]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Template-Aware Pipeline Orchestration
 
 ## Description

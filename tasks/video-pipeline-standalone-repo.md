@@ -10,8 +10,11 @@ upstream: [report-to-youtube-pipeline]
 downstream: []
 tags: [video, youtube, infrastructure, repo-setup]
 pipeline: video-pipeline-standalone-repo
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Video Pipeline: Standalone Repo & Iterative Improvement Loop
 
 ## Description

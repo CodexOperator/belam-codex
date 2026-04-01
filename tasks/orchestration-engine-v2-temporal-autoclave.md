@@ -10,8 +10,11 @@ depends_on: [build-orchestration-engine-v1]
 upstream: [decision/orchestration-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar, pipeline/research-openclaw-internals]
 downstream: []
 tags: [orchestration, engine, temporal, spacetimedb, autoclave, v2]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Orchestration Engine v2: Temporal State, Persistent Agents, Autoclave View
 
 ## Overview

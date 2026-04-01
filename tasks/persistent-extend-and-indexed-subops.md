@@ -9,8 +9,11 @@ depends_on: [codex-engine-v2-modes-mcp-temporal]
 upstream: []
 downstream: []
 tags: [engine, extend, persistence, indexed-subops, v2]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Persistent Extend (e3) + Indexed Sub-Operations
 
 ## Overview

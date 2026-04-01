@@ -10,8 +10,11 @@ upstream: []
 downstream: []
 tags: [docker, infrastructure, portability, deployment]
 pipeline: containerize-openclaw-workspace
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # containerize-openclaw-workspace
 
 ## Description

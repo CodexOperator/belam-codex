@@ -10,8 +10,11 @@ downstream: [ram-git-s2-auto-commit-on-turn]
 tags: [infrastructure, codex-engine, ram, git, builder-first]
 project: codex-engine
 pipeline_type: builder-first
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # S1: Tmpfs Git Repo + Symlink Routing
 
 ## Builder Spec

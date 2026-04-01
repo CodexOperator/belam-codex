@@ -8,8 +8,11 @@ depends_on: [quant-pairs-trading-energy-nuclear]
 upstream: []
 downstream: []
 tags: [quant, microcap-swing, model-architecture]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 ## Teacher-Student: High-Confidence Label Distillation
 
 ### Goal

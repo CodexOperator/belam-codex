@@ -10,8 +10,11 @@ downstream: [ram-git-s3-f-label-git-diff-output]
 tags: [infrastructure, codex-engine, ram, git, builder-first]
 project: codex-engine
 pipeline_type: builder-first
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # S2: Auto-Commit on Turn Boundary
 
 ## Builder Spec

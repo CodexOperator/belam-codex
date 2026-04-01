@@ -10,8 +10,11 @@ depends_on: []
 upstream: []
 downstream: [task/orchestration-engine-v2-temporal-autoclave]
 tags: [openclaw, research, sessions, hooks, plugins]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # research-openclaw-internals
 
 ## Description

@@ -9,8 +9,11 @@ upstream: [limit-soul-read-write]
 downstream: []
 tags: [infrastructure, codex-engine, observability]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Primitive Access Compliance Tracking
 
 ## Description

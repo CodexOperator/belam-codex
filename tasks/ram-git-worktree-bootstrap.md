@@ -9,8 +9,11 @@ upstream: [codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]
 downstream: [ram-git-diff-pipeline, ram-git-sync-daemon]
 tags: [infrastructure, codex-engine, ram, git, symlinks]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # RAM Git Worktree Bootstrap + Symlinks
 
 ## Description

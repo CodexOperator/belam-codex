@@ -10,8 +10,11 @@ estimate: 5 hours
 parent_task: setup-vectorbt-nautilus-pipeline
 depends_on: [setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation]
 upstream: [task/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation]
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # S6: Statistical Validation Gate — Deflated Sharpe Ratio + PBO
 
 ## Scope

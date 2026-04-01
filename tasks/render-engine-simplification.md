@@ -11,8 +11,11 @@ tags: [infrastructure, codex-engine, simplification, builder-first]
 pipeline: render-engine-simplification
 project: codex-engine
 pipeline_type: builder-first
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Render Engine Simplification — Strip R/F Label Pipeline
 
 ## Description

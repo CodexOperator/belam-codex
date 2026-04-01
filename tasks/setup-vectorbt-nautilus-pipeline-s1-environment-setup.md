@@ -10,8 +10,11 @@ estimate: 4 hours
 parent_task: setup-vectorbt-nautilus-pipeline
 depends_on: []
 upstream: []
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # S1: Environment Setup — VectorBT PRO + NautilusTrader Stack
 
 ## Scope

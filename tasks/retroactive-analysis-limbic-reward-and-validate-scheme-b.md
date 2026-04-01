@@ -6,8 +6,11 @@ tags: [analysis, snn, research]
 project: snn-applied-finance
 created: 2026-03-24
 depends_on: []
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Retroactive Analysis: Limbic-Reward & Validate-Scheme-B Pipelines
 
 ## Description

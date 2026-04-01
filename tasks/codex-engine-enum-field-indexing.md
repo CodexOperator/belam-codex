@@ -8,8 +8,11 @@ depends_on: []  # t1 archived 2026-03-23
 upstream: [d28-codex-engine-dense-alphanumeric-coordinate-grammar, d8-codex-cockpit-plugin-architecture]
 downstream: []
 tags: [codex-engine, v2, dense-grammar, enum-indexing, token-efficiency, infrastructure]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # codex-engine-enum-field-indexing
 
 ## Description

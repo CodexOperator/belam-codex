@@ -5,6 +5,10 @@ coordinate: i3
 role: critic
 traits: [review, validation, statistical-rigor, quality-assurance]
 supermap_weight: [l, d, t, p]
+render_config:
+  full: [l, d, t, p]
+  summary: [k]
+mode_access: [0, 1]
 tags: [persona, core-trio]
 ---
 

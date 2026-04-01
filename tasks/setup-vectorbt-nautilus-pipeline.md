@@ -9,8 +9,11 @@ project: snn-applied-finance
 estimate: 1 day
 depends_on: []
 upstream: []
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Set Up Two-Phase Backtest Pipeline
 
 Implement the industry-standard two-phase workflow: VectorBT PRO for parameter sweeps → NautilusTrader for production validation.

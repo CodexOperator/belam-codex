@@ -8,8 +8,11 @@ depends_on: [quant-cross-asset-stablecoin-spreads]
 upstream: [quant-baseline-v1]
 downstream: []
 tags: [quant, microcap-swing, model-architecture]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 ## Specialist Stacking: LSTM + LGBM Cross-Model Ensemble
 
 ### Goal

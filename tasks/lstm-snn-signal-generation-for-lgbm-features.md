@@ -8,8 +8,11 @@ depends_on: []
 upstream: []
 downstream: []
 tags: [quant, microcap-swing]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # lstm-snn-signal-generation-for-lgbm-features
 
 ## Description

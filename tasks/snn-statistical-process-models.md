@@ -8,8 +8,11 @@ depends_on: [quant-statistical-process-models]
 upstream: []
 downstream: []
 tags: [snn, garch, hawkes, poisson, process-models, temporal]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # SNN Statistical Process Models
 
 ## Research Question

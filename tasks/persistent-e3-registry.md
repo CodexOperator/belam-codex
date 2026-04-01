@@ -9,8 +9,11 @@ upstream: [persistent-extend-and-indexed-subops]
 downstream: [indexed-subops-e0-e3]
 tags: [engine, extend, persistence, infrastructure]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Persistent e3 Registry
 
 ## Description

@@ -10,8 +10,11 @@ upstream: []
 downstream: [quant, microcap-swing, model-architecture]
 tags: [snn, transformer, temporal, research]
 pipeline: spiking-transformer-integration-research
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 ## ANN Topology Exploration: TabNet, Temporal CNN, Transformer
 
 ### Goal

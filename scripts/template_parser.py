@@ -554,6 +554,101 @@ def resolve_stage_name(stage: str, transitions: dict) -> str:
     return stage  # Return original, let caller handle the miss
 
 
+def get_stage_order(template_name: str) -> list[str]:
+    """Get flat ordered list of all stages across all phases.
+
+    Returns empty list if template not found or unparseable.
+    """
+    result = parse_template(template_name)
+    if not result:
+        return []
+
+    pipeline_fields = result.get('pipeline_fields', {})
+    stages = pipeline_fields.get('stages', [])
+    if stages:
+        return stages
+
+    # Fallback: reconstruct from transitions
+    transitions = result.get('transitions', {})
+    if not transitions:
+        return []
+
+    # Build order by following transition chain from pipeline_created
+    ordered = []
+    seen = set()
+    current = 'pipeline_created'
+    while current in transitions and current not in seen:
+        seen.add(current)
+        next_stage = transitions[current][0]
+        if next_stage not in seen:
+            ordered.append(next_stage)
+        current = next_stage
+
+    return ordered
+
+
+def get_phase_first_stage(template_name: str, phase: int) -> str | None:
+    """Get the first stage of a given phase number.
+
+    Returns None if template not found or phase doesn't exist.
+    """
+    result = parse_template(template_name)
+    if not result:
+        return None
+
+    stages = get_stage_order(template_name)
+    prefix = f'p{phase}_'
+
+    for stage in stages:
+        if stage.startswith(prefix) and not stage.endswith('_complete'):
+            return stage
+
+    return None
+
+
+def stage_phase(template_name: str, stage: str) -> int | None:
+    """Determine which phase a stage belongs to.
+
+    Returns phase number (int) or None if not determinable.
+    """
+    # Try direct extraction from stage name (e.g., 'p2_architect_design' -> 2)
+    m = re.match(r'^p(\d+)_', stage)
+    if m:
+        return int(m.group(1))
+
+    # Try legacy name resolution
+    mapped = LEGACY_STAGE_MAP.get(stage, stage)
+    m = re.match(r'^p(\d+)_', mapped)
+    if m:
+        return int(m.group(1))
+
+    # Fallback: check if stage is in a known phase's stage list
+    result = parse_template(template_name)
+    if not result:
+        return None
+
+    stages = get_stage_order(template_name)
+    if stage in stages:
+        idx = stages.index(stage)
+        # Walk backwards to find the phase boundary
+        for i in range(idx, -1, -1):
+            pm = re.match(r'^p(\d+)_', stages[i])
+            if pm:
+                return int(pm.group(1))
+
+    return None
+
+
+def get_phase_stages(template_name: str, phase: int) -> list[str]:
+    """Get all stages belonging to a specific phase.
+
+    Returns list of stage names in order.
+    """
+    stages = get_stage_order(template_name)
+    prefix = f'p{phase}_'
+    return [s for s in stages if s.startswith(prefix)]
+
+
 def clear_cache():
     """Clear the template parse cache (useful for testing)."""
     _cache.clear()
@@ -585,7 +680,8 @@ if __name__ == '__main__':
 
         if result['block_transitions']:
             print(f"\n  block_transitions ({len(result['block_transitions'])}):")
-            for stage, (next_stage, agent, msg) in sorted(result['block_transitions'].items()):
+            for stage, val in sorted(result['block_transitions'].items()):
+                next_stage, agent = val[0], val[1]
                 print(f"    {stage:45s} → {next_stage:35s} ({agent})")
 
         print(f"\n  status_bumps ({len(result['status_bumps'])}):")

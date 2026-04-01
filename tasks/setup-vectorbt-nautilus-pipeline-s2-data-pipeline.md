@@ -10,8 +10,11 @@ estimate: 4 hours
 parent_task: setup-vectorbt-nautilus-pipeline
 depends_on: [setup-vectorbt-nautilus-pipeline-s1-environment-setup]
 upstream: [task/setup-vectorbt-nautilus-pipeline-s1-environment-setup]
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # S2: Data Pipeline — Crypto OHLCV Ingestion into DuckDB
 
 ## Scope

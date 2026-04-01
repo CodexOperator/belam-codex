@@ -12,8 +12,11 @@ downstream: []
 tags: [codex-layer, v1, interceptor, output-codec, symbolic-dispatch, infrastructure]
 pipeline: build-codex-layer-v1
 supersedes: [codex-layer-output-codec, codex-layer-symbolic-dispatch]
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Codex Layer v1: Programmatic Coordinate Guardrails
 
 ## Description

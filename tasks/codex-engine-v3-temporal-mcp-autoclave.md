@@ -11,8 +11,11 @@ upstream: [decision/codex-engine-v2-dense-alphanumeric-grammar]
 downstream: []
 tags: [engine, codex, mcp, v3]
 pipeline: codex-engine-v3
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Codex Engine v3: MCP Native, Live Mode-Switch, Multi-Pane Rendering
 
 ## Description

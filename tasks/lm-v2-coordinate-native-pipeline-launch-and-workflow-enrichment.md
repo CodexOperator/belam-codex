@@ -11,8 +11,11 @@ upstream: []
 downstream: []
 tags: [codex-engine, legendary-map, lm, infrastructure]
 pipeline: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # LM v2: Coordinate-Native Pipeline Launch and Workflow Enrichment
 
 ## Description

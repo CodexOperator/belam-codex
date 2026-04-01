@@ -11,8 +11,11 @@ upstream: []
 downstream: [codex-layer-output-codec, codex-layer-symbolic-dispatch]
 tags: [codex-layer, context-optimization, infrastructure]
 pipeline: codex-layer-context-injection
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Codex Layer Context Injection
 
 ## Description

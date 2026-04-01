@@ -8,8 +8,11 @@ depends_on: []
 upstream: []
 downstream: []
 tags: []
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # sample-task
 
 ## Description

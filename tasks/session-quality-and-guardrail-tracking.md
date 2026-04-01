@@ -7,8 +7,11 @@ owner: belam
 depends_on: []  # lm-v3 done 2026-03-24
 tags: [lm, metacognition, quality, guardrails, observability, infrastructure]
 project: codex-engine
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Session Quality & Guardrail Tracking
 
 ## Scope

@@ -8,8 +8,11 @@ depends_on: [specialist-stacking-lstm-lgbm-cross-model-ensemble, teacher-student
 upstream: []
 downstream: []
 tags: [quant, microcap-swing, model-architecture]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 ## LSTM/SNN Signal Generation as LGBM Input Features
 
 ### Goal

@@ -11,8 +11,11 @@ depends_on: [orchestration-engine-v2-temporal-autoclave]
 upstream: [task/orchestration-engine-v2-temporal-autoclave, decision/codex-engine-modes-as-primitives]
 downstream: [task/codex-engine-v3-temporal-mcp-autoclave]
 tags: [orchestration, monitoring, real-time, autoclave, v3, dashboard]
+pipeline_template: 
+current_stage: 
+pipeline_status: in_pipeline
+launch_mode: queued
 ---
-
 # Orchestration V3: Real-Time Monitoring Suite
 
 ## Overview

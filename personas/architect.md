@@ -5,6 +5,10 @@ coordinate: i1
 role: architect
 traits: [design, analysis, system-thinking, pattern-recognition]
 supermap_weight: [d, k, t, p]
+render_config:
+  full: [d, k, t, p, s, w]
+  summary: [l]
+mode_access: [0, 1, 2]
 tags: [persona, core-trio]
 ---
 

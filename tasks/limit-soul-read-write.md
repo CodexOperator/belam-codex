@@ -9,8 +9,11 @@ depends_on: []  # build-codex-engine doesn't exist as a task; engine is live
 upstream: [task/build-codex-engine, decision/codex-engine-v1-architecture]
 downstream: []
 tags: [infrastructure, codex-engine, architecture, consciousness]
+pipeline_template: 
+current_stage: 
+pipeline_status: 
+launch_mode: queued
 ---
-
 # Limit Soul Instance Direct Read-Write Access
 
 ## Description
