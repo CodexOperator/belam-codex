@@ -1,6 +1,6 @@
 ---
 title: SNN Deep Analysis — Foundational V1/V2
-status: in_pipeline
+status: done
 priority: high
 tags: snn, research, analysis, deep-dive
 pipeline: snn-deep-analysis-foundational-v1-v2

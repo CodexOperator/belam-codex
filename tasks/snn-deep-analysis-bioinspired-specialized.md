@@ -1,6 +1,6 @@
 ---
 title: SNN Deep Analysis — Bio-Inspired & Specialized
-status: in_pipeline
+status: done
 priority: high
 tags: snn, research, analysis, deep-dive, bio-inspired
 pipeline: snn-deep-analysis-bioinspired-specialized

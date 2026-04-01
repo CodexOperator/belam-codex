@@ -990,3 +990,11 @@
 2026-04-01T00:47:21.697Z [info] Session context saved to ~/.openclaw/workspace/memory/2026-04-01-0047.md
 2026-04-01T00:47:22.260Z [info] Prompt ready at /tmp/session_extract_prompt_main_e3b3d492-277f-47af-93f7-e30ea4a45ae5.md, spawning sage via codex engine
 2026-04-01T00:47:22.278Z [info] Sage spawn dispatched via codex engine {"pid":3651337}
+2026-04-01T00:57:37.163Z [warn] No workspaceDir in context
+2026-04-01T00:57:40.128Z [warn] No workspaceDir in context
+2026-04-01T01:00:06.198Z [warn] No workspaceDir in context
+2026-04-01T01:00:09.251Z [warn] No workspaceDir in context
+2026-04-01T01:01:56.350Z [warn] No workspaceDir in context
+2026-04-01T01:01:59.545Z [warn] No workspaceDir in context
+2026-04-01T01:03:35.592Z [warn] No workspaceDir in context
+2026-04-01T01:03:38.631Z [warn] No workspaceDir in context

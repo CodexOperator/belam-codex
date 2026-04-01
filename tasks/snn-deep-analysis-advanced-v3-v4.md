@@ -1,6 +1,6 @@
 ---
 title: SNN Deep Analysis — Advanced V3/V4
-status: in_pipeline
+status: done
 priority: high
 tags: snn, research, analysis, deep-dive
 pipeline: snn-deep-analysis-advanced-v3-v4

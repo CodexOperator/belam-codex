@@ -1,6 +1,6 @@
 ---
 title: SNN Deep Analysis — Standard Model Synaptic & Alpha
-status: in_pipeline
+status: done
 priority: high
 tags: snn, research, analysis, deep-dive, standard-model
 pipeline: snn-deep-analysis-standard-synaptic-alpha

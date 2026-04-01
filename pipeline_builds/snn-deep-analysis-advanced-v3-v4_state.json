@@ -26,37 +26,64 @@
         "workspace": "de0db1086b6013301f40540060425d262e017363",
         "machinelearning": "f9a6f7158daf5544dbcad029847cd3f0f97178c0"
       }
+    },
+    {
+      "stage": "p1_builder_implement",
+      "agent": "architect",
+      "timestamp": "2026-04-01T00:57:30.631822+00:00",
+      "commits": {
+        "workspace": "695b4dfcd2687e77aba0d3695afc6575f7ee8638",
+        "machinelearning": "511d2f1264f87f41b9918903e5d7a79821af6293"
+      }
+    },
+    {
+      "stage": "p1_builder_bugfix",
+      "agent": "builder",
+      "timestamp": "2026-04-01T01:01:52.488570+00:00",
+      "commits": {
+        "workspace": "695b4dfcd2687e77aba0d3695afc6575f7ee8638",
+        "machinelearning": "511d2f1264f87f41b9918903e5d7a79821af6293"
+      }
+    },
+    {
+      "stage": "p1_critic_review",
+      "agent": "critic",
+      "timestamp": "2026-04-01T01:03:31.782390+00:00",
+      "commits": {
+        "workspace": "695b4dfcd2687e77aba0d3695afc6575f7ee8638",
+        "machinelearning": "511d2f1264f87f41b9918903e5d7a79821af6293"
+      }
     }
   ],
   "stages": {
     "p1_builder_implement": {
       "status": "complete",
-      "completed_at": "2026-03-31 15:58",
-      "agent": "builder",
-      "notes": "Built 6 visualization scripts + REPORT.md for advanced V3/V4 SNN analysis"
+      "completed_at": "2026-04-01 00:57",
+      "agent": "architect",
+      "notes": "Analysis complete, reports and visualizations on disk. Closing pipeline."
     },
     "p1_builder_bugfix": {
       "status": "complete",
-      "completed_at": "2026-03-31 16:00",
+      "completed_at": "2026-04-01 01:01",
       "agent": "builder",
-      "notes": "Fixed 3 bugs: removed dead subplot loop in 03, fixed FancyBboxPatch name clobber in 04, removed emoji glyph causing font warning in 06. All 6 PNGs regenerated clean."
+      "notes": "Applied portability fix: all 6 scripts now use SCRIPT_DIR relative to __file__ instead of hardcoded workspace paths. Verified runnable from /tmp. Critic had already approved with 0 BLOCKs, 0 FLAGs. All 6 PNGs regenerated clean."
     },
     "p1_critic_review": {
       "status": "complete",
-      "completed_at": "2026-03-31 16:03",
+      "completed_at": "2026-04-01 01:03",
       "agent": "critic",
-      "notes": "APPROVED: 0 BLOCKs, 0 FLAGs. All 6 scripts execute clean, math is correct (LIF dynamics, surrogate gradients, parameter counting, loss formulas). Bug fixes verified. REPORT.md well-structured. 2 minor suggestions: unify box styles across scripts, note data-dependence of exponential decoding bounds."
+      "notes": "APPROVED: Portability fix verified \u2014 all 6 scripts use SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) consistently, no hardcoded paths remain. Confirmed runnable from /tmp. No regressions from prior clean review (0 BLOCKs, 0 FLAGs). PNGs regenerate clean."
     }
   },
   "phase1": {
     "stage": "p1_critic_review"
   },
-  "last_updated": "2026-03-31 16:03",
+  "last_updated": "2026-04-01 01:03",
   "pending_action": "p1_complete",
-  "status": "p1_builder_implement",
-  "status_updated": "2026-03-31 17:45",
+  "status": "p1_complete",
+  "status_updated": "2026-04-01 01:03",
   "current_agent": "p1_complete",
-  "last_dispatched": "2026-03-31T17:45:02.032086+00:00",
+  "last_dispatched": "2026-04-01T01:03:38.800366+00:00",
   "dispatch_claimed": false,
   "recovery_attempts": {
     "p1_builder_implement": 3

@@ -1,6 +1,6 @@
 ---
 primitive: pipeline
-status: p1_builder_implement
+status: p1_complete
 priority: high
 type: builder-first
 version: snn-deep-analysis-advanced-v3-v4
@@ -49,6 +49,9 @@ _Architect designs → Critic reviews → Builder implements_
 | p1_builder_implement | 2026-03-31 | builder | Built 6 visualization scripts + REPORT.md for advanced V3/V4 SNN analysis |
 | p1_builder_bugfix | 2026-03-31 | builder | Fixed 3 bugs: removed dead subplot loop in 03, fixed FancyBboxPatch name clobber in 04, removed emoji glyph causing font warning in 06. All 6 PNGs regenerated clean. |
 | p1_critic_review | 2026-03-31 | critic | APPROVED: 0 BLOCKs, 0 FLAGs. All 6 scripts execute clean, math is correct (LIF dynamics, surrogate gradients, parameter counting, loss formulas). Bug fixes verified. REPORT.md well-structured. 2 minor suggestions: unify box styles across scripts, note data-dependence of exponential decoding bounds. |
+| p1_builder_implement | 2026-04-01 | architect | Analysis complete, reports and visualizations on disk. Closing pipeline. |
+| p1_builder_bugfix | 2026-04-01 | builder | Applied portability fix: all 6 scripts now use SCRIPT_DIR relative to __file__ instead of hardcoded workspace paths. Verified runnable from /tmp. Critic had already approved with 0 BLOCKs, 0 FLAGs. All 6 PNGs regenerated clean. |
+| p1_critic_review | 2026-04-01 | critic | APPROVED: Portability fix verified — all 6 scripts use SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__)) consistently, no hardcoded paths remain. Confirmed runnable from /tmp. No regressions from prior clean review (0 BLOCKs, 0 FLAGs). PNGs regenerate clean. |
 
 ## Phase 2: Human-in-the-Loop
 _Status: Queued — auto-triggers on Phase 1 completion_
