@@ -1,0 +1,19 @@
+[Unit]
+Description=OpenClaw Reactive Daemon (v2026.4.1)
+After=openclaw-gateway.service
+
+[Service]
+# Uses systemd %h specifier for home directory portability
+ExecStart=/usr/bin/python3 %h/.openclaw/workspace/scripts/reactive_daemon.py --loop --interval 30 --queue-spacing 1h
+Restart=always
+RestartSec=10
+TimeoutStopSec=15
+Environment=HOME=%h
+Environment=PYTHONUNBUFFERED=1
+Environment=OPENCLAW_WORKSPACE=%h/.openclaw/workspace
+WorkingDirectory=%h/.openclaw/workspace
+StandardOutput=append:%h/.openclaw/workspace/logs/reactive_daemon.log
+StandardError=append:%h/.openclaw/workspace/logs/reactive_daemon.log
+
+[Install]
+WantedBy=default.target

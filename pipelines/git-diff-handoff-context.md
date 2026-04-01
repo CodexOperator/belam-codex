@@ -7,13 +7,17 @@ version: git-diff-handoff-context
 spec_file: machinelearning/snn_applied_finance/specs/git-diff-handoff-context_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_git-diff-handoff-context.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, finance]
 project: snn-applied-finance
 started: 2026-03-25
 archived: 2026-03-25
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-25 15:30
+reset: false
 ---
-
 # Implementation Pipeline: GIT-DIFF-HANDOFF-CONTEXT
 
 ## Description

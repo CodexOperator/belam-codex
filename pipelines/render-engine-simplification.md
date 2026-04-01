@@ -7,14 +7,18 @@ version: render-engine-simplification
 spec_file: machinelearning/snn_applied_finance/specs/render-engine-simplification_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_render-engine-simplification.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [infrastructure, codex-engine, simplification]
 project: codex-engine
 started: 2026-03-24
 archived: 2026-03-25
 archive_reason: Phase 1: stripped DiffEntry/DiffEngine/StatPoller from render engine (-314 lines). Phase 2: cleaned cockpit plugin residual comments, fixed weak tests. 10/10 tests GREEN. All success criteria met.
+pending_action: phase2_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-25 00:32
+reset: false
 ---
-
 # Implementation Pipeline: RENDER-ENGINE-SIMPLIFICATION
 
 ## Description

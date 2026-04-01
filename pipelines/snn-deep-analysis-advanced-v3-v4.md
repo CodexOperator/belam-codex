@@ -7,12 +7,16 @@ version: snn-deep-analysis-advanced-v3-v4
 spec_file: machinelearning/snn_applied_finance/specs/snn-deep-analysis-advanced-v3-v4_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-advanced-v3-v4.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, research, analysis, deep-dive]
 project: snn-applied-finance
 started: 2026-03-31
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-04-01 01:03
+reset: false
 ---
-
 # Implementation Pipeline: SNN-DEEP-ANALYSIS-ADVANCED-V3-V4
 
 ## Description

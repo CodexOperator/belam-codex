@@ -10,8 +10,12 @@ tags: [snn, finance, analysis, v4, dead-neuron-postmortem]
 project: snn-applied-finance
 started: 2026-03-17
 archived: 2026-03-18
+pending_action: analysis_phase2_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-17 19:09
+reset: false
 ---
-
 # Analysis Pipeline: V4 Deep Analysis
 
 ## Description

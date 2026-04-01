@@ -7,12 +7,16 @@ version: llm-quant-paper-trader-v1
 spec_file: machinelearning/snn_applied_finance/specs/llm-quant-paper-trader-v1_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_llm-quant-paper-trader-v1.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [quant, dydx, executor, live-trading, crypto]
 project: llm-quant-finance
 started: 2026-03-27
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-27 16:16
+reset: false
 ---
-
 # Implementation Pipeline: LLM-QUANT-PAPER-TRADER-V1
 
 ## Description

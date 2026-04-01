@@ -1,0 +1,67 @@
+{
+  "belam": {
+    "handler": "skill:belam",
+    "surfaces": [
+      "skill",
+      "slash"
+    ],
+    "persona_access": [
+      "*"
+    ],
+    "description": ">",
+    "args": [],
+    "source": "skill"
+  },
+  "launch-pipeline": {
+    "handler": "skill:launch-pipeline",
+    "surfaces": [
+      "skill",
+      "slash"
+    ],
+    "persona_access": [
+      "*"
+    ],
+    "description": ">",
+    "args": [],
+    "source": "skill"
+  },
+  "orchestration": {
+    "handler": "skill:orchestration",
+    "surfaces": [
+      "skill",
+      "slash"
+    ],
+    "persona_access": [
+      "*"
+    ],
+    "description": ">",
+    "args": [],
+    "source": "skill"
+  },
+  "pipelines": {
+    "handler": "skill:pipelines",
+    "surfaces": [
+      "skill",
+      "slash"
+    ],
+    "persona_access": [
+      "*"
+    ],
+    "description": ">",
+    "args": [],
+    "source": "skill"
+  },
+  "ralph-wiggum": {
+    "handler": "skill:ralph-wiggum",
+    "surfaces": [
+      "skill",
+      "slash"
+    ],
+    "persona_access": [
+      "*"
+    ],
+    "description": "Spawn subagent tasks with automatic recovery steering. Use when launching a subagent that might timeout, get stuck, or needs a structured wrap-up before its hard deadline. Wraps sessions_spawn with a background timer that sends a \"wrap it up\" steer message at a configurable threshold (default 70% of timeout). Triggers on \"spawn with recovery\", \"ralph wiggum\", \"smart recovery loop\", \"spawn with steer timer\", or when explicitly wanting timeout-resilient subagent tasks.",
+    "args": [],
+    "source": "skill"
+  }
+}

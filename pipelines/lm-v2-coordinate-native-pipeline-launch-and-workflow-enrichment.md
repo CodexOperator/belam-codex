@@ -7,13 +7,17 @@ version: lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment
 spec_file: machinelearning/snn_applied_finance/specs/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [codex-engine, legendary-map, lm, infrastructure]
 project: codex
 started: 2026-03-23
 archived: 2026-03-23
+pending_action: phase1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-23 09:12
+reset: false
 ---
-
 # Implementation Pipeline: LM-V2-COORDINATE-NATIVE-PIPELINE-LAUNCH-AND-WORKFLOW-ENRICHMENT
 
 ## Description

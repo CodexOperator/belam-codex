@@ -1220,25 +1220,26 @@ def _quick_tags(filepath):
 
 
 # ── Persona definitions ──────────────────────────────────────────────────────
-# Maps persona name → dict of prefix → render mode ('full' or 'summary')
-# Prefixes not listed default to 'full' for non-persona / skipped for persona.
-PERSONA_CONFIGS = {
-    'architect': {
-        'd': 'full', 'k': 'full',  # full
-        't': 'summary', 'l': 'summary',  # summary
-        # p, w, c, s not shown
-    },
-    'builder': {
-        't': 'full', 'c': 'full', 'p': 'full',  # full
-        'l': 'summary',  # summary
-        # d, k, w, s not shown
-    },
-    'critic': {
-        'l': 'full',  # full
-        'd': 'summary', 'p': 'summary',  # summary
-        # t, k, w, c, s not shown
-    },
+# Dynamic persona configs loaded from persona .md files via persona_loader.
+# Supports per-template overrides and mode access gating.
+# Fallback: persona_loader has built-in defaults if .md files lack render_config.
+try:
+    sys.path.insert(0, str(Path(__file__).parent))
+    from persona_loader import load_persona_config as _load_persona_config
+    from persona_loader import load_persona_access as _load_persona_access
+    _HAS_PERSONA_LOADER = True
+except ImportError:
+    _HAS_PERSONA_LOADER = False
+
+# Legacy fallback (used only if persona_loader import fails)
+_PERSONA_CONFIGS_FALLBACK = {
+    'architect': {'d': 'full', 'k': 'full', 't': 'summary', 'l': 'summary'},
+    'builder': {'t': 'full', 'c': 'full', 'p': 'full', 'l': 'summary'},
+    'critic': {'l': 'full', 'd': 'summary', 'p': 'summary'},
 }
+
+# Known persona names (for validation)
+KNOWN_PERSONAS = {'architect', 'builder', 'critic'}
 
 # SHOW_ORDER: auto-generated from .namespace marker 'order' fields
 SHOW_ORDER = [p for p, _ in sorted(_SCANNED_NS.items(), key=lambda x: x[1][3])]
@@ -1282,7 +1283,13 @@ def render_supermap(persona=None, tag_filter=None, since_days=None, only_prefixe
     except ImportError:
         pass  # LM renderer not available — graceful degradation
 
-    persona_cfg = PERSONA_CONFIGS.get(persona) if persona else None
+    # Load persona config dynamically from .md files (with template override support)
+    if persona and _HAS_PERSONA_LOADER:
+        persona_cfg = _load_persona_config(persona)
+    elif persona:
+        persona_cfg = _PERSONA_CONFIGS_FALLBACK.get(persona)
+    else:
+        persona_cfg = None
 
     for prefix in SHOW_ORDER:
         # Filter to specific prefixes if requested (multi-prefix view: "t d")
@@ -2087,6 +2094,7 @@ PREFIX_TO_CREATE_TYPE = {
     't': 'task', 'd': 'decision', 'l': 'lesson',
     'w': 'project', 'c': 'command', 's': 'skill',
     'pt': 'pipeline-template',
+    'f': 'file', 'sc': 'script',
 }
 
 TASK_VALID_STATUSES = {'open', 'active', 'in_pipeline', 'blocked', 'complete', 'queued', 'done', 'in-progress'}
@@ -2412,6 +2420,23 @@ def _parse_edit_args(raw_args):
     current_item = None
     while i < len(raw_args):
         arg = raw_args[i]
+        # V5: @path syntax for raw file editing (e1 @scripts/foo.py B+ "code")
+        if arg.startswith('@'):
+            raw_path = arg[1:]
+            filepath = Path(raw_path)
+            if not filepath.is_absolute():
+                filepath = WORKSPACE / filepath
+            if not filepath.exists():
+                print(f"Error: file not found: {filepath}")
+                return None
+            current_item = {
+                'prefix': '@', 'index': 0,
+                'filepath': filepath, 'slug': filepath.stem,
+                'type': 'file',
+                'coord': f'@{raw_path}',
+            }
+            i += 1
+            continue
         # Try as dotted task coord: t1.1, t3.2
         dot_m = re.match(r'^t(\d+)\.(\d+)$', arg, re.IGNORECASE)
         if dot_m:
@@ -2867,6 +2892,38 @@ def execute_create(args):
 
     tracker = get_render_tracker()
     f_label = tracker.next_f_label()
+
+    # V5: Script skeleton creation (e2 sc "my-tool")
+    if type_prefix == 'sc':
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            from command_registry import generate_script_skeleton
+            slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+            script_path = WORKSPACE / 'scripts' / f'{slug}.py'
+            if script_path.exists():
+                print(f"Error: script already exists: scripts/{slug}.py")
+                return 1
+            content = generate_script_skeleton(name=slug, description=title)
+            script_path.write_text(content)
+            script_path.chmod(0o755)
+            print(f"{f_label} + scripts/{slug}.py [script created with COMMAND_META]")
+            return 0
+        except Exception as e:
+            print(f"Error creating script: {e}")
+            return 1
+
+    # V5: Blank file creation (e2 f "path/to/file.ext")
+    if type_prefix == 'f':
+        file_path = Path(title)
+        if not file_path.is_absolute():
+            file_path = WORKSPACE / file_path
+        if file_path.exists():
+            print(f"Error: file already exists: {file_path}")
+            return 1
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text('')
+        print(f"{f_label} + {file_path.relative_to(WORKSPACE)} [blank file created]")
+        return 0
 
     result = _sp.run(
         [sys.executable, str(WORKSPACE / 'scripts' / 'create_primitive.py'), type_name, title],
@@ -3980,6 +4037,7 @@ _DEPRECATION_HITS = {}  # flag → count this session
 E0_OP_INDEX = {
     '1': 'dispatch', '2': 'status', '3': 'gates', '4': 'locks',
     '5': 'complete', '6': 'block', '7': 'next', '8': 'archive', '9': 'launch',
+    '10': 'kill', '11': 'restart', '12': 'cadence',
 }
 
 # Enum field maps: field_key → {prefix → {int → string}}
@@ -4270,6 +4328,13 @@ def execute_extend(args):
         print(f"   ╶─ directory {name}/")
         print(f"   ╶─ scope     session (persistent registration: edit NAMESPACE in codex_engine.py)")
         _EXTENSION_TRAIL.append((datetime.datetime.now().timestamp(), 'category', f"prefix={prefix_candidate}, dir={name}/"))
+
+        # V5: Auto-scaffold a .namespace marker and blank template primitive
+        ns_marker = new_dir / '.namespace'
+        if not ns_marker.exists():
+            ns_marker.write_text(f"prefix: {prefix_candidate}\nlabel: {name}\norder: 99\n")
+            print(f"   + .namespace marker created")
+
         return 0
 
     elif subcmd == 'namespace' and len(args) >= 3:
@@ -4374,6 +4439,75 @@ def execute_extend(args):
             print(f"e3 run: error running '{name}': {exc}")
             return 1
 
+    elif subcmd == 'hook' and len(args) >= 2:
+        # e3 hook <name> [surfaces...] — scaffold a hook with COMMAND_META integration
+        hook_name = args[1]
+        surfaces = args[2:] if len(args) > 2 else ['cli']
+        hooks_dir = WORKSPACE / 'hooks' / hook_name
+        if hooks_dir.exists():
+            print(f"e3 hook: hook '{hook_name}' already exists at hooks/{hook_name}/")
+            return 1
+        hooks_dir.mkdir(parents=True)
+
+        # Create HOOK.md
+        (hooks_dir / 'HOOK.md').write_text(
+            f"---\nname: {hook_name}\nevent: agent:end\ndescription: {hook_name} hook\n---\n\n"
+            f"# {hook_name}\n\nCustom hook scaffolded by e3.\n\n"
+            f"## Surfaces\n{', '.join(surfaces)}\n"
+        )
+
+        # Create handler.ts skeleton
+        (hooks_dir / 'handler.ts').write_text(
+            f'// {hook_name} hook handler\n'
+            f'// Scaffolded by e3 hook\n\n'
+            f'export default async function handler(ctx: any): Promise<void> {{\n'
+            f'  // TODO: implement hook logic\n'
+            f'  console.log("{hook_name} hook fired");\n'
+            f'}}\n'
+        )
+
+        f_label = tracker.next_f_label()
+        print(f"{f_label} + hook '{hook_name}' -> hooks/{hook_name}/ [surfaces: {', '.join(surfaces)}]")
+        print(f"   + HOOK.md created")
+        print(f"   + handler.ts skeleton created")
+
+        # Auto-register in command registry if surfaces specified
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            from command_registry import registry, RegisteredCommand
+            registry.register(RegisteredCommand(
+                name=hook_name,
+                handler=f'hook:{hook_name}',
+                surfaces=set(surfaces),
+                persona_access={'*'},
+                description=f'{hook_name} hook',
+                source='e3-hook',
+            ))
+            registry.save_index()
+            print(f"   + registered in command_index.json")
+        except Exception:
+            pass
+
+        _EXTENSION_TRAIL.append((
+            datetime.datetime.now().timestamp(), 'hook',
+            f"name={hook_name}, surfaces={surfaces}"
+        ))
+        return 0
+
+    elif subcmd == 'discover':
+        # e3 discover — re-scan and rebuild command index
+        try:
+            sys.path.insert(0, str(Path(__file__).parent))
+            from command_registry import registry
+            registry.auto_discover(force=True)
+            registry.save_index()
+            count = len(registry.all_commands())
+            f_label = tracker.next_f_label()
+            print(f"{f_label} Δ command_index rebuilt ({count} commands)")
+        except Exception as e:
+            print(f"e3 discover error: {e}")
+        return 0
+
     else:
         print("e3 — extend mode")
         print("  e3                              list session extensions + trail")
@@ -4382,6 +4516,8 @@ def execute_extend(args):
         print("  e3 template <type>              scaffold frontmatter template")
         print("  e3 integrate <script>           register script as callable")
         print("  e3 run <name> [args...]         invoke an integrated script")
+        print("  e3 hook <name> [surfaces...]    scaffold a new hook with registration")
+        print("  e3 discover                     rebuild command index from scripts/skills/hooks")
         return 1
 
 
@@ -4654,6 +4790,9 @@ def _parse_e0_args(op_args):
     elif first == 'list':
         result['op'] = 'list'
         remaining = remaining[1:]
+    elif first == 'cadence':
+        result['op'] = 'cadence'
+        remaining = remaining[1:]
     else:
         # Unknown → fall through to legacy action dispatch
         result['op'] = 'legacy'
@@ -4701,6 +4840,45 @@ def _dispatch_e0(op_args, tracker):
         content = render_supermap()
         _, output = tracker.track_render(content)
         print(output)
+        return 0
+
+    # V5: cadence command doesn't need orchestration engine
+    if spec['op'] == 'cadence':
+        interval_str = spec['extra'][0] if spec['extra'] else None
+        config_path = WORKSPACE / 'state' / 'orchestration_config.json'
+        if not interval_str:
+            if config_path.exists():
+                try:
+                    cfg = json.loads(config_path.read_text())
+                    label = cfg.get('queue_cadence_label', '0')
+                    secs = cfg.get('queue_cadence_seconds', 0)
+                    print(f"Queue cadence: {label} ({secs}s)")
+                except Exception:
+                    print("Queue cadence: not set (default)")
+            else:
+                print("Queue cadence: not set (default: immediate)")
+        else:
+            try:
+                sys.path.insert(0, str(Path(__file__).parent))
+                from reactive_daemon import parse_interval
+                secs = parse_interval(interval_str)
+                config_path.parent.mkdir(parents=True, exist_ok=True)
+                import datetime as _dt
+                cfg = {}
+                if config_path.exists():
+                    try:
+                        cfg = json.loads(config_path.read_text())
+                    except Exception:
+                        pass
+                cfg['queue_cadence_seconds'] = secs
+                cfg['queue_cadence_label'] = interval_str
+                cfg['updated_at'] = _dt.datetime.now(_dt.timezone.utc).isoformat()
+                cfg['updated_by'] = 'e0'
+                config_path.write_text(json.dumps(cfg, indent=2))
+                f_label = tracker.next_f_label()
+                print(f"{f_label} Δ queue_cadence {interval_str} ({secs}s)")
+            except Exception as e:
+                print(f"e0 cadence error: {e}")
         return 0
 
     orch = _get_orch_engine()
@@ -5084,6 +5262,49 @@ def _dispatch_e0(op_args, tracker):
             return _run_script('pipeline_autorun.py', [])
         elif spec['op'] == 'handoffs':
             return _run_script('pipeline_orchestrate.py', ['--check-pending'])
+
+        elif spec['op'] == 'cadence':
+            # e0 cadence [interval] — set/show queue launch spacing
+            interval_str = spec['extra'][0] if spec['extra'] else None
+            config_path = WORKSPACE / 'state' / 'orchestration_config.json'
+            if not interval_str:
+                # Show current cadence
+                if config_path.exists():
+                    try:
+                        cfg = json.loads(config_path.read_text())
+                        label = cfg.get('queue_cadence_label', '0')
+                        secs = cfg.get('queue_cadence_seconds', 0)
+                        print(f"Queue cadence: {label} ({secs}s)")
+                    except Exception:
+                        print("Queue cadence: not set (default)")
+                else:
+                    print("Queue cadence: not set (default: immediate)")
+            else:
+                # Set cadence
+                try:
+                    sys.path.insert(0, str(Path(__file__).parent))
+                    from reactive_daemon import parse_interval
+                    secs = parse_interval(interval_str)
+                    config_path.parent.mkdir(parents=True, exist_ok=True)
+                    import datetime as _dt
+                    cfg = {}
+                    if config_path.exists():
+                        try:
+                            cfg = json.loads(config_path.read_text())
+                        except Exception:
+                            pass
+                    cfg['queue_cadence_seconds'] = secs
+                    cfg['queue_cadence_label'] = interval_str
+                    cfg['updated_at'] = _dt.datetime.now(_dt.timezone.utc).isoformat()
+                    cfg['updated_by'] = 'e0'
+                    config_path.write_text(json.dumps(cfg, indent=2))
+                    if f_label:
+                        print(f"{f_label} Δ queue_cadence {interval_str} ({secs}s)")
+                    else:
+                        print(f"Queue cadence set: {interval_str} ({secs}s)")
+                except Exception as e:
+                    print(f"e0 cadence error: {e}")
+
         else:
             _e0_fallback_message(spec['op'])
             return 0
@@ -5142,7 +5363,16 @@ def _dispatch_v2_operation(mode_num, op_args, view_flags, tracker):
 
 
 def _dispatch_v2_operation_inner(mode_num, op_args, view_flags, tracker):
-    """Inner dispatch — actual mode routing."""
+    """Inner dispatch — actual mode routing with persona access gating."""
+    # Persona mode access check
+    _active_persona = view_flags.get('persona') if isinstance(view_flags, dict) else None
+    if _active_persona and _HAS_PERSONA_LOADER:
+        _allowed_modes = _load_persona_access(_active_persona)
+        if mode_num not in _allowed_modes:
+            print(f"Mode e{mode_num} not available for {_active_persona} "
+                  f"(allowed: {', '.join(f'e{m}' for m in sorted(_allowed_modes))})")
+            return 0
+
     if mode_num == 0:
         # e0 → orchestrate via orchestration engine
         if not op_args:
@@ -5252,6 +5482,121 @@ def _print_memory_boot_index():
     print(' '.join(parts))
 
 
+def _render_dashboard(persona=None):
+    """Render the cockpit dashboard view."""
+    import json as _json
+    lines = []
+    lines.append('══ OPENCLAW COCKPIT ' + '═' * 50)
+
+    _pipelines_dir = WORKSPACE / 'pipelines'
+    _tasks_dir = WORKSPACE / 'tasks'
+
+    # Active pipelines
+    active_pipelines = []
+    queued_tasks = []
+
+    for f in sorted(_pipelines_dir.glob('*.md')):
+        try:
+            text = f.read_text()
+            m = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
+            if not m:
+                continue
+            fm = {}
+            for line in m.group(1).splitlines():
+                kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
+                if kv:
+                    fm[kv.group(1)] = kv.group(2).strip()
+            status = fm.get('status', '')
+            if status not in ('archived', '', 'complete', 'done'):
+                active_pipelines.append({
+                    'version': f.stem,
+                    'status': status,
+                    'pending': fm.get('pending_action', ''),
+                    'phase': fm.get('current_phase', ''),
+                    'claimed': fm.get('dispatch_claimed', ''),
+                    'updated': fm.get('last_updated', ''),
+                })
+        except Exception:
+            continue
+
+    for f in sorted(_tasks_dir.glob('*.md')):
+        try:
+            text = f.read_text()
+            m = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
+            if not m:
+                continue
+            fm = {}
+            for line in m.group(1).splitlines():
+                kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
+                if kv:
+                    fm[kv.group(1)] = kv.group(2).strip()
+            if fm.get('pipeline_status') == 'queued' and fm.get('pipeline_template'):
+                queued_tasks.append({
+                    'slug': f.stem,
+                    'priority': fm.get('priority', 'medium'),
+                    'template': fm.get('pipeline_template', ''),
+                })
+        except Exception:
+            continue
+
+    # Cadence
+    config_path = WORKSPACE / 'state' / 'orchestration_config.json'
+    cadence_label = 'immediate'
+    if config_path.exists():
+        try:
+            cfg = _json.loads(config_path.read_text())
+            cadence_label = cfg.get('queue_cadence_label', 'immediate')
+        except Exception:
+            pass
+
+    # Summary line
+    if active_pipelines:
+        ap = active_pipelines[0]
+        lines.append(f'  Active Pipeline: {ap["version"][:40]} [{ap["status"]}]')
+    else:
+        lines.append('  Active Pipeline: none')
+
+    lines.append(f'  Queued Tasks: {len(queued_tasks)}  |  Cadence: {cadence_label}')
+    lines.append('')
+
+    # Pipeline details
+    for ap in active_pipelines:
+        lines.append(f'  Pipeline: {ap["version"][:50]}')
+        lines.append(f'  Status: {ap["status"]}  Phase: {ap["phase"]}  Pending: {ap["pending"]}')
+        lines.append(f'  Claimed: {ap["claimed"]}  Updated: {ap["updated"]}')
+        lines.append('')
+
+    # Task queue
+    if queued_tasks:
+        lines.append('  Task Queue')
+        for i, qt in enumerate(queued_tasks, 1):
+            lines.append(f'    {i}. {qt["slug"][:45]} [{qt["priority"]}] {qt["template"]}')
+        lines.append('')
+
+    # Recent F-label events from tracker
+    try:
+        tracker = RenderTracker(WORKSPACE)
+        recent = tracker.get_recent_labels(5)
+        if recent:
+            lines.append('  Recent Events')
+            for r in recent:
+                ts = r.get('timestamp', '')[:16]
+                label = r.get('label', '')
+                ops = r.get('operations', [])
+                if ops:
+                    op = ops[0]
+                    desc = f"{op.get('coord', '')} {op.get('field_key', '')} {op.get('old_value', '')}->{op.get('new_value', '')}"
+                else:
+                    desc = ''
+                lines.append(f'    {ts} {label} {desc}')
+            lines.append('')
+    except Exception:
+        pass
+
+    lines.append('═' * 70)
+    return '\n'.join(lines)
+
+
 def main(args=None):
     """Main entry point. Parses args, renders, tracks, prints."""
     if args is None:
@@ -5293,9 +5638,11 @@ def main(args=None):
     args = filtered_args
 
     # Validate persona
-    if persona and persona not in PERSONA_CONFIGS:
-        print(f"Unknown persona '{persona}'. Valid: {', '.join(sorted(PERSONA_CONFIGS.keys()))}")
-        sys.exit(1)
+    if persona and persona not in KNOWN_PERSONAS:
+        # Allow any persona name if persona_loader discovers it from .md files
+        if not _HAS_PERSONA_LOADER:
+            print(f"Unknown persona '{persona}'. Valid: {', '.join(sorted(KNOWN_PERSONAS))}")
+            sys.exit(1)
 
     def _render_sm():
         return render_supermap(persona=persona, tag_filter=tag_filter, since_days=since_days)
@@ -5315,6 +5662,22 @@ def main(args=None):
         if _one_shot_shuffle:
             global _current_sort_mode
             _current_sort_mode = _saved_sort_mode
+
+    # dashboard / cockpit: combined TUI status view
+    if args and args[0] in ('dashboard', 'cockpit'):
+        watch_mode = '--watch' in args
+        print(_render_dashboard(persona=persona))
+        if watch_mode:
+            import time as _time
+            try:
+                while True:
+                    _time.sleep(5)
+                    print('\033[2J\033[H', end='')  # clear terminal
+                    print(_render_dashboard(persona=persona))
+            except KeyboardInterrupt:
+                pass
+        _restore_shuffle()
+        return
 
     # --supermap: render supermap to stdout (no R-labels, no disk write)
     if '--supermap' in args:

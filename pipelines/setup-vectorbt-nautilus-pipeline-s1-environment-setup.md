@@ -7,12 +7,16 @@ version: setup-vectorbt-nautilus-pipeline-s1-environment-setup
 spec_file: machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s1-environment-setup_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s1-environment-setup.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, finance]
 project: snn-applied-finance
 started: 2026-03-25
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-25 03:49
+reset: false
 ---
-
 # Implementation Pipeline: SETUP-VECTORBT-NAUTILUS-PIPELINE-S1-ENVIRONMENT-SETUP
 
 ## Description

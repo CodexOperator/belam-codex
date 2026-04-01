@@ -7,12 +7,16 @@ version: snn-deep-analysis-foundational-v1-v2
 spec_file: machinelearning/snn_applied_finance/specs/snn-deep-analysis-foundational-v1-v2_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-foundational-v1-v2.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, research, analysis, deep-dive]
 project: snn-applied-finance
 started: 2026-03-31
+pending_action: p1_critic_review
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-04-01 01:00
+reset: false
 ---
-
 # Implementation Pipeline: SNN-DEEP-ANALYSIS-FOUNDATIONAL-V1-V2
 
 ## Description

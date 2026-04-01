@@ -1333,15 +1333,32 @@ except ImportError as e:
         return result
 
     def load_state_json(version: str) -> dict:
-        # New: subdirectory path first
+        """Load pipeline state with .md frontmatter as authoritative source."""
+        # Load JSON state
         state_file = BUILDS_DIR / version / '_state.json'
         if state_file.exists():
-            return json.load(open(state_file))
-        # Legacy: flat path
-        state_file = BUILDS_DIR / f'{version}_state.json'
-        if state_file.exists():
-            return json.load(open(state_file))
-        return {}
+            state = json.load(open(state_file))
+        else:
+            state_file = BUILDS_DIR / f'{version}_state.json'
+            if state_file.exists():
+                state = json.load(open(state_file))
+            else:
+                state = {}
+
+        # Merge .md frontmatter as authoritative for shared fields
+        md_path = PIPELINES_DIR / f'{version}.md'
+        if md_path.exists():
+            md_fm = load_pipeline_frontmatter(md_path)
+            for key in ('status', 'pending_action', 'dispatch_claimed', 'last_updated', 'current_phase'):
+                md_val = md_fm.get(key)
+                if md_val is not None and md_val != '':
+                    if md_val in ('true', 'True'):
+                        md_val = True
+                    elif md_val in ('false', 'False'):
+                        md_val = False
+                    state[key] = md_val
+
+        return state
 
     def get_active_pipelines() -> list:
         pipelines = []

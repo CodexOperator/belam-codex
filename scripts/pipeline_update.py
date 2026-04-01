@@ -299,20 +299,93 @@ def print_ping_instruction(version, next_agent, ping_msg, artifact=None):
     print(f"   Also post status update to group chat (Telegram group -5243763228)")
 
 
+def _parse_pipeline_md_frontmatter(version):
+    """Parse frontmatter from pipeline .md file for authoritative fields."""
+    md_path = PIPELINES_DIR / f'{version}.md'
+    if not md_path.exists():
+        return {}
+    text = md_path.read_text()
+    m = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
+    if not m:
+        return {}
+    fields = {}
+    for line in m.group(1).splitlines():
+        kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
+        if kv:
+            val = kv.group(2).strip()
+            # Convert boolean strings
+            if val.lower() in ('true', 'false'):
+                val = val.lower() == 'true'
+            fields[kv.group(1)] = val
+    return fields
+
+
 def load_state(version):
-    """Load pipeline state JSON (checks subdirectory first, then legacy flat)."""
-    # Prefer subdirectory format (what sweep reads)
+    """Load pipeline state with .md frontmatter as authoritative source.
+
+    Reads _state.json for detail (stages, handoffs), but .md frontmatter
+    wins for shared fields: status, pending_action, dispatch_claimed,
+    last_updated, current_phase.
+    """
+    # Load JSON state (detail store)
     sub_file = BUILDS_DIR / version / '_state.json'
     if sub_file.exists():
-        return json.loads(sub_file.read_text())
-    state_file = BUILDS_DIR / f'{version}_state.json'
-    if state_file.exists():
-        return json.loads(state_file.read_text())
-    return {'version': version, 'stages': {}}
+        state = json.loads(sub_file.read_text())
+    else:
+        state_file = BUILDS_DIR / f'{version}_state.json'
+        if state_file.exists():
+            state = json.loads(state_file.read_text())
+        else:
+            state = {'version': version, 'stages': {}}
+
+    # Merge .md frontmatter as authoritative for shared fields
+    md_fields = _parse_pipeline_md_frontmatter(version)
+    MD_AUTHORITATIVE = ('status', 'pending_action', 'dispatch_claimed', 'last_updated', 'current_phase')
+    for key in MD_AUTHORITATIVE:
+        md_val = md_fields.get(key)
+        if md_val is not None and md_val != '':
+            json_val = state.get(key)
+            if json_val is not None and str(json_val) != str(md_val):
+                import logging
+                logging.getLogger(__name__).warning(
+                    f"State drift [{version}] {key}: md={md_val} json={json_val} — using .md"
+                )
+            state[key] = md_val
+
+    return state
+
+
+def _update_pipeline_md_frontmatter(version, updates):
+    """Write-through authoritative fields to pipeline .md frontmatter."""
+    md_path = PIPELINES_DIR / f'{version}.md'
+    if not md_path.exists():
+        return
+    text = md_path.read_text()
+    m = re.match(r'^---\s*\n(.*?)\n---\s*\n?(.*)', text, re.DOTALL)
+    if not m:
+        return
+    fm_lines = m.group(1).splitlines()
+    body = m.group(2)
+    updated_keys = set()
+    for i, line in enumerate(fm_lines):
+        kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
+        if kv and kv.group(1) in updates:
+            key = kv.group(1)
+            val = updates[key]
+            if isinstance(val, bool):
+                val = 'true' if val else 'false'
+            fm_lines[i] = f'{key}: {val}'
+            updated_keys.add(key)
+    for key, val in updates.items():
+        if key not in updated_keys:
+            if isinstance(val, bool):
+                val = 'true' if val else 'false'
+            fm_lines.append(f'{key}: {val}')
+    md_path.write_text(f'---\n' + '\n'.join(fm_lines) + f'\n---\n{body}')
 
 
 def save_state(version, state):
-    """Save pipeline state JSON (writes to both locations for compatibility)."""
+    """Save pipeline state JSON + write-through to .md frontmatter."""
     BUILDS_DIR.mkdir(parents=True, exist_ok=True)
     content = json.dumps(state, indent=2)
     # Always write flat file
@@ -322,6 +395,15 @@ def save_state(version, state):
     sub_dir = BUILDS_DIR / version
     if sub_dir.is_dir():
         (sub_dir / '_state.json').write_text(content)
+
+    # Write-through authoritative fields to .md frontmatter
+    _update_pipeline_md_frontmatter(version, {
+        'status': state.get('status', ''),
+        'pending_action': state.get('pending_action', ''),
+        'current_phase': str(state.get('current_phase', '')),
+        'dispatch_claimed': state.get('dispatch_claimed', False),
+        'last_updated': state.get('last_updated', ''),
+    })
 
 
 def load_pipeline_md(version):

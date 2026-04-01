@@ -7,12 +7,16 @@ version: spiking-transformer-integration-research
 spec_file: machinelearning/snn_applied_finance/specs/spiking-transformer-integration-research_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_spiking-transformer-integration-research.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, finance]
 project: snn-applied-finance
 started: 2026-03-30
+pending_action: p1_critic_review
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-30 04:25
+reset: false
 ---
-
 # Implementation Pipeline: SPIKING-TRANSFORMER-INTEGRATION-RESEARCH
 
 ## Description

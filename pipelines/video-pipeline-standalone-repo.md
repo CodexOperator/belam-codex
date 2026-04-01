@@ -5,12 +5,16 @@ priority: high
 type: infrastructure
 version: video-pipeline-standalone-repo
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, finance]
 project: snn-applied-finance
 started: 2026-03-25
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-25 04:28
+reset: false
 ---
-
 # Implementation Pipeline: VIDEO-PIPELINE-STANDALONE-REPO
 
 ## Description

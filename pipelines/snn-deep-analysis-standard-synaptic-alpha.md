@@ -7,12 +7,16 @@ version: snn-deep-analysis-standard-synaptic-alpha
 spec_file: machinelearning/snn_applied_finance/specs/snn-deep-analysis-standard-synaptic-alpha_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-standard-synaptic-alpha.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, research, analysis, standard-model]
 project: snn-applied-finance
 started: 2026-03-31
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-31 21:11
+reset: false
 ---
-
 # Implementation Pipeline: SNN-DEEP-ANALYSIS-STANDARD-SYNAPTIC-ALPHA
 
 ## Description

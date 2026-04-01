@@ -7,14 +7,18 @@ version: snn-energy-topology-a1-energy-aware-neuron
 spec_file: machinelearning/snn_applied_finance/specs/snn-energy-topology-a1-energy-aware-neuron_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, research, neuron-architecture, energy-model]
 project: snn-energy-topology-research
 started: 2026-03-27
 archived: 2026-03-27
 archive_reason: Phase 2 analysis complete. All 3 experiments validated: (1) Universal energy deficit confirmed — all neurons energy-negative across f_in=0.05-0.50, deficit scales linearly (expected by design, not a bug). (2) Beta learning confirmed — converges to upper clamp 0.99 at target=0.2, weight learning is primary frequency controller. (3) Multi-neuron topology independent and stable, no cross-neuron interference. A1 fully validates the energy accounting architecture. A2–A5 design table included in notebook. Artifact: pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_phase2_architect_analysis.md
+pending_action: p2_architect_analysis
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-27 16:42
+reset: false
 ---
-
 # Implementation Pipeline: SNN-ENERGY-TOPOLOGY-A1-ENERGY-AWARE-NEURON
 
 ## Description

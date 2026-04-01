@@ -7,14 +7,18 @@ version: setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation
 spec_file: machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, finance]
 project: snn-applied-finance
 started: 2026-03-25
 archived: 2026-03-25
 archive_reason: Task complete — S4 walk-forward validation framework fully implemented and verified. Phase 2 direction referenced BLOCK-1 (DSR scaling) which was already fixed in Phase 1 (critic approved, 50/50 tests GREEN). No remaining work. Framework delivers: walk_forward.py (rolling+anchored splits, purge gap, embargo), metrics.py (Sharpe, Sortino, PSR, DSR per Bailey & Lopez de Prado 2014, max drawdown, Calmar, trade stats, significance tests), analysis.py (stability, overfitting PDR, regime, CI, verdict). 50/50 tests GREEN.
+pending_action: p2_architect_design
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-25 06:10
+reset: false
 ---
-
 # Implementation Pipeline: SETUP-VECTORBT-NAUTILUS-PIPELINE-S4-WALK-FORWARD-VALIDATION
 
 ## Description

@@ -5,12 +5,16 @@ priority: high
 type: infrastructure
 version: e0-sweep-subcommand-separation
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, finance]
 project: snn-applied-finance
 started: 2026-03-24
+pending_action: phase1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-24 13:48
+reset: false
 ---
-
 # Implementation Pipeline: E0-SWEEP-SUBCOMMAND-SEPARATION
 
 ## Description

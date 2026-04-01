@@ -17,6 +17,7 @@ operation_index:
   9: launch
   10: kill
   11: restart
+  12: cadence
 tags: [engine, mode, v2]
 description: Orchestrate pipeline and task execution via numbered operations or named actions
 ---

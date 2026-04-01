@@ -47,12 +47,12 @@
       "slug": "snn-standard-benchmarks"
     },
     "t1": {
-      "hash": "e7cafe96be0b",
-      "slug": "comprehensive-backtest-sweep-all-models"
+      "hash": "b314dabf45bb",
+      "slug": "git-diff-handoff-context"
     },
     "t2": {
-      "hash": "968924d64d5f",
-      "slug": "codex-engine-enum-field-indexing"
+      "hash": "1e7f9c44b7c7",
+      "slug": "regression-test-placeholder"
     },
     "t3": {
       "hash": "ebd098d1de58",
@@ -1292,5 +1292,5 @@
     }
   },
   "sort_mode": "recent",
-  "last_incremental": "2026-03-31T15:52:23Z"
+  "last_incremental": "2026-04-01T14:29:56Z"
 }

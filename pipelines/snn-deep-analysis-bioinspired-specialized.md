@@ -7,12 +7,16 @@ version: snn-deep-analysis-bioinspired-specialized
 spec_file: machinelearning/snn_applied_finance/specs/snn-deep-analysis-bioinspired-specialized_spec.yaml
 output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-bioinspired-specialized.ipynb
 agents: [architect, critic, builder]
-supersedes:
+supersedes: 
 tags: [snn, research, analysis, deep-dive, bio-inspired]
 project: snn-applied-finance
 started: 2026-03-31
+pending_action: p1_complete
+current_phase: 
+dispatch_claimed: false
+last_updated: 2026-03-31 18:10
+reset: false
 ---
-
 # Implementation Pipeline: SNN-DEEP-ANALYSIS-BIOINSPIRED-SPECIALIZED
 
 ## Description
