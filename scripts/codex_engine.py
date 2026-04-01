@@ -2089,7 +2089,7 @@ PREFIX_TO_CREATE_TYPE = {
     'pt': 'pipeline-template',
 }
 
-TASK_VALID_STATUSES = {'open', 'active', 'in_pipeline', 'blocked', 'complete'}
+TASK_VALID_STATUSES = {'open', 'active', 'in_pipeline', 'blocked', 'complete', 'queued', 'done', 'in-progress'}
 TASK_VALID_PRIORITIES = {'low', 'medium', 'high', 'critical'}
 
 
@@ -2678,6 +2678,7 @@ def execute_edit(args):
 
             operations.append({
                 'filepath': str(item['filepath']), 'coord': coord,
+                'prefix': item.get('prefix', ''), 'slug': item.get('slug', ''),
                 'field_num': field_num, 'field_key': field_key,
                 'old_value': old_val, 'new_value': new_val,
             })
@@ -2767,6 +2768,30 @@ def execute_edit(args):
         materializer.materialize_affected(list(coord_edits.keys()))
     except Exception:
         pass  # Don't break edits if materialization fails
+
+    # V5: Fire post-edit reactive hooks (pipeline launch, rewind, queue, etc.)
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from post_edit_hooks import fire_hooks as _fire_hooks
+        # Build all_fields_map from loaded prims (already in scope from execute_edit)
+        _all_fields_map = {}
+        for _coord_key in loaded:
+            _prim = loaded[_coord_key]
+            _fm = {}
+            for _fn, _finfo in _prim.get('fields', {}).items():
+                if isinstance(_finfo, dict):
+                    _fm[_finfo.get('key', '')] = _finfo.get('value', '')
+            # Also include slug from coord_items
+            if _coord_key in coord_items:
+                _fm['_slug'] = coord_items[_coord_key].get('slug', '')
+            _all_fields_map[_coord_key] = _fm
+        _hook_results = _fire_hooks(operations, all_fields_map=_all_fields_map)
+        for _hr in _hook_results:
+            output_lines.append(f'   -> {_hr.action}')
+    except ImportError:
+        pass  # post_edit_hooks not available — graceful degradation
+    except Exception as _hook_err:
+        output_lines.append(f'   -> HOOK ERROR: {_hook_err}')
 
     print('\n'.join(output_lines))
     return 0
@@ -3961,7 +3986,7 @@ E0_OP_INDEX = {
 ENUM_FIELDS = {
     'status': {
         'd': {1: 'proposed', 2: 'accepted', 3: 'rejected', 4: 'superseded'},
-        't': {1: 'open', 2: 'active', 3: 'in_pipeline', 4: 'complete', 5: 'blocked'},
+        't': {1: 'open', 2: 'active', 3: 'in_pipeline', 4: 'complete', 5: 'blocked', 6: 'queued'},
         'p': {1: 'phase1_design', 2: 'phase1_build', 3: 'phase1_review',
               4: 'phase1_complete', 5: 'phase2_build', 6: 'phase2_complete',
               7: 'phase3_active', 8: 'complete', 9: 'archived'},
@@ -3971,6 +3996,12 @@ ENUM_FIELDS = {
     },
     'enabled': {
         '_default': {0: 'false', 1: 'true'},
+    },
+    'launch_mode': {
+        '_default': {1: 'queued', 2: 'active'},
+    },
+    'pipeline_status': {
+        '_default': {1: 'queued', 2: 'launching', 3: 'in_pipeline', 4: 'stalled', 5: 'complete'},
     },
 }
 
