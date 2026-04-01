@@ -1,3 +1,10 @@
 {
-  "status": "complete"
+  "status": "complete",
+  "cfd7c580-547d-426d-b674-0df21d7a7956": {
+    "status": "complete",
+    "primitives": [
+      "lesson/confidence-wobble-resets-signal-transition-gate",
+      "decision/keep-wobble-reentry-matching-backtest"
+    ]
+  }
 }
