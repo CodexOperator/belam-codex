@@ -1,6 +1,6 @@
 ---
 primitive: task
-status: open
+status: in_pipeline
 priority: high
 created: 2026-03-21
 owner: belam
@@ -10,11 +10,12 @@ upstream: []
 downstream: [quant, microcap-swing, model-architecture]
 tags: [snn, transformer, temporal, research]
 pipeline: spiking-transformer-integration-research
-pipeline_template: 
-current_stage: 
+pipeline_template: null
+current_stage: null
 pipeline_status: in_pipeline
 launch_mode: queued
 ---
+
 ## ANN Topology Exploration: TabNet, Temporal CNN, Transformer
 
 ### Goal

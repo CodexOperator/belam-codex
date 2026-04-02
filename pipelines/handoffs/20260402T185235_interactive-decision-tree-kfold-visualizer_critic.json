@@ -1,0 +1,15 @@
+{
+  "version": "interactive-decision-tree-kfold-visualizer",
+  "completed_stage": "p1_architect_design",
+  "next_stage": "p1_critic_design_review",
+  "next_agent": "critic",
+  "timestamp": "2026-04-02T18:52:35.851619+00:00",
+  "pipeline_session_id": "42a44d9e-4afd-4be8-982d-3c0f3f68a485",
+  "wake_result": {
+    "success": true,
+    "status": "dispatching",
+    "session_id": "",
+    "response_preview": ""
+  },
+  "verified": true
+}
