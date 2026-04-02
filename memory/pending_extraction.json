@@ -1,5 +1,12 @@
 {
   "status": "complete",
+  "33ff2972-bfa6-4af0-8eab-835837aece8f": {
+    "status": "complete",
+    "primitives": [
+      "lesson/live-bridge-atr-sl-tp-drift-vs-backtest-fixed",
+      "decision/lock-sl-tp-to-entry-atr-trail-uses-live-atr"
+    ]
+  },
   "cfd7c580-547d-426d-b674-0df21d7a7956": {
     "status": "complete",
     "primitives": [
