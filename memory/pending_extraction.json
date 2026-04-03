@@ -13,5 +13,9 @@
       "lesson/confidence-wobble-resets-signal-transition-gate",
       "decision/keep-wobble-reentry-matching-backtest"
     ]
+  },
+  "521c344a-8a84-42f2-97c5-4cae6a6705b5": {
+    "status": "complete",
+    "primitives": []
   }
 }
