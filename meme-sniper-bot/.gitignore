@@ -1,7 +1,0 @@
-wallet/
-db/
-*.session
-sniper.log
-__pycache__/
-*.pyc
-.env

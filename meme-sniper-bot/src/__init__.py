@@ -1,1 +1,0 @@
-# Meme Sniper Bot
