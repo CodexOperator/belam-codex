@@ -1,5 +1,14 @@
 {
   "status": "complete",
+  "c748afcb-941e-4d65-bb1e-98bda275b006": {
+    "status": "complete",
+    "primitives": [
+      "decision/task-status-driven-pipeline-auto-launch",
+      "lesson/subagent-timeout-needs-completion-before-manual-finish",
+      "decision/meme-sniper-bot-architecture",
+      "lesson/telethon-userbot-required-for-group-reading"
+    ]
+  },
   "33ff2972-bfa6-4af0-8eab-835837aece8f": {
     "status": "complete",
     "primitives": [
