@@ -1,6 +1,6 @@
 telegram:
-  api_id: ""          # Get from https://my.telegram.org
-  api_hash: ""        # Get from https://my.telegram.org
+  api_id: "34089935"
+  api_hash: "f6602237d524618accc35c18609bb920"
   phone: ""           # Your phone number with country code
   group: "inside_calls"  # Target group username or ID
 
