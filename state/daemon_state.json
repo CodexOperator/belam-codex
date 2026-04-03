@@ -1,7 +1,7 @@
 {
   "last_launch_at": null,
-  "tick_count": 1,
-  "updated_at": "2026-04-01T14:29:43.071376+00:00",
+  "tick_count": 58,
+  "updated_at": "2026-04-03T08:27:32.122309+00:00",
   "snapshots": {
     "/home/ubuntu/.openclaw/workspace/tasks/setup-vectorbt-nautilus-pipeline-s5-transaction-costs.md": {
       "mtime": 1775031111.9020035,
@@ -1169,10 +1169,10 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/spiking-transformer-integration-research.md": {
-      "mtime": 1775031111.9039989,
+      "mtime": 1775155842.8296552,
       "frontmatter": {
         "primitive": "task",
-        "status": "open",
+        "status": "in_pipeline",
         "priority": "high",
         "created": "2026-03-21",
         "owner": "belam",
@@ -1182,8 +1182,8 @@
         "downstream": "[quant, microcap-swing, model-architecture]",
         "tags": "[snn, transformer, temporal, research]",
         "pipeline": "spiking-transformer-integration-research",
-        "pipeline_template": "",
-        "current_stage": "",
+        "pipeline_template": "null",
+        "current_stage": "null",
         "pipeline_status": "in_pipeline",
         "launch_mode": "queued"
       }
@@ -2401,6 +2401,42 @@
         "dispatch_claimed": false,
         "last_updated": "2026-04-01 00:57",
         "reset": false
+      }
+    },
+    "/home/ubuntu/.openclaw/workspace/tasks/interactive-decision-tree-kfold-visualizer.md": {
+      "mtime": 1775155831.0738297,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-04-02",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[education, visualization, web]",
+        "pipeline": "interactive-decision-tree-kfold-visualizer"
+      }
+    },
+    "/home/ubuntu/.openclaw/workspace/pipelines/interactive-decision-tree-kfold-visualizer.md": {
+      "mtime": 1775157972.498813,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p2_experiment_run",
+        "priority": "high",
+        "type": "research",
+        "version": "interactive-decision-tree-kfold-visualizer",
+        "spec_file": "machinelearning/snn_applied_finance/specs/interactive-decision-tree-kfold-visualizer_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_interactive-decision-tree-kfold-visualizer.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[education, visualization, web]",
+        "project": "snn-applied-finance",
+        "started": "2026-04-02",
+        "pending_action": "p2_system_experiment_run",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-04-02 19:26"
       }
     }
   }

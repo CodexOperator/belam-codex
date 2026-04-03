@@ -22,12 +22,28 @@ The `lm` namespace at the top is your action grammar — each entry IS an invoca
 - **Orchestrate:** `e0` — sweep all pipelines, check gates, auto-kick
 - **Diff:** `.d` — what changed since last anchor
 
+**Reactive Pipeline Launch (V5):**
+Tasks with `pipeline_template` set auto-launch when their status changes:
+- `e1t{n} status active` → **immediate launch** (bypasses concurrency limits)
+- `e1t{n} status open` → **queued launch** (respects `MAX_CONCURRENT`, cadence spacing)
+- The reactive daemon detects frontmatter changes every 30s and handles the rest
+- `e0 cadence [interval]` — control spacing between queued launches (e.g. `e0 cadence 1h`)
+
+**Pipeline Rewind (V5):**
+- `e1p{n} pending_action {stage}` — rewind to a specific stage
+- `e1p{n} current_phase {N}` — rewind to phase N start
+- `e1p{n} reset true` — reset current phase (flag auto-clears)
+
 **Multi-step workflows:** LM sub-entries like `e0.l1` (Full Pipeline Launch) and `e1.l1` (Bulk Status Update) are recipes — expand with the coord to see steps.
 
 **Extending the system:**
 - **New action missing?** `e3 {ns}.{sub}` registers a new sub-namespace
-- **Need work done?** `e0 t{n}` launches a pipeline from a task coordinate
+- **Need work done?** Set `pipeline_template` on a task, then `e1t{n} status active` (or `open` to queue)
 - **Need a sub-agent?** `sessions_spawn(...)` with the task context
+- **New script?** `e2 sc "name"` creates a COMMAND_META skeleton
+- **New hook?** `e3 hook <name> [surfaces...]` scaffolds reactive hook
+- **Rebuild command index?** `e3 discover`
+- **Dashboard:** `R dashboard` or `R cockpit` for combined TUI status
 
 **Rules:**
 - ❌ Do NOT use grep/cat/echo/ls on workspace files — there is a coordinate for it
