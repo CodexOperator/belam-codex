@@ -2748,7 +2748,7 @@ def execute_edit(args):
                                     found_met = (new_val == 'complete')
                                 else:
                                     found_met = (_quick_status(kfp) == 'complete')
-                                dep_parts.append(f"{dep_slug} {'\u2713' if found_met else '\u2717'}")
+                                dep_parts.append(f"{dep_slug} {'✓' if found_met else '✗'}")
                                 break
                         else:
                             dep_parts.append(f"{dep_slug} ?")
