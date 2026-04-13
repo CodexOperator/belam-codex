@@ -26,5 +26,11 @@
   "521c344a-8a84-42f2-97c5-4cae6a6705b5": {
     "status": "complete",
     "primitives": []
+  },
+  "dd78f33c-5a67-43a3-81aa-f90450b8079d": {
+    "status": "complete",
+    "primitives": [
+      "lesson/bridge-state-overrides-config-on-restart"
+    ]
   }
 }
