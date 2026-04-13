@@ -80,7 +80,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/snn-deep-analysis-standard-leaky_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/snn-deep-analysis-standard-leaky_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/snn-deep-analysis-standard-leaky_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/snn-deep-analysis-standard-leaky_state.json`
+- **Design:** `pipeline_builds/snn-deep-analysis-standard-leaky_architect_design.md`
+- **Review:** `pipeline_builds/snn-deep-analysis-standard-leaky_critic_design_review.md`
+- **State:** `pipeline_builds/snn-deep-analysis-standard-leaky_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-standard-leaky.ipynb`

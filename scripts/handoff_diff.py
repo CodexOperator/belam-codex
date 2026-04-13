@@ -101,8 +101,6 @@ def _relevant_paths(version: str, repo: str) -> list[str]:
         ]
     elif repo == 'machinelearning':
         return [
-            f'snn_applied_finance/research/pipeline_builds/{version}*',
-            f'snn_applied_finance/research/pipeline_builds/{version}/',
             f'snn_applied_finance/notebooks/*{version}*',
         ]
     return []

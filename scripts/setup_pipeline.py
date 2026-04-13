@@ -240,7 +240,7 @@ started: {now}
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/{version}_spec.yaml`
-- **Design Brief:** `snn_applied_finance/research/pipeline_builds/{version}_design_brief.md`
+- **Design Brief:** `pipeline_builds/{version}_design_brief.md`
 - **Phase 1 Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_{version}_autonomous.ipynb` (pending)
 - **Final Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb` (Phase 2)
 """
@@ -262,7 +262,7 @@ def verify_existing(version):
         fail(f"Spec not found: {spec_path}")
 
     # Check design brief
-    brief_path = FINANCE_DIR / 'research' / 'pipeline_builds' / f'{version}_design_brief.md'
+    brief_path = WORKSPACE / 'pipeline_builds' / f'{version}_design_brief.md'
     if brief_path.exists():
         ok(f"Design brief exists: {brief_path.name}")
     else:

@@ -81,7 +81,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/snn-energy-topology-a1-energy-aware-neuron_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_state.json`
+- **Design:** `pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_architect_design.md`
+- **Review:** `pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_critic_design_review.md`
+- **State:** `pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb`

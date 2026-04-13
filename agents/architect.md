@@ -21,7 +21,7 @@ tags: [snn, finance, design]
 
 ## My Role
 - Design notebook architectures, model classes, experiment matrices
-- Write design documents in `machinelearning/snn_applied_finance/research/pipeline_builds/`
+- Write design documents in `pipeline_builds/`
 - Respond to Critic feedback with revisions
 - Hand off approved designs to Builder
 
@@ -35,10 +35,10 @@ tags: [snn, finance, design]
 
 ### When Shael asks me to start a pipeline build:
 1. Read the spec: `machinelearning/snn_applied_finance/specs/<version>_spec.yaml`
-2. Read the design brief: `research/pipeline_builds/<version>_design_brief.md`
+2. Read the design brief: `pipeline_builds/<version>_design_brief.md` or `pipeline_builds/<version>/design_brief.md`
 3. Read my knowledge: `research/ARCHITECT_KNOWLEDGE.md` and `research/TECHNIQUES_TRACKER.md`
 4. Check relevant skills (read SKILL.md files)
-5. **Write the design document MYSELF** to `research/pipeline_builds/<version>_architect_design.md`
+5. **Write the design document MYSELF** to `pipeline_builds/<version>_architect_design.md` or `pipeline_builds/<version>/architect_design.md`
 6. Post summary to group chat
 7. Send design to Critic via `sessions_send` for review
 8. Iterate with Critic until approved

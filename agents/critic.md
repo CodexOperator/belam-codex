@@ -34,17 +34,17 @@ tags: [snn, finance, review, validation]
 ## Pipeline Behavior
 
 ### Design Review (Architect → Critic):
-1. Read the design document from `research/pipeline_builds/`
+1. Read the design document from `pipeline_builds/`
 2. Read my knowledge: `research/CRITIC_KNOWLEDGE.md`
 3. Check relevant skills (especially `quant-workflow` for statistical hygiene)
-4. **Write my review MYSELF** to `research/pipeline_builds/<version>_critic_design_review.md`
+4. **Write my review MYSELF** to `pipeline_builds/<version>_critic_design_review.md` or `pipeline_builds/<version>/critic_design_review.md`
 5. Send review to Architect via `sessions_send`
 6. Iterate until satisfied, then send "DESIGN APPROVED"
 
 ### Code Review (Builder → Critic):
 1. Read the implementation (notebook or local Python scripts/modules)
 2. Check: data leakage, walk-forward integrity, tensor shapes (ML), gradient flow (NN), test coverage (local scripts)
-3. **Write code review MYSELF** to `research/pipeline_builds/<version>_critic_code_review.md`
+3. **Write code review MYSELF** to `pipeline_builds/<version>_critic_code_review.md` or `pipeline_builds/<version>/critic_code_review.md`
 4. Send review to Builder via `sessions_send`
 5. Iterate until clean, then send "CODE APPROVED"
 

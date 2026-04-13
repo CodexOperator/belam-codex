@@ -88,7 +88,7 @@ Score ≥ 7 = auto-approved, 4-6 = flagged for review, < 4 = rejected.
 
 - **Templates:** `templates/pipeline.md`, `templates/analysis_pipeline.md`, `templates/launch-pipeline.md`, `templates/orchestrator.md`
 - **Instances:** `pipelines/<version>.md` (one per notebook version)
-- **Build artifacts:** `machinelearning/snn_applied_finance/research/pipeline_builds/<version>_*`
+- **Build artifacts:** `pipeline_builds/<version>_*` or `pipeline_builds/<version>/...`
 - **State JSON:** `pipeline_builds/<version>_state.json`
 - **Handoff records:** `pipelines/handoffs/<timestamp>_<version>_<agent>.json`
 - **Launch skill:** `skills/launch-pipeline/SKILL.md` — full decision flow for gate checking + kickoff

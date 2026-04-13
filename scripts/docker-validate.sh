@@ -9,7 +9,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")"
-RESULTS_FILE="$WORKSPACE_DIR/machinelearning/snn_applied_finance/research/pipeline_builds/container-build-and-test_test_results.md"
+RESULTS_FILE="$WORKSPACE_DIR/pipeline_builds/container-build-and-test_test_results.md"
 
 export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)

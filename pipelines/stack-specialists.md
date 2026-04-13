@@ -134,7 +134,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/stack-specialists_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/stack-specialists_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/stack-specialists_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/stack-specialists_state.json`
+- **Design:** `pipeline_builds/stack-specialists_architect_design.md`
+- **Review:** `pipeline_builds/stack-specialists_critic_design_review.md`
+- **State:** `pipeline_builds/stack-specialists_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/crypto_stack-specialists_predictor.ipynb`

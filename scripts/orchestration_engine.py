@@ -74,7 +74,6 @@ SCRIPTS = WORKSPACE / 'scripts'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
 TEMPLATES_DIR = WORKSPACE / 'templates'
-RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 ML_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 RESULTS_BASE = ML_DIR / 'notebooks' / 'local_results'
 HANDOFFS_DIR = PIPELINES_DIR / 'handoffs'
@@ -907,15 +906,14 @@ def _files_for_stage(version: str, stage: str, agent: str) -> list[str]:
         if filename.startswith(f'{version}_'):
             artifact_name = filename[len(f'{version}_'):]
         
-        for d in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
-            # New: subdirectory path
-            subdir_path = d / version / artifact_name
-            if subdir_path.exists():
-                return subdir_path
-            # Legacy: flat prefixed path
-            flat_path = d / filename
-            if flat_path.exists():
-                return flat_path
+        # New: subdirectory path
+        subdir_path = BUILDS_DIR / version / artifact_name
+        if subdir_path.exists():
+            return subdir_path
+        # Legacy: flat prefixed path
+        flat_path = BUILDS_DIR / filename
+        if flat_path.exists():
+            return flat_path
         return None
 
     # Previous stage artifacts
@@ -2044,11 +2042,10 @@ def kick_pipeline(version: str) -> bool:
 
 def _state_file_paths(version: str) -> list:
     """Return all possible state file paths for a version (both conventions)."""
-    paths = []
-    for base in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
-        paths.append(base / version / '_state.json')
-        paths.append(base / f'{version}_state.json')
-    return paths
+    return [
+        BUILDS_DIR / version / '_state.json',
+        BUILDS_DIR / f'{version}_state.json',
+    ]
 
 
 def pipeline_resume(version: str) -> bool:

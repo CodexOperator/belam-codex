@@ -29,7 +29,7 @@ HOME = Path.home()
 OPENCLAW_DIR = HOME / '.openclaw'
 WORKSPACE = OPENCLAW_DIR / 'workspace'
 FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
-BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'pipeline_builds'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 AGENTS = ['architect', 'critic', 'builder']
 
@@ -237,7 +237,7 @@ Design the analysis notebook to systematically address:
 3. Design the full notebook structure (Sections 0-5 for Phase 1, Section 6+ for Phase 2)
 4. Specify each statistical test with: test name, H0, expected outcome, correction method
 5. Specify each visualization with: chart type, axes, what pattern it reveals
-6. Write complete design to `research/pipeline_builds/{version}_architect_analysis_design.md`
+6. Write complete design to `pipeline_builds/{version}_architect_analysis_design.md`
 7. Run: `python3 scripts/pipeline_update.py {version} complete analysis_architect_design "Design complete" architect`
 8. Ping Critic via `sessions_send` (timeoutSeconds: 0)
 9. Post update to Telegram group -5243763228
@@ -387,10 +387,10 @@ _(Populated after Phase 1 completion)_
 |-------|------|-------|-------|
 
 ## Artifacts
-- **Design Brief:** `snn_applied_finance/research/pipeline_builds/{version}_design_brief.md`
-- **Architect Design:** `snn_applied_finance/research/pipeline_builds/{version}_architect_analysis_design.md`
-- **Critic Review:** `snn_applied_finance/research/pipeline_builds/{version}_critic_analysis_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/{version}_state.json`
+- **Design Brief:** `pipeline_builds/{version}_design_brief.md`
+- **Architect Design:** `pipeline_builds/{version}_architect_analysis_design.md`
+- **Critic Review:** `pipeline_builds/{version}_critic_analysis_review.md`
+- **State:** `pipeline_builds/{version}_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb`
 """
 
@@ -520,18 +520,18 @@ def main():
     print(f"✅ Analysis pipeline setup complete for {args.version}")
     print(f"\nFiles:")
     print(f"  pipelines/{args.version}.md")
-    print(f"  research/pipeline_builds/{args.version}_design_brief.md")
-    print(f"  research/pipeline_builds/{args.version}_state.json")
+    print(f"  pipeline_builds/{args.version}_design_brief.md")
+    print(f"  pipeline_builds/{args.version}_state.json")
 
     if args.kickoff:
         print(f"\n🚀 Architect kickoff task:")
         print(f"""
   Spawn architect agent with:
-  "Read pipelines/{args.version}.md and research/pipeline_builds/{args.version}_design_brief.md.
+  "Read pipelines/{args.version}.md and pipeline_builds/{args.version}_design_brief.md.
   Read research/ANALYSIS_AGENT_ROLES.md.
   Read skill at ~/.openclaw/workspace/skills/quant-workflow/SKILL.md.
   Design the analysis notebook for {args.source_version} pkl results.
-  Write design to research/pipeline_builds/{args.version}_architect_analysis_design.md.
+  Write design to pipeline_builds/{args.version}_architect_analysis_design.md.
   Run: python3 scripts/pipeline_update.py {args.version} complete analysis_architect_design 'Design complete' architect"
 """)
     else:

@@ -64,7 +64,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/video-pipeline-standalone-repo_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/video-pipeline-standalone-repo_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/video-pipeline-standalone-repo_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/video-pipeline-standalone-repo_state.json`
+- **Design:** `pipeline_builds/video-pipeline-standalone-repo_architect_design.md`
+- **Review:** `pipeline_builds/video-pipeline-standalone-repo_critic_design_review.md`
+- **State:** `pipeline_builds/video-pipeline-standalone-repo_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_video-pipeline-standalone-repo.ipynb`

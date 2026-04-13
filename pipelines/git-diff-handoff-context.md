@@ -63,7 +63,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/git-diff-handoff-context_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/git-diff-handoff-context_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/git-diff-handoff-context_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/git-diff-handoff-context_state.json`
+- **Design:** `pipeline_builds/git-diff-handoff-context_architect_design.md`
+- **Review:** `pipeline_builds/git-diff-handoff-context_critic_design_review.md`
+- **State:** `pipeline_builds/git-diff-handoff-context_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_git-diff-handoff-context.ipynb`

@@ -3,7 +3,7 @@ primitive: pipeline
 status: archived
 priority: high
 version: v4-deep-analysis
-spec_file: SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4-deep-analysis_design_brief.md
+spec_file: pipeline_builds/v4-deep-analysis_design_brief.md
 output_notebook: SNN_research/machinelearning/snn_applied_finance/notebooks/crypto_v4_analysis.ipynb
 agents: [architect, critic, builder]
 tags: [snn, finance, analysis, v4, dead-neuron-postmortem]

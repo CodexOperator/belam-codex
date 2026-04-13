@@ -36,7 +36,7 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
-BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'pipeline_builds'
 SPECS_DIR = FINANCE_DIR / 'specs'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 
@@ -518,9 +518,9 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/{version}_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/{version}_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/{version}_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/{version}_state.json`
+- **Design:** `pipeline_builds/{version}_architect_design.md`
+- **Review:** `pipeline_builds/{version}_critic_design_review.md`
+- **State:** `pipeline_builds/{version}_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb`
 """
     

@@ -54,7 +54,7 @@ WORKSPACE = Path(os.environ.get(
 FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 SPECS_DIR = FINANCE_DIR / 'specs'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
-PIPELINE_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
+PIPELINE_DIR = WORKSPACE / 'pipeline_builds'
 
 PIPELINE_STAGES = [
     # Phase 1: Autonomous

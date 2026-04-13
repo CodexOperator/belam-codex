@@ -62,7 +62,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s1-environment-setup_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/setup-vectorbt-nautilus-pipeline-s1-environment-setup_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/setup-vectorbt-nautilus-pipeline-s1-environment-setup_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/setup-vectorbt-nautilus-pipeline-s1-environment-setup_state.json`
+- **Design:** `pipeline_builds/setup-vectorbt-nautilus-pipeline-s1-environment-setup_architect_design.md`
+- **Review:** `pipeline_builds/setup-vectorbt-nautilus-pipeline-s1-environment-setup_critic_design_review.md`
+- **State:** `pipeline_builds/setup-vectorbt-nautilus-pipeline-s1-environment-setup_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s1-environment-setup.ipynb`

@@ -35,7 +35,6 @@ from pathlib import Path
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
-RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 CONVERSATIONS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'conversations'
 
 # Agent session keys for sessions_send
@@ -176,7 +175,7 @@ def build_task_message(version: str, stage: str, primary_agent: str, review_agen
     review_session = AGENT_SESSIONS.get(review_agent, f'agent:{review_agent}:...')
 
     # Find relevant artifact paths
-    builds_rel = 'machinelearning/snn_applied_finance/research/pipeline_builds'
+    builds_rel = 'pipeline_builds'
     design_brief = f'{builds_rel}/{version}_design_brief.md'
     prev_artifact_hint = ''
 

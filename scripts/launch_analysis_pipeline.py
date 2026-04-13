@@ -39,7 +39,7 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
-BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
+BUILDS_DIR = WORKSPACE / 'pipeline_builds'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
 
 
@@ -259,7 +259,7 @@ The architect should design the analysis notebook to answer:
 2. Read skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`
 3. Design the full analysis notebook structure addressing all research questions above
 4. Specify exact statistical tests, visualizations, and pattern-discovery approaches
-5. Write design to `research/pipeline_builds/{version}_architect_analysis_design.md`
+5. Write design to `pipeline_builds/{version}_architect_analysis_design.md`
 6. Run: `python3 scripts/pipeline_update.py {version} complete analysis_architect_design "Design complete" architect`
 {errors_section}"""
 
@@ -324,7 +324,7 @@ Phase 1 sections are autonomous statistical analysis; Phase 2 sections are appen
 
 | Action | Method | Example |
 |--------|--------|---------|
-| Share design/review/fix | Write file to `research/pipeline_builds/` | `{version}_architect_analysis_design.md` |
+| Share design/review/fix | Write file to `pipeline_builds/` | `{version}_architect_analysis_design.md` |
 | Track stage transitions | `python3 scripts/pipeline_update.py {version} complete {{stage}} "{{notes}}" {{agent}}` | Auto-updates state JSON, markdown, pending_action |
 | Block a stage (Critic) | `python3 scripts/pipeline_update.py {version} block {{stage}} "{{notes}}" {{agent}} --artifact {{file}}` | Sets pending_action to fix step |
 | Notify another agent | `sessions_send` with `timeoutSeconds: 0` | "Analysis design ready" |
@@ -354,10 +354,10 @@ _(Populated after Phase 1 completion)_
 |-------|------|-------|-------|
 
 ## Artifacts
-- **Design Brief:** `snn_applied_finance/research/pipeline_builds/{version}_design_brief.md`
-- **Architect Design:** `snn_applied_finance/research/pipeline_builds/{version}_architect_analysis_design.md`
-- **Critic Review:** `snn_applied_finance/research/pipeline_builds/{version}_critic_analysis_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/{version}_state.json`
+- **Design Brief:** `pipeline_builds/{version}_design_brief.md`
+- **Architect Design:** `pipeline_builds/{version}_architect_analysis_design.md`
+- **Critic Review:** `pipeline_builds/{version}_critic_analysis_review.md`
+- **State:** `pipeline_builds/{version}_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb`
 """
 
@@ -479,11 +479,11 @@ def main():
         f"You've been assigned as architect for a new ANALYSIS pipeline.\n\n"
         f"**Read these files first:**\n"
         f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
-        f"2. `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_design_brief.md` — design brief\n"
+        f"2. `pipeline_builds/{args.version}_design_brief.md` — design brief\n"
         f"3. `machinelearning/snn_applied_finance/research/ANALYSIS_AGENT_ROLES.md` — your role\n"
         f"4. Read skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`\n\n"
         f"**Your task:** Design the analysis notebook for {args.source_version} pkl results.\n"
-        f"Write design to `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_analysis_design.md`.\n"
+        f"Write design to `pipeline_builds/{args.version}_architect_analysis_design.md`.\n"
         f"Then run: `python3 scripts/pipeline_update.py {args.version} complete analysis_architect_design 'Design complete' architect`\n"
         f"Post update to group chat. The script will tell you to ping the critic next."
     )

@@ -55,7 +55,6 @@ WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/wor
 SCRIPTS = WORKSPACE / 'scripts'
 PIPELINE_UPDATE = SCRIPTS / 'pipeline_update.py'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
-RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 
 
@@ -63,16 +62,15 @@ def resolve_build_path(version: str, artifact: str, write: bool = False) -> Path
     """Resolve a pipeline build artifact path.
     
     Checks subdirectory first (pipeline_builds/{version}/{artifact}),
-    then legacy flat path (pipeline_builds/{version}_{artifact}).
+    then legacy flat path (pipeline_builds/{version}_{artifact}) in the workspace.
     If write=True and neither exists, returns subdirectory path (new convention).
     """
-    for d in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
-        subdir = d / version / artifact
-        if subdir.exists():
-            return subdir
-        flat = d / f'{version}_{artifact}'
-        if flat.exists():
-            return flat
+    subdir = BUILDS_DIR / version / artifact
+    if subdir.exists():
+        return subdir
+    flat = BUILDS_DIR / f'{version}_{artifact}'
+    if flat.exists():
+        return flat
     # Not found — return new convention path for writes
     path = BUILDS_DIR / version / artifact
     if write:
@@ -156,14 +154,10 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
     if phase == 2:
         direction_found = False
         for dname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
-            # Check both workspace pipeline_builds/ and research pipeline_builds/
-            for base_dir, prefix in ((BUILDS_DIR, 'pipeline_builds'),
-                                      (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
-                dpath = base_dir / dname
-                if dpath.exists():
-                    files_to_read.append(f'{prefix}/{dname}')
-                    direction_found = True
-                    break
+            dpath = BUILDS_DIR / dname
+            if dpath.exists():
+                files_to_read.append(f'pipeline_builds/{dname}')
+                direction_found = True
             if direction_found:
                 break
         # Also include the task file for context
@@ -173,15 +167,15 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
 
     # Add the relevant design/review artifact
     if artifact:
-        files_to_read.append(f'research/pipeline_builds/{artifact}')
+        files_to_read.append(f'pipeline_builds/{artifact}')
     else:
         # Infer the artifact based on stage
         if 'design' in next_stage or 'review' in next_stage:
             prefix = f'{version}_phase{phase}_' if phase > 1 else f'{version}_'
             if is_analysis:
-                files_to_read.append(f'research/pipeline_builds/{version}_{"phase2_" if phase == 2 else ""}architect_analysis_design.md')
+                files_to_read.append(f'pipeline_builds/{version}_{"phase2_" if phase == 2 else ""}architect_analysis_design.md')
             else:
-                files_to_read.append(f'research/pipeline_builds/{version}_{"phase2_" if phase == 2 else ""}architect_design.md')
+                files_to_read.append(f'pipeline_builds/{version}_{"phase2_" if phase == 2 else ""}architect_design.md')
         if 'code_review' in next_stage or 'implementation' in next_stage:
             # Builder/code reviewer needs the notebook
             notebook_name = f'crypto_{version.replace("-", "_")}_{"deep_" if "deep" in version else ""}analysis.ipynb' if is_analysis else f'crypto_{version}_predictor.ipynb'
@@ -281,7 +275,7 @@ def build_continue_message(version: str, completed_stage: str, next_stage: str,
 
     artifact_line = ''
     if artifact:
-        artifact_line = f'\n**Review artifact:** `research/pipeline_builds/{artifact}`\n'
+        artifact_line = f'\n**Review artifact:** `pipeline_builds/{artifact}`\n'
 
     # Detect whether this is a block-fix or a re-review
     is_block_fix = 'fix_blocks' in next_stage
@@ -550,7 +544,7 @@ Read your memory files first: they contain a checkpoint of what happened.
 **Original context:** {notes}
 {partial_context}
 **Critical:** Read your memory/$(date -u +%Y-%m-%d).md FIRST — it has your checkpoint.
-Then check what files already exist in research/pipeline_builds/ for this pipeline.
+Then check what files already exist in pipeline_builds/ for this pipeline.
 Continue from where the previous session left off. Don't redo completed work.
 
 **When you finish (orchestrator auto-saves your memory):**
@@ -791,8 +785,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                       f'{version}_phase{next_phase}_shael_direction.md',
                       f'{version}_phase2_direction.md',
                       f'{version}_phase2_shael_direction.md'):
-            for loc, prefix in ((BUILDS_DIR, 'pipeline_builds'),
-                                (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
+            for loc, prefix in ((BUILDS_DIR, 'pipeline_builds'),):
                 if (loc / fname).exists():
                     direction_note = f' Read direction at {prefix}/{fname}.'
                     break
@@ -823,7 +816,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                 # Look for critic review and check for clean pass (0 blocks, 0 flags)
                 import re as _re2
                 clean_pass = False
-                for loc in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+                for loc in (BUILDS_DIR,):
                     for suffix in ('_critic_review.md', '_critic_code_review.md'):
                         candidate = loc / f'{version}{suffix}'
                         if candidate.exists():
@@ -855,7 +848,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
         if phase_n and phase_n >= 3 and not direction_note:
             # Three phases done. Check Phase 3 critic review — if approved, auto-complete.
             critic_approved = False
-            for loc in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+            for loc in (BUILDS_DIR,):
                 for suffix in ('_critic_review.md', '_critic_code_review.md'):
                     candidate = loc / f'{version}{suffix}'
                     if candidate.exists():
@@ -1176,7 +1169,7 @@ def orchestrate_revise(version: str, context: str, revision_num: int = None):
 The coordinator has requested a revision to the Phase 1 design/implementation.
 
 **Read first:**
-1. Direction file: `machinelearning/snn_applied_finance/research/pipeline_builds/{version}_phase1_revision_{revision_num:02d}_direction.md`
+1. Direction file: `pipeline_builds/{version}_phase1_revision_{revision_num:02d}_direction.md`
 2. Current Phase 1 design: `pipeline_builds/{version}_architect_design.md`
 3. Current notebook (if exists)
 
@@ -1860,8 +1853,6 @@ DISPATCH_TIMEOUT = 300  # FLAG-1 MED: per-dispatch timeout in seconds
 def load_pipeline_state(version: str) -> dict:
     """Load pipeline state JSON."""
     state_file = BUILDS_DIR / f'{version}_state.json'
-    if not state_file.exists():
-        state_file = RESEARCH_BUILDS_DIR / f'{version}_state.json'
     if state_file.exists():
         try:
             return json.loads(state_file.read_text(encoding='utf-8'))
@@ -1873,8 +1864,6 @@ def load_pipeline_state(version: str) -> dict:
 def save_pipeline_state(version: str, state: dict):
     """Save pipeline state JSON."""
     state_file = BUILDS_DIR / f'{version}_state.json'
-    if not state_file.exists():
-        state_file = RESEARCH_BUILDS_DIR / f'{version}_state.json'
     try:
         state_file.write_text(json.dumps(state, indent=2, default=str), encoding='utf-8')
     except Exception as e:
@@ -2062,9 +2051,7 @@ def build_verification_message(version: str, retry_count: int = 0) -> str:
     """Build the dispatch message for builder verification stage."""
     if retry_count > 0:
         # Include previous failure context for retry
-        results_path = RESEARCH_BUILDS_DIR / f'{version}_test_results.md'
-        if not results_path.exists():
-            results_path = BUILDS_DIR / f'{version}_test_results.md'
+        results_path = BUILDS_DIR / f'{version}_test_results.md'
         failure_report = ''
         if results_path.exists():
             failure_report = results_path.read_text(encoding='utf-8')[:2000]
@@ -2146,9 +2133,7 @@ def dispatch_verification(version: str) -> dict:
 
 def escalate_verification_failure(version: str, state: dict) -> None:
     """Alert coordinator after max retries exhausted. D9 escalation."""
-    results_path = RESEARCH_BUILDS_DIR / f'{version}_test_results.md'
-    if not results_path.exists():
-        results_path = BUILDS_DIR / f'{version}_test_results.md'
+    results_path = BUILDS_DIR / f'{version}_test_results.md'
     failure_summary = ''
     if results_path.exists():
         failure_summary = results_path.read_text(encoding='utf-8')[:500]
@@ -2240,8 +2225,7 @@ def wait_for_signal(version: str, stage: str, signals: list[str],
     Returns the signal string or None on timeout.
     """
     state_path = None
-    for candidate in [BUILDS_DIR / f'{version}_state.json',
-                      RESEARCH_BUILDS_DIR / f'{version}_state.json']:
+    for candidate in [BUILDS_DIR / f'{version}_state.json']:
         if candidate.exists():
             state_path = candidate
             break

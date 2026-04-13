@@ -50,7 +50,6 @@ from pathlib import Path
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
-RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 SCRIPTS = WORKSPACE / 'scripts'
 OPENCLAW_CONFIG = Path(os.path.expanduser('~/.openclaw/openclaw.json'))
 
@@ -720,7 +719,7 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         'notes': notes,
     }
     if artifact:
-        state[f'{stage}_blocks_artifact'] = f'machinelearning/snn_applied_finance/research/pipeline_builds/{artifact}'
+        state[f'{stage}_blocks_artifact'] = f'pipeline_builds/{artifact}'
 
     # Use template-aware transitions for block resolution
     stage_trans, block_trans, status_bumps_map, _ = get_transitions_for_pipeline(version)

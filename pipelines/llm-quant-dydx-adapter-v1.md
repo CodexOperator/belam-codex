@@ -265,7 +265,7 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 
 ## Artifacts
 - **Spec:** `snn_applied_finance/specs/llm-quant-dydx-adapter-v1_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/llm-quant-dydx-adapter-v1_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/llm-quant-dydx-adapter-v1_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/llm-quant-dydx-adapter-v1_state.json`
+- **Design:** `pipeline_builds/llm-quant-dydx-adapter-v1_architect_design.md`
+- **Review:** `pipeline_builds/llm-quant-dydx-adapter-v1_critic_design_review.md`
+- **State:** `pipeline_builds/llm-quant-dydx-adapter-v1_state.json`
 - **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_llm-quant-dydx-adapter-v1.ipynb`

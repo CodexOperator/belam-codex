@@ -40,8 +40,8 @@ python3 scripts/build_notebook.py --spec <spec_path>
 ```
 
 This creates:
-- `research/pipeline_builds/<version>_design_brief.md`
-- `research/pipeline_builds/<version>_state.json`
+- `pipeline_builds/<version>_design_brief.md`
+- `pipeline_builds/<version>_state.json`
 
 ## Step 3: Ensure Agent Workspace Symlinks
 
