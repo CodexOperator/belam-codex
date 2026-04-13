@@ -160,6 +160,7 @@ _temporal_overlay = None  # Lazy-loaded TemporalOverlay instance
 
 _template_cache: dict[str, dict] = {}  # template_name → parsed transitions
 _template_gates: dict[str, set] = {}  # template_name → set of human-gated stages
+_template_runtime: dict[str, dict] = {}  # template_name → runtime metadata block
 
 
 def _parse_template_transitions(template_name: str) -> dict | None:
@@ -185,6 +186,7 @@ def _parse_template_transitions(template_name: str) -> dict | None:
         _template_gates[template_name] = set()
         _template_status_bumps[template_name] = {}
         _template_start_status_bumps[template_name] = {}
+        _template_runtime[template_name] = {}
         return None
 
     # Convert 4-tuples (next_stage, agent, msg, session_mode) to 3-tuples
@@ -200,6 +202,8 @@ def _parse_template_transitions(template_name: str) -> dict | None:
     _template_gates[template_name] = parsed.get('human_gates', set())
     _template_status_bumps[template_name] = parsed.get('status_bumps', {})
     _template_start_status_bumps[template_name] = parsed.get('start_status_bumps', {})
+    runtime = parsed.get('runtime', {})
+    _template_runtime[template_name] = runtime if isinstance(runtime, dict) else {}
     return transitions
 
 
@@ -223,6 +227,47 @@ def _resolve_template_name(pipeline_type: str | None) -> str:
     if not pipeline_type or pipeline_type in ('research', 'infrastructure'):
         return 'research'
     return pipeline_type
+
+
+def _get_template_runtime(version: str = None, template_name: str = None) -> dict:
+    """Get runtime metadata block from a template.
+
+    Runtime block lives under template YAML:
+      runtime:
+        platform: hermes
+        dispatch_tool: delegate_task
+        roles: { architect: {...}, ... }
+
+    Returns {} when unavailable.
+    """
+    if not template_name:
+        pipeline_type = _get_pipeline_type(version) if version else None
+        template_name = _resolve_template_name(pipeline_type)
+
+    if template_name not in _template_runtime:
+        _parse_template_transitions(template_name)
+
+    runtime = _template_runtime.get(template_name, {})
+    if runtime:
+        return runtime
+
+    # Fallback to research runtime defaults if this template is missing runtime metadata.
+    if template_name != 'research':
+        if 'research' not in _template_runtime:
+            _parse_template_transitions('research')
+        runtime = _template_runtime.get('research', {})
+
+    return runtime if isinstance(runtime, dict) else {}
+
+
+def _get_runtime_role_config(version: str, agent: str) -> dict:
+    """Get runtime role config for an agent from template runtime.roles."""
+    runtime = _get_template_runtime(version=version)
+    roles = runtime.get('roles', {}) if isinstance(runtime, dict) else {}
+    if not isinstance(roles, dict):
+        return {}
+    cfg = roles.get(agent, {})
+    return cfg if isinstance(cfg, dict) else {}
 
 
 def resolve_transition(version: str, stage: str) -> tuple | None:
@@ -592,6 +637,13 @@ class DispatchPayload:
     # The engine renders the trail and embeds it — agents don't need UDS access (D5).
     view_context: str = ''
 
+    # Template runtime metadata used by Hermes-style delegate_task dispatch.
+    # Safe additive field: legacy consumers ignore it.
+    runtime: dict = field(default_factory=dict)
+
+    # Optional role-specific startup view hint (e.g. persona-filtered supermap entrypoint).
+    startup_view: str = ''
+
     def to_dict(self) -> dict:
         """Serialize for JSON output / tool relay.
 
@@ -625,6 +677,8 @@ class DispatchPayload:
                 'completion_command': self.completion_command,
                 'view_filter': self.view_filter,  # Phase 2 R2: persona view metadata
                 'view_context': self.view_context,  # Phase 2: pre-rendered .v5 trail
+                'runtime': self.runtime,  # Hermes runtime metadata (dispatch tool / role toolsets)
+                'startup_view': self.startup_view,  # Role-specific startup view hint
             },
         }
 
@@ -983,6 +1037,16 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
     files = _files_for_stage(version, stage, agent)
     partial = _detect_partial_work(version) if is_resume else []
 
+    runtime_cfg = _get_template_runtime(version=version)
+    role_cfg = _get_runtime_role_config(version, agent)
+    role_toolsets = role_cfg.get('toolsets', []) if isinstance(role_cfg.get('toolsets', []), list) else []
+    persona = role_cfg.get('persona', agent)
+    if not isinstance(persona, str) or not persona:
+        persona = agent
+    startup_view = role_cfg.get('startup_view')
+    if not startup_view and persona:
+        startup_view = f'python3 scripts/codex_engine.py --as {persona}'
+
     task = _build_task_prompt(
         version, stage, agent, notes, files,
         is_resume=is_resume, resume_count=resume_count,
@@ -999,7 +1063,6 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
 
         # Phase 2 R2: Inject persona-filtered dashboard into task prompt.
         # Orchestration sets the view filter when dispatching — agents don't choose (D5).
-        persona = agent  # Agent name maps to persona
         filtered_dashboard = temporal.format_dashboard_for_prompt(persona=persona)
         if filtered_dashboard:
             task += f"\n\n## Autoclave Dashboard (filtered for {persona})\n{filtered_dashboard}\n"
@@ -1011,12 +1074,19 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
             view_filter = {
                 'persona': persona,
                 'persona_coord': f'i{agent_info.get("index", 0)}',
+                'role': agent,
+                'toolsets': role_toolsets,
                 'show_stages': pf.get('show_stages', []),
                 'show_sections': pf.get('show_sections', []),
                 'highlight_fields': pf.get('highlight_fields', []),
             }
         except ImportError:
-            pass
+            view_filter = {
+                'persona': persona,
+                'persona_coord': f'i{agent_info.get("index", 0)}',
+                'role': agent,
+                'toolsets': role_toolsets,
+            }
 
     # Phase 2: Generate pre-rendered .v5 R-label trail for agent situational awareness.
     # Agents receive a rendered snapshot, not query capabilities (D5).
@@ -1026,6 +1096,22 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
         trail_context = render_r_label_trail(pipeline=version, window_minutes=10)
     except (ImportError, Exception):
         pass  # Non-fatal
+
+    if startup_view:
+        task += (
+            "\n\n## Startup View\n"
+            f"Begin with a role-specific map pass: `{startup_view}`\n"
+            "Use it to orient before making changes."
+        )
+
+    runtime_context = {
+        'platform': runtime_cfg.get('platform'),
+        'dispatch_tool': runtime_cfg.get('dispatch_tool'),
+        'codex_cli_enabled': runtime_cfg.get('codex_cli_enabled'),
+        'role': agent,
+        'persona': persona,
+        'toolsets': role_toolsets,
+    }
 
     return DispatchPayload(
         agent=agent,
@@ -1052,6 +1138,8 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
         completion_command=_build_completion_command(version, stage, agent),
         view_filter=view_filter,
         view_context=trail_context,
+        runtime=runtime_context,
+        startup_view=startup_view,
     )
 
 

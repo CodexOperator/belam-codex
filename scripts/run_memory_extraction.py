@@ -31,7 +31,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
+WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.hermes/belam-codex')))
 SCRIPTS = WORKSPACE / 'scripts'
 
 

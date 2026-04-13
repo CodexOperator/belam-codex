@@ -2,6 +2,9 @@
 """
 parse_session_transcript.py — Parse a session JSONL into a concise readable transcript.
 
+Supports both legacy OpenClaw JSONL (event wrappers with type=message) and
+Hermes JSONL (flat role/content rows in ~/.hermes/sessions/*.jsonl).
+
 Deterministic, zero-token operation. All LLM judgment happens downstream.
 
 Usage:
@@ -56,6 +59,30 @@ def extract_text(content):
     return '\n'.join(parts).strip()
 
 
+def _extract_row(obj: dict) -> tuple[str, str, str]:
+    """Normalize one JSONL row into (role, content, timestamp)."""
+    t = obj.get('type', '')
+
+    # OpenClaw wrapper format: {type:"message", message:{...}, timestamp:...}
+    if t == 'message' and isinstance(obj.get('message'), dict):
+        msg = obj.get('message', {})
+        return (
+            msg.get('role', 'unknown'),
+            extract_text(msg.get('content', '')),
+            obj.get('timestamp', '') or msg.get('timestamp', ''),
+        )
+
+    # Hermes flat format: {role:"user|assistant|tool", content:..., timestamp:...}
+    if isinstance(obj.get('role'), str):
+        return (
+            obj.get('role', 'unknown'),
+            extract_text(obj.get('content', '')),
+            obj.get('timestamp', ''),
+        )
+
+    return ('', '', '')
+
+
 def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: str = ''):
     messages = []
     session_id = ''
@@ -76,27 +103,33 @@ def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: st
             if t == 'session':
                 session_id = obj.get('id', '')
                 session_start = obj.get('timestamp', '')
-            elif t == 'message':
-                msg = obj.get('message', {})
-                role = msg.get('role', 'unknown')
-                ts = obj.get('timestamp', '')
-                session_end = ts  # Track last timestamp
-                
-                text = extract_text(msg.get('content', ''))
-                
-                # Skip noise
-                if not text or text in ('NO_REPLY', 'HEARTBEAT_OK'):
-                    continue
-                # Skip bootstrap/system boilerplate
-                if role == 'user' and 'Execute your Session Startup sequence' in text:
-                    messages.append({'role': role, 'text': '[Session startup prompt]', 'ts': ts})
-                    continue
-                
-                # Truncate long messages
-                if len(text) > MAX_MSG_CHARS:
-                    text = text[:MAX_MSG_CHARS] + '\n[...truncated...]'
-                
-                messages.append({'role': role, 'text': text, 'ts': ts})
+                continue
+
+            role, text, ts = _extract_row(obj)
+            if not role:
+                continue
+
+            # Hermes rows don't include a dedicated session row; infer from file stem.
+            if not session_id:
+                session_id = Path(jsonl_file).stem
+            if not session_start and ts:
+                session_start = ts
+            if ts:
+                session_end = ts
+
+            # Skip noise
+            if not text or text in ('NO_REPLY', 'HEARTBEAT_OK'):
+                continue
+            # Skip bootstrap/system boilerplate
+            if role == 'user' and 'Execute your Session Startup sequence' in text:
+                messages.append({'role': role, 'text': '[Session startup prompt]', 'ts': ts})
+                continue
+
+            # Truncate long messages
+            if len(text) > MAX_MSG_CHARS:
+                text = text[:MAX_MSG_CHARS] + '\n[...truncated...]'
+
+            messages.append({'role': role, 'text': text, 'ts': ts})
 
     # Enforce total size cap
     total = 0
@@ -145,7 +178,7 @@ if __name__ == '__main__':
     # In test mode, redirect output to memory/test-extract/transcript.md
     output_file = args.output_file
     if args.test:
-        workspace = os.environ.get('WORKSPACE', str(Path.home() / '.openclaw' / 'workspace'))
+        workspace = os.environ.get('WORKSPACE', str(Path.home() / '.hermes' / 'belam-codex'))
         test_dir = Path(workspace) / 'memory' / 'test-extract'
         test_dir.mkdir(parents=True, exist_ok=True)
         output_file = str(test_dir / 'transcript.md')

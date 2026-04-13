@@ -15,6 +15,7 @@ Returns structured dicts matching the shape consumed by pipeline_update.py:
   - human_gates: set of stages
   - first_agent: str
   - pipeline_fields: dict with 'type' and 'stages'
+  - runtime: optional runtime metadata passthrough (platform/dispatch_tool/roles/...)
 """
 
 import re
@@ -44,6 +45,7 @@ def parse_template(template_name: str) -> dict | None:
       - start_status_bumps: dict  (stage → status_string)
       - human_gates: set[str]
       - pipeline_fields: dict  (type, stages)
+      - runtime: dict  (optional runtime metadata)
 
     Returns None if template not found or unparseable.
     """
@@ -102,6 +104,7 @@ def _parse_phase_based(data: dict) -> dict | None:
     pipeline_type = data.get('type', 'unknown')
     phases = data.get('phases', {})
     block_routing = data.get('block_routing', {})
+    runtime = data.get('runtime', {}) if isinstance(data.get('runtime'), dict) else {}
     complete_task_agent = data.get('complete_task_agent', 'architect')
     auto_complete_on_clean_pass = data.get('auto_complete_on_clean_pass', False)
 
@@ -267,6 +270,7 @@ def _parse_phase_based(data: dict) -> dict | None:
             'type': pipeline_type,
             'stages': all_stage_names,
         },
+        'runtime': runtime,
         'complete_task_agent': complete_task_agent,
         'auto_complete_on_clean_pass': auto_complete_on_clean_pass,
     }
@@ -283,6 +287,7 @@ def _parse_legacy_yaml(data: dict) -> dict | None:
 
     first_agent = data.get('first_agent', 'architect')
     pipeline_fields = data.get('pipeline_fields', {})
+    runtime = data.get('runtime', {}) if isinstance(data.get('runtime'), dict) else {}
     human_gates_list = data.get('human_gates', [])
     human_gates = set(human_gates_list) if human_gates_list else set()
 
@@ -330,6 +335,7 @@ def _parse_legacy_yaml(data: dict) -> dict | None:
         'start_status_bumps': start_status_bumps,
         'human_gates': human_gates,
         'pipeline_fields': pipeline_fields,
+        'runtime': runtime,
     }
 
 
@@ -345,6 +351,7 @@ def _parse_manually(yaml_block: str) -> dict | None:
     human_gates = set()
     first_agent = 'architect'
     pipeline_fields = {}
+    runtime = {}
 
     current_section = None
 
@@ -442,6 +449,7 @@ def _parse_manually(yaml_block: str) -> dict | None:
         'start_status_bumps': start_status_bumps,
         'human_gates': human_gates,
         'pipeline_fields': pipeline_fields,
+        'runtime': runtime,
     }
 
 

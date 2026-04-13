@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Export agent conversation transcripts to readable text logs.
-Reads JSONL session files from ~/.openclaw/agents/*/sessions/
+Supports both OpenClaw per-agent session trees and Hermes ~/.hermes/sessions JSONL files.
 Outputs readable markdown logs to the conversations directory.
 
 Usage:
@@ -20,7 +20,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Export agent conversation transcripts")
     parser.add_argument(
         "--output-dir",
-        default=os.path.expanduser("~/.openclaw/workspace/machinelearning/snn_applied_finance/conversations"),
+        default=os.path.expanduser("~/.hermes/belam-codex/machinelearning/snn_applied_finance/conversations"),
         help="Output directory for conversation logs"
     )
     parser.add_argument(
@@ -36,8 +36,8 @@ def parse_args():
     )
     parser.add_argument(
         "--state-dir",
-        default=os.path.expanduser("~/.openclaw/agents"),
-        help="OpenClaw agents state directory"
+        default=os.path.expanduser("~/.hermes/sessions"),
+        help="Session source: Hermes sessions dir OR OpenClaw agents root"
     )
     return parser.parse_args()
 
@@ -209,39 +209,66 @@ def export_session(messages, agent_id, session_id, output_dir):
     return filepath
 
 
+def _looks_like_hermes_sessions_dir(path: Path) -> bool:
+    return path.exists() and any(path.glob('*.jsonl'))
+
+
 def main():
     args = parse_args()
-    agents = [a.strip() for a in args.agents.split(",")]
+    agents = [a.strip() for a in args.agents.split(",") if a.strip()]
     cutoff = None
     if args.since > 0:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=args.since)
-    
+
     exported = []
+    state_root = Path(args.state_dir)
     print(f"📋 Exporting conversations for: {', '.join(agents)}")
-    
-    for agent_id in agents:
-        sessions_dir = Path(args.state_dir) / agent_id / "sessions"
-        if not sessions_dir.exists():
-            print(f"  ⏭️  No sessions dir for {agent_id}")
-            continue
-        
-        for jsonl_file in sorted(sessions_dir.glob("*.jsonl")):
-            # Check modification time if --since is set
-            if cutoff:
-                mtime = datetime.fromtimestamp(jsonl_file.stat().st_mtime, tz=timezone.utc)
-                if mtime < cutoff:
-                    continue
-            
-            session_id = jsonl_file.stem
-            messages = process_session(jsonl_file, agent_id)
-            
-            if messages:
-                filepath = export_session(messages, agent_id, session_id, args.output_dir)
-                if filepath:
-                    exported.append(filepath)
-                    print(f"  ✅ {agent_id}/{session_id[:8]}: {len(messages)} messages → {os.path.basename(filepath)}")
-            else:
-                print(f"  ⏭️  {agent_id}/{session_id[:8]}: no exportable messages")
+
+    # Hermes mode: one shared sessions directory, bucket output by --agents labels.
+    if _looks_like_hermes_sessions_dir(state_root):
+        session_files = sorted(state_root.glob('*.jsonl'))
+        if cutoff:
+            session_files = [
+                f for f in session_files
+                if datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc) >= cutoff
+            ]
+
+        for agent_id in agents:
+            for jsonl_file in session_files:
+                session_id = jsonl_file.stem
+                messages = process_session(jsonl_file, agent_id)
+                if messages:
+                    filepath = export_session(messages, agent_id, session_id, args.output_dir)
+                    if filepath:
+                        exported.append(filepath)
+                        print(f"  ✅ {agent_id}/{session_id[:8]}: {len(messages)} messages → {os.path.basename(filepath)}")
+        if not session_files:
+            print(f"  ⏭️  No Hermes session files found in {state_root}")
+
+    else:
+        # Legacy OpenClaw mode: per-agent sessions directories.
+        for agent_id in agents:
+            sessions_dir = state_root / agent_id / "sessions"
+            if not sessions_dir.exists():
+                print(f"  ⏭️  No sessions dir for {agent_id}")
+                continue
+
+            for jsonl_file in sorted(sessions_dir.glob("*.jsonl")):
+                if cutoff:
+                    mtime = datetime.fromtimestamp(jsonl_file.stat().st_mtime, tz=timezone.utc)
+                    if mtime < cutoff:
+                        continue
+
+                session_id = jsonl_file.stem
+                messages = process_session(jsonl_file, agent_id)
+
+                if messages:
+                    filepath = export_session(messages, agent_id, session_id, args.output_dir)
+                    if filepath:
+                        exported.append(filepath)
+                        print(f"  ✅ {agent_id}/{session_id[:8]}: {len(messages)} messages → {os.path.basename(filepath)}")
+                else:
+                    print(f"  ⏭️  {agent_id}/{session_id[:8]}: no exportable messages")
     
     if exported:
         print(f"\n📁 Exported {len(exported)} conversation(s) to {args.output_dir}/")

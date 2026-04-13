@@ -25,6 +25,17 @@ def test_research_parses():
     assert result['pipeline_fields']['type'] == 'research'
 
 
+def test_runtime_block_passthrough():
+    """Runtime metadata block is preserved for orchestrator dispatch/profile use."""
+    clear_cache()
+    result = parse_template('builder-first')
+    runtime = result.get('runtime', {})
+    assert runtime.get('platform') == 'hermes'
+    assert runtime.get('dispatch_tool') == 'delegate_task'
+    assert 'architect' in runtime.get('roles', {})
+    assert runtime['roles']['architect'].get('toolsets') == ['terminal', 'file', 'web', 'skills']
+
+
 def test_builder_first_stage_names():
     """Builder-first template generates correct phase-based stage names."""
     clear_cache()

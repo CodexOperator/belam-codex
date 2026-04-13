@@ -34,8 +34,8 @@ import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
-AGENTS_DIR = Path(os.path.expanduser('~/.openclaw/agents'))
+WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.hermes/belam-codex')))
+AGENTS_DIR = Path(os.environ.get('SESSIONS_DIR', os.path.expanduser('~/.hermes/sessions')))
 DEFAULT_OUTPUT_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'conversations'
 
 
@@ -58,13 +58,15 @@ def parse_session_key(session_key: str) -> str:
 
 
 def find_agent_dir(agent_id: str) -> Path | None:
-    """Find the agent's directory under ~/.openclaw/agents/"""
-    # Try exact match first
+    """Find the agent's directory under legacy OpenClaw agents tree."""
+    # Hermes default uses a flat sessions directory; return None to signal no per-agent tree.
+    if any(AGENTS_DIR.glob('*.jsonl')):
+        return None
+
     candidate = AGENTS_DIR / agent_id
     if candidate.exists():
         return candidate
 
-    # Try case-insensitive / glob match
     for d in AGENTS_DIR.iterdir():
         if d.is_dir() and d.name.lower() == agent_id.lower():
             return d
@@ -73,7 +75,14 @@ def find_agent_dir(agent_id: str) -> Path | None:
 
 
 def list_sessions(agent_id: str) -> list[Path]:
-    """List all session JSONL files for an agent, sorted by modification time (newest first)."""
+    """List session JSONL files for an agent (or all Hermes sessions in flat mode)."""
+    # Hermes mode: ~/.hermes/sessions/*.jsonl
+    if AGENTS_DIR.exists() and any(AGENTS_DIR.glob('*.jsonl')):
+        jsonl_files = list(AGENTS_DIR.glob('*.jsonl'))
+        jsonl_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+        return jsonl_files
+
+    # Legacy OpenClaw mode.
     agent_dir = find_agent_dir(agent_id)
     if not agent_dir:
         return []

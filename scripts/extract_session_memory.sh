@@ -16,8 +16,9 @@
 
 set -euo pipefail
 
-WORKSPACE="${WORKSPACE:-$HOME/.openclaw/workspace}"
+WORKSPACE="${WORKSPACE:-$HOME/.hermes/belam-codex}"
 AGENTS_DIR="${AGENTS_DIR:-$HOME/.openclaw/agents}"
+HERMES_SESSIONS_DIR="${HERMES_SESSIONS_DIR:-$HOME/.hermes/sessions}"
 SCRIPTS_DIR="$WORKSPACE/scripts"
 
 # --- Defaults ---
@@ -57,10 +58,22 @@ done
 # --- Find latest completed session ---
 find_latest_session() {
   local sessions_dir="$AGENTS_DIR/$INSTANCE/sessions"
+
+  # Preferred path for Hermes: ~/.hermes/sessions/*.jsonl
+  if [[ -d "$HERMES_SESSIONS_DIR" ]]; then
+    local latest_hermes
+    latest_hermes=$(ls -t "$HERMES_SESSIONS_DIR"/*.jsonl 2>/dev/null | head -1 || true)
+    if [[ -n "$latest_hermes" ]]; then
+      echo "$latest_hermes"
+      return 0
+    fi
+  fi
+
+  # Legacy OpenClaw path fallback
   [[ -d "$sessions_dir" ]] || { echo "ERROR: No sessions dir for '$INSTANCE'" >&2; return 1; }
-  
+
   local latest
-  latest=$(ls -t "$sessions_dir"/*.jsonl.reset.* "$sessions_dir"/*.jsonl.deleted.* 2>/dev/null | head -1)
+  latest=$(ls -t "$sessions_dir"/*.jsonl.reset.* "$sessions_dir"/*.jsonl.deleted.* "$sessions_dir"/*.jsonl 2>/dev/null | head -1)
   [[ -n "$latest" ]] || { echo "ERROR: No completed sessions for '$INSTANCE'" >&2; return 1; }
   echo "$latest"
 }
