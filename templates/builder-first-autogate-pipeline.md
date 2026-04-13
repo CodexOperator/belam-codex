@@ -17,6 +17,14 @@ Phase 3: Architect (design) → Builder (implement) → Builder (bugfix) → Cri
 ```yaml
 first_agent: builder
 type: builder-first-autogate
+runtime:
+  platform: hermes
+  dispatch_tool: delegate_task
+  codex_cli_enabled: true
+  roles:
+    architect: { toolsets: [terminal, file, web, skills] }
+    builder: { toolsets: [terminal, file, skills] }
+    critic: { toolsets: [file, terminal] }
 
 phases:
   1:

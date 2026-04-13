@@ -24,7 +24,7 @@ reset: false
 
 **Scope:** Build and test a dYdX v4 execution adapter that places perpetual futures orders on dYdX testnet. This is the execution layer — it receives trade instructions and executes them on-chain.
 
-**Working directory:** `/home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance/`
+**Working directory:** `/home/ubuntu/.hermes/workspace/machinelearning/llm-quant-finance/`
 **Python venv:** `.venv/` inside that directory — activate before running anything
 
 ---
@@ -32,7 +32,7 @@ reset: false
 ## Step 0: Bootstrap (run first)
 
 ```bash
-cd /home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance
+cd /home/ubuntu/.hermes/workspace/machinelearning/llm-quant-finance
 source .venv/bin/activate
 pip install "dydx-v4-client>=1.0.0" pydantic python-dotenv
 # Add to requirements-backtest.txt
@@ -158,7 +158,7 @@ Tests live in `backtesting/live/tests/test_dydx_testnet.py`.
 
 Run with:
 ```bash
-cd /home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance
+cd /home/ubuntu/.hermes/workspace/machinelearning/llm-quant-finance
 source .venv/bin/activate
 export DYDX_MNEMONIC=$(cat backtesting/live/TESTNET_MNEMONIC.txt)
 pytest backtesting/live/tests/test_dydx_testnet.py -v

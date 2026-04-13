@@ -4,7 +4,7 @@
 
 **Scope:** Build the signal generation layer (LightGBM → regime filter → signal) and a 15-minute daemon that executes those signals via `DydxExecutor` on dYdX testnet.
 
-**Working directory:** `/home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance/`
+**Working directory:** `/home/ubuntu/.hermes/workspace/machinelearning/llm-quant-finance/`
 **Python venv:** `.venv/` — activate before running anything
 
 ---
@@ -59,7 +59,7 @@ Also ensure the last fold's booster is added to the results dict as `"final_boos
 
 Then run for BTC, ETH, SOL using the 500d baseline data:
 ```bash
-cd /home/ubuntu/.openclaw/workspace/machinelearning/llm-quant-finance
+cd /home/ubuntu/.hermes/workspace/machinelearning/llm-quant-finance
 source .venv/bin/activate
 cd microcap_swing
 python -m src.model_lightgbm --token BTC --timeframe 15m

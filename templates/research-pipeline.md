@@ -81,6 +81,15 @@ Research pipelines use version-based naming:
 ```yaml
 first_agent: architect
 type: research
+runtime:
+  platform: hermes
+  dispatch_tool: delegate_task
+  codex_cli_enabled: true
+  roles:
+    architect: { toolsets: [terminal, file, web, skills] }
+    builder: { toolsets: [terminal, file, skills] }
+    critic: { toolsets: [file, terminal] }
+    system: { toolsets: [terminal, file] }
 
 phases:
   1:

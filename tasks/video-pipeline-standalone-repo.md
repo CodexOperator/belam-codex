@@ -23,7 +23,7 @@ Move the report-to-YouTube video pipeline into its own standalone repository alo
 
 ## Phase 1: Repo Setup
 
-1. Create `~/video-pipeline/` directory (same parent as `~/.openclaw/workspace` and `machinelearning`)
+1. Create `~/video-pipeline/` directory (same parent as `~/.hermes/belam-codex` and `machinelearning`)
 2. Initialize git repo, push to `CodexOperator/video-pipeline`
 3. Move scripts: `report_to_video.py`, `video_*.py`, `requirements-video.txt`
 4. Add test suite: unit tests for each module, integration test that produces a 10-second test video

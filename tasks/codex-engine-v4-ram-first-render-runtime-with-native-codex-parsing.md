@@ -119,7 +119,7 @@ Agents don't know they're in RAM. The workspace resolves through symlinks to a g
   ├── pipeline_builds/
   └── .git/                        ← full git objects, all in RAM
 
-~/.openclaw/workspace/
+~/.hermes/belam-codex/
   ├── tasks/ → /dev/shm/codex/tasks/          ← symlinks
   ├── decisions/ → /dev/shm/codex/decisions/
   ├── lessons/ → /dev/shm/codex/lessons/

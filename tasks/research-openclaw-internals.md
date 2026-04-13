@@ -43,5 +43,5 @@ All at `machinelearning/snn_applied_finance/research/pipeline_builds/openclaw-pl
 PDF: `machinelearning/snn_applied_finance/notebooks/local_results/research-openclaw-internals/research-openclaw-internals_report.pdf`
 
 ## Downstream Usage
-- Plugins being deployed to `~/.openclaw/extensions/` for live orchestration
+- Plugins being deployed to `~/.hermes/extensions/` for live orchestration
 - Feeds directly into orchestration-engine-v2-temporal-autoclave task (persistent agents, SpacetimeDB subscriptions, autoclave view)

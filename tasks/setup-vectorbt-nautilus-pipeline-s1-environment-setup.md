@@ -69,7 +69,7 @@ pytest>=8.0                # Test runner
 - VectorBT PRO requires a license key. Check if `VECTORBTPRO_LICENSE` env var is set, or if it's installed from a private index. The smoke test should gracefully report "VectorBT PRO not licensed" rather than hard-fail if the key is missing — but the test should still verify the import works.
 - NautilusTrader has Rust compilation requirements. On Linux ARM64 (our host), `pip install nautilus_trader` should provide pre-built wheels. If not, ensure Rust toolchain is available.
 - `fracdiff` may need `cython` at build time.
-- Use a virtual environment if one doesn't already exist. Check for existing venv at `~/.openclaw/workspace/.venv` or create one.
+- Use a virtual environment if one doesn't already exist. Check for existing venv at `~/.hermes/belam-codex/.venv` or create one.
 
 ### Smoke Test: `tests/test_backtest_env.py`
 

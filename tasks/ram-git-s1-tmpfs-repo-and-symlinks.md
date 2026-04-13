@@ -29,8 +29,8 @@ Create a script `scripts/ram_git_bootstrap.sh` that:
    - Initial commit: `git add -A && git commit -m "bootstrap from disk"`
 
 2. **Symlinks workspace → RAM:**
-   - For each dir above: `mv ~/.openclaw/workspace/{dir} ~/.openclaw/workspace/{dir}.disk-backup`
-   - Then: `ln -s /dev/shm/codex/{dir} ~/.openclaw/workspace/{dir}`
+   - For each dir above: `mv ~/.hermes/belam-codex/{dir} ~/.hermes/belam-codex/{dir}.disk-backup`
+   - Then: `ln -s /dev/shm/codex/{dir} ~/.hermes/belam-codex/{dir}`
    - Dirs that stay on disk (NO symlink): `AGENTS.md SOUL.md IDENTITY.md USER.md MEMORY.md HEARTBEAT.md skills/ scripts/ commands/ modes/ templates/ docs/ machinelearning/`
 
 3. **Teardown script** `scripts/ram_git_teardown.sh`:
@@ -38,9 +38,9 @@ Create a script `scripts/ram_git_bootstrap.sh` that:
    - Needed for clean shutdown and testing
 
 4. **Verification:**
-   - `ls -la ~/.openclaw/workspace/tasks/` should show symlink → `/dev/shm/codex/tasks/`
-   - `cat ~/.openclaw/workspace/tasks/some-task.md` should work transparently
-   - `echo "test" > ~/.openclaw/workspace/tasks/test.md` should write to RAM
+   - `ls -la ~/.hermes/belam-codex/tasks/` should show symlink → `/dev/shm/codex/tasks/`
+   - `cat ~/.hermes/belam-codex/tasks/some-task.md` should work transparently
+   - `echo "test" > ~/.hermes/belam-codex/tasks/test.md` should write to RAM
    - `ls /dev/shm/codex/tasks/test.md` should show the file
 
 ## Files to Create

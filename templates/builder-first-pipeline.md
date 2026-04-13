@@ -72,6 +72,14 @@ Each subtask runs through the full pipeline independently. Later subtasks can de
 ```yaml
 first_agent: builder
 type: builder-first
+runtime:
+  platform: hermes
+  dispatch_tool: delegate_task
+  codex_cli_enabled: true
+  roles:
+    architect: { toolsets: [terminal, file, web, skills] }
+    builder: { toolsets: [terminal, file, skills] }
+    critic: { toolsets: [file, terminal] }
 
 phases:
   1:

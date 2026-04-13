@@ -39,7 +39,7 @@ Docker must be pre-installed by Shael. Pipeline halts if Docker is not available
 
 ### What Stays Outside (Runtime)
 - **Secrets:** SSH keys, API tokens, credentials — via Docker secrets, env vars, or mounted .env
-- **openclaw.json credentials** — same treatment (env var override or secret mount)
+- **config.yaml credentials** — same treatment (env var override or secret mount)
 - **Persistent state volumes:**
   - delivery-queue
   - agents

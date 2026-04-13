@@ -256,7 +256,7 @@ Same flow with analysis_phase2_ prefix stages.
 _Architect designs analysis methodology → Critic reviews statistical rigor → Builder implements_
 
 ### Architect Tasks (Phase 1)
-1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`
+1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.hermes/belam-codex/skills/quant-workflow/SKILL.md`
 2. Read the design brief at `research/pipeline_builds/{version}_design_brief.md`
 3. Design the full analysis notebook structure:
    - Specify exactly which statistical tests to run and why
@@ -266,21 +266,21 @@ _Architect designs analysis methodology → Critic reviews statistical rigor →
 4. Run: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_architect_design --agent architect --notes "Design summary"`
 
 ### Critic Tasks (Phase 1 — Design Review)
-1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`
+1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.hermes/belam-codex/skills/quant-workflow/SKILL.md`
 2. Review architect's design at `research/pipeline_builds/{version}_architect_analysis_design.md`
 3. Check for: statistical validity, methodology gaps, missing visualizations, appropriate corrections
 4. If approved: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_critic_review --agent critic --notes "Approved: ..."`
 5. If blocked: write blocks to file, then: `python3 scripts/pipeline_orchestrate.py {version} block analysis_critic_review --agent critic --notes "BLOCK-1: ..." --artifact {version}_critic_analysis_blocks.md`
 
 ### Builder Tasks (Phase 1)
-1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.openclaw/workspace/skills/quant-infrastructure/SKILL.md`
+1. Read `research/ANALYSIS_AGENT_ROLES.md` and skill at `~/.hermes/belam-codex/skills/quant-infrastructure/SKILL.md`
 2. Read approved design at `research/pipeline_builds/{version}_architect_analysis_design.md`
 3. Implement the analysis notebook: `notebooks/crypto_{source_version}_analysis.ipynb`
 4. Notebook must include the mandatory Colab upload cell (Section 0.2 above)
 5. Run: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_builder_implementation --agent builder --notes "Notebook complete: N cells"`
 
 ### Critic Tasks (Phase 1 — Code Review)
-1. Read skill at `~/.openclaw/workspace/skills/quant-infrastructure/SKILL.md`
+1. Read skill at `~/.hermes/belam-codex/skills/quant-infrastructure/SKILL.md`
 2. Review notebook implementation quality, visualization clarity, statistical correctness
 3. Check upload cell handles both zip and individual pkl correctly
 4. If approved: `python3 scripts/pipeline_orchestrate.py {version} complete analysis_critic_code_review --agent critic --notes "Approved: ..."`
