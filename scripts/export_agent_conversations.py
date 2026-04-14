@@ -105,7 +105,29 @@ def format_timestamp(ts_ms):
         return str(ts_ms)
 
 
-def process_session(jsonl_path, agent_id):
+def format_provenance_speaker(provenance):
+    """Render explicit source provenance when Hermes stored it in-message."""
+    if not isinstance(provenance, dict):
+        return None
+
+    kind = provenance.get("kind", "")
+    source = (
+        provenance.get("sourceAgentId")
+        or provenance.get("sourceAgent")
+        or provenance.get("sourceSessionKey")
+        or provenance.get("source")
+        or provenance.get("sessionKey")
+    )
+    if not source and not kind:
+        return None
+    if source and kind == "inter_session":
+        return f"📨 From {source}"
+    if source:
+        return f"📨 {source}"
+    return f"📨 {kind}"
+
+
+def process_session(jsonl_path, agent_id, hermes_mode=False):
     """Read a JSONL session file and return structured messages."""
     messages = []
     try:
@@ -130,6 +152,7 @@ def process_session(jsonl_path, agent_id):
                     
                     role = msg.get("role", "unknown")
                     content = extract_text_content(msg.get("content", ""))
+                    provenance = msg.get("provenance", {})
                     
                     # Skip empty content and pure tool results
                     if not content or not content.strip():
@@ -138,19 +161,17 @@ def process_session(jsonl_path, agent_id):
                         continue
                     if role == "system":
                         continue
+                    if role == "session_meta":
+                        continue
                     
                     # Determine speaker
+                    explicit_speaker = format_provenance_speaker(provenance)
                     if role == "user":
-                        prov = msg.get("provenance", {})
-                        if prov.get("kind") == "inter_session":
-                            source = prov.get("sourceAgentId", prov.get("sourceAgent", "agent"))
-                            speaker = f"📨 From {source}"
-                        else:
-                            speaker = "👤 Shael"
+                        speaker = explicit_speaker or "👤 User"
                     elif role == "assistant":
-                        speaker = f"🤖 {agent_id.capitalize()}"
+                        speaker = explicit_speaker or ("🔮 Belam" if hermes_mode else f"🤖 {agent_id.capitalize()}")
                     else:
-                        speaker = role
+                        speaker = explicit_speaker or role
                     
                     messages.append({
                         "speaker": speaker,
@@ -189,7 +210,7 @@ def export_session(messages, agent_id, session_id, output_dir):
         start = end = "unknown"
         date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     
-    filename = f"{date_str}_{agent_id}_{session_id[:8]}.md"
+    filename = f"{date_str}_{agent_id}_{session_id}.md"
     filepath = os.path.join(output_dir, filename)
     
     with open(filepath, "w") as f:
@@ -233,15 +254,17 @@ def main():
                 if datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc) >= cutoff
             ]
 
-        for agent_id in agents:
-            for jsonl_file in session_files:
-                session_id = jsonl_file.stem
-                messages = process_session(jsonl_file, agent_id)
-                if messages:
-                    filepath = export_session(messages, agent_id, session_id, args.output_dir)
-                    if filepath:
-                        exported.append(filepath)
-                        print(f"  ✅ {agent_id}/{session_id[:8]}: {len(messages)} messages → {os.path.basename(filepath)}")
+        if session_files:
+            print("  ℹ️  Hermes flat-session mode detected; exporting each session once as `belam-main`.")
+        for jsonl_file in session_files:
+            session_id = jsonl_file.stem
+            agent_id = "belam-main"
+            messages = process_session(jsonl_file, agent_id, hermes_mode=True)
+            if messages:
+                filepath = export_session(messages, agent_id, session_id, args.output_dir)
+                if filepath:
+                    exported.append(filepath)
+                    print(f"  ✅ {agent_id}/{session_id[:8]}: {len(messages)} messages → {os.path.basename(filepath)}")
         if not session_files:
             print(f"  ⏭️  No Hermes session files found in {state_root}")
 
@@ -260,7 +283,7 @@ def main():
                         continue
 
                 session_id = jsonl_file.stem
-                messages = process_session(jsonl_file, agent_id)
+                messages = process_session(jsonl_file, agent_id, hermes_mode=False)
 
                 if messages:
                     filepath = export_session(messages, agent_id, session_id, args.output_dir)

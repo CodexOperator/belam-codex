@@ -1,0 +1,437 @@
+#!/usr/bin/env bash
+# R — Single human CLI for the codex workspace.
+# Coordinates, supermap, pipelines, primitives, memory — all through one command.
+# Always fresh from disk. No daemon required.
+
+set -euo pipefail
+
+# Workspace resolution (local-first, then Hermes/OpenClaw compatibility fallbacks)
+if [ -f "$PWD/scripts/codex_engine.py" ]; then
+    WORKSPACE="$PWD"
+elif [ -n "${BELAM_WORKSPACE:-}" ]; then
+    WORKSPACE="$BELAM_WORKSPACE"
+elif [ -n "${OPENCLAW_WORKSPACE:-}" ]; then
+    WORKSPACE="$OPENCLAW_WORKSPACE"
+elif [ -f "$HOME/.hermes/belam-codex/scripts/codex_engine.py" ]; then
+    WORKSPACE="$HOME/.hermes/belam-codex"
+elif [ -f "$HOME/.openclaw/workspace/scripts/codex_engine.py" ]; then
+    WORKSPACE="$HOME/.openclaw/workspace"
+else
+    WORKSPACE="$HOME/.hermes/belam-codex"
+fi
+
+ENGINE="$WORKSPACE/scripts/codex_engine.py"
+SCRIPTS="$WORKSPACE/scripts"
+
+# Resolve pipeline ref (p1, p2, 3, or full version string) → version string
+_resolve_pipeline() {
+    local ref="$1"
+    if [ -z "$ref" ]; then return 1; fi
+    python3 - "$SCRIPTS" "$ref" <<'PY' 2>/dev/null
+import sys
+
+scripts_dir = sys.argv[1]
+ref = sys.argv[2]
+sys.path.insert(0, scripts_dir)
+from orchestration_engine import resolve_pipeline
+
+resolved = resolve_pipeline(ref)
+if resolved:
+    print(resolved)
+else:
+    raise SystemExit(1)
+PY
+}
+
+case "${1:-0}" in
+
+    # ── Default: live context injection (supermap + LM first, legend after) ──
+    0|supermap|map|m)
+        python3 "$ENGINE" --supermap-anchor
+        if [ -f "$WORKSPACE/codex_legend.md" ]; then
+            echo ""
+            cat "$WORKSPACE/codex_legend.md"
+        fi
+        ;;
+
+    # ── Diff since last anchor ────────────────────────────────────────────────
+    d|diff)
+        output=$(python3 "$ENGINE" --supermap-diff)
+        if [ -z "$output" ]; then
+            echo "(no changes since last anchor)"
+        else
+            echo "$output"
+        fi
+        ;;
+
+    # ── Raw supermap (no anchor, no diff — just render) ───────────────────────
+    raw|r)
+        python3 "$ENGINE" --supermap
+        ;;
+
+    # ── Scaffold: show exactly what agents see on boot ─────────────────────────
+    scaffold|sc)
+        echo "## ⚡ Coordinate Mode Active"
+        echo "Navigate: {coord} (t1, p3, d5) | Edit: e1{coord} {f} {v} | Create: e2 {ns} \"title\""
+        echo "Orchestrate: e0 (sweep) | e0 t{n} (launch) | e0 p{n} (status/archive/complete)"
+        echo "Extend: e3 {ns}.{sub} (register new sub-namespace when actions are missing)"
+        echo "Diff: .d | Anchor: .a | Filter: --tag {t} --since {d} --as {role}"
+        echo "Shell: !{cmd} (escape hatch only) | Pipe: cmd |> cmd"
+        echo "🔧 Missing a coord? Create it: e2 for primitives, e3 for new action namespaces."
+        echo "🚀 Need work done? e0 t{n} to launch a pipeline, sessions_spawn for sub-agents."
+        echo "❌ Do NOT use grep/cat/echo/ls on workspace files — there is a coordinate for it."
+        echo ""
+        python3 "$ENGINE" --supermap-anchor
+        echo ""
+        echo "---"
+        echo ""
+        if [ -f "$WORKSPACE/codex_legend.md" ]; then
+            cat "$WORKSPACE/codex_legend.md"
+        fi
+        ;;
+
+    # ── Shell: interactive coordinate REPL ──────────────────────────────────────
+    shell|sh|i)
+        exec codex-shell
+        ;;
+
+    # ── Context: verbose agent context with headers ───────────────────────────
+    context|ctx|c)
+        echo "# Agent Context Assembly"
+        echo ""
+        echo "## Supermap"
+        python3 "$ENGINE" --supermap-anchor
+        if [ -f "$WORKSPACE/codex_legend.md" ]; then
+            echo ""
+            echo "---"
+            echo ""
+            echo "## Legend"
+            cat "$WORKSPACE/codex_legend.md"
+        fi
+        ;;
+
+    # ── Watch: live dashboard ─────────────────────────────────────────────────
+    w|watch)
+        python3 "$SCRIPTS/pipeline_dashboard.py" --watch "${2:-10}"
+        ;;
+
+    # ── Stream: live UDS diff stream from render engine ───────────────────────
+    stream)
+        shift
+        # Resolve -p/--pipeline arg if it looks like a p-coordinate
+        ARGS=()
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                -p|--pipeline)
+                    shift
+                    if [ $# -gt 0 ]; then
+                        RESOLVED=$(_resolve_pipeline "$1" 2>/dev/null || echo "$1")
+                        ARGS+=("--pipeline" "$RESOLVED")
+                        shift
+                    fi
+                    ;;
+                *)
+                    ARGS+=("$1")
+                    shift
+                    ;;
+            esac
+        done
+        python3 -u "$SCRIPTS/codex_stream.py" "${ARGS[@]}"
+        ;;
+
+    # ── Monitor: 3-pane tmux pipeline view (dashboard + diffs + agent log) ────
+    monitor)
+        REF="${2:-}"
+        if [ -z "$REF" ]; then
+            echo "Usage: R monitor <pipeline>   (accepts p1, p2, 3, or full version)"
+            echo "  e.g. R monitor p1"
+            echo "       R monitor validate-scheme-b"
+            exit 1
+        fi
+        VER=$(_resolve_pipeline "$REF" 2>/dev/null || echo "$REF")
+        REFRESH="${3:-3}"
+        # Use short name for tmux session (first 20 chars)
+        SHORT=$(echo "$VER" | cut -c1-20)
+        SESSION="codex-monitor-${SHORT}"
+        # Kill existing monitor session
+        tmux kill-session -t "$SESSION" 2>/dev/null || true
+        # Pane 1: pipeline dashboard (top-left)
+        tmux new-session -d -s "$SESSION" -n monitor \
+            "python3 $SCRIPTS/pipeline_dashboard.py $VER --watch $REFRESH"
+        # Pane 2: live diff stream (top-right)
+        tmux split-window -h -t "$SESSION" \
+            "python3 $SCRIPTS/codex_stream.py --pipeline $VER --content"
+        # Pane 3: tail agent conversations (bottom)
+        tmux split-window -v -t "$SESSION" \
+            "watch -n 5 'ls -lt $WORKSPACE/machinelearning/snn_applied_finance/conversations/ 2>/dev/null | head -10'"
+        tmux select-layout -t "$SESSION" main-horizontal
+        echo "🔮 Monitor started for $VER ($REF → $VER)"
+        echo "   Attach: tmux attach -t $SESSION"
+        tmux attach -t "$SESSION"
+        ;;
+
+    # ── Status: quick overview ────────────────────────────────────────────────
+    s|status)
+        echo
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "  🔮 WORKSPACE STATUS"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo
+        echo "  📋 Pipelines"
+        python3 "$SCRIPTS/launch_pipeline.py" --list 2>/dev/null | tail -n +1
+        echo
+        echo "  📌 Open Tasks"
+        found=0
+        for f in "$WORKSPACE"/tasks/*.md; do
+            [ -f "$f" ] || continue
+            if grep -q 'status:.*open\|status:.*blocked\|status:.*in_pipeline' "$f" 2>/dev/null; then
+                name=$(basename "$f" .md)
+                status=$(grep -m1 '^status:' "$f" | sed 's/^status:\s*//')
+                printf "  %-15s %s\n" "$status" "$name"
+                found=1
+            fi
+        done
+        [ "$found" = 0 ] && echo "  (none)"
+        echo
+        today=$(date -u +%Y-%m-%d)
+        mem_file="$WORKSPACE/memory/$today.md"
+        if [ -f "$mem_file" ]; then
+            entries=$(grep -c '^## ' "$mem_file" 2>/dev/null || echo 0)
+            echo "  🧠 Today: $entries memory entries"
+        fi
+        echo
+        ;;
+
+    # ── Pipelines ─────────────────────────────────────────────────────────────
+    pipelines|pipes|pl)
+        python3 "$SCRIPTS/pipeline_dashboard.py" "${@:2}"
+        ;;
+
+    pipeline|pipe)
+        case "${2:-}" in
+            launch|new|create)
+                python3 "$SCRIPTS/launch_pipeline.py" "${@:3}"
+                ;;
+            update|u)
+                python3 "$SCRIPTS/pipeline_update.py" "${@:3}"
+                ;;
+            analyze|analysis)
+                python3 "$SCRIPTS/launch_analysis_pipeline.py" "${@:3}"
+                ;;
+            "")
+                echo "Usage: R pipeline <version>  or  R pipeline launch|update|analyze <args...>"
+                ;;
+            *)
+                python3 "$SCRIPTS/pipeline_dashboard.py" "${@:2}"
+                ;;
+        esac
+        ;;
+
+    # ── Kickoff ───────────────────────────────────────────────────────────────
+    kick|kickoff|ko)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: R kick <version> [--phase2 [--direction <file>]]"
+            exit 1
+        fi
+        python3 "$SCRIPTS/pipeline_orchestrate.py" kickoff "${@:2}"
+        ;;
+
+    # ── Orchestrate ───────────────────────────────────────────────────────────
+    orchestrate|orch|o)
+        python3 "$SCRIPTS/pipeline_orchestrate.py" "${@:2}"
+        ;;
+
+    # ── Handoffs ──────────────────────────────────────────────────────────────
+    handoffs|ho)
+        python3 "$SCRIPTS/pipeline_orchestrate.py" --check-pending
+        ;;
+
+    # ── Autorun ───────────────────────────────────────────────────────────────
+    autorun|auto|ar)
+        python3 "$SCRIPTS/pipeline_autorun.py" "${@:2}"
+        ;;
+
+    # ── Run experiments ───────────────────────────────────────────────────────
+    run)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: R run <version> [--dry-run] [--no-recovery]"
+            exit 1
+        fi
+        python3 "$SCRIPTS/pipeline_orchestrate.py" "$2" run-experiment "${@:3}"
+        ;;
+
+    # ── Analysis ──────────────────────────────────────────────────────────────
+    analyze|a)
+        shift
+        python3 "$SCRIPTS/analyze_experiment.py" "$@"
+        ;;
+
+    analyze-local|al)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: R al <version> [--dry-run]"
+            exit 1
+        fi
+        python3 "$SCRIPTS/pipeline_orchestrate.py" "$2" local-analysis "${@:3}"
+        ;;
+
+    report)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: R report <version>"
+            exit 1
+        fi
+        python3 "$SCRIPTS/pipeline_orchestrate.py" "$2" report-build "${@:3}"
+        ;;
+
+    # ── Revise ────────────────────────────────────────────────────────────────
+    revise|rev)
+        if [ -z "${2:-}" ] || [ -z "${3:-}" ]; then
+            echo "Usage: R revise <version> --context \"...\""
+            exit 1
+        fi
+        python3 "$SCRIPTS/pipeline_orchestrate.py" "$2" revise "${@:3}"
+        ;;
+
+    queue-revision|qr)
+        if [ -z "${2:-}" ]; then
+            echo "Usage: R qr <version> [--context-file <path>] [--priority critical]"
+            exit 1
+        fi
+        python3 "$SCRIPTS/create_revision_request.py" "${@:2}"
+        ;;
+
+    # ── Create primitives ─────────────────────────────────────────────────────
+    new|create)
+        shift
+        python3 "$SCRIPTS/create_primitive.py" "$@"
+        ;;
+
+    # ── Edit primitives ───────────────────────────────────────────────────────
+    edit|e)
+        shift
+        python3 "$SCRIPTS/edit_primitive.py" "$@"
+        ;;
+
+    # ── Memory ────────────────────────────────────────────────────────────────
+    log)
+        shift
+        if [ "${1:-}" = "-t" ]; then
+            tag="$2"; shift 2
+            python3 "$SCRIPTS/log_memory.py" --tags "$tag" "$*"
+        else
+            python3 "$SCRIPTS/log_memory.py" "$*"
+        fi
+        ;;
+
+    consolidate|cons)
+        shift
+        python3 "$SCRIPTS/consolidate_memories.py" "$@"
+        ;;
+
+    # ── Primitives listing ────────────────────────────────────────────────────
+    tasks)
+        for f in "$WORKSPACE"/tasks/*.md; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f" .md)
+            status=$(grep -m1 '^status:' "$f" 2>/dev/null | sed 's/^status:\s*//' || echo "—")
+            printf "  %-15s %s\n" "$status" "$name"
+        done
+        ;;
+
+    lessons)
+        for f in "$WORKSPACE"/lessons/*.md; do
+            [ -f "$f" ] || continue
+            printf "  %s\n" "$(basename "$f" .md)"
+        done
+        ;;
+
+    decisions)
+        for f in "$WORKSPACE"/decisions/*.md; do
+            [ -f "$f" ] || continue
+            printf "  %s\n" "$(basename "$f" .md)"
+        done
+        ;;
+
+    # ── Cleanup ───────────────────────────────────────────────────────────────
+    cleanup|clean)
+        python3 "$SCRIPTS/cleanup_stale_sessions.py" "${@:2}"
+        ;;
+
+    # ── Conversations ─────────────────────────────────────────────────────────
+    conversations|conv)
+        shift
+        python3 "$SCRIPTS/export_agent_conversations.py" "$@"
+        ;;
+
+    # ── Audit ─────────────────────────────────────────────────────────────────
+    audit|au)
+        shift
+        python3 "$SCRIPTS/audit_primitives.py" "$@"
+        ;;
+
+    # ── MCP server ────────────────────────────────────────────────────────────
+    mcp)
+        python3 "$SCRIPTS/codex_mcp_server.py" "${@:2}"
+        ;;
+
+    # ── Navigate coordinates (pass through to engine) ─────────────────────────
+    [a-z]*[0-9]*|[a-z]*-[a-z]*)
+        python3 "$ENGINE" "$@"
+        ;;
+
+    # ── Help ──────────────────────────────────────────────────────────────────
+    help|h|-h|--help)
+        cat <<'EOF'
+R — Codex workspace CLI 🔮
+
+VIEWS
+  R              Live context: legend + supermap + anchor (default)
+  R scaffold     Exact agent boot view: scaffold + legend + supermap
+  R shell        Interactive coordinate mode REPL (semi-takeover)
+  R diff         Changes since last anchor
+  R raw          Supermap without anchoring
+  R status       Quick workspace overview
+  R watch [N]    Live dashboard (refresh every N seconds, default 10)
+  R stream [opts] Live UDS diff stream (--agent, --pipeline, --content)
+  R monitor <ver> 3-pane tmux: dashboard + diffs + agent log for a pipeline
+
+NAVIGATE
+  R t1           View task 1
+  R d5           View decision 5
+  R p2           View pipeline 2
+
+PIPELINES
+  R pipelines              List all pipelines
+  R pipeline <ver>         Detail view
+  R pipeline launch <args> Create new pipeline
+  R kick <ver>             Kickoff pipeline (fire-and-forget)
+  R run <ver>              Run experiments
+  R al <ver>               Orchestrated local analysis
+  R report <ver>           Build LaTeX report
+  R revise <ver> --context "..."  Trigger revision
+  R handoffs               Check stuck handoffs
+  R autorun                Auto-kick gated/stalled pipelines
+
+PRIMITIVES
+  R new <type> "title"     Create (lesson|decision|task|project|skill|command)
+  R edit <name> --set k=v  Edit frontmatter
+  R tasks / lessons / decisions  List primitives
+
+MEMORY
+  R log <msg>              Quick memory entry
+  R log -t <tag> <msg>     Tagged memory entry
+  R consolidate            Run memory consolidation
+
+OTHER
+  R orch <args>            Pipeline orchestrator
+  R conv [--since N]       Export agent conversations
+  R audit [--fix]          Audit primitives
+  R cleanup                Kill stale sessions
+  R mcp                    Start MCP server
+EOF
+        ;;
+
+    *)
+        # Try passing unknown args to engine
+        python3 "$ENGINE" "$@"
+        ;;
+esac

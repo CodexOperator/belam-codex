@@ -1,0 +1,14 @@
+Handoff bundle created: handoff/hermes-migration-handoff-20260413-174810.patch
+Generated: 2026-04-13T17:48:10+00:00
+
+Git status:
+ M scripts/orchestration_engine.py
+ M scripts/template_parser.py
+ M scripts/tests/test_template_parser.py
+?? handoff/
+
+Diff stat:
+ scripts/orchestration_engine.py       | 92 ++++++++++++++++++++++++++++++++++-
+ scripts/template_parser.py            |  8 +++
+ scripts/tests/test_template_parser.py | 11 +++++
+ 3 files changed, 109 insertions(+), 2 deletions(-)

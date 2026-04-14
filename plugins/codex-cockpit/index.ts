@@ -1,40 +1,71 @@
 /**
- * Codex Cockpit Plugin — V7 Prepend-Only Edition
+ * Codex Cockpit Plugin — V10 Daemonless Direct Render
  *
  * All context goes into prependSystemContext in this order:
- *   1. Supermap (with LM entries at top) — the coordinate tree
+ *   1. Supermap — rendered synchronously each turn via scripts/render_supermap.py
  *   2. Legend — condensed Soul identity + "How to Use the Supermap"
  *   3. Scaffold — coordinate mode announcement/warnings
  *
- * V7 Strategy (fully synchronous — zero async, zero UDS, zero Promises):
- *   - Reads supermap from /dev/shm/openclaw/supermap.txt (written by codex_render.py)
- *   - First turn (or post-compaction): read full supermap, inject everything
- *   - Subsequent turns: check mtime — if unchanged, inject legend+scaffold only
- *   - File missing: legend+scaffold only (engine not started)
+ * Strategy:
+ *   - No daemon, no UDS, no /dev/shm dependency
+ *   - Render on demand each turn from the canonical workspace
+ *   - Fall back softly to legend+scaffold when rendering fails
  */
 
-import { readFileSync, existsSync, statSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { execFileSync } from "child_process";
+import { homedir } from "os";
 import { basename, join } from "path";
 
 let renderCount = 0;
-let hasAnchor = false;
-let lastSupermapMtime = 0;
-let lastSupermapContent: string | null = null;
 
-const SUPERMAP_PATH = "/dev/shm/openclaw/supermap.txt";
+function looksLikeWorkspace(candidate: string | null | undefined): candidate is string {
+  if (!candidate) return false;
+  return existsSync(join(candidate, "scripts", "codex_engine.py"));
+}
 
-export default function register(api: any) {
-  const workspaceDir = api.config?.workspace?.dir;
+function resolveWorkspace(currentDir: string | null | undefined, configuredDir: string | null | undefined): string | null {
+  if (looksLikeWorkspace(currentDir)) return currentDir;
 
-  // ── Legend: read once at plugin load ──
-  let legend: string | null = null;
-  if (workspaceDir) {
-    try {
-      legend = readFileSync(join(workspaceDir, "codex_legend.md"), "utf-8").trim();
-    } catch {}
+  const envCandidates = [
+    process.env.BELAM_WORKSPACE,
+    process.env.OPENCLAW_WORKSPACE,
+    process.env.WORKSPACE,
+  ];
+  for (const candidate of envCandidates) {
+    if (looksLikeWorkspace(candidate)) return candidate;
   }
 
+  const home = homedir();
+  const fallbacks = [
+    configuredDir,
+    join(home, ".hermes", "belam-codex"),
+    join(home, ".openclaw", "workspace"),
+  ];
+  for (const candidate of fallbacks) {
+    if (looksLikeWorkspace(candidate)) return candidate;
+  }
+  return configuredDir ?? currentDir ?? null;
+}
+
+function renderSupermap(workspace: string): string | null {
+  try {
+    return execFileSync("python3", ["scripts/render_supermap.py"], {
+      cwd: workspace,
+      timeout: 8000,
+      encoding: "utf-8",
+      env: {
+        ...process.env,
+        BELAM_WORKSPACE: workspace,
+        OPENCLAW_WORKSPACE: workspace,
+      },
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+export default function register(api: any) {
   // ── Scaffold: coordinate mode announcement (static) ──
   const COORD_SCAFFOLD = [
     "## ⚡ Coordinate Mode Active",
@@ -50,20 +81,20 @@ export default function register(api: any) {
   ].join("\n");
 
   api.on("after_compaction", () => {
-    hasAnchor = false;
-    lastSupermapMtime = 0;
-    lastSupermapContent = null;
+    renderCount = 0;
   });
 
   api.on("before_prompt_build", (_event: any, ctx: any) => {
-    const cwd = ctx?.workspaceDir || workspaceDir;
-    if (!cwd) return;
+    const currentDir = ctx?.workspaceDir || api.config?.workspace?.dir;
+    if (!currentDir) return;
+    const workspace = resolveWorkspace(currentDir, api.config?.workspace?.dir);
+    if (!workspace) return;
 
     // ── Resolve agent identity for mode suffix ──
     const agentId = ctx?.agentId ?? "";
     let resolvedAgent = agentId;
-    if (!resolvedAgent && cwd) {
-      const dirName = basename(cwd);
+    if (!resolvedAgent && currentDir) {
+      const dirName = basename(currentDir);
       const m = dirName.match(/^workspace-(.+)$/);
       resolvedAgent = m ? m[1] : "";
     }
@@ -74,98 +105,28 @@ export default function register(api: any) {
     // ── Result register ──
     let registerCtx = "";
     try {
-      const regPath = join(cwd, '.codex_runtime', 'register.json');
+      const regPath = join(currentDir, ".codex_runtime", "register.json");
       const reg = JSON.parse(readFileSync(regPath, 'utf-8'));
       if (reg.latest) registerCtx = `\n\n## Result Register\n_ = ${reg.latest}`;
+    } catch {}
+
+    let legend: string | null = null;
+    try {
+      legend = readFileSync(join(workspace, "codex_legend.md"), "utf-8").trim();
     } catch {}
 
     // ── Build: legend + scaffold (always present) ──
     const legendBlock = legend ? "\n\n" + legend + modeSuffix : "";
     const tailBlock = legendBlock + "\n\n" + COORD_SCAFFOLD + registerCtx;
 
-    // ── Read supermap.txt synchronously ──
-    const supermapPath = SUPERMAP_PATH;
-
-    // First turn or post-compaction: poke render engine for fresh supermap, then read
-    if (!hasAnchor) {
-      // Trigger render engine flush + file write via UDS
-      try {
-        execFileSync("python3", ["-c", [
-          "import socket, json, os",
-          "s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)",
-          "s.settimeout(3)",
-          "s.connect(os.path.expanduser('~/.openclaw/workspace/.codex_runtime/render.sock'))",
-          "s.sendall(json.dumps({'cmd':'supermap'}).encode() + b'\\n')",
-          "s.recv(65536)",
-          "s.close()",
-        ].join("; ")], { timeout: 5000, stdio: "ignore" });
-      } catch {
-        // Engine not running — fall through to file read
-      }
-
-      let content: string | null = null;
-
-      if (existsSync(supermapPath)) {
-        try {
-          const st = statSync(supermapPath);
-          content = readFileSync(supermapPath, 'utf-8');
-          lastSupermapMtime = st.mtimeMs;
-          lastSupermapContent = content;
-        } catch {
-          content = null;
-        }
-      }
-
-      if (!content) {
-        // Engine not started — legend + scaffold only
-        return { prependSystemContext: tailBlock.trim() };
-      }
-
-      hasAnchor = true;
-      renderCount++;
-      const supermapBlock = [
-        `<!-- CODEX R${renderCount} — fresh from disk -->`,
-        "```",
-        content,
-        "```",
-      ].join("\n");
-
-      return { prependSystemContext: supermapBlock + tailBlock };
-    }
-
-    // ── Subsequent turns: check mtime for changes ──
-    if (!existsSync(supermapPath)) {
-      hasAnchor = false;
-      lastSupermapMtime = 0;
-      lastSupermapContent = null;
-      return { prependSystemContext: tailBlock.trim() };
-    }
-
-    let currentMtime = 0;
-    try {
-      currentMtime = statSync(supermapPath).mtimeMs;
-    } catch {
-      return { prependSystemContext: tailBlock.trim() };
-    }
-
-    if (currentMtime === lastSupermapMtime) {
-      // Nothing changed — legend + scaffold only (supermap already seen)
-      return { prependSystemContext: tailBlock.trim() };
-    }
-
-    // File changed — re-read and inject full supermap
-    let content: string | null = null;
-    try {
-      content = readFileSync(supermapPath, 'utf-8');
-      lastSupermapMtime = currentMtime;
-      lastSupermapContent = content;
-    } catch {
+    const content = renderSupermap(workspace);
+    if (!content) {
       return { prependSystemContext: tailBlock.trim() };
     }
 
     renderCount++;
     const supermapBlock = [
-      `<!-- CODEX R${renderCount} — updated supermap -->`,
+      `<!-- CODEX R${renderCount} — direct render -->`,
       "```",
       content,
       "```",

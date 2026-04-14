@@ -59,8 +59,8 @@ def extract_text(content):
     return '\n'.join(parts).strip()
 
 
-def _extract_row(obj: dict) -> tuple[str, str, str]:
-    """Normalize one JSONL row into (role, content, timestamp)."""
+def _extract_row(obj: dict) -> tuple[str, str, str, dict]:
+    """Normalize one JSONL row into (role, content, timestamp, provenance)."""
     t = obj.get('type', '')
 
     # OpenClaw wrapper format: {type:"message", message:{...}, timestamp:...}
@@ -70,6 +70,7 @@ def _extract_row(obj: dict) -> tuple[str, str, str]:
             msg.get('role', 'unknown'),
             extract_text(msg.get('content', '')),
             obj.get('timestamp', '') or msg.get('timestamp', ''),
+            msg.get('provenance', {}) or {},
         )
 
     # Hermes flat format: {role:"user|assistant|tool", content:..., timestamp:...}
@@ -78,9 +79,38 @@ def _extract_row(obj: dict) -> tuple[str, str, str]:
             obj.get('role', 'unknown'),
             extract_text(obj.get('content', '')),
             obj.get('timestamp', ''),
+            obj.get('provenance', {}) or {},
         )
 
-    return ('', '', '')
+    return ('', '', '', {})
+
+
+def _speaker_label(role: str, provenance: dict | None = None) -> str:
+    """Render transcript speakers without inventing pseudo-agents."""
+    provenance = provenance or {}
+    kind = provenance.get('kind', '')
+    source = (
+        provenance.get('sourceAgentId')
+        or provenance.get('sourceAgent')
+        or provenance.get('sourceSessionKey')
+        or provenance.get('source')
+        or ''
+    )
+
+    if source:
+        if kind == 'inter_session':
+            return f"📨 From {source}"
+        return f"📨 {source}"
+
+    if role == 'assistant':
+        return '🔮 Belam'
+    if role == 'user':
+        return '🧑 User'
+    if role == 'system':
+        return '⚙️ System'
+    if role == 'tool':
+        return '🔧 Tool'
+    return f"[{role}]"
 
 
 def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: str = ''):
@@ -105,7 +135,7 @@ def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: st
                 session_start = obj.get('timestamp', '')
                 continue
 
-            role, text, ts = _extract_row(obj)
+            role, text, ts, provenance = _extract_row(obj)
             if not role:
                 continue
 
@@ -118,18 +148,20 @@ def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: st
                 session_end = ts
 
             # Skip noise
+            if role == 'session_meta':
+                continue
             if not text or text in ('NO_REPLY', 'HEARTBEAT_OK'):
                 continue
             # Skip bootstrap/system boilerplate
             if role == 'user' and 'Execute your Session Startup sequence' in text:
-                messages.append({'role': role, 'text': '[Session startup prompt]', 'ts': ts})
+                messages.append({'role': role, 'text': '[Session startup prompt]', 'ts': ts, 'provenance': provenance})
                 continue
 
             # Truncate long messages
             if len(text) > MAX_MSG_CHARS:
                 text = text[:MAX_MSG_CHARS] + '\n[...truncated...]'
 
-            messages.append({'role': role, 'text': text, 'ts': ts})
+            messages.append({'role': role, 'text': text, 'ts': ts, 'provenance': provenance})
 
     # Enforce total size cap
     total = 0
@@ -156,7 +188,7 @@ def parse(jsonl_file: str, output_file: str, instance: str = 'main', persona: st
         f.write("---\n\n")
 
         for msg in kept:
-            label = {'user': '🧑 User', 'assistant': '🤖 Assistant'}.get(msg['role'], f"[{msg['role']}]")
+            label = _speaker_label(msg['role'], msg.get('provenance'))
             ts = msg['ts'][:19] if msg['ts'] else ''
             f.write(f"### {label} {ts}\n{msg['text']}\n\n")
 

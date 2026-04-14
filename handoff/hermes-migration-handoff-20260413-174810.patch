@@ -1,0 +1,268 @@
+diff --git a/scripts/orchestration_engine.py b/scripts/orchestration_engine.py
+index 0403fe05..3361717e 100644
+--- a/scripts/orchestration_engine.py
++++ b/scripts/orchestration_engine.py
+@@ -160,6 +160,7 @@ _temporal_overlay = None  # Lazy-loaded TemporalOverlay instance
+ 
+ _template_cache: dict[str, dict] = {}  # template_name → parsed transitions
+ _template_gates: dict[str, set] = {}  # template_name → set of human-gated stages
++_template_runtime: dict[str, dict] = {}  # template_name → runtime metadata block
+ 
+ 
+ def _parse_template_transitions(template_name: str) -> dict | None:
+@@ -185,6 +186,7 @@ def _parse_template_transitions(template_name: str) -> dict | None:
+         _template_gates[template_name] = set()
+         _template_status_bumps[template_name] = {}
+         _template_start_status_bumps[template_name] = {}
++        _template_runtime[template_name] = {}
+         return None
+ 
+     # Convert 4-tuples (next_stage, agent, msg, session_mode) to 3-tuples
+@@ -200,6 +202,8 @@ def _parse_template_transitions(template_name: str) -> dict | None:
+     _template_gates[template_name] = parsed.get('human_gates', set())
+     _template_status_bumps[template_name] = parsed.get('status_bumps', {})
+     _template_start_status_bumps[template_name] = parsed.get('start_status_bumps', {})
++    runtime = parsed.get('runtime', {})
++    _template_runtime[template_name] = runtime if isinstance(runtime, dict) else {}
+     return transitions
+ 
+ 
+@@ -225,6 +229,47 @@ def _resolve_template_name(pipeline_type: str | None) -> str:
+     return pipeline_type
+ 
+ 
++def _get_template_runtime(version: str = None, template_name: str = None) -> dict:
++    """Get runtime metadata block from a template.
++
++    Runtime block lives under template YAML:
++      runtime:
++        platform: hermes
++        dispatch_tool: delegate_task
++        roles: { architect: {...}, ... }
++
++    Returns {} when unavailable.
++    """
++    if not template_name:
++        pipeline_type = _get_pipeline_type(version) if version else None
++        template_name = _resolve_template_name(pipeline_type)
++
++    if template_name not in _template_runtime:
++        _parse_template_transitions(template_name)
++
++    runtime = _template_runtime.get(template_name, {})
++    if runtime:
++        return runtime
++
++    # Fallback to research runtime defaults if this template is missing runtime metadata.
++    if template_name != 'research':
++        if 'research' not in _template_runtime:
++            _parse_template_transitions('research')
++        runtime = _template_runtime.get('research', {})
++
++    return runtime if isinstance(runtime, dict) else {}
++
++
++def _get_runtime_role_config(version: str, agent: str) -> dict:
++    """Get runtime role config for an agent from template runtime.roles."""
++    runtime = _get_template_runtime(version=version)
++    roles = runtime.get('roles', {}) if isinstance(runtime, dict) else {}
++    if not isinstance(roles, dict):
++        return {}
++    cfg = roles.get(agent, {})
++    return cfg if isinstance(cfg, dict) else {}
++
++
+ def resolve_transition(version: str, stage: str) -> tuple | None:
+     """Resolve the next transition for a stage from templates exclusively.
+ 
+@@ -592,6 +637,13 @@ class DispatchPayload:
+     # The engine renders the trail and embeds it — agents don't need UDS access (D5).
+     view_context: str = ''
+ 
++    # Template runtime metadata used by Hermes-style delegate_task dispatch.
++    # Safe additive field: legacy consumers ignore it.
++    runtime: dict = field(default_factory=dict)
++
++    # Optional role-specific startup view hint (e.g. persona-filtered supermap entrypoint).
++    startup_view: str = ''
++
+     def to_dict(self) -> dict:
+         """Serialize for JSON output / tool relay.
+ 
+@@ -625,6 +677,8 @@ class DispatchPayload:
+                 'completion_command': self.completion_command,
+                 'view_filter': self.view_filter,  # Phase 2 R2: persona view metadata
+                 'view_context': self.view_context,  # Phase 2: pre-rendered .v5 trail
++                'runtime': self.runtime,  # Hermes runtime metadata (dispatch tool / role toolsets)
++                'startup_view': self.startup_view,  # Role-specific startup view hint
+             },
+         }
+ 
+@@ -983,6 +1037,16 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
+     files = _files_for_stage(version, stage, agent)
+     partial = _detect_partial_work(version) if is_resume else []
+ 
++    runtime_cfg = _get_template_runtime(version=version)
++    role_cfg = _get_runtime_role_config(version, agent)
++    role_toolsets = role_cfg.get('toolsets', []) if isinstance(role_cfg.get('toolsets', []), list) else []
++    persona = role_cfg.get('persona', agent)
++    if not isinstance(persona, str) or not persona:
++        persona = agent
++    startup_view = role_cfg.get('startup_view')
++    if not startup_view and persona:
++        startup_view = f'python3 scripts/codex_engine.py --as {persona}'
++
+     task = _build_task_prompt(
+         version, stage, agent, notes, files,
+         is_resume=is_resume, resume_count=resume_count,
+@@ -999,7 +1063,6 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
+ 
+         # Phase 2 R2: Inject persona-filtered dashboard into task prompt.
+         # Orchestration sets the view filter when dispatching — agents don't choose (D5).
+-        persona = agent  # Agent name maps to persona
+         filtered_dashboard = temporal.format_dashboard_for_prompt(persona=persona)
+         if filtered_dashboard:
+             task += f"\n\n## Autoclave Dashboard (filtered for {persona})\n{filtered_dashboard}\n"
+@@ -1011,12 +1074,19 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
+             view_filter = {
+                 'persona': persona,
+                 'persona_coord': f'i{agent_info.get("index", 0)}',
++                'role': agent,
++                'toolsets': role_toolsets,
+                 'show_stages': pf.get('show_stages', []),
+                 'show_sections': pf.get('show_sections', []),
+                 'highlight_fields': pf.get('highlight_fields', []),
+             }
+         except ImportError:
+-            pass
++            view_filter = {
++                'persona': persona,
++                'persona_coord': f'i{agent_info.get("index", 0)}',
++                'role': agent,
++                'toolsets': role_toolsets,
++            }
+ 
+     # Phase 2: Generate pre-rendered .v5 R-label trail for agent situational awareness.
+     # Agents receive a rendered snapshot, not query capabilities (D5).
+@@ -1027,6 +1097,22 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
+     except (ImportError, Exception):
+         pass  # Non-fatal
+ 
++    if startup_view:
++        task += (
++            "\n\n## Startup View\n"
++            f"Begin with a role-specific map pass: `{startup_view}`\n"
++            "Use it to orient before making changes."
++        )
++
++    runtime_context = {
++        'platform': runtime_cfg.get('platform'),
++        'dispatch_tool': runtime_cfg.get('dispatch_tool'),
++        'codex_cli_enabled': runtime_cfg.get('codex_cli_enabled'),
++        'role': agent,
++        'persona': persona,
++        'toolsets': role_toolsets,
++    }
++
+     return DispatchPayload(
+         agent=agent,
+         task=task,
+@@ -1052,6 +1138,8 @@ def build_dispatch_payload(version: str, stage: str, agent: str,
+         completion_command=_build_completion_command(version, stage, agent),
+         view_filter=view_filter,
+         view_context=trail_context,
++        runtime=runtime_context,
++        startup_view=startup_view,
+     )
+ 
+ 
+diff --git a/scripts/template_parser.py b/scripts/template_parser.py
+index cd951408..7fd7de1e 100644
+--- a/scripts/template_parser.py
++++ b/scripts/template_parser.py
+@@ -15,6 +15,7 @@ Returns structured dicts matching the shape consumed by pipeline_update.py:
+   - human_gates: set of stages
+   - first_agent: str
+   - pipeline_fields: dict with 'type' and 'stages'
++  - runtime: optional runtime metadata passthrough (platform/dispatch_tool/roles/...)
+ """
+ 
+ import re
+@@ -44,6 +45,7 @@ def parse_template(template_name: str) -> dict | None:
+       - start_status_bumps: dict  (stage → status_string)
+       - human_gates: set[str]
+       - pipeline_fields: dict  (type, stages)
++      - runtime: dict  (optional runtime metadata)
+ 
+     Returns None if template not found or unparseable.
+     """
+@@ -102,6 +104,7 @@ def _parse_phase_based(data: dict) -> dict | None:
+     pipeline_type = data.get('type', 'unknown')
+     phases = data.get('phases', {})
+     block_routing = data.get('block_routing', {})
++    runtime = data.get('runtime', {}) if isinstance(data.get('runtime'), dict) else {}
+     complete_task_agent = data.get('complete_task_agent', 'architect')
+     auto_complete_on_clean_pass = data.get('auto_complete_on_clean_pass', False)
+ 
+@@ -267,6 +270,7 @@ def _parse_phase_based(data: dict) -> dict | None:
+             'type': pipeline_type,
+             'stages': all_stage_names,
+         },
++        'runtime': runtime,
+         'complete_task_agent': complete_task_agent,
+         'auto_complete_on_clean_pass': auto_complete_on_clean_pass,
+     }
+@@ -283,6 +287,7 @@ def _parse_legacy_yaml(data: dict) -> dict | None:
+ 
+     first_agent = data.get('first_agent', 'architect')
+     pipeline_fields = data.get('pipeline_fields', {})
++    runtime = data.get('runtime', {}) if isinstance(data.get('runtime'), dict) else {}
+     human_gates_list = data.get('human_gates', [])
+     human_gates = set(human_gates_list) if human_gates_list else set()
+ 
+@@ -330,6 +335,7 @@ def _parse_legacy_yaml(data: dict) -> dict | None:
+         'start_status_bumps': start_status_bumps,
+         'human_gates': human_gates,
+         'pipeline_fields': pipeline_fields,
++        'runtime': runtime,
+     }
+ 
+ 
+@@ -345,6 +351,7 @@ def _parse_manually(yaml_block: str) -> dict | None:
+     human_gates = set()
+     first_agent = 'architect'
+     pipeline_fields = {}
++    runtime = {}
+ 
+     current_section = None
+ 
+@@ -442,6 +449,7 @@ def _parse_manually(yaml_block: str) -> dict | None:
+         'start_status_bumps': start_status_bumps,
+         'human_gates': human_gates,
+         'pipeline_fields': pipeline_fields,
++        'runtime': runtime,
+     }
+ 
+ 
+diff --git a/scripts/tests/test_template_parser.py b/scripts/tests/test_template_parser.py
+index 0ae652e4..d438afcc 100644
+--- a/scripts/tests/test_template_parser.py
++++ b/scripts/tests/test_template_parser.py
+@@ -25,6 +25,17 @@ def test_research_parses():
+     assert result['pipeline_fields']['type'] == 'research'
+ 
+ 
++def test_runtime_block_passthrough():
++    """Runtime metadata block is preserved for orchestrator dispatch/profile use."""
++    clear_cache()
++    result = parse_template('builder-first')
++    runtime = result.get('runtime', {})
++    assert runtime.get('platform') == 'hermes'
++    assert runtime.get('dispatch_tool') == 'delegate_task'
++    assert 'architect' in runtime.get('roles', {})
++    assert runtime['roles']['architect'].get('toolsets') == ['terminal', 'file', 'web', 'skills']
++
++
+ def test_builder_first_stage_names():
+     """Builder-first template generates correct phase-based stage names."""
+     clear_cache()

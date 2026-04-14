@@ -2,6 +2,6 @@
   "id": "codex-cockpit",
   "kind": "hook-only",
   "name": "Codex Cockpit",
-  "description": "Injects the Codex Engine supermap into every agent turn via before_prompt_build, providing always-fresh coordinate-addressable primitive navigation without exec calls.",
+  "description": "Injects the Codex Engine supermap into every agent turn via before_prompt_build using direct render from scripts/render_supermap.py.",
   "configSchema": {}
 }

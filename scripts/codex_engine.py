@@ -25,7 +25,31 @@ except ImportError:
 
 # ─── Configuration ─────────────────────────────────────────────────────────────
 
-WORKSPACE = Path(os.environ.get('BELAM_WORKSPACE', Path.home() / '.openclaw/workspace'))
+def _resolve_workspace() -> Path:
+    candidates = [
+        os.environ.get('BELAM_WORKSPACE'),
+        os.environ.get('OPENCLAW_WORKSPACE'),
+        os.environ.get('WORKSPACE'),
+    ]
+    for value in candidates:
+        if value:
+            candidate = Path(value).expanduser()
+            if (candidate / 'scripts' / 'codex_engine.py').is_file():
+                return candidate
+
+    cwd = Path.cwd()
+    if (cwd / 'scripts' / 'codex_engine.py').is_file():
+        return cwd
+
+    preferred = Path.home() / '.hermes' / 'belam-codex'
+    legacy = Path.home() / '.openclaw' / 'workspace'
+    for candidate in (preferred, legacy):
+        if (candidate / 'scripts' / 'codex_engine.py').is_file():
+            return candidate
+    return preferred
+
+
+WORKSPACE = _resolve_workspace()
 RENDER_STATE_FILE = Path.home() / '.belam_render_state.json'
 EXCLUDED_STATUSES = {'superseded', 'archived', 'done', 'complete'}
 

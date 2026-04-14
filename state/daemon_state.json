@@ -1,7 +1,7 @@
 {
   "last_launch_at": null,
-  "tick_count": 1458,
-  "updated_at": "2026-04-13T05:23:24.684131+00:00",
+  "tick_count": 414,
+  "updated_at": "2026-04-14T16:52:48.628721+00:00",
   "snapshots": {
     "/home/ubuntu/.openclaw/workspace/tasks/setup-vectorbt-nautilus-pipeline-s5-transaction-costs.md": {
       "mtime": 1775031111.9020035,
@@ -2420,6 +2420,2442 @@
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/interactive-decision-tree-kfold-visualizer.md": {
       "mtime": 1775157972.498813,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p2_experiment_run",
+        "priority": "high",
+        "type": "research",
+        "version": "interactive-decision-tree-kfold-visualizer",
+        "spec_file": "machinelearning/snn_applied_finance/specs/interactive-decision-tree-kfold-visualizer_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_interactive-decision-tree-kfold-visualizer.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[education, visualization, web]",
+        "project": "snn-applied-finance",
+        "started": "2026-04-02",
+        "pending_action": "p2_system_experiment_run",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-04-02 19:26"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline-s5-transaction-costs.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, infrastructure, costs]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s5-transaction-costs",
+        "project": "snn-applied-finance",
+        "estimate": "5 hours",
+        "parent_task": "setup-vectorbt-nautilus-pipeline",
+        "depends_on": "[setup-vectorbt-nautilus-pipeline-s3-strategy-adapter]",
+        "upstream": "[task/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-deep-analysis-advanced-v3-v4.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "title": "SNN Deep Analysis \u2014 Advanced V3/V4",
+        "status": "done",
+        "priority": "high",
+        "tags": "snn, research, analysis, deep-dive",
+        "pipeline": "snn-deep-analysis-advanced-v3-v4",
+        "project": "snn-applied-finance",
+        "depends_on": "[snn-deep-analysis-foundational-v1-v2]",
+        "created": "2026-03-31"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/container-build-and-test.md": {
+      "mtime": 1776070803.968179,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "low",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "upstream": "[containerize-openclaw-workspace]",
+        "downstream": "[]",
+        "tags": "[infrastructure, docker, containerization]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/iterative-model-improvement-loop-architecture.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[specialist-stacking-lstm-lgbm-cross-model-ensemble, teacher-student-high-confidence-distillation, lstm-snn-signal-generation-for-lgbm-features]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing, model-architecture]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/session-quality-and-guardrail-tracking.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]  # lm-v3 done 2026-03-24",
+        "tags": "[lm, metacognition, quality, guardrails, observability, infrastructure]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/primitive-access-compliance-tracking.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[coordinate-first-boot-convention]",
+        "upstream": "[limit-soul-read-write]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, observability]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-s4-e1-undo-command.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-s3-f-label-git-diff-output]",
+        "upstream": "[ram-git-undo-primitive]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, ram, git, undo, builder-first]",
+        "project": "codex-engine",
+        "pipeline_type": "builder-first",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/report-to-youtube-pipeline.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "high",
+        "created": "2026-03-20",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[video, youtube, automation, infrastructure, manim, tts]",
+        "pipeline": "report-to-youtube-pipeline",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/4h-12h-daily-lightgbm-with-higher-tf-features.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[higher-timeframe-feature-generation-12h-1d-1w-1m]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing, model-training]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/orchestration-v3-monitoring-suite.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "pipeline": "orchestration-v3-monitoring",
+        "priority": "medium",
+        "created": "2026-03-21",
+        "archived": "2026-03-22",
+        "archive_reason": "pipeline orchestration-v3-monitoring archived",
+        "owner": "belam",
+        "depends_on": "[orchestration-engine-v2-temporal-autoclave]",
+        "upstream": "[task/orchestration-engine-v2-temporal-autoclave, decision/codex-engine-modes-as-primitives]",
+        "downstream": "[task/codex-engine-v3-temporal-mcp-autoclave]",
+        "tags": "[orchestration, monitoring, real-time, autoclave, v3, dashboard]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-engine-enum-field-indexing.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "created": "2026-03-21",
+        "owner": "belam",
+        "depends_on": "[]  # t1 archived 2026-03-23",
+        "upstream": "[d28-codex-engine-dense-alphanumeric-coordinate-grammar, d8-codex-cockpit-plugin-architecture]",
+        "downstream": "[]",
+        "tags": "[codex-engine, v2, dense-grammar, enum-indexing, token-efficiency, infrastructure]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, infrastructure]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s1-environment-setup",
+        "project": "snn-applied-finance",
+        "estimate": "1 day",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-deep-analysis-foundational-v1-v2.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "title": "SNN Deep Analysis \u2014 Foundational V1/V2",
+        "status": "done",
+        "priority": "high",
+        "tags": "snn, research, analysis, deep-dive",
+        "pipeline": "snn-deep-analysis-foundational-v1-v2",
+        "project": "snn-applied-finance",
+        "created": "2026-03-31"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, infrastructure, strategy]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s3-strategy-adapter",
+        "project": "snn-applied-finance",
+        "estimate": "6 hours",
+        "parent_task": "setup-vectorbt-nautilus-pipeline",
+        "depends_on": "[setup-vectorbt-nautilus-pipeline-s2-data-pipeline]",
+        "upstream": "[task/setup-vectorbt-nautilus-pipeline-s2-data-pipeline]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/quant-microcap-crypto-baseline.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[quant-baseline-v1]",
+        "downstream": "[snn-microcap-crypto-baseline]",
+        "tags": "[quant, crypto, microcap, baseline, swing-trading]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/lm-v3-platform-and-system-namespace.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "title": "LM v3 \u2014 Platform & System Namespace + Scaffolded Writes",
+        "status": "done",
+        "priority": "high",
+        "tags": "[lm, infrastructure, codex-engine, platform]",
+        "pipeline": "lm-v3-platform-and-system-namespace",
+        "depends_on": "[]",
+        "project": "codex-engine"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/coordinate-first-boot-convention.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "medium",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[limit-soul-read-write]",
+        "downstream": "[primitive-access-compliance-tracking]",
+        "tags": "[infrastructure, codex-engine, architecture, convention]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "high",
+        "created": "2026-03-23",
+        "owner": "belam",
+        "depends_on": "[build-equilibrium-snn]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[snn, limbic, reward, equilibrium, research]",
+        "pipeline": "limbic-reward-snn-bio-inspired-reward-neurons-for-equilibrium-network",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-layer-context-injection.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "critical",
+        "created": "2026-03-22",
+        "archived": "2026-03-22",
+        "archive_reason": "pipeline codex-layer-context-injection archived",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[codex-layer-output-codec, codex-layer-symbolic-dispatch]",
+        "tags": "[codex-layer, context-optimization, infrastructure]",
+        "pipeline": "codex-layer-context-injection",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/video-pipeline-standalone-repo.md": {
+      "mtime": 1776070803.9696746,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "in_pipeline",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "upstream": "[report-to-youtube-pipeline]",
+        "downstream": "[]",
+        "tags": "[video, youtube, infrastructure, repo-setup]",
+        "pipeline": "video-pipeline-standalone-repo",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-worktree-bootstrap.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]",
+        "downstream": "[ram-git-diff-pipeline, ram-git-sync-daemon]",
+        "tags": "[infrastructure, codex-engine, ram, git, symlinks]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/llm-human-interactive-gaming.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "tags": "[research, gaming, llm, world-model, multiplayer, fun]",
+        "created": "2026-03-26",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-layer-output-codec.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "superseded",
+        "superseded_by": "build-codex-layer-v1",
+        "priority": "high",
+        "created": "2026-03-22",
+        "owner": "belam",
+        "depends_on": "[codex-layer-context-injection]",
+        "upstream": "[codex-layer-context-injection]",
+        "downstream": "[codex-layer-symbolic-dispatch]",
+        "tags": "[codex-layer, output-codec, infrastructure]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/persistent-e3-registry.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "low",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[persistent-extend-and-indexed-subops]",
+        "downstream": "[indexed-subops-e0-e3]",
+        "tags": "[engine, extend, persistence, infrastructure]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/indexed-subops-e0-e3.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[t31, t34, t8]",
+        "upstream": "[persistent-extend-and-indexed-subops]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing, model-architecture]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/quant-cross-asset-stablecoin-spreads.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[quant-baseline-v1]",
+        "downstream": "[snn-cross-asset-stablecoin-spreads]",
+        "tags": "[quant, cross-asset, stablecoin, arbitrage, spreads]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-diff-pipeline.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-worktree-bootstrap]",
+        "upstream": "[codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]",
+        "downstream": "[ram-git-undo-primitive]",
+        "tags": "[infrastructure, codex-engine, ram, git, diff]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/higher-timeframe-feature-generation-12h-1d-1w-1m.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/containerize-openclaw-workspace.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "high",
+        "created": "2026-03-21",
+        "owner": "belam",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[docker, infrastructure, portability, deployment]",
+        "pipeline": "containerize-openclaw-workspace",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/e0-sweep-subcommand-separation.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "high",
+        "tags": "[orchestration, infrastructure, stability]",
+        "pipeline": "e0-sweep-subcommand-separation",
+        "project": "workspace",
+        "created": "2026-03-24",
+        "depends_on": "[]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/comprehensive-backtest-sweep-all-models.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-30",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[t13]",
+        "downstream": "[]",
+        "tags": "[quant, backtest, lightgbm, microcap, majors, vectorbt]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/limit-soul-read-write.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "superseded",
+        "priority": "high",
+        "superseded_by": "[coordinate-first-boot-convention, primitive-access-compliance-tracking, persona-filtered-supermap-views]",
+        "created": "2026-03-20",
+        "owner": "belam",
+        "depends_on": "[]  # build-codex-engine doesn't exist as a task; engine is live",
+        "upstream": "[task/build-codex-engine, decision/codex-engine-v1-architecture]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, architecture, consciousness]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, validation, statistics]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation",
+        "project": "snn-applied-finance",
+        "estimate": "5 hours",
+        "parent_task": "setup-vectorbt-nautilus-pipeline",
+        "depends_on": "[setup-vectorbt-nautilus-pipeline-s3-strategy-adapter]",
+        "upstream": "[task/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]",
+        "tags": "[pipeline, testing, verification, wiggum, git-branch, infrastructure]",
+        "pipeline": "pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-energy-topology-research.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-27",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[snn-standard-model, microcap-swing-signal-extraction]",
+        "downstream": "[]",
+        "tags": "[snn, research, neuron-architecture, energy-model, topology, frequency-matching]",
+        "project": "snn-energy-topology-research",
+        "subtasks": "[\"{'id': 'A1', 'title': 'Energy-Aware LIF Neuron \u2014 Base Implementation', 'status': 'in_pipeline', 'depends_on': []}\", \"{'id': 'A2', 'title': 'Frequency Matching Loss Function', 'status': 'open', 'depends_on': ['A1']}\", \"{'id': 'A3', 'title': 'Frequency Band Quantization', 'status': 'open', 'depends_on': ['A2']}\", \"{'id': 'A4', 'title': 'Differential Output Under Energy Pressure', 'status': 'open', 'depends_on': ['A1', 'A2']}\", \"{'id': 'A5a', 'title': 'Pull-Only Connection Mechanics \u2014 Subscribe/Unsubscribe', 'status': 'open', 'depends_on': ['A1']}\", \"{'id': 'A5b', 'title': 'Fold-Based Connection Restructuring & Meta-Learning', 'status': 'open', 'depends_on': ['A5a']}\", \"{'id': 'A5c', 'title': 'Connection Energy Economics \u2014 Formation Cost & Natural Decay', 'status': 'open', 'depends_on': ['A5a']}\", \"{'id': 'A5d', 'title': 'Layer Rule Enforcement & Small Cluster Integration', 'status': 'open', 'depends_on': ['A5b', 'A5c']}\", \"{'id': 'B1', 'title': 'Architecture Baseline \u2014 Fixed Feedforward SNN on BTC Data', 'status': 'open', 'depends_on': ['A1', 'A2', 'A3']}\", \"{'id': 'B2a', 'title': 'Full Architecture Assembly \u2014 Input/Processing/Output on BTC Data', 'status': 'open', 'depends_on': ['A5d', 'B1']}\", \"{'id': 'B2b', 'title': 'Topology Analysis \u2014 Connection Graphs & Neuron Specialization', 'status': 'open', 'depends_on': ['B2a']}\", \"{'id': 'B3', 'title': 'Self-Organizing Variant B \u2014 Output Reads Processing + Input', 'status': 'open', 'depends_on': ['B2a']}\", \"{'id': 'B4', 'title': 'Connection Limits & Scaling \u2014 Max K Connections', 'status': 'open', 'depends_on': ['B2a']}\", \"{'id': 'C1', 'title': 'Single-Indicator Micro-Networks \u2014 Candles Only', 'status': 'open', 'depends_on': ['B2a']}\", \"{'id': 'C2a', 'title': 'Single-Indicator Micro-Networks \u2014 Indicator Only (Various Formats)', 'status': 'open', 'depends_on': ['C1']}\", \"{'id': 'C2b', 'title': 'Paired Micro-Networks \u2014 Single Indicator + Candle Data (Various Formats)', 'status': 'open', 'depends_on': ['C1']}\", \"{'id': 'C3', 'title': 'Micro-Network Ensemble \u2014 Combine Trained Specialists', 'status': 'open', 'depends_on': ['C1', 'C2a', 'C2b']}\", \"{'id': 'D1', 'title': 'All-Indicators Monolithic Network', 'status': 'open', 'depends_on': ['B2a']}\", \"{'id': 'D2', 'title': 'Ensemble vs Monolithic Comparison', 'status': 'open', 'depends_on': ['C3', 'D1']}\", \"{'id': 'E1', 'title': 'Multi-Horizon Prediction \u2014 5/10/50 Candle Windows', 'status': 'open', 'depends_on': ['D2']}\", \"{'id': 'E2', 'title': 'Energy-Optimal Spike Rates Across Horizons', 'status': 'open', 'depends_on': ['E1']}\", \"{'id': 'F1', 'title': 'Research Synthesis & Architecture Recommendations', 'status': 'open', 'depends_on': ['D2', 'E2']}\"]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-cross-asset-stablecoin-spreads.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[quant-cross-asset-stablecoin-spreads]",
+        "upstream": "[quant-baseline-v1]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing, model-architecture]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-engine-v2-modes-mcp-temporal.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "high",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "tags": "[engine, codex, modes, grammar, v2]",
+        "created": "2026-03-21",
+        "archived": "2026-03-22",
+        "archive_reason": "status: complete",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-pipeline-signaling.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "medium",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-diff-pipeline]",
+        "upstream": "[codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, ram, git, pipelines, signaling]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-engine-v3-temporal-mcp-autoclave.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "medium",
+        "created": "2026-03-21",
+        "archived": "2026-03-22",
+        "archive_reason": "continuation task codex-engine-v3-legendary-map (phase 3) supersedes (phase 0)",
+        "owner": "belam",
+        "depends_on": "[codex-engine-v2-modes-mcp-temporal]",
+        "upstream": "[decision/codex-engine-v2-dense-alphanumeric-grammar]",
+        "downstream": "[]",
+        "tags": "[engine, codex, mcp, v3]",
+        "pipeline": "codex-engine-v3",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/build-incremental-relationship-mapper.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "execution": "standalone_cron",
+        "created": "2026-03-20",
+        "owner": "belam",
+        "depends_on": "[primitive-relationship-graph]",
+        "upstream": "[decision/primitive-relationship-graph, decision/indexed-command-interface, memory/2026-03-20_033917_primitive-relationship-graph-deployed-al]",
+        "downstream": "[]",
+        "tags": "[infrastructure, knowledge-graph, primitives, relationships]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/llm-quant-paper-trader-daemon.md": {
+      "mtime": 1776070803.971208,
+      "frontmatter": {}
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-deep-analysis-standard-synaptic-alpha.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "title": "SNN Deep Analysis \u2014 Standard Model Synaptic & Alpha",
+        "status": "done",
+        "priority": "high",
+        "tags": "snn, research, analysis, deep-dive, standard-model",
+        "pipeline": "snn-deep-analysis-standard-synaptic-alpha",
+        "project": "snn-applied-finance",
+        "depends_on": "[snn-deep-analysis-standard-leaky]",
+        "created": "2026-03-31"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ann-topology-exploration-tabnet-tcnn-transformer.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/research-openclaw-internals.md": {
+      "mtime": 1776070803.9717937,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "high",
+        "created": "2026-03-21",
+        "completed": "2026-03-21",
+        "owner": "belam",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[task/orchestration-engine-v2-temporal-autoclave]",
+        "tags": "[openclaw, research, sessions, hooks, plugins]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-statistical-process-models.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[quant-statistical-process-models]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[snn, garch, hawkes, poisson, process-models, temporal]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/specialist-stacking-lstm-lgbm-cross-model-ensemble.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/build-codex-layer-v1.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "critical",
+        "created": "2026-03-22",
+        "archived": "2026-03-23",
+        "archive_reason": "pipeline build-codex-layer-v1 archived",
+        "owner": "belam",
+        "depends_on": "[codex-layer-context-injection]",
+        "upstream": "[codex-engine-v3-legendary-map]",
+        "downstream": "[]",
+        "tags": "[codex-layer, v1, interceptor, output-codec, symbolic-dispatch, infrastructure]",
+        "pipeline": "build-codex-layer-v1",
+        "supersedes": "[codex-layer-output-codec, codex-layer-symbolic-dispatch]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-pairs-trading-energy-nuclear.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[quant-pairs-trading-energy-nuclear]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing, model-architecture]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-microcap-crypto-baseline.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[quant-microcap-crypto-baseline]",
+        "upstream": "[quant-baseline-v1]",
+        "downstream": "[]",
+        "tags": "[snn, crypto, microcap, baseline, swing-trading, temporal]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/quant-pairs-trading-energy-nuclear.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[snn-pairs-trading-energy-nuclear]",
+        "tags": "[quant, pairs-trading, energy, nuclear, ornstein-uhlenbeck, poisson]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/git-diff-handoff-context.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "title": "Git-diff handoff context for pipeline stage transitions",
+        "status": "open",
+        "priority": "high",
+        "tags": "[pipelines, orchestration, handoff, git, context]",
+        "pipeline": "git-diff-handoff-context",
+        "upstream": "[]",
+        "downstream": "[]",
+        "created": "\"quant,microcap-swing,feature-engineering\"",
+        "pipeline_template": "\"\"",
+        "current_stage": "null",
+        "pipeline_status": "\"\"",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-deep-analysis-bioinspired-specialized.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "title": "SNN Deep Analysis \u2014 Bio-Inspired & Specialized",
+        "status": "done",
+        "priority": "high",
+        "tags": "snn, research, analysis, deep-dive, bio-inspired",
+        "pipeline": "snn-deep-analysis-bioinspired-specialized",
+        "project": "snn-applied-finance",
+        "depends_on": "[snn-deep-analysis-advanced-v3-v4]",
+        "created": "2026-03-31"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/validate-scheme-b-more-folds.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "high",
+        "owner": "builder",
+        "tags": "[validation, statistics, snn]",
+        "pipeline": "validate-scheme-b",
+        "project": "snn-applied-finance",
+        "estimate": "4h",
+        "depends_on": "[]",
+        "version_label": "v5-validation",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/lstm-snn-signal-generation-for-lgbm-features.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/llm-quant-dydx-adapter.md": {
+      "mtime": 1776070803.9729745,
+      "frontmatter": {}
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/builder-first-pipeline-template-coordinate.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[render-engine-simplification]",
+        "tags": "[infrastructure, codex-engine, pipelines, builder-first]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/orchestration-engine-v2-temporal-autoclave.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "medium",
+        "created": "2026-03-21",
+        "archived": "2026-03-22",
+        "archive_reason": "status: complete",
+        "owner": "belam",
+        "depends_on": "[build-orchestration-engine-v1]",
+        "upstream": "[decision/orchestration-architecture, decision/codex-engine-v2-dense-alphanumeric-grammar, pipeline/research-openclaw-internals]",
+        "downstream": "[]",
+        "tags": "[orchestration, engine, temporal, spacetimedb, autoclave, v2]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline-s2-data-pipeline.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, infrastructure, data]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s2-data-pipeline",
+        "project": "snn-applied-finance",
+        "estimate": "4 hours",
+        "parent_task": "setup-vectorbt-nautilus-pipeline",
+        "depends_on": "[setup-vectorbt-nautilus-pipeline-s1-environment-setup]",
+        "upstream": "[task/setup-vectorbt-nautilus-pipeline-s1-environment-setup]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/microcap-swing-signal-extraction.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-26",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[quant-microcap-crypto-baseline]",
+        "downstream": "[]",
+        "tags": "[quant, crypto, microcap, swing-trading, ml, sentiment, binary-classification]",
+        "subtasks": "[\"{'id': 'S1', 'title': 'Data Pipeline \u2014 CEX + DEX + Fear & Greed', 'status': 'done', 'depends_on': []}\", \"{'id': 'S2', 'title': 'Feature Engineering \u2014 Technical + Sentiment + Cross-Asset + Temporal', 'status': 'done', 'depends_on': ['S1']}\", \"{'id': 'S3A', 'title': 'Label Construction & LightGBM \u2014 15-min candles', 'status': 'done', 'depends_on': ['S2']}\", \"{'id': 'S3B', 'title': 'Label Construction & LightGBM \u2014 1-hour candles', 'status': 'done', 'depends_on': ['S2']}\", \"{'id': 'S4', 'title': 'BTC Control Analysis', 'status': 'done', 'depends_on': ['S3A', 'S3B']}\", \"{'id': 'S5', 'title': 'Confidence Calibration \u2014 Platt/Isotonic + Reliability Diagrams', 'status': 'done', 'depends_on': ['S3A', 'S3B']}\", \"{'id': 'S6', 'title': 'Risk Management Overlay', 'status': 'done', 'depends_on': ['S5']}\", \"{'id': 'S7', 'title': 'LSTM Secondary Model', 'status': 'done', 'depends_on': ['S3A', 'S3B']}\", \"{'id': 'S8', 'title': 'Ensemble & Meta-Learning \u2014 Stacking + Agreement Gating', 'status': 'done', 'depends_on': ['S5', 'S7']}\", \"{'id': 'S9', 'title': 'Cross-Token Momentum Analysis', 'status': 'done', 'depends_on': ['S4']}\", \"{'id': 'S10', 'title': 'Regime Detection Pre-Filter', 'status': 'done', 'depends_on': ['S4', 'S5']}\", \"{'id': 'S11', 'title': 'Experiment Synthesis & Feature Survival Report', 'status': 'done', 'depends_on': ['S8', 'S6']}\"]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-undo-primitive.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-diff-pipeline]",
+        "upstream": "[codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, ram, git, undo]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing.md": {
+      "mtime": 1776070803.974016,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "in_pipeline",
+        "priority": "high",
+        "created": "2026-03-23",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[codex-engine-v3-legendary-map, codex-engine-v3-temporal-mcp-autoclave]",
+        "downstream": "[ram-git-worktree-bootstrap, ram-git-diff-pipeline, ram-git-sync-daemon, ram-git-undo-primitive, ram-git-pipeline-signaling]",
+        "tags": "[codex-engine, render-engine, ram, codex-format, research]",
+        "notes": "D7 deliverables extracted into 5 standalone sub-tasks (2026-03-24). This task retains D1-D6 (RAM-first render runtime). D7.4 (agent branch isolation) deferred to Phase 3.",
+        "pipeline": "codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/llm-quant-dydx-adapter-desc-build-dydx-v4-execution-adapter-with-testnet-integration-tests-real-binance-candles-real-dydx-orders-part-1-of-live-paper-trading-pipeline-tags-quantdydxexecutorcrypto-priority-critical.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "critical",
+        "created": "2026-03-27",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/research-orchestration-tooling.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "superseded",
+        "priority": "high",
+        "created": "2026-03-21",
+        "owner": "belam",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[orchestration, research, mcp, frameworks]",
+        "superseded_by": "build-orchestration-engine-v1",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/retroactive-analysis-limbic-reward-and-validate-scheme-b.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "medium",
+        "tags": "[analysis, snn, research]",
+        "project": "snn-applied-finance",
+        "created": "2026-03-24",
+        "depends_on": "[]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/self-hosted-llm-colab-turboquant.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-26",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, infra, self-hosted]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/spiking-transformer-integration-research.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "in_pipeline",
+        "priority": "high",
+        "created": "2026-03-21",
+        "owner": "belam",
+        "project": "snn-applied-finance",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[quant, microcap-swing, model-architecture]",
+        "tags": "[snn, transformer, temporal, research]",
+        "pipeline": "spiking-transformer-integration-research",
+        "pipeline_template": "null",
+        "current_stage": "null",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "high",
+        "created": "2026-03-23",
+        "archived": "2026-03-23",
+        "archive_reason": "pipeline lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment archived",
+        "owner": "belam",
+        "depends_on": "[codex-engine-v3-legendary-map]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[codex-engine, legendary-map, lm, infrastructure]",
+        "pipeline": "lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-layer-symbolic-dispatch.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "superseded",
+        "superseded_by": "build-codex-layer-v1",
+        "priority": "high",
+        "created": "2026-03-22",
+        "owner": "belam",
+        "depends_on": "[codex-layer-output-codec]",
+        "upstream": "[codex-layer-output-codec]",
+        "downstream": "[]",
+        "tags": "[codex-layer, symbolic-dispatch, infrastructure]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline-s1-environment-setup.md": {
+      "mtime": 1776070803.974755,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, infrastructure]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s1-environment-setup",
+        "project": "snn-applied-finance",
+        "estimate": "4 hours",
+        "parent_task": "setup-vectorbt-nautilus-pipeline",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/persona-filtered-supermap-views.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "complete",
+        "priority": "low",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[limit-soul-read-write]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, persona, render]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/temporal-interaction-llm-gaming.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "project": "multi-agent-infrastructure",
+        "depends_on": "[]",
+        "tags": "[research, infrastructure, spacetimedb, temporal, gaming]",
+        "pipeline": "temporal-interaction-llm-gaming",
+        "created": "2026-03-21",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-s3-f-label-git-diff-output.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-s2-auto-commit-on-turn]",
+        "upstream": "[scrap-r-labels-keep-f-labels-as-raw-git-diff]",
+        "downstream": "[ram-git-s4-e1-undo-command]",
+        "tags": "[infrastructure, codex-engine, ram, git, f-labels, builder-first]",
+        "project": "codex-engine",
+        "pipeline_type": "builder-first",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/setup-vectorbt-nautilus-pipeline-s6-statistical-validation.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "medium",
+        "owner": "builder",
+        "tags": "[backtesting, validation, statistics]",
+        "pipeline": "setup-vectorbt-nautilus-pipeline-s6-statistical-validation",
+        "project": "snn-applied-finance",
+        "estimate": "5 hours",
+        "parent_task": "setup-vectorbt-nautilus-pipeline",
+        "depends_on": "[setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation]",
+        "upstream": "[task/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/teacher-student-high-confidence-distillation.md": {
+      "mtime": 1776069780.0308642,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-28",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[quant, microcap-swing]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/quant-statistical-process-models.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "critical",
+        "created": "2026-03-25",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[quant-baseline-v1]",
+        "downstream": "[snn-statistical-process-models]",
+        "tags": "[quant, garch, hawkes, poisson, fractional-differentiation, process-models]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-sync-daemon.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-worktree-bootstrap]",
+        "upstream": "[codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing]",
+        "downstream": "[]",
+        "tags": "[infrastructure, codex-engine, ram, git, persistence]",
+        "project": "codex-engine",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/codex-engine-v3-legendary-map.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "critical",
+        "pipeline": "codex-engine-v3",
+        "created": "2026-03-22",
+        "archived": "2026-03-23",
+        "archive_reason": "pipeline codex-engine-v3-legendary-map archived",
+        "owner": "belam",
+        "depends_on": "[codex-engine-v3-temporal-mcp-autoclave]",
+        "upstream": "[codex-engine-v3]",
+        "downstream": "[build-codex-layer-v1]",
+        "tags": "[codex-engine, legendary-map, v3-phase3, attention-architecture]",
+        "phase": "3",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/render-engine-simplification.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "done",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[scrap-r-labels-keep-f-labels-as-raw-git-diff]",
+        "downstream": "[ram-git-s1-tmpfs-repo-and-symlinks]",
+        "tags": "[infrastructure, codex-engine, simplification, builder-first]",
+        "pipeline": "render-engine-simplification",
+        "project": "codex-engine",
+        "pipeline_type": "builder-first",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "in_pipeline",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-s2-auto-commit-on-turn.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[ram-git-s1-tmpfs-repo-and-symlinks]",
+        "upstream": "[ram-git-diff-pipeline]",
+        "downstream": "[ram-git-s3-f-label-git-diff-output]",
+        "tags": "[infrastructure, codex-engine, ram, git, builder-first]",
+        "project": "codex-engine",
+        "pipeline_type": "builder-first",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/snn-deep-analysis-standard-leaky.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "title": "SNN Deep Analysis \u2014 Standard Model Leaky (LIF)",
+        "status": "done",
+        "priority": "high",
+        "tags": "snn, research, analysis, deep-dive, standard-model",
+        "pipeline": "snn-deep-analysis-standard-leaky",
+        "project": "snn-applied-finance",
+        "created": "2026-03-31"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/interactive-decision-tree-kfold-visualizer.md": {
+      "mtime": 1776069780.027873,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-04-02",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[education, visualization, web]",
+        "pipeline": "interactive-decision-tree-kfold-visualizer"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/ram-git-s1-tmpfs-repo-and-symlinks.md": {
+      "mtime": 1776070803.975991,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "open",
+        "priority": "high",
+        "created": "2026-03-24",
+        "owner": "belam",
+        "depends_on": "[render-engine-simplification]",
+        "upstream": "[ram-git-worktree-bootstrap]",
+        "downstream": "[ram-git-s2-auto-commit-on-turn]",
+        "tags": "[infrastructure, codex-engine, ram, git, builder-first]",
+        "project": "codex-engine",
+        "pipeline_type": "builder-first",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/persistent-extend-and-indexed-subops.md": {
+      "mtime": 1776069780.0288644,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "superseded",
+        "priority": "critical",
+        "superseded_by": "[persistent-e3-registry, indexed-subops-e0-e3]",
+        "created": "2026-03-21",
+        "owner": "belam",
+        "depends_on": "[codex-engine-v2-modes-mcp-temporal]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[engine, extend, persistence, indexed-subops, v2]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/tasks/sample-task.md": {
+      "mtime": 1776069780.0298643,
+      "frontmatter": {
+        "primitive": "task",
+        "status": "archived",
+        "priority": "medium",
+        "created": "2026-03-20",
+        "owner": "belam",
+        "depends_on": "[]",
+        "upstream": "[]",
+        "downstream": "[]",
+        "tags": "[]",
+        "pipeline_template": "",
+        "current_stage": "",
+        "pipeline_status": "",
+        "launch_mode": "queued"
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/setup-vectorbt-nautilus-pipeline-s5-transaction-costs.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "setup-vectorbt-nautilus-pipeline-s5-transaction-costs",
+        "spec_file": "machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s5-transaction-costs_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s5-transaction-costs.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 06:54",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/v4-deep-analysis.md": {
+      "mtime": 1776069777.466869,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "version": "v4-deep-analysis",
+        "spec_file": "SNN_research/machinelearning/snn_applied_finance/research/pipeline_builds/v4-deep-analysis_design_brief.md",
+        "output_notebook": "SNN_research/machinelearning/snn_applied_finance/notebooks/crypto_v4_analysis.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[snn, finance, analysis, v4, dead-neuron-postmortem]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "archived": "2026-03-18",
+        "pending_action": "analysis_phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-17 19:09",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/orchestration-engine-v2-temporal.md": {
+      "mtime": 1776069777.4648693,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "medium",
+        "version": "orchestration-engine-v2-temporal",
+        "spec_file": "machinelearning/snn_applied_finance/specs/orchestration-engine-v2-temporal_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_orchestration-engine-v2-temporal.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[orchestration, temporal, spacetimedb, autoclave, persistent-agents]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-21",
+        "archived": "2026-03-22",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-21 21:29",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/snn-deep-analysis-advanced-v3-v4.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p1_complete",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "snn-deep-analysis-advanced-v3-v4",
+        "spec_file": "machinelearning/snn_applied_finance/specs/snn-deep-analysis-advanced-v3-v4_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-advanced-v3-v4.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, research, analysis, deep-dive]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-31",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-04-01 01:03",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/container-build-and-test.md": {
+      "mtime": 1776070803.9771228,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "archived": "2026-03-24",
+        "archive_reason": "Pipeline caused gateway shutdown and PATH loss. Stopped by Shael.",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "container-build-and-test",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-24",
+        "pending_action": "builder_implementation",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 15:53",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/report-to-youtube-pipeline.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "report-to-youtube-pipeline",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-24",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 13:48",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/snn-deep-analysis-foundational-v1-v2.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "snn-deep-analysis-foundational-v1-v2",
+        "spec_file": "machinelearning/snn_applied_finance/specs/snn-deep-analysis-foundational-v1-v2_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-foundational-v1-v2.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, research, analysis, deep-dive]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-31",
+        "pending_action": "p1_critic_review",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-04-01 01:00",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "setup-vectorbt-nautilus-pipeline-s3-strategy-adapter",
+        "spec_file": "machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s3-strategy-adapter.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 05:27",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/lm-v3-platform-and-system-namespace.md": {
+      "mtime": 1776069777.4648693,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "lm-v3-platform-and-system-namespace",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-24",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 13:48",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/codex-layer-context-injection.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "version": "codex-layer-context-injection",
+        "spec_file": "pipeline_builds/codex-layer-context-injection_spec.md",
+        "output_dir": "pipeline_builds/",
+        "agents": "[architect, critic, builder]",
+        "tags": "[codex-layer, context-optimization, infrastructure]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-22",
+        "archived": "2026-03-22",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-22 21:18",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/video-pipeline-standalone-repo.md": {
+      "mtime": 1776069777.466869,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p1_complete",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "video-pipeline-standalone-repo",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 04:28",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/codex-engine-v3.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "medium",
+        "version": "codex-engine-v3",
+        "spec_file": "machinelearning/snn_applied_finance/specs/codex-engine-v3_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v3.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[engine, codex, mcp, v3]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-22",
+        "archived": "2026-03-22",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-22 03:37",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/stack-specialists.md": {
+      "mtime": 1776069777.466869,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "version": "stack-specialists",
+        "spec_file": "machinelearning/snn_applied_finance/specs/stack-specialists_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/crypto_stack-specialists_predictor.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[snn, ensemble, specialists]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "archived": "2026-03-20",
+        "version_label": "v5-stacking",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-20 00:21",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/containerize-openclaw-workspace.md": {
+      "mtime": 1776070803.9784265,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "containerize-openclaw-workspace",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-24",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 13:48",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/e0-sweep-subcommand-separation.md": {
+      "mtime": 1776069777.4558692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "e0-sweep-subcommand-separation",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-24",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 13:48",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation",
+        "spec_file": "machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "archived": "2026-03-25",
+        "archive_reason": "Task complete \u2014 S4 walk-forward validation framework fully implemented and verified. Phase 2 direction referenced BLOCK-1 (DSR scaling) which was already fixed in Phase 1 (critic approved, 50/50 tests GREEN). No remaining work. Framework delivers: walk_forward.py (rolling+anchored splits, purge gap, embargo), metrics.py (Sharpe, Sortino, PSR, DSR per Bailey & Lopez de Prado 2014, max drawdown, Calmar, trade stats, significance tests), analysis.py (stability, overfitting PDR, regime, CI, verdict). 50/50 tests GREEN.",
+        "pending_action": "p2_architect_design",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 06:10",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[infrastructure, testing, verification, wiggum]",
+        "project": "agent-roster",
+        "started": "2026-03-24",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 13:48",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/snn-energy-topology-a1-energy-aware-neuron.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "research",
+        "version": "snn-energy-topology-a1-energy-aware-neuron",
+        "spec_file": "machinelearning/snn_applied_finance/specs/snn-energy-topology-a1-energy-aware-neuron_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-energy-topology-a1-energy-aware-neuron.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, research, neuron-architecture, energy-model]",
+        "project": "snn-energy-topology-research",
+        "started": "2026-03-27",
+        "archived": "2026-03-27",
+        "archive_reason": "Phase 2 analysis complete. All 3 experiments validated: (1) Universal energy deficit confirmed \u2014 all neurons energy-negative across f_in=0.05-0.50, deficit scales linearly (expected by design, not a bug). (2) Beta learning confirmed \u2014 converges to upper clamp 0.99 at target=0.2, weight learning is primary frequency controller. (3) Multi-neuron topology independent and stable, no cross-neuron interference. A1 fully validates the energy accounting architecture. A2\u2013A5 design table included in notebook. Artifact: pipeline_builds/snn-energy-topology-a1-energy-aware-neuron_phase2_architect_analysis.md",
+        "pending_action": "p2_architect_analysis",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-27 16:42",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/orchestration-engine-v1.md": {
+      "mtime": 1776069777.4648693,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "archived": "2026-03-21",
+        "priority": "critical",
+        "version": "orchestration-engine-v1",
+        "spec_file": "machinelearning/snn_applied_finance/specs/orchestration-engine-v1_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_orchestration-engine-v1.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[orchestration, engine, infrastructure, v1]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-21",
+        "pending_action": "builder_implementation",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-21 10:02",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/v4.md": {
+      "mtime": 1776069777.466869,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "version": "v4",
+        "spec_file": "machinelearning/snn_applied_finance/specs/v4_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_v4_combined.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[snn, finance, differential-output, nano-networks, equilibrium]",
+        "patch_notes": "",
+        "project": "snn-applied-finance",
+        "started": "2026-03-15",
+        "archived": "2026-03-18",
+        "pending_action": "ready_for_colab_run",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-15T21:23:00Z",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/snn-deep-analysis-standard-synaptic-alpha.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "snn-deep-analysis-standard-synaptic-alpha",
+        "spec_file": "machinelearning/snn_applied_finance/specs/snn-deep-analysis-standard-synaptic-alpha_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-standard-synaptic-alpha.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, research, analysis, standard-model]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-31",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-31 21:11",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/codex-engine-v2-modes.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "codex-engine-v2-modes",
+        "spec_file": "machinelearning/snn_applied_finance/specs/codex-engine-v2-modes_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v2-modes.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[engine, codex, v2]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-21",
+        "archived": "2026-03-23",
+        "archive_reason": "superseded by codex-engine-v3-legendary-map",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-21 21:03",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/research-openclaw-internals.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "research-openclaw-internals",
+        "spec_file": "machinelearning/snn_applied_finance/specs/research-openclaw-internals_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_research-openclaw-internals.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[research, openclaw]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-21",
+        "archived": "2026-03-22",
+        "pending_action": "local_analysis_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-21 04:59",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/build-codex-layer-v1.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "type": "research",
+        "version": "build-codex-layer-v1",
+        "spec_file": "machinelearning/snn_applied_finance/specs/build-codex-layer-v1_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_build-codex-layer-v1.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[codex-layer, infrastructure]",
+        "project": "codex",
+        "started": "2026-03-23",
+        "archived": "2026-03-23",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-23 10:22",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/git-diff-handoff-context.md": {
+      "mtime": 1776069777.4558692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p1_complete",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "git-diff-handoff-context",
+        "spec_file": "machinelearning/snn_applied_finance/specs/git-diff-handoff-context_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_git-diff-handoff-context.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "archived": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 15:30",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/snn-deep-analysis-bioinspired-specialized.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "snn-deep-analysis-bioinspired-specialized",
+        "spec_file": "machinelearning/snn_applied_finance/specs/snn-deep-analysis-bioinspired-specialized_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-bioinspired-specialized.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, research, analysis, deep-dive, bio-inspired]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-31",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-31 18:10",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/build-equilibrium-snn.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "version": "build-equilibrium-snn",
+        "spec_file": "machinelearning/snn_applied_finance/specs/build-equilibrium-snn_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/crypto_build-equilibrium-snn_predictor.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[snn, architecture, streaming]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-17",
+        "archived": "2026-03-20",
+        "version_label": "v5-equilibrium",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-19 23:54",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/orchestration-v3-monitoring.md": {
+      "mtime": 1776069777.4648693,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "medium",
+        "version": "orchestration-v3-monitoring",
+        "spec_file": "machinelearning/snn_applied_finance/specs/orchestration-v3-monitoring_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_orchestration-v3-monitoring.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[orchestration, monitoring, v3, dashboard]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-21",
+        "archived": "2026-03-22",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-22 03:57",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/orchestration-engine-v2.md": {
+      "mtime": 1776069777.4648693,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "archived": "2026-03-21",
+        "priority": "critical",
+        "version": "orchestration-engine-v2",
+        "spec_file": "machinelearning/snn_applied_finance/specs/orchestration-engine-v2_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_orchestration-engine-v2.ipynb",
+        "agents": "[architect, critic, builder]",
+        "tags": "[orchestration, engine, infrastructure, v1]",
+        "project": "multi-agent-infrastructure",
+        "started": "2026-03-21",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-21 10:45",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/setup-vectorbt-nautilus-pipeline-s2-data-pipeline.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "setup-vectorbt-nautilus-pipeline-s2-data-pipeline",
+        "spec_file": "machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s2-data-pipeline_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s2-data-pipeline.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 04:47",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/llm-quant-dydx-adapter-v1.md": {
+      "mtime": 1776070803.9801974,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "type": "builder-first",
+        "version": "llm-quant-dydx-adapter-v1",
+        "spec_file": "machinelearning/snn_applied_finance/specs/llm-quant-dydx-adapter-v1_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_llm-quant-dydx-adapter-v1.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[quant, dydx, executor, live-trading, crypto]",
+        "project": "llm-quant-finance",
+        "started": "2026-03-27",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-27 15:34",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "type": "infrastructure",
+        "version": "codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing",
+        "spec_file": "machinelearning/snn_applied_finance/specs/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-23",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": true,
+        "last_updated": "2026-03-23 19:50",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/llm-quant-paper-trader-v1.md": {
+      "mtime": 1776070803.980907,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p1_complete",
+        "priority": "critical",
+        "type": "builder-first",
+        "version": "llm-quant-paper-trader-v1",
+        "spec_file": "machinelearning/snn_applied_finance/specs/llm-quant-paper-trader-v1_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_llm-quant-paper-trader-v1.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[quant, dydx, executor, live-trading, crypto]",
+        "project": "llm-quant-finance",
+        "started": "2026-03-27",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-27 16:16",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/spiking-transformer-integration-research.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "p1_review",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "spiking-transformer-integration-research",
+        "spec_file": "machinelearning/snn_applied_finance/specs/spiking-transformer-integration-research_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_spiking-transformer-integration-research.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-30",
+        "pending_action": "p1_critic_review",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-30 04:25",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.md": {
+      "mtime": 1776069777.4648693,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "research",
+        "version": "lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment",
+        "spec_file": "machinelearning/snn_applied_finance/specs/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[codex-engine, legendary-map, lm, infrastructure]",
+        "project": "codex",
+        "started": "2026-03-23",
+        "archived": "2026-03-23",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-23 09:12",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/setup-vectorbt-nautilus-pipeline-s1-environment-setup.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "setup-vectorbt-nautilus-pipeline-s1-environment-setup",
+        "spec_file": "machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s1-environment-setup_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s1-environment-setup.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 03:49",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/temporal-interaction-llm-gaming.md": {
+      "mtime": 1776069777.466869,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "infrastructure",
+        "version": "temporal-interaction-llm-gaming",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-24",
+        "pending_action": "phase1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-24 13:48",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/setup-vectorbt-nautilus-pipeline-s6-statistical-validation.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "setup-vectorbt-nautilus-pipeline-s6-statistical-validation",
+        "spec_file": "machinelearning/snn_applied_finance/specs/setup-vectorbt-nautilus-pipeline-s6-statistical-validation_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_setup-vectorbt-nautilus-pipeline-s6-statistical-validation.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, finance]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-25",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 13:39",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/codex-engine-v3-legendary-map.md": {
+      "mtime": 1776069777.4550123,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "critical",
+        "type": "research",
+        "version": "codex-engine-v3-legendary-map",
+        "spec_file": "machinelearning/snn_applied_finance/specs/codex-engine-v3-legendary-map_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_codex-engine-v3-legendary-map.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "codex-engine-v2-modes",
+        "tags": "[codex-engine, legendary-map]",
+        "project": "codex",
+        "started": "2026-03-23",
+        "archived": "2026-03-23",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-23 08:18",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/render-engine-simplification.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "render-engine-simplification",
+        "spec_file": "machinelearning/snn_applied_finance/specs/render-engine-simplification_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_render-engine-simplification.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[infrastructure, codex-engine, simplification]",
+        "project": "codex-engine",
+        "started": "2026-03-24",
+        "archived": "2026-03-25",
+        "archive_reason": "Phase 1: stripped DiffEntry/DiffEngine/StatPoller from render engine (-314 lines). Phase 2: cleaned cockpit plugin residual comments, fixed weak tests. 10/10 tests GREEN. All success criteria met.",
+        "pending_action": "phase2_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-03-25 00:32",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/snn-deep-analysis-standard-leaky.md": {
+      "mtime": 1776069777.4658692,
+      "frontmatter": {
+        "primitive": "pipeline",
+        "status": "archived",
+        "priority": "high",
+        "type": "builder-first",
+        "version": "snn-deep-analysis-standard-leaky",
+        "spec_file": "machinelearning/snn_applied_finance/specs/snn-deep-analysis-standard-leaky_spec.yaml",
+        "output_notebook": "machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_snn-deep-analysis-standard-leaky.ipynb",
+        "agents": "[architect, critic, builder]",
+        "supersedes": "",
+        "tags": "[snn, research, analysis, standard-model]",
+        "project": "snn-applied-finance",
+        "started": "2026-03-31",
+        "pending_action": "p1_complete",
+        "current_phase": "",
+        "dispatch_claimed": false,
+        "last_updated": "2026-04-01 00:57",
+        "reset": false
+      }
+    },
+    "/home/ubuntu/.hermes/belam-codex/pipelines/interactive-decision-tree-kfold-visualizer.md": {
+      "mtime": 1776069777.4648693,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p2_experiment_run",
