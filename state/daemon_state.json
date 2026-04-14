@@ -1,7 +1,7 @@
 {
   "last_launch_at": null,
-  "tick_count": 1458,
-  "updated_at": "2026-04-13T05:23:24.684131+00:00",
+  "tick_count": 5302,
+  "updated_at": "2026-04-14T13:25:50.242943+00:00",
   "snapshots": {
     "/home/ubuntu/.openclaw/workspace/tasks/setup-vectorbt-nautilus-pipeline-s5-transaction-costs.md": {
       "mtime": 1775031111.9020035,
@@ -37,7 +37,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/container-build-and-test.md": {
-      "mtime": 1775031111.8934104,
+      "mtime": 1776067218.4145784,
       "frontmatter": {
         "primitive": "task",
         "status": "complete",
@@ -325,7 +325,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/codex-layer-context-injection.md": {
-      "mtime": 1775031111.8927004,
+      "mtime": 1776067218.4145784,
       "frontmatter": {
         "primitive": "task",
         "status": "archived",
@@ -776,7 +776,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/research-openclaw-internals.md": {
-      "mtime": 1775031111.9001288,
+      "mtime": 1776067218.4145784,
       "frontmatter": {
         "primitive": "task",
         "status": "archived",
@@ -999,7 +999,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/orchestration-engine-v2-temporal-autoclave.md": {
-      "mtime": 1775031111.8962715,
+      "mtime": 1776067218.4145784,
       "frontmatter": {
         "primitive": "task",
         "status": "archived",
@@ -1115,7 +1115,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/research-orchestration-tooling.md": {
-      "mtime": 1775031111.9002964,
+      "mtime": 1776067218.4145784,
       "frontmatter": {
         "primitive": "task",
         "status": "superseded",
@@ -1402,7 +1402,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/tasks/render-engine-simplification.md": {
-      "mtime": 1775031111.899673,
+      "mtime": 1776067218.4145784,
       "frontmatter": {
         "primitive": "task",
         "status": "done",
@@ -1512,7 +1512,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/setup-vectorbt-nautilus-pipeline-s5-transaction-costs.md": {
-      "mtime": 1775045966.832273,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1534,7 +1534,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/v4-deep-analysis.md": {
-      "mtime": 1775045966.8363597,
+      "mtime": 1776067218.4075785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1555,7 +1555,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/orchestration-engine-v2-temporal.md": {
-      "mtime": 1775045966.8284729,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1576,7 +1576,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/snn-deep-analysis-advanced-v3-v4.md": {
-      "mtime": 1775045966.8329582,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p1_complete",
@@ -1598,7 +1598,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/container-build-and-test.md": {
-      "mtime": 1775045966.8251758,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1620,7 +1620,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/report-to-youtube-pipeline.md": {
-      "mtime": 1775045966.8302503,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1640,7 +1640,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/snn-deep-analysis-foundational-v1-v2.md": {
-      "mtime": 1775045966.8336098,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1662,7 +1662,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/setup-vectorbt-nautilus-pipeline-s3-strategy-adapter.md": {
-      "mtime": 1775045966.8315833,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1684,7 +1684,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/lm-v3-platform-and-system-namespace.md": {
-      "mtime": 1775045966.8278406,
+      "mtime": 1776067218.4045784,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1704,7 +1704,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/codex-layer-context-injection.md": {
-      "mtime": 1775045966.8248644,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1725,7 +1725,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/video-pipeline-standalone-repo.md": {
-      "mtime": 1775045966.8373127,
+      "mtime": 1776067218.4075785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p1_complete",
@@ -1745,7 +1745,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/codex-engine-v3.md": {
-      "mtime": 1775045966.8241434,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1766,7 +1766,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/stack-specialists.md": {
-      "mtime": 1775045966.8355885,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1788,7 +1788,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/containerize-openclaw-workspace.md": {
-      "mtime": 1775045966.8255122,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1808,7 +1808,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/e0-sweep-subcommand-separation.md": {
-      "mtime": 1775045966.825872,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1828,7 +1828,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/setup-vectorbt-nautilus-pipeline-s4-walk-forward-validation.md": {
-      "mtime": 1775045966.8319738,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1852,7 +1852,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/pipeline-verification-phase-with-auto-fork-and-wiggum-test-loop.md": {
-      "mtime": 1775045966.8295045,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1872,7 +1872,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/snn-energy-topology-a1-energy-aware-neuron.md": {
-      "mtime": 1775045966.8347914,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1896,7 +1896,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/orchestration-engine-v1.md": {
-      "mtime": 1775045966.8281145,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1917,7 +1917,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/v4.md": {
-      "mtime": 1775045966.8369205,
+      "mtime": 1776067218.4075785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1939,7 +1939,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/snn-deep-analysis-standard-synaptic-alpha.md": {
-      "mtime": 1775045966.8343613,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1961,7 +1961,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/codex-engine-v2-modes.md": {
-      "mtime": 1775045966.8234134,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -1984,7 +1984,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/research-openclaw-internals.md": {
-      "mtime": 1775045966.8306055,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2006,7 +2006,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/build-codex-layer-v1.md": {
-      "mtime": 1775045966.8224406,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2029,7 +2029,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/git-diff-handoff-context.md": {
-      "mtime": 1775045966.8262582,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p1_complete",
@@ -2052,7 +2052,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/snn-deep-analysis-bioinspired-specialized.md": {
-      "mtime": 1775045966.8332975,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2074,7 +2074,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/build-equilibrium-snn.md": {
-      "mtime": 1775045966.8230474,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2096,7 +2096,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/orchestration-v3-monitoring.md": {
-      "mtime": 1775045966.829115,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2117,7 +2117,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/orchestration-engine-v2.md": {
-      "mtime": 1775045966.8288212,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2138,7 +2138,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/setup-vectorbt-nautilus-pipeline-s2-data-pipeline.md": {
-      "mtime": 1775045966.8312624,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2160,7 +2160,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/llm-quant-dydx-adapter-v1.md": {
-      "mtime": 1775045966.826624,
+      "mtime": 1776067218.4045784,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2182,7 +2182,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/codex-engine-v4-ram-first-render-runtime-with-native-codex-parsing.md": {
-      "mtime": 1775045966.8245003,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2204,7 +2204,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/llm-quant-paper-trader-v1.md": {
-      "mtime": 1775045966.8270826,
+      "mtime": 1776067218.4045784,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p1_complete",
@@ -2226,7 +2226,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/spiking-transformer-integration-research.md": {
-      "mtime": 1775045966.8351357,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p1_review",
@@ -2248,7 +2248,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/lm-v2-coordinate-native-pipeline-launch-and-workflow-enrichment.md": {
-      "mtime": 1775045966.827469,
+      "mtime": 1776067218.4045784,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2271,7 +2271,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/setup-vectorbt-nautilus-pipeline-s1-environment-setup.md": {
-      "mtime": 1775045966.830968,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2293,7 +2293,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/temporal-interaction-llm-gaming.md": {
-      "mtime": 1775045966.8360023,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2313,7 +2313,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/setup-vectorbt-nautilus-pipeline-s6-statistical-validation.md": {
-      "mtime": 1775045966.8325734,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2335,7 +2335,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/codex-engine-v3-legendary-map.md": {
-      "mtime": 1775045966.8237271,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2358,7 +2358,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/render-engine-simplification.md": {
-      "mtime": 1775045966.8298757,
+      "mtime": 1776067218.405734,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2382,7 +2382,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/snn-deep-analysis-standard-leaky.md": {
-      "mtime": 1775045966.8339882,
+      "mtime": 1776067218.4065785,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "archived",
@@ -2419,7 +2419,7 @@
       }
     },
     "/home/ubuntu/.openclaw/workspace/pipelines/interactive-decision-tree-kfold-visualizer.md": {
-      "mtime": 1775157972.498813,
+      "mtime": 1776067218.4037604,
       "frontmatter": {
         "primitive": "pipeline",
         "status": "p2_experiment_run",
