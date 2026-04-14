@@ -32,5 +32,12 @@
     "primitives": [
       "lesson/bridge-state-overrides-config-on-restart"
     ]
+  },
+  "7a459b42-1912-43ab-b0fa-7b4d446b2180": {
+    "status": "complete",
+    "primitives": [
+      "lesson/openclaw-oauth-provider-reuses-codex-cli-chatgpt-tokens",
+      "decision/default-model-gpt54-with-opus-fallback"
+    ]
   }
 }
