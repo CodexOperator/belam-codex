@@ -1,11 +1,16 @@
 {
+  "20260414_034030_968230a8": {
+    "status": "complete",
+    "primitives": [],
+    "details": "Trivial session: confirmed supermap bootstrap handoff visibility, switched Hermes default model to gpt-5.4-codex, requested restart. No new lessons or decisions."
+  },
   "20260414_040957_30e8a66d": {
     "details": "Session covered systemd path mismatch diagnostics (already logged), supermap skill creation (operational), and Codex CLI dispatch (167 msgs trimmed). No new primitives warranted.",
     "primitives": [],
     "status": "complete"
   },
   "20260414_155426_39025db6": {
-    "details": "session_start_catchup — no extraction agent completed for this session. Marking stale.",
+    "details": "session_start_catchup \u2014 no extraction agent completed for this session. Marking stale.",
     "primitives": [],
     "status": "complete"
   },
@@ -20,7 +25,7 @@
     "status": "complete"
   },
   "20260415_165647_4ae28544": {
-    "details": "Verification session for auto-extraction plugin fix. Confirmed dispatch, tracker, logs, and primitives all working. No new primitives warranted — core fix already captured in memory-extract-hook-session-file-detection-mismatch.",
+    "details": "Verification session for auto-extraction plugin fix. Confirmed dispatch, tracker, logs, and primitives all working. No new primitives warranted \u2014 core fix already captured in memory-extract-hook-session-file-detection-mismatch.",
     "primitives": [],
     "status": "complete"
   },
