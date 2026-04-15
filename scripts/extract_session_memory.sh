@@ -232,11 +232,16 @@ $PERSONA_TAG
    git commit -m "Auto-extract: $INSTANCE session lessons/decisions [$TODAY]" && git push origin
    \`\`\`
 
-8. Update the tracker in \`memory/pending_extraction.json\` for this session:
-   - On success, always write \`status: complete\`
-   - If no primitives were created, write \`primitives: []\`
-   - If primitives were created, write their paths/slugs in \`primitives:\`
-   - Only write \`error\` on actual extraction failure
+8. Finalize extraction bookkeeping with the hardcoded script below. Do NOT edit
+   \`memory/pending_extraction.json\` manually.
+   - Success with primitives:
+     \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status complete --primitive "<path-or-slug-1>" --primitive "<path-or-slug-2>"\`
+   - Success with no primitives:
+     \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status complete\`
+     This must result in \`primitives: []\`.
+   - Actual extraction failure:
+     \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status error --details "<short reason>"\`
+   - Run exactly one finalizer command before exiting.
 
 ## Star Ratings
 - ★☆☆☆☆ = trivial/routine (status check, greeting)

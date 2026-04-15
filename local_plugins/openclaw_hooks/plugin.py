@@ -136,6 +136,63 @@ def _mark_extraction_status(session_id: str, status: str, details: str = "") -> 
     _write_pending_extraction(data)
 
 
+def _write_extraction_status_via_script(
+    session_id: str,
+    status: str,
+    *,
+    details: str = "",
+    primitives: list[str] | None = None,
+) -> None:
+    ws = _workspace()
+    env = dict(os.environ)
+    env.setdefault("WORKSPACE", str(ws))
+    cmd = [
+        "python3",
+        "scripts/finalize_memory_extraction.py",
+        "--session-id",
+        session_id,
+        "--status",
+        status,
+    ]
+    if details:
+        cmd.extend(["--details", details])
+    for primitive in primitives or []:
+        cmd.extend(["--primitive", primitive])
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=str(ws),
+            capture_output=True,
+            text=True,
+            timeout=8,
+            check=False,
+            env=env,
+        )
+    except Exception as exc:
+        _mark_extraction_status(session_id, status, details or str(exc)[:200])
+        _log(
+            "warn",
+            "Failed to invoke extraction finalizer; used fallback",
+            {"session_id": session_id, "status": status, "error": str(exc)[:400]},
+        )
+        return
+
+    if result.returncode == 0:
+        return
+
+    _mark_extraction_status(session_id, status, details or (result.stderr or result.stdout)[:200])
+    _log(
+        "warn",
+        "Extraction finalizer returned non-zero; used fallback",
+        {
+            "session_id": session_id,
+            "status": status,
+            "returncode": result.returncode,
+            "stderr": (result.stderr or "")[:400],
+        },
+    )
+
+
 def _recover_pending_extractions() -> None:
     data = _load_pending_extraction()
     if not data:
@@ -234,7 +291,7 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
             env=env,
         )
     except Exception as exc:
-        _mark_extraction_status(session_id, "error", str(exc)[:200])
+        _write_extraction_status_via_script(session_id, "error", details=str(exc)[:200])
         _log(
             "error",
             "Extraction script crashed",
@@ -243,7 +300,11 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
         return
 
     if result.returncode != 0:
-        _mark_extraction_status(session_id, "error", (result.stderr or result.stdout)[:200])
+        _write_extraction_status_via_script(
+            session_id,
+            "error",
+            details=(result.stderr or result.stdout)[:200],
+        )
         _log(
             "error",
             "Extraction script failed",
@@ -263,7 +324,7 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
             break
 
     if not prompt_file:
-        _mark_extraction_status(session_id, "error", "missing PROMPT_FILE")
+        _write_extraction_status_via_script(session_id, "error", details="missing PROMPT_FILE")
         _log(
             "error",
             "Extraction script returned no PROMPT_FILE",
@@ -285,7 +346,7 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
             start_new_session=True,
         )
     except Exception as exc:
-        _mark_extraction_status(session_id, "error", str(exc)[:200])
+        _write_extraction_status_via_script(session_id, "error", details=str(exc)[:200])
         _log(
             "error",
             "Failed to spawn sage for extraction",
@@ -294,7 +355,7 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
         return
 
     _EXTRACTION_DISPATCHED.add(session_id)
-    _mark_extraction_status(session_id, "running", reason)
+    _write_extraction_status_via_script(session_id, "running", details=reason)
     _log(
         "info",
         "Hermes memory extraction spawned",

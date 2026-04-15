@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import * as path from 'path';
@@ -15,6 +15,39 @@ function log(level: string, msg: string, data?: Record<string, unknown>) {
     mkdirSync(LOG_DIR, { recursive: true });
     appendFileSync(LOG_FILE, `${ts} [${level}] ${msg}${extra}\n`);
   } catch { /* can't log — nothing we can do */ }
+}
+
+function updateExtractionStatus(
+  workspaceDir: string,
+  sessionId: string,
+  status: 'running' | 'complete' | 'error',
+  details?: string,
+  primitives: string[] = [],
+): void {
+  const args = [
+    '--session-id', sessionId,
+    '--status', status,
+  ];
+  if (details) args.push('--details', details);
+  if (status === 'complete') {
+    for (const primitive of primitives) args.push('--primitive', primitive);
+  }
+
+  try {
+    execFileSync('python3', ['scripts/finalize_memory_extraction.py', ...args], {
+      cwd: workspaceDir,
+      timeout: 8_000,
+      encoding: 'utf-8',
+      env: { ...process.env, WORKSPACE: workspaceDir },
+    });
+  } catch (err: any) {
+    log('warn', 'Failed to update extraction status', {
+      sessionId,
+      status,
+      message: err?.message?.slice(0, 300),
+      stderr: err?.stderr?.slice(0, 300),
+    });
+  }
 }
 
 // ── Session context save (replaces bundled session-memory) ───────────────────
@@ -181,6 +214,12 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
   // Resolve session file from event context (avoids race with .reset.* rename)
   const sessionFile = resolveSessionFile(event, workspaceDir, instance);
   const sessionFileArgs = sessionFile ? ` --session-file "${sessionFile}"` : '';
+  const sessionFileBase = path.basename(sessionFile || '');
+  const sessionIdFromFile = sessionFileBase.replace(/\.jsonl(?:\..+)?$/, '');
+  const sessionId = sessionIdFromFile
+    || event?.context?.previousSessionEntry?.sessionId
+    || event?.context?.sessionEntry?.sessionId
+    || 'unknown';
 
   // Step 1: Run the bash parser (deterministic, fast, zero tokens)
   let result: string;
@@ -195,6 +234,7 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
       }
     ).trim();
   } catch (err: any) {
+    updateExtractionStatus(workspaceDir, sessionId, 'error', err?.message?.slice(0, 200) || 'extract script failed');
     log('error', 'Extraction script failed', {
       message: err?.message?.slice(0, 500),
       stderr: err?.stderr?.slice(0, 500),
@@ -204,6 +244,7 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
   }
 
   if (!result) {
+    updateExtractionStatus(workspaceDir, sessionId, 'error', 'empty extraction script output');
     log('warn', 'Extraction script returned empty');
     return;
   }
@@ -211,6 +252,7 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
   // Step 2: Parse PROMPT_FILE
   const promptMatch = result.match(/PROMPT_FILE=(.+)/);
   if (!promptMatch) {
+    updateExtractionStatus(workspaceDir, sessionId, 'error', 'missing PROMPT_FILE');
     log('warn', 'No PROMPT_FILE in output', { output: result.slice(0, 300) });
     return;
   }
@@ -231,11 +273,14 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
       }
     );
     child.on('error', (err) => {
+      updateExtractionStatus(workspaceDir, sessionId, 'error', err?.message?.slice(0, 200) || 'spawn error');
       log('error', 'Spawn error event', { message: err?.message });
     });
     child.unref();
+    updateExtractionStatus(workspaceDir, sessionId, 'running', instance);
     log('info', 'Sage spawn dispatched via codex engine', { pid: child.pid });
   } catch (err: any) {
+    updateExtractionStatus(workspaceDir, sessionId, 'error', err?.message?.slice(0, 200) || 'spawn failed');
     log('error', 'Failed to spawn sage', { message: err?.message });
   }
 }

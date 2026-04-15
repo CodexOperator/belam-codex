@@ -7,6 +7,7 @@ from pathlib import Path
 
 PLUGIN_PATH = Path(__file__).resolve().parents[1] / "local_plugins" / "openclaw_hooks" / "plugin.py"
 EXTRACT_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "extract_session_memory.sh"
+FINALIZER_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "finalize_memory_extraction.py"
 PARSE_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "parse_session_transcript.py"
 SPEC = importlib.util.spec_from_file_location("test_openclaw_hooks_plugin_module", PLUGIN_PATH)
 plugin = importlib.util.module_from_spec(SPEC)
@@ -173,6 +174,13 @@ def test_dispatch_extraction_recovers_stale_entries_for_reset_runs(tmp_path, mon
     monkeypatch.setattr(plugin, "_EXTRACTION_STALE_AFTER_SECONDS", 60)
     monkeypatch.setattr(
         plugin,
+        "_write_extraction_status_via_script",
+        lambda session_id, status, details="", primitives=None: plugin._mark_extraction_status(
+            session_id, status, details
+        ),
+    )
+    monkeypatch.setattr(
+        plugin,
         "datetime",
         type(
             "FrozenDateTime",
@@ -209,6 +217,57 @@ def test_dispatch_extraction_recovers_stale_entries_for_reset_runs(tmp_path, mon
     assert pending[new_session]["details"] == "session_reset"
     assert new_session in plugin._EXTRACTION_DISPATCHED
     assert len(popen_calls) == 1
+
+
+def test_finalize_memory_extraction_complete_defaults_to_empty_primitives(tmp_path):
+    workspace = tmp_path / "workspace"
+    memory_dir = workspace / "memory"
+    memory_dir.mkdir(parents=True)
+
+    subprocess.run(
+        [
+            "python3",
+            str(FINALIZER_SCRIPT),
+            "--session-id",
+            "session-123",
+            "--status",
+            "complete",
+        ],
+        cwd=str(workspace),
+        env={**os.environ, "WORKSPACE": str(workspace)},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    pending = json.loads((memory_dir / "pending_extraction.json").read_text(encoding="utf-8"))
+    assert pending["status"] == "complete"
+    assert pending["session-123"]["status"] == "complete"
+    assert pending["session-123"]["primitives"] == []
+
+
+def test_finalize_memory_extraction_error_requires_details(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir(parents=True)
+
+    result = subprocess.run(
+        [
+            "python3",
+            str(FINALIZER_SCRIPT),
+            "--session-id",
+            "session-456",
+            "--status",
+            "error",
+        ],
+        cwd=str(workspace),
+        env={**os.environ, "WORKSPACE": str(workspace)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 1
+    assert "requires --details" in result.stderr
 
 
 def test_extract_session_memory_prompt_requires_empty_primitives_completion(tmp_path):
@@ -253,5 +312,6 @@ def test_extract_session_memory_prompt_requires_empty_primitives_completion(tmp_
     )
     prompt = Path(prompt_file).read_text(encoding="utf-8")
 
-    assert "If no primitives were created, write `primitives: []`" in prompt
-    assert "On success, always write `status: complete`" in prompt
+    assert 'python3 scripts/finalize_memory_extraction.py --session-id "session" --status complete' in prompt
+    assert "This must result in `primitives: []`." in prompt
+    assert '--status error --details "<short reason>"' in prompt
