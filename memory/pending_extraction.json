@@ -4,12 +4,14 @@
     "status": "running"
   },
   "20260415_064714_36678137": {
-    "details": "session_start_catchup",
-    "status": "running"
+    "status": "complete",
+    "primitives": []
   },
   "20260415_075110_a6b97fd9": {
-    "details": "session_reset",
-    "status": "running"
+    "status": "complete",
+    "primitives": [
+      "lesson/memory-extract-hook-session-file-detection-mismatch (updated)"
+    ]
   },
   "33ff2972-bfa6-4af0-8eab-835837aece8f": {
     "primitives": [
