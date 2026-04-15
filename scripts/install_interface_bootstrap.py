@@ -76,11 +76,13 @@ def install_hermes_plugin(hermes_home: Path) -> Path:
         "\n".join(
             [
                 "name: openclaw_hooks",
-                "version: 0.2.0",
+                "version: 0.3.0",
                 "description: Hermes bridge for OpenClaw supermap/bootstrap prompt context injection.",
                 "author: belam-codex",
                 "provides_hooks:",
                 "  - on_session_start",
+                "  - on_session_finalize",
+                "  - on_session_reset",
                 "  - pre_llm_call",
             ]
         )

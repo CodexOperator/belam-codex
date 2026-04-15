@@ -1,36 +1,48 @@
 {
-  "status": "complete",
+  "20260414_155426_39025db6": {
+    "details": "session_start_catchup",
+    "status": "running"
+  },
+  "20260415_064714_36678137": {
+    "details": "session_start_catchup",
+    "status": "running"
+  },
+  "20260415_075110_a6b97fd9": {
+    "details": "session_reset",
+    "status": "running"
+  },
+  "33ff2972-bfa6-4af0-8eab-835837aece8f": {
+    "primitives": [
+      "lesson/live-bridge-atr-sl-tp-drift-vs-backtest-fixed",
+      "decision/lock-sl-tp-to-entry-atr-trail-uses-live-atr"
+    ],
+    "status": "complete"
+  },
+  "521c344a-8a84-42f2-97c5-4cae6a6705b5": {
+    "primitives": [],
+    "status": "complete"
+  },
   "c748afcb-941e-4d65-bb1e-98bda275b006": {
-    "status": "complete",
     "primitives": [
       "decision/task-status-driven-pipeline-auto-launch",
       "lesson/subagent-timeout-needs-completion-before-manual-finish",
       "decision/meme-sniper-bot-architecture",
       "lesson/telethon-userbot-required-for-group-reading"
-    ]
-  },
-  "33ff2972-bfa6-4af0-8eab-835837aece8f": {
-    "status": "complete",
-    "primitives": [
-      "lesson/live-bridge-atr-sl-tp-drift-vs-backtest-fixed",
-      "decision/lock-sl-tp-to-entry-atr-trail-uses-live-atr"
-    ]
+    ],
+    "status": "complete"
   },
   "cfd7c580-547d-426d-b674-0df21d7a7956": {
-    "status": "complete",
     "primitives": [
       "lesson/confidence-wobble-resets-signal-transition-gate",
       "decision/keep-wobble-reentry-matching-backtest"
-    ]
-  },
-  "521c344a-8a84-42f2-97c5-4cae6a6705b5": {
-    "status": "complete",
-    "primitives": []
+    ],
+    "status": "complete"
   },
   "dd78f33c-5a67-43a3-81aa-f90450b8079d": {
-    "status": "complete",
     "primitives": [
       "lesson/bridge-state-overrides-config-on-restart"
-    ]
-  }
+    ],
+    "status": "complete"
+  },
+  "status": "complete"
 }

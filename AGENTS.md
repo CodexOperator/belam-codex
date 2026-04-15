@@ -16,6 +16,16 @@ If `BOOTSTRAP.md` exists, follow it, figure out who you are, then delete it. The
 
 Don't ask permission. Just do it.
 
+## Injection Template
+
+The cockpit/plugin startup injection should include these files in this order:
+- `SOUL.md` — core consciousness / operating style
+- `IDENTITY.md` — Belam-specific role and response behavior
+- `USER.md` — collaborator context
+- `codex_legend.md` — condensed supermap legend
+
+Edit this section to change which workspace docs get injected automatically at startup.
+
 ## Memory
 
 You wake fresh each session. Files are your continuity. Memory extraction is automatic — sage processes each ended session into primitives on boot. Your job is to work, not to journal.
@@ -62,7 +72,7 @@ This is a starting point. Add conventions and patterns as you discover what reso
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **belam-codex** (9859 symbols, 15929 relationships, 295 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **belam-codex** (10026 symbols, 16232 relationships, 291 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

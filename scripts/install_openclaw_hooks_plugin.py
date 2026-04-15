@@ -13,11 +13,13 @@ HERMES_HOME = Path(os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))).
 TARGET_DIR = HERMES_HOME / "plugins" / "openclaw_hooks"
 
 PLUGIN_YAML = """name: openclaw_hooks
-version: 0.1.0
+version: 0.3.0
 description: Hermes bridge for OpenClaw supermap/bootstrap prompt context injection.
 author: belam-codex
 provides_hooks:
   - on_session_start
+  - on_session_finalize
+  - on_session_reset
   - pre_llm_call
 """
 
