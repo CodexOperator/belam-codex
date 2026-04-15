@@ -1,8 +1,12 @@
 {
+  "20260414_012323_e5d0f032": {
+    "details": "session_start_catchup",
+    "status": "running"
+  },
   "20260414_034030_968230a8": {
-    "status": "complete",
+    "details": "Trivial session: confirmed supermap bootstrap handoff visibility, switched Hermes default model to gpt-5.4-codex, requested restart. No new lessons or decisions.",
     "primitives": [],
-    "details": "Trivial session: confirmed supermap bootstrap handoff visibility, switched Hermes default model to gpt-5.4-codex, requested restart. No new lessons or decisions."
+    "status": "complete"
   },
   "20260414_040957_30e8a66d": {
     "details": "Session covered systemd path mismatch diagnostics (already logged), supermap skill creation (operational), and Codex CLI dispatch (167 msgs trimmed). No new primitives warranted.",
