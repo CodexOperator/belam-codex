@@ -1,4 +1,4 @@
-import { execFileSync, execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import * as path from 'path';
@@ -213,7 +213,6 @@ function resolveSessionFile(event: any, workspaceDir: string, instance: string):
 function spawnMemoryExtraction(event: any, workspaceDir: string, instance: string): void {
   // Resolve session file from event context (avoids race with .reset.* rename)
   const sessionFile = resolveSessionFile(event, workspaceDir, instance);
-  const sessionFileArgs = sessionFile ? ` --session-file "${sessionFile}"` : '';
   const sessionFileBase = path.basename(sessionFile || '');
   const sessionIdFromFile = sessionFileBase.replace(/\.jsonl(?:\..+)?$/, '');
   const sessionId = sessionIdFromFile
@@ -221,50 +220,14 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
     || event?.context?.sessionEntry?.sessionId
     || 'unknown';
 
-  // Step 1: Run the bash parser (deterministic, fast, zero tokens)
-  let result: string;
   try {
-    result = execSync(
-      `bash scripts/extract_session_memory.sh --instance ${instance}${sessionFileArgs}`,
-      {
-        cwd: workspaceDir,
-        timeout: 30_000,
-        encoding: 'utf-8',
-        env: { ...process.env, WORKSPACE: workspaceDir },
-      }
-    ).trim();
-  } catch (err: any) {
-    updateExtractionStatus(workspaceDir, sessionId, 'error', err?.message?.slice(0, 200) || 'extract script failed');
-    log('error', 'Extraction script failed', {
-      message: err?.message?.slice(0, 500),
-      stderr: err?.stderr?.slice(0, 500),
-      status: err?.status,
-    });
-    return;
-  }
-
-  if (!result) {
-    updateExtractionStatus(workspaceDir, sessionId, 'error', 'empty extraction script output');
-    log('warn', 'Extraction script returned empty');
-    return;
-  }
-
-  // Step 2: Parse PROMPT_FILE
-  const promptMatch = result.match(/PROMPT_FILE=(.+)/);
-  if (!promptMatch) {
-    updateExtractionStatus(workspaceDir, sessionId, 'error', 'missing PROMPT_FILE');
-    log('warn', 'No PROMPT_FILE in output', { output: result.slice(0, 300) });
-    return;
-  }
-
-  const promptFile = promptMatch[1].trim();
-  log('info', `Prompt ready at ${promptFile}, spawning sage via codex engine`);
-
-  // Step 3: Use R -x spawn sage @promptFile (auto-rotates session + sends)
-  try {
+    const args = ['scripts/orchestrate_memory_extraction.py', '--instance', instance, '--reason', instance];
+    if (sessionFile) {
+      args.push('--session-file', sessionFile);
+    }
     const child = spawn(
       'python3',
-      ['scripts/codex_engine.py', 'spawn', 'sage', `@${promptFile}`, '--bg'],
+      args,
       {
         detached: true,
         stdio: 'ignore',
@@ -278,10 +241,10 @@ function spawnMemoryExtraction(event: any, workspaceDir: string, instance: strin
     });
     child.unref();
     updateExtractionStatus(workspaceDir, sessionId, 'running', instance);
-    log('info', 'Sage spawn dispatched via codex engine', { pid: child.pid });
+    log('info', 'Extraction wrapper dispatched', { pid: child.pid, sessionFile });
   } catch (err: any) {
     updateExtractionStatus(workspaceDir, sessionId, 'error', err?.message?.slice(0, 200) || 'spawn failed');
-    log('error', 'Failed to spawn sage', { message: err?.message });
+    log('error', 'Failed to spawn extraction wrapper', { message: err?.message });
   }
 }
 

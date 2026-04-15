@@ -232,16 +232,19 @@ $PERSONA_TAG
    git commit -m "Auto-extract: $INSTANCE session lessons/decisions [$TODAY]" && git push origin
    \`\`\`
 
-8. Finalize extraction bookkeeping with the hardcoded script below. Do NOT edit
-   \`memory/pending_extraction.json\` manually.
-   - Success with primitives:
-     \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status complete --primitive "<path-or-slug-1>" --primitive "<path-or-slug-2>"\`
-   - Success with no primitives:
-     \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status complete\`
-     This must result in \`primitives: []\`.
-   - Actual extraction failure:
-     \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status error --details "<short reason>"\`
-   - Run exactly one finalizer command before exiting.
+8. Wrapper-owned bookkeeping:
+   - Primary status transitions are handled by \`scripts/orchestrate_memory_extraction.py\`, not by this prompt.
+   - Do NOT edit \`memory/pending_extraction.json\` manually.
+   - If you are running under the normal wrapper, focus on extracting primitives only.
+   - Backup-only finalizer commands, for manual or degraded recovery paths:
+     - Success with primitives:
+       \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status complete --primitive "<path-or-slug-1>" --primitive "<path-or-slug-2>"\`
+     - Success with no primitives:
+       \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status complete\`
+       This must result in \`primitives: []\`.
+     - Actual extraction failure:
+       \`python3 scripts/finalize_memory_extraction.py --session-id "$SESSION_ID" --status error --details "<short reason>"\`
+   - Only use the fallback finalizer if the wrapper/orchestrator explicitly failed and you are asked to recover manually.
 
 ## Star Ratings
 - ★☆☆☆☆ = trivial/routine (status check, greeting)

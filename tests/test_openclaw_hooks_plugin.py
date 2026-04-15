@@ -192,15 +192,6 @@ def test_dispatch_extraction_recovers_stale_entries_for_reset_runs(tmp_path, mon
         ),
     )
 
-    monkeypatch.setattr(
-        plugin.subprocess,
-        "run",
-        lambda *args, **kwargs: type(
-            "RunResult",
-            (),
-            {"returncode": 0, "stdout": "PROMPT_FILE=/tmp/extract.md\n", "stderr": ""},
-        )(),
-    )
     popen_calls = []
     monkeypatch.setattr(
         plugin.subprocess,
@@ -217,6 +208,12 @@ def test_dispatch_extraction_recovers_stale_entries_for_reset_runs(tmp_path, mon
     assert pending[new_session]["details"] == "session_reset"
     assert new_session in plugin._EXTRACTION_DISPATCHED
     assert len(popen_calls) == 1
+    cmd = list(popen_calls[0][0][0])
+    assert cmd[:2] == ["python3", "scripts/orchestrate_memory_extraction.py"]
+    assert "--session-file" in cmd
+    assert str(session_path) in cmd
+    assert "--reason" in cmd
+    assert "session_reset" in cmd
 
 
 def test_finalize_memory_extraction_complete_defaults_to_empty_primitives(tmp_path):

@@ -274,71 +274,17 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
     )
 
     try:
-        result = subprocess.run(
+        subprocess.Popen(
             [
-                "bash",
-                "scripts/extract_session_memory.sh",
+                "python3",
+                "scripts/orchestrate_memory_extraction.py",
                 "--instance",
                 "main",
                 "--session-file",
                 str(session_path),
+                "--reason",
+                reason,
             ],
-            cwd=str(ws),
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-            env=env,
-        )
-    except Exception as exc:
-        _write_extraction_status_via_script(session_id, "error", details=str(exc)[:200])
-        _log(
-            "error",
-            "Extraction script crashed",
-            {"session_id": session_id, "reason": reason, "error": str(exc)[:400]},
-        )
-        return
-
-    if result.returncode != 0:
-        _write_extraction_status_via_script(
-            session_id,
-            "error",
-            details=(result.stderr or result.stdout)[:200],
-        )
-        _log(
-            "error",
-            "Extraction script failed",
-            {
-                "session_id": session_id,
-                "reason": reason,
-                "returncode": result.returncode,
-                "stderr": (result.stderr or "")[:400],
-            },
-        )
-        return
-
-    prompt_file = ""
-    for line in (result.stdout or "").splitlines():
-        if line.startswith("PROMPT_FILE="):
-            prompt_file = line.split("=", 1)[1].strip()
-            break
-
-    if not prompt_file:
-        _write_extraction_status_via_script(session_id, "error", details="missing PROMPT_FILE")
-        _log(
-            "error",
-            "Extraction script returned no PROMPT_FILE",
-            {
-                "session_id": session_id,
-                "reason": reason,
-                "stdout": (result.stdout or "")[:400],
-            },
-        )
-        return
-
-    try:
-        subprocess.Popen(
-            ["python3", "scripts/codex_engine.py", "spawn", "sage", f"@{prompt_file}", "--bg"],
             cwd=str(ws),
             env=env,
             stdout=subprocess.DEVNULL,
@@ -349,7 +295,7 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
         _write_extraction_status_via_script(session_id, "error", details=str(exc)[:200])
         _log(
             "error",
-            "Failed to spawn sage for extraction",
+            "Failed to launch extraction wrapper",
             {"session_id": session_id, "reason": reason, "error": str(exc)[:400]},
         )
         return
@@ -358,8 +304,8 @@ def _dispatch_extraction(session_path: Path, reason: str) -> None:
     _write_extraction_status_via_script(session_id, "running", details=reason)
     _log(
         "info",
-        "Hermes memory extraction spawned",
-        {"session_id": session_id, "reason": reason, "prompt_file": prompt_file},
+        "Hermes extraction wrapper spawned",
+        {"session_id": session_id, "reason": reason, "session_path": str(session_path)},
     )
 
 
