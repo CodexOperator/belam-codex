@@ -1,17 +1,22 @@
 {
+  "20260414_040957_30e8a66d": {
+    "status": "complete",
+    "primitives": [],
+    "details": "Session covered systemd path mismatch diagnostics (already logged), supermap skill creation (operational), and Codex CLI dispatch (167 msgs trimmed). No new primitives warranted."
+  },
   "20260414_155426_39025db6": {
     "details": "session_start_catchup",
     "status": "running"
   },
   "20260415_064714_36678137": {
-    "status": "complete",
-    "primitives": []
+    "primitives": [],
+    "status": "complete"
   },
   "20260415_075110_a6b97fd9": {
-    "status": "complete",
     "primitives": [
       "lesson/memory-extract-hook-session-file-detection-mismatch (updated)"
-    ]
+    ],
+    "status": "complete"
   },
   "33ff2972-bfa6-4af0-8eab-835837aece8f": {
     "primitives": [
