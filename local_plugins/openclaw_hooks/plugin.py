@@ -16,6 +16,7 @@ from typing import Any, Dict
 _SESSION_CACHE: dict[str, dict[str, str]] = {}
 _LAST_FINALIZED_SESSION_ID: str | None = None
 _EXTRACTION_DISPATCHED: set[str] = set()
+_EXTRACTION_STALE_AFTER_SECONDS = 15 * 60
 
 DEFAULT_INJECT_FILES = ["SOUL.md", "IDENTITY.md", "USER.md", "codex_legend.md"]
 
@@ -105,16 +106,60 @@ def _write_pending_extraction(data: dict[str, Any]) -> None:
     path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _parse_pending_timestamp(raw: Any) -> datetime | None:
+    if not isinstance(raw, str) or not raw.strip():
+        return None
+    value = raw.strip()
+    if value.endswith("Z"):
+        value = value[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
 def _mark_extraction_status(session_id: str, status: str, details: str = "") -> None:
     data = _load_pending_extraction()
     entry = data.get(session_id, {}) if isinstance(data.get(session_id), dict) else {}
     entry["status"] = status
+    entry["updated_at"] = _utc_now_iso()
     if details:
         entry["details"] = details
+    elif "details" in entry:
+        entry.pop("details", None)
     data[session_id] = entry
-    if "status" not in data:
-        data["status"] = status
+    data["status"] = status
     _write_pending_extraction(data)
+
+
+def _recover_pending_extractions() -> None:
+    data = _load_pending_extraction()
+    if not data:
+        return
+
+    stale_before = datetime.now(timezone.utc).timestamp() - _EXTRACTION_STALE_AFTER_SECONDS
+    changed = False
+
+    for session_id, entry in data.items():
+        if not isinstance(entry, dict) or entry.get("status") != "running":
+            continue
+        updated_at = _parse_pending_timestamp(entry.get("updated_at"))
+        if updated_at is not None and updated_at.timestamp() > stale_before:
+            continue
+        entry["status"] = "error"
+        entry["details"] = "stale"
+        entry["updated_at"] = _utc_now_iso()
+        _EXTRACTION_DISPATCHED.discard(session_id)
+        changed = True
+        _log("warn", "Recovered stale extraction entry", {"session_id": session_id})
+
+    if changed:
+        data["status"] = "error"
+        _write_pending_extraction(data)
 
 
 def _session_file_for(session_id: str) -> Path | None:
@@ -137,6 +182,7 @@ def _session_already_extracted(session_id: str) -> bool:
 
 
 def _find_session_to_extract(current_session_id: str = "") -> Path | None:
+    _recover_pending_extractions()
     sessions_dir = _sessions_dir()
     if not sessions_dir.is_dir():
         return None
@@ -152,6 +198,7 @@ def _find_session_to_extract(current_session_id: str = "") -> Path | None:
 
 
 def _dispatch_extraction(session_path: Path, reason: str) -> None:
+    _recover_pending_extractions()
     session_id = session_path.stem
     if _session_already_extracted(session_id):
         return

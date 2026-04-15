@@ -232,7 +232,11 @@ $PERSONA_TAG
    git commit -m "Auto-extract: $INSTANCE session lessons/decisions [$TODAY]" && git push origin
    \`\`\`
 
-8. Update the tracker: write \`complete\` status to \`memory/pending_extraction.json\`
+8. Update the tracker in \`memory/pending_extraction.json\` for this session:
+   - On success, always write \`status: complete\`
+   - If no primitives were created, write \`primitives: []\`
+   - If primitives were created, write their paths/slugs in \`primitives:\`
+   - Only write \`error\` on actual extraction failure
 
 ## Star Ratings
 - ★☆☆☆☆ = trivial/routine (status check, greeting)
