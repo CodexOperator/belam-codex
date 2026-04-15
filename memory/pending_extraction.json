@@ -1,12 +1,13 @@
 {
   "20260414_040957_30e8a66d": {
-    "status": "complete",
+    "details": "Session covered systemd path mismatch diagnostics (already logged), supermap skill creation (operational), and Codex CLI dispatch (167 msgs trimmed). No new primitives warranted.",
     "primitives": [],
-    "details": "Session covered systemd path mismatch diagnostics (already logged), supermap skill creation (operational), and Codex CLI dispatch (167 msgs trimmed). No new primitives warranted."
+    "status": "complete"
   },
   "20260414_155426_39025db6": {
-    "details": "session_start_catchup",
-    "status": "running"
+    "details": "session_start_catchup — no extraction agent completed for this session. Marking stale.",
+    "primitives": [],
+    "status": "complete"
   },
   "20260415_064714_36678137": {
     "primitives": [],
@@ -16,6 +17,11 @@
     "primitives": [
       "lesson/memory-extract-hook-session-file-detection-mismatch (updated)"
     ],
+    "status": "complete"
+  },
+  "20260415_165647_4ae28544": {
+    "details": "Verification session for auto-extraction plugin fix. Confirmed dispatch, tracker, logs, and primitives all working. No new primitives warranted — core fix already captured in memory-extract-hook-session-file-detection-mismatch.",
+    "primitives": [],
     "status": "complete"
   },
   "33ff2972-bfa6-4af0-8eab-835837aece8f": {
