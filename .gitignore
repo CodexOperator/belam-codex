@@ -6,3 +6,9 @@ knowledge-repo/
 .codex_runtime/
 .env.*
 .gitnexus
+
+# Runtime-generated logs/state: keep directories, ignore noisy contents
+logs/*.log
+!logs/.gitkeep
+memory/pending_extraction.json
+state/daemon_state.json
