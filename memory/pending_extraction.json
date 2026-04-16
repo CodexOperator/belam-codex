@@ -1,4 +1,13 @@
 {
+  "20260413_175027_aac63d11": {
+    "details": "session_start_catchup",
+    "status": "running"
+  },
+  "20260413_202846_01d80c51": {
+    "primitives": [],
+    "status": "complete",
+    "updated_at": "2026-04-15T19:54:56.531227Z"
+  },
   "20260414_012323_e5d0f032": {
     "details": "session_start_catchup",
     "status": "running"
