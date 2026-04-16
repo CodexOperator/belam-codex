@@ -5,20 +5,66 @@ import subprocess
 from pathlib import Path
 
 
-PLUGIN_PATH = Path(__file__).resolve().parents[1] / "local_plugins" / "openclaw_hooks" / "plugin.py"
-EXTRACT_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "extract_session_memory.sh"
-FINALIZER_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "finalize_memory_extraction.py"
-PARSE_SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "parse_session_transcript.py"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+PLUGIN_PATH = REPO_ROOT / "local_plugins" / "openclaw_hooks" / "plugin.py"
+COCKPIT_DIR = REPO_ROOT / "plugins" / "codex-cockpit"
+EXTRACT_SCRIPT = REPO_ROOT / "scripts" / "extract_session_memory.sh"
+FINALIZER_SCRIPT = REPO_ROOT / "scripts" / "finalize_memory_extraction.py"
+PARSE_SCRIPT = REPO_ROOT / "scripts" / "parse_session_transcript.py"
 SPEC = importlib.util.spec_from_file_location("test_openclaw_hooks_plugin_module", PLUGIN_PATH)
 plugin = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(plugin)
+
+INSTALL_SCRIPT_PATH = REPO_ROOT / "scripts" / "install_openclaw_hooks_plugin.py"
+INSTALL_SPEC = importlib.util.spec_from_file_location("test_install_openclaw_hooks_plugin_module", INSTALL_SCRIPT_PATH)
+install_script = importlib.util.module_from_spec(INSTALL_SPEC)
+assert INSTALL_SPEC.loader is not None
+INSTALL_SPEC.loader.exec_module(install_script)
+
+BOOTSTRAP_SCRIPT_PATH = REPO_ROOT / "scripts" / "install_interface_bootstrap.py"
+BOOTSTRAP_SPEC = importlib.util.spec_from_file_location("test_install_interface_bootstrap_module", BOOTSTRAP_SCRIPT_PATH)
+bootstrap_script = importlib.util.module_from_spec(BOOTSTRAP_SPEC)
+assert BOOTSTRAP_SPEC.loader is not None
+BOOTSTRAP_SPEC.loader.exec_module(bootstrap_script)
 
 
 def _session_file(sessions_dir: Path, session_id: str) -> Path:
     path = sessions_dir / f"{session_id}.jsonl"
     path.write_text("{}\n", encoding="utf-8")
     return path
+
+
+def test_plugin_installers_copy_local_plugin_source_verbatim(tmp_path, monkeypatch):
+    source_body = PLUGIN_PATH.read_text(encoding="utf-8")
+
+    hermes_home_install = tmp_path / "hermes-install"
+    target_dir_install = tmp_path / "target-install"
+    monkeypatch.setattr(install_script, "HERMES_HOME", hermes_home_install)
+    monkeypatch.setattr(install_script, "TARGET_DIR", target_dir_install)
+    installed_dir = install_script.install()
+
+    assert installed_dir == target_dir_install
+    assert (installed_dir / "__init__.py").read_text(encoding="utf-8") == source_body
+    assert (installed_dir / "plugin.py").read_text(encoding="utf-8") == source_body
+
+    hermes_home_bootstrap = tmp_path / "hermes-bootstrap"
+    bootstrap_dir = bootstrap_script.install_hermes_plugin(hermes_home_bootstrap)
+
+    assert bootstrap_dir == hermes_home_bootstrap / "plugins" / "openclaw_hooks"
+    assert (bootstrap_dir / "__init__.py").read_text(encoding="utf-8") == source_body
+    assert (bootstrap_dir / "plugin.py").read_text(encoding="utf-8") == source_body
+
+
+def test_openclaw_plugin_installer_copies_codex_cockpit_source_verbatim(tmp_path):
+    openclaw_home = tmp_path / "openclaw-home"
+    installed_dir = bootstrap_script.install_openclaw_plugin(openclaw_home)
+
+    assert installed_dir == openclaw_home / "extensions" / "codex-cockpit"
+    for filename in ("index.ts", "openclaw.plugin.json"):
+        assert (installed_dir / filename).read_text(encoding="utf-8") == (COCKPIT_DIR / filename).read_text(
+            encoding="utf-8"
+        )
 
 
 def test_find_session_to_extract_skips_current_and_completed(tmp_path, monkeypatch):
