@@ -35,6 +35,12 @@ def _session_file(sessions_dir: Path, session_id: str) -> Path:
     return path
 
 
+def _session_json_file(sessions_dir: Path, session_id: str) -> Path:
+    path = sessions_dir / f"session_{session_id}.json"
+    path.write_text("{}\n", encoding="utf-8")
+    return path
+
+
 def test_plugin_installers_copy_local_plugin_source_verbatim(tmp_path, monkeypatch):
     source_body = PLUGIN_PATH.read_text(encoding="utf-8")
 
@@ -67,7 +73,7 @@ def test_openclaw_plugin_installer_copies_codex_cockpit_source_verbatim(tmp_path
         )
 
 
-def test_find_session_to_extract_skips_current_and_completed(tmp_path, monkeypatch):
+def test_find_session_to_extract_uses_queued_tracker_rows(tmp_path, monkeypatch):
     workspace = tmp_path / "workspace"
     sessions_dir = tmp_path / "sessions"
     memory_dir = workspace / "memory"
@@ -76,17 +82,18 @@ def test_find_session_to_extract_skips_current_and_completed(tmp_path, monkeypat
 
     current = "20260415_100000_current"
     completed = "20260414_090000_done"
-    eligible = "20260413_080000_todo"
+    queued = "20260413_080000_todo"
 
-    _session_file(sessions_dir, current)
+    _session_json_file(sessions_dir, current)
     _session_file(sessions_dir, completed)
-    eligible_path = _session_file(sessions_dir, eligible)
+    queued_path = _session_json_file(sessions_dir, queued)
 
     (memory_dir / "pending_extraction.json").write_text(
         json.dumps(
             {
-                "status": "complete",
+                "status": "queued",
                 completed: {"status": "complete", "primitives": ["lesson/example"]},
+                queued: {"status": "queued", "finalized_at": "2026-04-13T08:00:00Z"},
             }
         ),
         encoding="utf-8",
@@ -98,34 +105,86 @@ def test_find_session_to_extract_skips_current_and_completed(tmp_path, monkeypat
 
     selected = plugin._find_session_to_extract(current_session_id=current)
 
-    assert selected == eligible_path
+    assert selected == queued_path
+
+
+def test_find_session_to_extract_tolerates_legacy_finalized_rows(tmp_path, monkeypatch):
+    workspace = tmp_path / "workspace"
+    sessions_dir = tmp_path / "sessions"
+    memory_dir = workspace / "memory"
+    memory_dir.mkdir(parents=True)
+    sessions_dir.mkdir(parents=True)
+
+    legacy = "20260414_090000_legacy"
+    legacy_path = _session_json_file(sessions_dir, legacy)
+    _session_file(sessions_dir, "20260415_100000_complete")
+
+    (memory_dir / "pending_extraction.json").write_text(
+        json.dumps(
+            {
+                "status": "queued",
+                "20260415_100000_complete": {"status": "complete", "primitives": []},
+                legacy: {"finalized_at": "2026-04-14T09:00:00Z"},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(plugin, "_workspace", lambda: workspace)
+    monkeypatch.setattr(plugin, "_sessions_dir", lambda: sessions_dir)
+    plugin._EXTRACTION_DISPATCHED.clear()
+
+    selected = plugin._find_session_to_extract()
+
+    assert selected == legacy_path
 
 
 
 def test_on_session_reset_dispatches_finalized_session(monkeypatch):
     dispatched = []
+    queued = []
     plugin._EXTRACTION_DISPATCHED.clear()
     plugin._LAST_FINALIZED_SESSION_ID = None
 
     monkeypatch.setattr(plugin, "_dispatch_extraction", lambda session_path, reason: dispatched.append((session_path, reason)))
-    monkeypatch.setattr(plugin, "_session_file_for", lambda session_id: Path(f"/tmp/{session_id}.jsonl"))
+    monkeypatch.setattr(plugin, "_session_file_for", lambda session_id: Path(f"/tmp/session_{session_id}.json"))
+    monkeypatch.setattr(
+        plugin,
+        "_write_extraction_status_via_script",
+        lambda session_id, status, details="", primitives=None, finalized_at="": queued.append(
+            (session_id, status, finalized_at)
+        ),
+    )
 
     plugin._on_session_finalize(session_id="old-session")
     plugin._on_session_reset(session_id="new-session")
 
-    assert dispatched == [(Path("/tmp/old-session.jsonl"), "session_reset")]
+    assert len(queued) == 1
+    assert queued[0][0] == "old-session"
+    assert queued[0][1] == "queued"
+    assert queued[0][2]
+    assert dispatched == [(Path("/tmp/session_old-session.json"), "session_reset")]
     assert plugin._LAST_FINALIZED_SESSION_ID is None
 
 
 
-def test_on_session_start_catches_up_previous_unextracted_session(tmp_path, monkeypatch):
+def test_on_session_start_catches_up_previous_queued_session(tmp_path, monkeypatch):
     workspace = tmp_path / "workspace"
     sessions_dir = tmp_path / "sessions"
     (workspace / "memory").mkdir(parents=True)
     sessions_dir.mkdir(parents=True)
 
-    previous = _session_file(sessions_dir, "20260414_090000_prev")
-    _session_file(sessions_dir, "20260415_100000_current")
+    previous = _session_json_file(sessions_dir, "20260414_090000_prev")
+    _session_json_file(sessions_dir, "20260415_100000_current")
+    ((workspace / "memory") / "pending_extraction.json").write_text(
+        json.dumps(
+            {
+                "status": "queued",
+                "20260414_090000_prev": {"status": "queued", "finalized_at": "2026-04-14T09:00:00Z"},
+            }
+        ),
+        encoding="utf-8",
+    )
 
     dispatched = []
     plugin._EXTRACTION_DISPATCHED.clear()
@@ -221,8 +280,8 @@ def test_dispatch_extraction_recovers_stale_entries_for_reset_runs(tmp_path, mon
     monkeypatch.setattr(
         plugin,
         "_write_extraction_status_via_script",
-        lambda session_id, status, details="", primitives=None: plugin._mark_extraction_status(
-            session_id, status, details
+        lambda session_id, status, details="", primitives=None, finalized_at="": plugin._mark_extraction_status(
+            session_id, status, details, finalized_at=finalized_at
         ),
     )
     monkeypatch.setattr(
@@ -287,6 +346,35 @@ def test_finalize_memory_extraction_complete_defaults_to_empty_primitives(tmp_pa
     assert pending["status"] == "complete"
     assert pending["session-123"]["status"] == "complete"
     assert pending["session-123"]["primitives"] == []
+
+
+def test_finalize_memory_extraction_queued_sets_finalized_at(tmp_path):
+    workspace = tmp_path / "workspace"
+    memory_dir = workspace / "memory"
+    memory_dir.mkdir(parents=True)
+
+    subprocess.run(
+        [
+            "python3",
+            str(FINALIZER_SCRIPT),
+            "--session-id",
+            "session-queued",
+            "--status",
+            "queued",
+            "--finalized-at",
+            "2026-04-15T12:34:56Z",
+        ],
+        cwd=str(workspace),
+        env={**os.environ, "WORKSPACE": str(workspace)},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    pending = json.loads((memory_dir / "pending_extraction.json").read_text(encoding="utf-8"))
+    assert pending["status"] == "queued"
+    assert pending["session-queued"]["status"] == "queued"
+    assert pending["session-queued"]["finalized_at"] == "2026-04-15T12:34:56Z"
 
 
 def test_finalize_memory_extraction_error_requires_details(tmp_path):
@@ -358,3 +446,41 @@ def test_extract_session_memory_prompt_requires_empty_primitives_completion(tmp_
     assert 'python3 scripts/finalize_memory_extraction.py --session-id "session" --status complete' in prompt
     assert "This must result in `primitives: []`." in prompt
     assert '--status error --details "<short reason>"' in prompt
+
+
+def test_extract_session_memory_uses_session_json_name_for_session_id(tmp_path):
+    workspace = tmp_path / "workspace"
+    scripts_dir = workspace / "scripts"
+    memory_dir = workspace / "memory"
+    sessions_dir = tmp_path / "sessions"
+    scripts_dir.mkdir(parents=True)
+    memory_dir.mkdir(parents=True)
+    sessions_dir.mkdir(parents=True)
+
+    (scripts_dir / "parse_session_transcript.py").write_text(
+        PARSE_SCRIPT.read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    session_file = sessions_dir / "session_20260415_195418_21caa2.json"
+    session_file.write_text(
+        json.dumps(
+            {
+                "role": "user",
+                "content": "Short session with no reusable lessons",
+                "timestamp": "2026-04-15T12:00:00Z",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        ["bash", str(EXTRACT_SCRIPT), "--instance", "main", "--session-file", str(session_file)],
+        cwd=str(workspace),
+        env={**os.environ, "WORKSPACE": str(workspace), "HERMES_SESSIONS_DIR": str(sessions_dir)},
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    assert "SESSION_ID=20260415_195418_21caa2" in result.stdout

@@ -7,7 +7,7 @@
 #   3. Manual: bash scripts/extract_session_memory.sh [--instance main]
 #
 # Flow:
-#   1. Find latest completed session JSONL for the instance
+#   1. Find latest completed session transcript file for the instance
 #   2. Parse it into readable transcript (bash+python — clock cycles, zero tokens)
 #   3. Build extraction prompt for subagent
 #   4. Output file paths for the caller to use
@@ -34,7 +34,7 @@ Usage: $(basename "$0") [OPTIONS]
 
 Options:
   --instance NAME    Agent instance (default: main)
-  --session-file F   Specific JSONL to process (default: auto-detect latest)
+  --session-file F   Specific session transcript file to process (default: auto-detect latest)
   --persona NAME     Optional persona tag (architect/critic/builder/etc)
   --dry-run          Parse transcript only, don't build extraction prompt
   --test             Test mode: write all output to memory/test-extract/ (no duplicates)
@@ -59,10 +59,10 @@ done
 find_latest_session() {
   local sessions_dir="$AGENTS_DIR/$INSTANCE/sessions"
 
-  # Preferred path for Hermes: ~/.hermes/sessions/*.jsonl
+  # Preferred path for Hermes: session file already queued by tracker, or latest legacy transcript file
   if [[ -d "$HERMES_SESSIONS_DIR" ]]; then
     local latest_hermes
-    latest_hermes=$(ls -t "$HERMES_SESSIONS_DIR"/*.jsonl 2>/dev/null | head -1 || true)
+    latest_hermes=$(ls -t "$HERMES_SESSIONS_DIR"/session_*.json "$HERMES_SESSIONS_DIR"/*.jsonl 2>/dev/null | head -1 || true)
     if [[ -n "$latest_hermes" ]]; then
       echo "$latest_hermes"
       return 0
@@ -88,7 +88,10 @@ if [[ -z "$SESSION_FILE" ]]; then
 fi
 [[ -f "$SESSION_FILE" ]] || { echo "ERROR: File not found: $SESSION_FILE" >&2; exit 1; }
 
-SESSION_ID=$(basename "$SESSION_FILE" | sed 's/\.jsonl.*//')
+SESSION_BASENAME=$(basename "$SESSION_FILE")
+SESSION_ID="${SESSION_BASENAME#session_}"
+SESSION_ID="${SESSION_ID%.jsonl}"
+SESSION_ID="${SESSION_ID%.json}"
 echo "📋 Processing session: $SESSION_ID (instance: $INSTANCE)"
 
 # Step 2: Parse to readable transcript

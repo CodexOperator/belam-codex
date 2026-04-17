@@ -17,6 +17,7 @@ _SESSION_CACHE: dict[str, dict[str, str]] = {}
 _LAST_FINALIZED_SESSION_ID: str | None = None
 _EXTRACTION_DISPATCHED: set[str] = set()
 _EXTRACTION_STALE_AFTER_SECONDS = 15 * 60
+_TERMINAL_EXTRACTION_STATUSES = {"running", "complete", "error"}
 
 DEFAULT_INJECT_FILES = ["SOUL.md", "IDENTITY.md", "USER.md", "codex_legend.md"]
 
@@ -122,12 +123,22 @@ def _parse_pending_timestamp(raw: Any) -> datetime | None:
         return None
 
 
-def _mark_extraction_status(session_id: str, status: str, details: str = "") -> None:
+def _mark_extraction_status(
+    session_id: str,
+    status: str,
+    details: str = "",
+    *,
+    finalized_at: str = "",
+) -> None:
     data = _load_pending_extraction()
     entry = data.get(session_id, {}) if isinstance(data.get(session_id), dict) else {}
     entry["status"] = status
     entry["updated_at"] = _utc_now_iso()
-    if details:
+    if status == "queued":
+        entry["finalized_at"] = finalized_at or entry.get("finalized_at") or entry["updated_at"]
+        entry.pop("details", None)
+        entry.pop("primitives", None)
+    elif details:
         entry["details"] = details
     elif "details" in entry:
         entry.pop("details", None)
@@ -142,6 +153,7 @@ def _write_extraction_status_via_script(
     *,
     details: str = "",
     primitives: list[str] | None = None,
+    finalized_at: str = "",
 ) -> None:
     ws = _workspace()
     env = dict(os.environ)
@@ -156,6 +168,8 @@ def _write_extraction_status_via_script(
     ]
     if details:
         cmd.extend(["--details", details])
+    if finalized_at:
+        cmd.extend(["--finalized-at", finalized_at])
     for primitive in primitives or []:
         cmd.extend(["--primitive", primitive])
     try:
@@ -169,7 +183,12 @@ def _write_extraction_status_via_script(
             env=env,
         )
     except Exception as exc:
-        _mark_extraction_status(session_id, status, details or str(exc)[:200])
+        _mark_extraction_status(
+            session_id,
+            status,
+            details or str(exc)[:200],
+            finalized_at=finalized_at,
+        )
         _log(
             "warn",
             "Failed to invoke extraction finalizer; used fallback",
@@ -180,7 +199,12 @@ def _write_extraction_status_via_script(
     if result.returncode == 0:
         return
 
-    _mark_extraction_status(session_id, status, details or (result.stderr or result.stdout)[:200])
+    _mark_extraction_status(
+        session_id,
+        status,
+        details or (result.stderr or result.stdout)[:200],
+        finalized_at=finalized_at,
+    )
     _log(
         "warn",
         "Extraction finalizer returned non-zero; used fallback",
@@ -222,8 +246,17 @@ def _recover_pending_extractions() -> None:
 def _session_file_for(session_id: str) -> Path | None:
     if not session_id:
         return None
-    path = _sessions_dir() / f"{session_id}.jsonl"
-    return path if path.exists() else None
+    sessions_dir = _sessions_dir()
+    candidates = [
+        sessions_dir / f"{session_id}.jsonl",
+        sessions_dir / f"{session_id}.json",
+        sessions_dir / f"session_{session_id}.json",
+        sessions_dir / f"session_{session_id}.jsonl",
+    ]
+    for path in candidates:
+        if path.exists():
+            return path
+    return None
 
 
 def _session_already_extracted(session_id: str) -> bool:
@@ -235,23 +268,45 @@ def _session_already_extracted(session_id: str) -> bool:
     entry = pending.get(session_id)
     if not isinstance(entry, dict):
         return False
-    return entry.get("status") in {"running", "complete"}
+    return entry.get("status") in _TERMINAL_EXTRACTION_STATUSES
+
+
+def _queue_sort_key(session_id: str, entry: dict[str, Any]) -> tuple[str, str]:
+    finalized_at = _parse_pending_timestamp(entry.get("finalized_at"))
+    if finalized_at is None:
+        finalized_at = _parse_pending_timestamp(entry.get("updated_at"))
+    finalized_key = finalized_at.isoformat() if finalized_at is not None else ""
+    return (finalized_key, session_id)
+
+
+def _find_queued_session_to_extract(current_session_id: str = "") -> Path | None:
+    pending = _load_pending_extraction()
+    queued: list[tuple[tuple[str, str], str, dict[str, Any]]] = []
+    for session_id, entry in pending.items():
+        if session_id == current_session_id or not isinstance(entry, dict):
+            continue
+        status = entry.get("status")
+        if status in _TERMINAL_EXTRACTION_STATUSES:
+            continue
+        if status != "queued" and "finalized_at" not in entry:
+            continue
+        queued.append((_queue_sort_key(session_id, entry), session_id, entry))
+
+    for _, session_id, entry in sorted(queued):
+        session_path = _session_file_for(session_id)
+        if session_path is not None:
+            return session_path
+        _log(
+            "warn",
+            "Queued finalized session missing transcript file",
+            {"session_id": session_id, "status": entry.get("status")},
+        )
+    return None
 
 
 def _find_session_to_extract(current_session_id: str = "") -> Path | None:
     _recover_pending_extractions()
-    sessions_dir = _sessions_dir()
-    if not sessions_dir.is_dir():
-        return None
-    candidates = sorted(sessions_dir.glob("*.jsonl"), reverse=True)
-    for path in candidates:
-        session_id = path.stem
-        if session_id == current_session_id:
-            continue
-        if _session_already_extracted(session_id):
-            continue
-        return path
-    return None
+    return _find_queued_session_to_extract(current_session_id=current_session_id)
 
 
 def _dispatch_extraction(session_path: Path, reason: str) -> None:
@@ -431,6 +486,8 @@ def _on_session_finalize(**kwargs: Any) -> None:
     global _LAST_FINALIZED_SESSION_ID
     sid = str(kwargs.get("session_id") or "")
     _LAST_FINALIZED_SESSION_ID = sid or None
+    if sid:
+        _write_extraction_status_via_script(sid, "queued", finalized_at=_utc_now_iso())
 
 
 def _on_session_reset(**kwargs: Any) -> None:

@@ -40,6 +40,7 @@ def finalize_status(
     status: str,
     details: str = "",
     primitives: list[str] | None = None,
+    finalized_at: str = "",
 ) -> None:
     path = _pending_extraction_path(workspace)
     data = _load_pending_extraction(path)
@@ -48,7 +49,11 @@ def finalize_status(
     entry["status"] = status
     entry["updated_at"] = _utc_now_iso()
 
-    if status == "complete":
+    if status == "queued":
+        entry["finalized_at"] = finalized_at.strip() or entry.get("finalized_at") or entry["updated_at"]
+        entry.pop("details", None)
+        entry.pop("primitives", None)
+    elif status == "complete":
         entry["primitives"] = primitives or []
         entry.pop("details", None)
     elif status == "error":
@@ -73,8 +78,9 @@ def finalize_status(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--session-id", required=True)
-    parser.add_argument("--status", required=True, choices=["running", "complete", "error"])
+    parser.add_argument("--status", required=True, choices=["queued", "running", "complete", "error"])
     parser.add_argument("--details", default="")
+    parser.add_argument("--finalized-at", default="")
     parser.add_argument("--primitive", action="append", default=[])
     args = parser.parse_args()
 
@@ -85,6 +91,7 @@ def main() -> int:
             status=args.status,
             details=args.details,
             primitives=args.primitive,
+            finalized_at=args.finalized_at,
         )
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
