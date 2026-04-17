@@ -1,6 +1,7 @@
 ---
 primitive: decision
 date: 2026-04-17
+source: session 20260416_181555_298688bb
 status: accepted
 upstream: []
 downstream: []
