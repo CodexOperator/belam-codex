@@ -30,6 +30,7 @@ import json
 import os
 import re
 import sys
+import importlib.util
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -39,6 +40,26 @@ FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
 BUILDS_DIR = FINANCE_DIR / 'research' / 'pipeline_builds'
 SPECS_DIR = FINANCE_DIR / 'specs'
 NOTEBOOKS_DIR = FINANCE_DIR / 'notebooks'
+LOCAL_SCRIPTS_DIR = Path(__file__).resolve().parent
+
+
+def _get_local_template_parser_module():
+    local_path = (LOCAL_SCRIPTS_DIR / 'template_parser.py').resolve()
+    mod = sys.modules.get('template_parser')
+    mod_path = None
+    if mod is not None:
+        try:
+            mod_path = Path(getattr(mod, '__file__', '')).resolve()
+        except Exception:
+            mod_path = None
+    if mod is None or mod_path != local_path:
+        spec = importlib.util.spec_from_file_location('template_parser', local_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f'Could not load template_parser from {local_path}')
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules['template_parser'] = mod
+        spec.loader.exec_module(mod)
+    return mod
 
 
 def list_pipelines():
@@ -434,14 +455,15 @@ def create_pipeline(version, description, priority='high', tags=None, project='s
 
     # Parse template for pipeline_fields if using a non-standard template
     template_type = pipeline_type
+    parsed_template = None
     if pipeline_type not in ('research', 'infrastructure'):
         try:
-            sys.path.insert(0, str(Path(__file__).parent))
-            from template_parser import parse_template
-            parsed = parse_template(pipeline_type)
-            if parsed and parsed.get('pipeline_fields', {}).get('type'):
-                template_type = parsed['pipeline_fields']['type']
+            template_parser = _get_local_template_parser_module()
+            parsed_template = template_parser.parse_template(pipeline_type)
+            if parsed_template and parsed_template.get('pipeline_fields', {}).get('type'):
+                template_type = parsed_template['pipeline_fields']['type']
         except Exception:
+            parsed_template = None
             pass  # Fall back to using pipeline_type as-is
 
     # Build frontmatter
@@ -540,7 +562,19 @@ _Status: LOCKED — requires Phase 2 completion before activation_
         'phase1': {'stage': 'design', 'started': now},
         'phase2': {'stage': 'queued'},
         'phase3': {'gate': 'locked', 'iterations': []},
+        'template_name': template_type,
     }
+    if parsed_template:
+        runtime_block = parsed_template.get('runtime', {}) if isinstance(parsed_template.get('runtime'), dict) else {}
+        runtime_block = dict(runtime_block)
+        defaults = parsed_template.get('defaults', {}) if isinstance(parsed_template.get('defaults'), dict) else {}
+        stage_defs = parsed_template.get('stage_defs', {}) if isinstance(parsed_template.get('stage_defs'), dict) else {}
+        if defaults:
+            runtime_block['defaults'] = defaults
+        if stage_defs:
+            runtime_block['stage_overrides'] = stage_defs
+        if runtime_block:
+            state['template_runtime'] = runtime_block
     state_file = BUILDS_DIR / f'{version}_state.json'
     state_file.write_text(json.dumps(state, indent=2))
     

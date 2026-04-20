@@ -70,6 +70,7 @@ Each subtask runs through the full pipeline independently. Later subtasks can de
 <!-- machine-readable: parsed by template_parser.py -->
 <!-- Phase-based format: phases define stage sequences, gates, and block routing -->
 ```yaml
+schema_version: 1
 first_agent: builder
 type: builder-first
 runtime:
@@ -81,29 +82,80 @@ runtime:
     builder: { toolsets: [terminal, file, skills] }
     critic: { toolsets: [file, terminal] }
 
+# Template-level defaults — merged beneath per-stage runtime fields by
+# runtime_resolution.resolve_stage_runtime. Task overrides still win.
+defaults:
+  launcher: popen
+  cockpit_mode: shared
+  question_strategy: packet_and_relay
+
 phases:
-  1:
+  phase1:
+    humangate: true
     stages:
-      - { role: builder, action: implement, session: fresh }
-      - { role: builder, action: bugfix, session: continue }
-      - { role: critic, action: review, session: fresh }
-    gate: human
+      - role: builder
+        action: implement
+        session: fresh
+        cli: claude
+        context: [persona-builder, supermap, cockpit, cavekit]
+      - role: builder
+        action: bugfix
+        session: continue
+        cli: claude
+        context: [persona-builder, supermap, cockpit, cavekit]
+      - role: critic
+        action: review
+        session: fresh
+        cli: codex
+        context: [persona-critic, supermap]
 
-  2:
+  phase2:
+    humangate: true
     stages:
-      - { role: architect, action: design, session: fresh }
-      - { role: builder, action: implement, session: fresh }
-      - { role: builder, action: bugfix, session: continue }
-      - { role: critic, action: review, session: fresh }
-    gate: human
+      - role: architect
+        action: design
+        session: fresh
+        cli: claude
+        context: [persona-architect, supermap, cockpit, cavekit]
+      - role: builder
+        action: implement
+        session: fresh
+        cli: claude
+        context: [persona-builder, supermap, cockpit, cavekit]
+      - role: builder
+        action: bugfix
+        session: continue
+        cli: claude
+        context: [persona-builder, supermap, cockpit, cavekit]
+      - role: critic
+        action: review
+        session: fresh
+        cli: codex
+        context: [persona-critic, supermap]
 
-  3:
+  phase3:
+    humangate: true
     stages:
-      - { role: architect, action: design, session: fresh }
-      - { role: builder, action: implement, session: fresh }
-      - { role: builder, action: bugfix, session: continue }
-      - { role: critic, action: review, session: fresh }
-    gate: human
+      - role: architect
+        action: design
+        session: fresh
+        cli: claude
+        context: [persona-architect, supermap, cockpit, cavekit]
+      - role: builder
+        action: implement
+        session: fresh
+        cli: claude
+        context: [persona-builder, supermap, cockpit, cavekit]
+      - role: builder
+        action: bugfix
+        session: continue
+        cli: claude
+        context: [persona-builder, supermap, cockpit, cavekit]
+      - role: critic
+        action: review
+        session: fresh
+        cli: codex
+        context: [persona-critic, supermap]
 
 block_routing:
   critic:

@@ -1,0 +1,61 @@
+---
+# CLI registry — authoring format is YAML (hand-edit friendly).
+# Consumed by scripts/cli_registry.py and resolved at dispatch time.
+# If scale demands it later, compile this into normalized JSON at build time
+# rather than making JSON the authoring format.
+schema_version: 1
+
+defaults:
+  launcher: popen
+  cockpit_mode: shared
+  question_strategy: packet_and_relay
+  task_entry: file
+
+# Starter set — officially shipped with the repo. Users may add more entries.
+clis:
+  codex:
+    label: OpenAI Codex CLI
+    program: codex
+    default_args:
+      - "--yolo"
+    launcher: popen
+    supports_tmux: true
+    supports_resume: true
+    question_strategy: packet_and_relay
+    task_entry: file
+
+  claude:
+    label: Claude Code
+    program: claude
+    default_args:
+      - "--dangerously-skip-permissions"
+    launcher: popen
+    supports_tmux: true
+    supports_resume: true
+    question_strategy: packet_and_relay
+    task_entry: file
+
+  openclaw:
+    label: OpenClaw Agent CLI
+    program: openclaw
+    default_args:
+      - "agent"
+    launcher: popen
+    supports_tmux: false
+    supports_resume: true
+    question_strategy: native_session
+    task_entry: message
+
+# Symbolic aliases templates can reference. Tasks can override these.
+aliases:
+  architect_default: claude
+  builder_default: claude
+  critic_default: codex
+  system_default: openclaw
+
+# Default per-role tooling contexts. Stages may override via `context:` list.
+role_contexts:
+  architect: [persona-architect, supermap, cockpit, cavekit]
+  builder:   [persona-builder, supermap, cockpit, cavekit]
+  critic:    [persona-critic, supermap]
+  system:    [supermap]

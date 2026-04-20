@@ -62,10 +62,35 @@ import subprocess
 import sys
 import time
 import uuid
+import importlib.util
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional, Callable
+
+try:
+    import yaml  # type: ignore
+except Exception:  # pragma: no cover - optional for legacy environments
+    yaml = None
+
+LOCAL_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(LOCAL_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(LOCAL_SCRIPTS_DIR))
+
+# ─── Slice 1: CLI-agnostic adapter imports (lazy-safe) ────────────────────────
+try:
+    from runtime_resolution import resolve_stage_runtime as _resolve_stage_runtime
+    from dispatch_adapters import dispatch as _adapter_dispatch, AdapterError
+    from cli_registry import RegistryError
+    _HAS_ADAPTERS = True
+except Exception:  # pragma: no cover — adapters are additive; never break legacy path
+    _HAS_ADAPTERS = False
+    _resolve_stage_runtime = None  # type: ignore
+    _adapter_dispatch = None  # type: ignore
+    class AdapterError(RuntimeError):
+        pass
+    class RegistryError(RuntimeError):
+        pass
 
 # ─── Paths ──────────────────────────────────────────────────────────────────────
 
@@ -163,6 +188,26 @@ _template_gates: dict[str, set] = {}  # template_name → set of human-gated sta
 _template_runtime: dict[str, dict] = {}  # template_name → runtime metadata block
 
 
+def _get_local_template_parser_module():
+    """Load the repo-local template_parser.py even if another workspace shadows it."""
+    local_path = (LOCAL_SCRIPTS_DIR / 'template_parser.py').resolve()
+    mod = sys.modules.get('template_parser')
+    mod_path = None
+    if mod is not None:
+        try:
+            mod_path = Path(getattr(mod, '__file__', '')).resolve()
+        except Exception:
+            mod_path = None
+    if mod is None or mod_path != local_path:
+        spec = importlib.util.spec_from_file_location('template_parser', local_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f'Could not load template_parser from {local_path}')
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules['template_parser'] = mod
+        spec.loader.exec_module(mod)
+    return mod
+
+
 def _parse_template_transitions(template_name: str) -> dict | None:
     """Parse stage transitions from a pipeline template markdown file.
 
@@ -176,8 +221,8 @@ def _parse_template_transitions(template_name: str) -> dict | None:
         return _template_cache[template_name]
 
     try:
-        from template_parser import parse_template
-        parsed = parse_template(template_name)
+        template_parser = _get_local_template_parser_module()
+        parsed = template_parser.parse_template(template_name)
     except ImportError:
         parsed = None
 
@@ -203,7 +248,15 @@ def _parse_template_transitions(template_name: str) -> dict | None:
     _template_status_bumps[template_name] = parsed.get('status_bumps', {})
     _template_start_status_bumps[template_name] = parsed.get('start_status_bumps', {})
     runtime = parsed.get('runtime', {})
-    _template_runtime[template_name] = runtime if isinstance(runtime, dict) else {}
+    combined_runtime = runtime if isinstance(runtime, dict) else {}
+    combined_runtime = dict(combined_runtime)
+    defaults = parsed.get('defaults', {})
+    if isinstance(defaults, dict) and defaults:
+        combined_runtime['defaults'] = defaults
+    stage_defs = parsed.get('stage_defs', {})
+    if isinstance(stage_defs, dict) and stage_defs:
+        combined_runtime['stage_overrides'] = stage_defs
+    _template_runtime[template_name] = combined_runtime
     return transitions
 
 
@@ -1842,6 +1895,114 @@ def _resolve_gate_condition(condition: str, self_fm: dict, self_version: str) ->
 
 # ─── Fire-and-Forget Dispatch (State Machine Core) ────────────────────────────
 
+def _load_task_runtime(version: str, state: dict | None) -> dict | None:
+    """Look up a task's ``pipeline_runtime`` block, if any.
+
+    Slice 1 reads the runtime from three places in priority order:
+      1. ``state['pipeline_runtime']`` (materialized by the launcher)
+      2. ``state['task_runtime']`` (alias kept for migration)
+      3. the first task markdown frontmatter whose ``pipeline: <version>``
+         declares ``pipeline_runtime``
+    """
+    if isinstance(state, dict):
+        for key in ('pipeline_runtime', 'task_runtime'):
+            blk = state.get(key)
+            if isinstance(blk, dict) and blk:
+                return blk
+    tasks_dir = WORKSPACE / 'tasks'
+    if yaml is None or not tasks_dir.exists():
+        return None
+    for task_file in sorted(tasks_dir.glob('*.md')):
+        try:
+            content = task_file.read_text(errors='replace')
+        except Exception:
+            continue
+        if not content.startswith('---\n'):
+            continue
+        try:
+            _, fm_text, _ = content.split('---', 2)
+        except ValueError:
+            continue
+        try:
+            fm = yaml.safe_load(fm_text) or {}
+        except Exception:
+            continue
+        if not isinstance(fm, dict):
+            continue
+        pipeline_ref = str(fm.get('pipeline', '') or '').strip()
+        if pipeline_ref != version:
+            continue
+        runtime = fm.get('pipeline_runtime')
+        if isinstance(runtime, dict) and runtime:
+            if fm.get('pipeline_template_path'):
+                runtime = dict(runtime)
+                runtime.setdefault('pipeline_template_path', fm.get('pipeline_template_path'))
+            return runtime
+    return None
+
+
+def _load_template_runtime(state: dict | None, version: str | None = None) -> dict | None:
+    if isinstance(state, dict):
+        tpl_runtime = state.get('template_runtime')
+        if isinstance(tpl_runtime, dict) and tpl_runtime:
+            return tpl_runtime
+        template_name = state.get('template_name')
+        if isinstance(template_name, str) and template_name.strip():
+            resolved = _get_template_runtime(template_name=template_name.strip())
+            if isinstance(resolved, dict) and resolved:
+                return resolved
+    if version:
+        resolved = _get_template_runtime(version=version)
+        if isinstance(resolved, dict) and resolved:
+            return resolved
+    return None
+
+
+def _stage_phase_key(stage: str) -> str | None:
+    m = re.match(r'^(p\d+)_', stage or '')
+    return m.group(1) if m else None
+
+
+def _try_adapter_dispatch(version: str, stage: str, agent: str,
+                           message: str, state: dict | None) -> dict | None:
+    """Dispatch via the CLI-agnostic adapter registry when runtime is present.
+
+    Returns a dispatch-result dict if the adapter path is used, or ``None`` to
+    signal the caller should fall through to the legacy openclaw popen path.
+    """
+    task_runtime = _load_task_runtime(version, state)
+    template_runtime = _load_template_runtime(state, version=version)
+    if task_runtime is None and template_runtime is None:
+        return None
+    try:
+        runtime = _resolve_stage_runtime(
+            stage_key=stage,
+            role=agent,
+            phase_key=_stage_phase_key(stage),
+            template_runtime=template_runtime,
+            task_runtime=task_runtime,
+            message=message,
+        )
+    except (AdapterError, RegistryError) as e:
+        return {'success': False, 'pid': None, 'error': f'runtime resolution failed: {e}'}
+    try:
+        result = _adapter_dispatch(
+            version=version, stage=stage, agent=agent,
+            runtime=runtime, message=message,
+        )
+    except AdapterError as e:
+        return {'success': False, 'pid': None, 'error': str(e)}
+    # Best-effort group notify mirrors legacy behavior.
+    if result.get('success'):
+        try:
+            from pipeline_update import notify_group
+            notify_group(agent, version, 'start', stage,
+                         f'Agent dispatched for {stage}')
+        except Exception:
+            pass
+    return result
+
+
 def fire_and_forget_dispatch(version: str, stage: str, agent: str,
                               message: str = '') -> dict:
     """Dispatch an agent non-blocking via subprocess.Popen.
@@ -1886,7 +2047,16 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
             f'Read your task from `pending_action` in the state JSON, then complete it.'
         )
 
-    # --- Fire and forget via Popen ---
+    # --- Slice 1: try CLI-agnostic adapter dispatch first ---
+    # If the pipeline's state has a resolved runtime, or the task frontmatter
+    # supplies a `pipeline_runtime` block, dispatch via the adapter registry.
+    # Otherwise fall through to the legacy openclaw popen path below.
+    if _HAS_ADAPTERS:
+        adapter_result = _try_adapter_dispatch(version, stage, agent, message, state)
+        if adapter_result is not None:
+            return adapter_result
+
+    # --- Fire and forget via Popen (legacy openclaw path) ---
     # NOTE: Do NOT pass --timeout here. Popen with start_new_session=True
     # already returns immediately. --timeout N sets the *agent's* runtime
     # limit (default 600s), so --timeout 1 was killing agents after 1 second.

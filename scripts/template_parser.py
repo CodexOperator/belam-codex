@@ -118,13 +118,38 @@ def _parse_phase_based(data: dict) -> dict | None:
     start_status_bumps = {}
     human_gates = set()
     all_stage_names = []
+    # Slice 1: retain per-stage runtime fields (cli/context/args/etc.) so the
+    # orchestrator can feed them into runtime_resolution.resolve_stage_runtime.
+    stage_defs: dict[str, dict] = {}
+    template_defaults = data.get('defaults', {}) if isinstance(data.get('defaults'), dict) else {}
 
-    sorted_phase_nums = sorted(int(k) for k in phases.keys())
+    # Accept both numeric phase keys (1, 2) and named keys ("phase1", "phase2").
+    phase_key_map: dict[int, object] = {}
+    for raw_key in phases.keys():
+        if isinstance(raw_key, int):
+            phase_key_map[raw_key] = raw_key
+            continue
+        s = str(raw_key).strip()
+        if s.isdigit():
+            phase_key_map[int(s)] = raw_key
+            continue
+        m = re.match(r'^phase[_-]?(\d+)$', s, re.IGNORECASE)
+        if m:
+            phase_key_map[int(m.group(1))] = raw_key
+            continue
+        # Unknown shape: skip silently — authors should use numeric or phaseN.
+    sorted_phase_nums = sorted(phase_key_map.keys())
 
     for phase_num in sorted_phase_nums:
-        phase = phases[phase_num]
+        phase = phases[phase_key_map[phase_num]]
         stages = phase.get('stages', [])
-        gate = phase.get('gate', 'human')
+        # Accept `gate: human|auto` OR `humangate: true/false` alias.
+        if 'gate' in phase:
+            gate = phase.get('gate', 'human')
+        elif 'humangate' in phase:
+            gate = 'human' if phase.get('humangate') else 'auto'
+        else:
+            gate = 'human'
 
         # Generate stage names for this phase
         phase_stage_names = []
@@ -133,6 +158,9 @@ def _parse_phase_based(data: dict) -> dict | None:
             action = stage_def['action']
             name = f'p{phase_num}_{role}_{action}'
             phase_stage_names.append(name)
+            # Preserve the raw stage definition for runtime resolution.
+            stage_defs[name] = dict(stage_def)
+            stage_defs[name].setdefault('phase', phase_num)
         
         complete_name = f'p{phase_num}_complete'
         all_stage_names.extend(phase_stage_names)
@@ -165,7 +193,7 @@ def _parse_phase_based(data: dict) -> dict | None:
             idx = sorted_phase_nums.index(phase_num)
             if idx + 1 < len(sorted_phase_nums):
                 next_phase_num = sorted_phase_nums[idx + 1]
-                next_phase = phases[next_phase_num]
+                next_phase = phases[phase_key_map[next_phase_num]]
                 next_stages = next_phase.get('stages', [])
                 if next_stages:
                     next_first = f'p{next_phase_num}_{next_stages[0]["role"]}_{next_stages[0]["action"]}'
@@ -177,7 +205,7 @@ def _parse_phase_based(data: dict) -> dict | None:
             idx = sorted_phase_nums.index(phase_num)
             if idx + 1 < len(sorted_phase_nums):
                 next_phase_num = sorted_phase_nums[idx + 1]
-                next_phase = phases[next_phase_num]
+                next_phase = phases[phase_key_map[next_phase_num]]
                 next_stages = next_phase.get('stages', [])
                 if next_stages:
                     next_first = f'p{next_phase_num}_{next_stages[0]["role"]}_{next_stages[0]["action"]}'
@@ -199,7 +227,7 @@ def _parse_phase_based(data: dict) -> dict | None:
     # pipeline_created → first stage of phase 1
     if sorted_phase_nums:
         first_phase = sorted_phase_nums[0]
-        first_phase_stages = phases[first_phase].get('stages', [])
+        first_phase_stages = phases[phase_key_map[first_phase]].get('stages', [])
         if first_phase_stages:
             first_stage_name = f'p{first_phase}_{first_phase_stages[0]["role"]}_{first_phase_stages[0]["action"]}'
             transitions['pipeline_created'] = (
@@ -223,7 +251,7 @@ def _parse_phase_based(data: dict) -> dict | None:
 
             # For every phase, generate block transitions for matching stages
             for phase_num in sorted_phase_nums:
-                phase = phases[phase_num]
+                phase = phases[phase_key_map[phase_num]]
                 stages_list = phase.get('stages', [])
                 phase_stage_names_local = [
                     f'p{phase_num}_{s["role"]}_{s["action"]}' for s in stages_list
@@ -273,6 +301,8 @@ def _parse_phase_based(data: dict) -> dict | None:
         'runtime': runtime,
         'complete_task_agent': complete_task_agent,
         'auto_complete_on_clean_pass': auto_complete_on_clean_pass,
+        'stage_defs': stage_defs,
+        'defaults': template_defaults,
     }
 
 

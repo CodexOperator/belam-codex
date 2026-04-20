@@ -282,6 +282,111 @@ def test_research_four_phases():
     assert len(p4) > 0, "No Phase 4 stages"
 
 
+def test_builder_first_nested_shape_stage_defs():
+    """Migrated builder-first template exposes per-stage cli + context via stage_defs."""
+    clear_cache()
+    result = parse_template('builder-first')
+    stage_defs = result.get('stage_defs', {})
+
+    impl = stage_defs.get('p1_builder_implement')
+    assert impl is not None, 'p1_builder_implement missing from stage_defs'
+    assert impl.get('cli') == 'claude'
+    assert impl.get('context') == ['persona-builder', 'supermap', 'cockpit', 'cavekit']
+    assert impl.get('phase') == 1
+
+    review = stage_defs.get('p1_critic_review')
+    assert review is not None
+    assert review.get('cli') == 'codex'
+    assert 'persona-critic' in review.get('context', [])
+
+
+def test_template_defaults_preserved():
+    """Template-level `defaults` block is preserved for runtime resolution."""
+    clear_cache()
+    result = parse_template('builder-first')
+    defaults = result.get('defaults', {})
+    assert defaults.get('launcher') == 'popen'
+    assert defaults.get('cockpit_mode') == 'shared'
+    assert defaults.get('question_strategy') == 'packet_and_relay'
+
+
+def test_named_phase_keys_humangate_alias(tmp_path, monkeypatch):
+    """Parser accepts `phaseN` string keys and `humangate: true` alias."""
+    import template_parser as tp
+
+    # Build a minimal template on disk pointing at a temp dir.
+    tdir = tmp_path / 'templates'
+    tdir.mkdir()
+    tfile = tdir / 'mini-pipeline.md'
+    tfile.write_text(
+        '# mini\n\n## Stage Transitions\n\n```yaml\n'
+        'schema_version: 1\n'
+        'first_agent: builder\n'
+        'type: mini\n'
+        'phases:\n'
+        '  phase1:\n'
+        '    humangate: true\n'
+        '    stages:\n'
+        '      - { role: builder, action: implement, session: fresh }\n'
+        '      - { role: critic,  action: review,    session: fresh }\n'
+        '  phase2:\n'
+        '    humangate: false\n'
+        '    stages:\n'
+        '      - { role: architect, action: design, session: fresh }\n'
+        '```\n'
+    )
+
+    monkeypatch.setattr(tp, 'TEMPLATES_DIR', tdir)
+    tp.clear_cache()
+    result = tp.parse_template('mini')
+    assert result is not None
+
+    stages = result['pipeline_fields']['stages']
+    assert 'p1_builder_implement' in stages
+    assert 'p1_critic_review' in stages
+    assert 'p1_complete' in stages
+    assert 'p2_architect_design' in stages
+
+    # humangate:true → p1_complete is a human gate.
+    assert 'p1_complete' in result['human_gates']
+    # humangate:false → auto gate (no human gate marker on p2_complete).
+    assert 'p2_complete' not in result['human_gates']
+
+    # pipeline_created → first stage of phase1.
+    assert result['transitions']['pipeline_created'][0] == 'p1_builder_implement'
+
+
+def test_numeric_and_named_phase_keys_equivalent(tmp_path, monkeypatch):
+    """Numeric (1) and named (phase1) phase keys produce matching stage lists."""
+    import template_parser as tp
+
+    tdir = tmp_path / 'templates'
+    tdir.mkdir()
+
+    body = (
+        '## Stage Transitions\n\n```yaml\n'
+        'first_agent: builder\n'
+        'type: mini\n'
+        'phases:\n'
+        '  {key}:\n'
+        '    gate: human\n'
+        '    stages:\n'
+        '      - {{ role: builder, action: implement, session: fresh }}\n'
+        '```\n'
+    )
+    (tdir / 'numeric-pipeline.md').write_text('# n\n\n' + body.format(key='1'))
+    (tdir / 'named-pipeline.md').write_text('# s\n\n' + body.format(key='phase1'))
+
+    monkeypatch.setattr(tp, 'TEMPLATES_DIR', tdir)
+    tp.clear_cache()
+    r_num = tp.parse_template('numeric')
+    r_named = tp.parse_template('named')
+
+    assert r_num['pipeline_fields']['stages'] == r_named['pipeline_fields']['stages']
+    assert r_num['human_gates'] == r_named['human_gates']
+    assert set(r_num['transitions'].keys()) == set(r_named['transitions'].keys())
+
+
 def test_nonexistent_template():
     """Nonexistent template returns None."""
     clear_cache()
