@@ -92,6 +92,37 @@ def parse_template(template_name: str) -> dict | None:
     return result
 
 
+def parse_phase_map(phase_map: dict) -> dict | None:
+    """Parse pipeline-local phase_map into standard transition shape.
+
+    Supports both shapes:
+      1. {'phases': {...}, 'block_routing': {...}, ...}
+      2. {1: {...}, 2: {...}, 'block_routing': {...}, ...}
+    """
+    if not isinstance(phase_map, dict):
+        return None
+
+    if 'phases' in phase_map:
+        data = dict(phase_map)
+    else:
+        phases = {}
+        data = {}
+        for key, value in phase_map.items():
+            if isinstance(key, int):
+                phases[key] = value
+                continue
+            if isinstance(key, str) and key.isdigit():
+                phases[key] = value
+                continue
+            data[key] = value
+        data['phases'] = phases
+
+    if not isinstance(data.get('phases'), dict):
+        return None
+
+    return _parse_phase_based(data)
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # Phase-based format parser (new)
 # ═══════════════════════════════════════════════════════════════════════
@@ -130,7 +161,7 @@ def _parse_phase_based(data: dict) -> dict | None:
             action = stage_def['action']
             name = f'p{phase_num}_{role}_{action}'
             phase_stage_names.append(name)
-        
+
         complete_name = f'p{phase_num}_complete'
         all_stage_names.extend(phase_stage_names)
         all_stage_names.append(complete_name)
@@ -139,7 +170,6 @@ def _parse_phase_based(data: dict) -> dict | None:
         for i, stage_def in enumerate(stages):
             name = phase_stage_names[i]
             role = stage_def['role']
-            session = stage_def.get('session', 'fresh')
 
             if i + 1 < len(stages):
                 # Transition to next stage in phase
@@ -148,44 +178,35 @@ def _parse_phase_based(data: dict) -> dict | None:
                 next_action = stages[i + 1]['action']
                 msg = f'Phase {phase_num}: {role} {stage_def["action"]} complete. Next: {next_role} {next_action}.'
                 next_session = stages[i + 1].get('session', 'fresh')
-                transitions[name] = (next_name, next_role, msg, next_session)
+                next_runtime = stages[i + 1].get('runtime', 'openclaw')
+                transitions[name] = (next_name, next_role, msg, next_session, next_runtime)
             else:
                 # Last stage → phase complete
                 msg = f'Phase {phase_num} stages complete. Phase review.'
-                transitions[name] = (complete_name, 'system', msg, 'fresh')
+                transitions[name] = (complete_name, 'system', msg, 'fresh', 'openclaw')
                 if gate == 'human':
                     human_gates.add(complete_name)
 
         # Phase complete → next phase (if auto gate) or human gate
-        if gate == 'auto':
-            # Find next phase
-            idx = sorted_phase_nums.index(phase_num)
-            if idx + 1 < len(sorted_phase_nums):
-                next_phase_num = sorted_phase_nums[idx + 1]
-                next_phase = phases[next_phase_num]
-                next_stages = next_phase.get('stages', [])
-                if next_stages:
-                    next_first = f'p{next_phase_num}_{next_stages[0]["role"]}_{next_stages[0]["action"]}'
-                    next_role = next_stages[0]['role']
+        idx = sorted_phase_nums.index(phase_num)
+        if idx + 1 < len(sorted_phase_nums):
+            next_phase_num = sorted_phase_nums[idx + 1]
+            next_phase = phases[next_phase_num]
+            next_stages = next_phase.get('stages', [])
+            if next_stages:
+                next_first = f'p{next_phase_num}_{next_stages[0]["role"]}_{next_stages[0]["action"]}'
+                next_role = next_stages[0]['role']
+                next_runtime = next_stages[0].get('runtime', 'openclaw')
+                if gate == 'auto':
                     msg = f'Phase {phase_num} complete (auto-gate). Starting phase {next_phase_num}.'
-                    transitions[complete_name] = (next_first, next_role, msg, 'fresh')
-        elif gate == 'human':
-            # Human gate — transition exists to next phase but is gated
-            idx = sorted_phase_nums.index(phase_num)
-            if idx + 1 < len(sorted_phase_nums):
-                next_phase_num = sorted_phase_nums[idx + 1]
-                next_phase = phases[next_phase_num]
-                next_stages = next_phase.get('stages', [])
-                if next_stages:
-                    next_first = f'p{next_phase_num}_{next_stages[0]["role"]}_{next_stages[0]["action"]}'
-                    next_role = next_stages[0]['role']
+                    transitions[complete_name] = (next_first, next_role, msg, 'fresh', next_runtime)
+                elif gate == 'human':
                     msg = f'Phase {phase_num} complete. Awaiting human approval for phase {next_phase_num}.'
-                    transitions[complete_name] = (next_first, next_role, msg, 'fresh')
+                    transitions[complete_name] = (next_first, next_role, msg, 'fresh', next_runtime)
 
         # Generate status bumps for this phase
         for i, stage_def in enumerate(stages):
             name = phase_stage_names[i]
-            role = stage_def['role']
             action = stage_def['action']
             status_bumps[name] = f'p{phase_num}_{action}'
             start_status_bumps[name] = f'p{phase_num}_active'
@@ -198,14 +219,14 @@ def _parse_phase_based(data: dict) -> dict | None:
         first_phase = sorted_phase_nums[0]
         first_phase_stages = phases[first_phase].get('stages', [])
         if first_phase_stages:
-            first_stage_name = f'p{first_phase}_{first_phase_stages[0]["role"]}_{first_phase_stages[0]["action"]}'
             transitions['pipeline_created'] = (
-                first_stage_name,
+                f'p{first_phase}_{first_phase_stages[0]["role"]}_{first_phase_stages[0]["action"]}',
                 first_phase_stages[0]['role'],
                 f'Pipeline created. Starting phase {first_phase}.',
                 'fresh',
+                first_phase_stages[0].get('runtime', 'openclaw'),
             )
-            status_bumps[first_stage_name] = f'p{first_phase}_{first_phase_stages[0]["action"]}'
+            status_bumps[f'p{first_phase}_{first_phase_stages[0]["action"]}'] = f'p{first_phase}_{first_phase_stages[0]["action"]}'
 
     # Generate block transitions from block_routing
     for blocker_role, routing in block_routing.items():
@@ -214,9 +235,11 @@ def _parse_phase_based(data: dict) -> dict | None:
             if isinstance(fix_target, dict):
                 fix_role = fix_target.get('agent', fix_target.get('role', ''))
                 block_session_mode = fix_target.get('session', 'fresh')
+                fix_runtime = fix_target.get('runtime')
             else:
                 fix_role = fix_target
                 block_session_mode = 'fresh'
+                fix_runtime = None
 
             # For every phase, generate block transitions for matching stages
             for phase_num in sorted_phase_nums:
@@ -230,31 +253,63 @@ def _parse_phase_based(data: dict) -> dict | None:
                     if stage_def['role'] == blocker_role and stage_def['action'] == blocker_action:
                         block_stage = phase_stage_names_local[i]
                         fix_stage = f'p{phase_num}_{fix_role}_fix_blocks'
-                        # Find the fix_role's last stage before the blocker for re-entry
                         fix_msg = f'Phase {phase_num}: {blocker_role} blocked at {blocker_action}. {fix_role} fix required.'
 
-                        # 4-tuple: (fix_stage, fix_role, fix_msg, session_mode)
-                        block_transitions[block_stage] = (fix_stage, fix_role, fix_msg, block_session_mode)
+                        if not fix_runtime:
+                            for candidate in reversed(stages_list[:i]):
+                                if candidate['role'] == fix_role:
+                                    fix_runtime = candidate.get('runtime', 'openclaw')
+                                    break
+                        if not fix_runtime:
+                            fix_runtime = 'openclaw'
 
-                        # The fix stage transitions back to the blocker — continue within block cycles
-                        # (critic already has context from their initial review)
-                        transitions[fix_stage] = (block_stage, blocker_role,
-                                                  f'Blocks fixed. Re-review by {blocker_role}.', 'continue')
+                        block_transitions[block_stage] = (
+                            fix_stage, fix_role, fix_msg, block_session_mode, fix_runtime
+                        )
+
+                        blocker_runtime = stage_def.get('runtime', 'openclaw')
+                        transitions[fix_stage] = (
+                            block_stage,
+                            blocker_role,
+                            f'Blocks fixed. Re-review by {blocker_role}.',
+                            'continue',
+                            blocker_runtime,
+                        )
 
     # Add extra transitions (for backward compat / special cases defined in template)
     for stage, value in extra_transitions.items():
         if isinstance(value, list) and len(value) >= 3:
             session_mode = 'fresh'
+            runtime = 'openclaw'
             for item in value[3:]:
-                if isinstance(item, dict) and 'session' in item:
-                    session_mode = item['session']
-                elif isinstance(item, str) and item.startswith('session:'):
-                    session_mode = item.split(':', 1)[1].strip()
-            transitions[stage] = (value[0], value[1], value[2], session_mode)
+                if isinstance(item, dict):
+                    if 'session' in item:
+                        session_mode = item['session']
+                    if 'runtime' in item:
+                        runtime = item['runtime']
+                elif isinstance(item, str):
+                    if item.startswith('session:'):
+                        session_mode = item.split(':', 1)[1].strip()
+                    elif item.startswith('runtime:'):
+                        runtime = item.split(':', 1)[1].strip()
+            transitions[stage] = (value[0], value[1], value[2], session_mode, runtime)
 
     for stage, value in extra_block_transitions.items():
         if isinstance(value, list) and len(value) >= 3:
-            block_transitions[stage] = (value[0], value[1], value[2])
+            session_mode = 'fresh'
+            runtime = 'openclaw'
+            for item in value[3:]:
+                if isinstance(item, dict):
+                    if 'session' in item:
+                        session_mode = item['session']
+                    if 'runtime' in item:
+                        runtime = item['runtime']
+                elif isinstance(item, str):
+                    if item.startswith('session:'):
+                        session_mode = item.split(':', 1)[1].strip()
+                    elif item.startswith('runtime:'):
+                        runtime = item.split(':', 1)[1].strip()
+            block_transitions[stage] = (value[0], value[1], value[2], session_mode, runtime)
 
     return {
         'first_agent': first_agent,
@@ -674,15 +729,18 @@ if __name__ == '__main__':
 
         print(f"\n  transitions ({len(result['transitions'])}):")
         for stage, val in sorted(result['transitions'].items()):
-            next_stage, agent, msg, session_mode = val
+            next_stage, agent, msg, session_mode = val[:4]
+            runtime = val[4] if len(val) > 4 else 'openclaw'
             gate_marker = ' [HUMAN GATE]' if next_stage in result['human_gates'] else ''
-            print(f"    {stage:45s} → {next_stage:35s} ({agent}, {session_mode}){gate_marker}")
+            print(f"    {stage:45s} → {next_stage:35s} ({agent}, {session_mode}, runtime={runtime}){gate_marker}")
 
         if result['block_transitions']:
             print(f"\n  block_transitions ({len(result['block_transitions'])}):")
             for stage, val in sorted(result['block_transitions'].items()):
                 next_stage, agent = val[0], val[1]
-                print(f"    {stage:45s} → {next_stage:35s} ({agent})")
+                session_mode = val[3] if len(val) > 3 else 'fresh'
+                runtime = val[4] if len(val) > 4 else 'openclaw'
+                print(f"    {stage:45s} → {next_stage:35s} ({agent}, {session_mode}, runtime={runtime})")
 
         print(f"\n  status_bumps ({len(result['status_bumps'])}):")
         for stage, status in sorted(result['status_bumps'].items()):
