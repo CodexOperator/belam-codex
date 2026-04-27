@@ -47,6 +47,13 @@ import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
+from pipeline_paths import pipeline_builds_dir_from_meta, state_file_candidates
+
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
@@ -93,34 +100,29 @@ START_STATUS_BUMPS = {}
 
 
 def get_transitions_for_pipeline(version: str) -> tuple:
-    """Resolve (stage_transitions, block_transitions, status_bumps, start_status_bumps) for a pipeline.
+    """Resolve transitions for pipeline. Prefer local phase_map, else template."""
+    from template_parser import parse_phase_map, parse_template
 
-    Always resolves from template files. Pipeline type determines which template to parse.
-    Falls back to empty dicts if template not found (should not happen in practice).
-    
-    Supports legacy stage names via resolve_stage_name() in template_parser.py.
-    """
-    from template_parser import parse_template, resolve_stage_name
+    fm = _parse_pipeline_md_frontmatter(version)
+    phase_map = fm.get('phase_map')
+    if isinstance(phase_map, dict):
+        try:
+            parsed = parse_phase_map(phase_map)
+            if parsed:
+                return (
+                    parsed['transitions'],
+                    parsed.get('block_transitions', {}),
+                    parsed.get('status_bumps', {}),
+                    parsed.get('start_status_bumps', {}),
+                )
+        except Exception as e:
+            print(f"   ⚠️  phase_map parse error for '{version}': {e}")
 
-    # Read pipeline type from frontmatter
-    pipeline_type = None
-    pf = PIPELINES_DIR / f'{version}.md'
-    if pf.exists():
-        content = pf.read_text(errors='replace')
-        m = re.search(r'^type:\s*(.+)$', content, re.MULTILINE)
-        if m:
-            pipeline_type = m.group(1).strip()
-
-    # Map pipeline type to template name
-    # research, infrastructure → research template
-    # builder-first → builder-first template  
-    # Default to research if no type specified (most common)
-    template_map = {
-        'research': 'research',
-        'infrastructure': 'research',
-        'builder-first': 'builder-first',
-    }
-    template_name = template_map.get(pipeline_type, 'research') if pipeline_type else 'research'
+    pipeline_type = fm.get('type')
+    if not pipeline_type or pipeline_type in ('research', 'infrastructure'):
+        template_name = 'research'
+    else:
+        template_name = pipeline_type
 
     try:
         parsed = parse_template(template_name)
@@ -134,7 +136,6 @@ def get_transitions_for_pipeline(version: str) -> tuple:
     except Exception as e:
         print(f"   ⚠️  Template parse error for '{template_name}': {e}")
 
-    # Final fallback — empty dicts (should not happen with valid templates)
     return ({}, {}, {}, {})
 
 
@@ -308,16 +309,59 @@ def _parse_pipeline_md_frontmatter(version):
     m = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
     if not m:
         return {}
+
+    fm_text = m.group(1)
+    if yaml is not None:
+        try:
+            data = yaml.safe_load(fm_text) or {}
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+
     fields = {}
-    for line in m.group(1).splitlines():
+    for line in fm_text.splitlines():
         kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
         if kv:
             val = kv.group(2).strip()
-            # Convert boolean strings
             if val.lower() in ('true', 'false'):
                 val = val.lower() == 'true'
             fields[kv.group(1)] = val
     return fields
+
+
+def _pipeline_builds_dir(version: str) -> Path:
+    """Resolve pipeline builds dir from frontmatter, else legacy defaults."""
+    meta = _parse_pipeline_md_frontmatter(version)
+    return pipeline_builds_dir_from_meta(
+        WORKSPACE,
+        meta,
+        BUILDS_DIR,
+        RESEARCH_BUILDS_DIR,
+    )
+
+
+def _state_file_candidates(version: str) -> list[Path]:
+    """Return candidate state file paths, preferring pipeline frontmatter."""
+    paths = []
+    seen = set()
+    for base in (_pipeline_builds_dir(version), BUILDS_DIR, RESEARCH_BUILDS_DIR):
+        for path in state_file_candidates(base, version):
+            key = str(path)
+            if key not in seen:
+                paths.append(path)
+                seen.add(key)
+    return paths
+
+
+def _builds_artifact_ref(version: str, artifact: str) -> str:
+    """Return workspace-relative or absolute artifact ref for messages/state."""
+    build_dir = _pipeline_builds_dir(version)
+    try:
+        base = build_dir.relative_to(WORKSPACE)
+    except ValueError:
+        base = build_dir
+    return f'{base}/{artifact}'
 
 
 def load_state(version):
@@ -328,15 +372,11 @@ def load_state(version):
     last_updated, current_phase.
     """
     # Load JSON state (detail store)
-    sub_file = BUILDS_DIR / version / '_state.json'
-    if sub_file.exists():
-        state = json.loads(sub_file.read_text())
-    else:
-        state_file = BUILDS_DIR / f'{version}_state.json'
-        if state_file.exists():
-            state = json.loads(state_file.read_text())
-        else:
-            state = {'version': version, 'stages': {}}
+    state = {'version': version, 'stages': {}}
+    for state_path in _state_file_candidates(version):
+        if state_path.exists():
+            state = json.loads(state_path.read_text())
+            break
 
     # Merge .md frontmatter as authoritative for shared fields
     md_fields = _parse_pipeline_md_frontmatter(version)
@@ -386,13 +426,14 @@ def _update_pipeline_md_frontmatter(version, updates):
 
 def save_state(version, state):
     """Save pipeline state JSON + write-through to .md frontmatter."""
-    BUILDS_DIR.mkdir(parents=True, exist_ok=True)
+    build_dir = _pipeline_builds_dir(version)
+    build_dir.mkdir(parents=True, exist_ok=True)
     content = json.dumps(state, indent=2)
-    # Always write flat file
-    state_file = BUILDS_DIR / f'{version}_state.json'
+    # Always write flat file in resolved builds dir
+    state_file = build_dir / f'{version}_state.json'
     state_file.write_text(content)
     # Also write subdirectory file if it exists (sweep prefers this)
-    sub_dir = BUILDS_DIR / version
+    sub_dir = build_dir / version
     if sub_dir.is_dir():
         (sub_dir / '_state.json').write_text(content)
 
@@ -720,13 +761,14 @@ def cmd_block(version, stage, notes='', agent=None, artifact=None):
         'notes': notes,
     }
     if artifact:
-        state[f'{stage}_blocks_artifact'] = f'machinelearning/snn_applied_finance/research/pipeline_builds/{artifact}'
+        state[f'{stage}_blocks_artifact'] = _builds_artifact_ref(version, artifact)
 
     # Use template-aware transitions for block resolution
     stage_trans, block_trans, status_bumps_map, _ = get_transitions_for_pipeline(version)
     transition = block_trans.get(stage)
     if transition:
-        # Block transitions are 3-tuple or 4-tuple: (fix_stage, fix_role, msg[, session_mode])
+        # Block transitions are 3/4/5-tuples:
+        # (fix_stage, fix_role, msg[, session_mode[, runtime]])
         next_action, next_agent = transition[0], transition[1]
         ping_template = transition[2] if len(transition) > 2 else ''
         block_session_mode = transition[3] if len(transition) > 3 else 'fresh'

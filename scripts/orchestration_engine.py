@@ -67,6 +67,13 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional, Callable
 
+from pipeline_paths import pipeline_builds_dir_from_meta, state_file_candidates
+
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 # ─── Paths ──────────────────────────────────────────────────────────────────────
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
@@ -162,6 +169,62 @@ _template_cache: dict[str, dict] = {}  # template_name → parsed transitions
 _template_gates: dict[str, set] = {}  # template_name → set of human-gated stages
 
 
+def _load_pipeline_frontmatter(version: str) -> dict:
+    """Load full pipeline frontmatter, including nested YAML if available."""
+    version = resolve_pipeline(version) or version
+    pf = PIPELINES_DIR / f'{version}.md'
+    if not pf.exists():
+        return {}
+    content = pf.read_text(errors='replace')
+    m = re.match(r'^---\s*\n(.*?)\n---', content, re.DOTALL)
+    if not m:
+        return {}
+
+    fm_text = m.group(1)
+    if yaml is not None:
+        try:
+            data = yaml.safe_load(fm_text) or {}
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+
+    fields = {}
+    for line in fm_text.splitlines():
+        kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
+        if kv:
+            val = kv.group(2).strip()
+            if val.lower() in ('true', 'false'):
+                val = val.lower() == 'true'
+            fields[kv.group(1)] = val
+    return fields
+
+
+def _load_pipeline_phase_parse(version: str) -> dict | None:
+    """Parse pipeline-local phase_map if present."""
+    meta = _load_pipeline_frontmatter(version)
+    phase_map = meta.get('phase_map')
+    if not isinstance(phase_map, dict):
+        return None
+
+    try:
+        from template_parser import parse_phase_map
+        return parse_phase_map(phase_map)
+    except ImportError:
+        return None
+
+
+def _pipeline_builds_dir(version: str) -> Path:
+    """Resolve pipeline builds dir from frontmatter, else legacy defaults."""
+    meta = _load_pipeline_frontmatter(version)
+    return pipeline_builds_dir_from_meta(
+        WORKSPACE,
+        meta,
+        BUILDS_DIR,
+        RESEARCH_BUILDS_DIR,
+    )
+
+
 def _parse_template_transitions(template_name: str) -> dict | None:
     """Parse stage transitions from a pipeline template markdown file.
 
@@ -205,13 +268,9 @@ def _parse_template_transitions(template_name: str) -> dict | None:
 
 def _get_pipeline_type(version: str) -> str | None:
     """Read the 'type' field from a pipeline's frontmatter."""
-    version = resolve_pipeline(version) or version
-    pf = PIPELINES_DIR / f'{version}.md'
-    if not pf.exists():
-        return None
-    content = pf.read_text(errors='replace')
-    m = re.search(r'^type:\s*(.+)$', content, re.MULTILINE)
-    return m.group(1).strip() if m else None
+    meta = _load_pipeline_frontmatter(version)
+    pipeline_type = meta.get('type')
+    return str(pipeline_type).strip() if pipeline_type else None
 
 
 def _resolve_template_name(pipeline_type: str | None) -> str:
@@ -226,22 +285,22 @@ def _resolve_template_name(pipeline_type: str | None) -> str:
 
 
 def resolve_transition(version: str, stage: str) -> tuple | None:
-    """Resolve the next transition for a stage from templates exclusively.
+    """Resolve next transition. Prefer pipeline-local phase_map, else template."""
+    parsed = _load_pipeline_phase_parse(version)
+    if parsed and parsed.get('transitions'):
+        result = parsed['transitions'].get(stage)
+        if result:
+            return result
 
-    Returns (next_stage, expected_agent, message) or None.
-    Checks pipeline's own template first, then falls back to the research template.
-    """
     pipeline_type = _get_pipeline_type(version)
     template_name = _resolve_template_name(pipeline_type)
 
-    # Try the pipeline's template
     template_transitions = _parse_template_transitions(template_name)
     if template_transitions:
         result = template_transitions.get(stage)
         if result:
             return result
 
-    # If not the research template already, try research as final fallback
     if template_name != 'research':
         research_transitions = _parse_template_transitions('research')
         if research_transitions:
@@ -253,14 +312,16 @@ def resolve_transition(version: str, stage: str) -> tuple | None:
 
 
 def resolve_status_bump(version: str, stage: str) -> str | None:
-    """Resolve the status bump for a stage from templates.
+    """Resolve stage status bump. Prefer pipeline-local phase_map."""
+    parsed = _load_pipeline_phase_parse(version)
+    if parsed:
+        result = parsed.get('status_bumps', {}).get(stage)
+        if result:
+            return result
 
-    Returns the new status string or None.
-    """
     pipeline_type = _get_pipeline_type(version)
     template_name = _resolve_template_name(pipeline_type)
 
-    # Try the pipeline's template
     bumps = _template_status_bumps.get(template_name)
     if bumps is None:
         _parse_template_transitions(template_name)
@@ -269,7 +330,6 @@ def resolve_status_bump(version: str, stage: str) -> str | None:
     if result:
         return result
 
-    # Fallback to research template
     if template_name != 'research':
         bumps = _template_status_bumps.get('research')
         if bumps is None:
@@ -281,14 +341,16 @@ def resolve_status_bump(version: str, stage: str) -> str | None:
 
 
 def resolve_start_status_bump(version: str, stage: str) -> str | None:
-    """Resolve the start status bump for a stage from templates.
+    """Resolve stage start-status bump. Prefer pipeline-local phase_map."""
+    parsed = _load_pipeline_phase_parse(version)
+    if parsed:
+        result = parsed.get('start_status_bumps', {}).get(stage)
+        if result:
+            return result
 
-    Returns the new status string or None.
-    """
     pipeline_type = _get_pipeline_type(version)
     template_name = _resolve_template_name(pipeline_type)
 
-    # Try the pipeline's template
     bumps = _template_start_status_bumps.get(template_name)
     if bumps is None:
         _parse_template_transitions(template_name)
@@ -297,7 +359,6 @@ def resolve_start_status_bump(version: str, stage: str) -> str | None:
     if result:
         return result
 
-    # Fallback to research template
     if template_name != 'research':
         bumps = _template_start_status_bumps.get('research')
         if bumps is None:
@@ -309,12 +370,11 @@ def resolve_start_status_bump(version: str, stage: str) -> str | None:
 
 
 def is_human_gated(version: str, stage: str) -> bool:
-    """Check if a stage is human-gated for a specific pipeline's template.
+    """Check if stage is human-gated. Prefer pipeline-local phase_map."""
+    parsed = _load_pipeline_phase_parse(version)
+    if parsed is not None:
+        return stage in parsed.get('human_gates', set())
 
-    Returns True if the stage requires manual intervention before dispatch.
-    Only checks the pipeline's own template gates — a stage gated in one template
-    is NOT gated in another. Falls back to research template if no type set.
-    """
     pipeline_type = _get_pipeline_type(version)
     template_name = _resolve_template_name(pipeline_type)
     if template_name:
@@ -322,7 +382,6 @@ def is_human_gated(version: str, stage: str) -> bool:
         gates = _template_gates.get(template_name, set())
         return stage in gates
 
-    # No template found — fall back to research template gates
     _parse_template_transitions('research')
     gates = _template_gates.get('research', set())
     return stage in gates
@@ -1437,6 +1496,24 @@ except ImportError as e:
     _HAS_LAUNCH = False
 
 
+def load_state_json(version: str) -> dict:
+    """Load pipeline state, honoring custom pipeline_builds_dir frontmatter."""
+    state = {}
+    for state_path in _state_file_paths(version):
+        if state_path.exists():
+            with open(state_path) as f:
+                state = json.load(f)
+            break
+
+    md_fm = _load_pipeline_frontmatter(version)
+    for key in ('status', 'pending_action', 'dispatch_claimed', 'last_updated', 'current_phase'):
+        md_val = md_fm.get(key)
+        if md_val is not None and md_val != '':
+            state[key] = md_val
+
+    return state
+
+
 # ─── Coordinate Resolution ─────────────────────────────────────────────────────
 
 def _get_active_versions() -> list[str]:
@@ -1771,10 +1848,9 @@ def fire_and_forget_dispatch(version: str, stage: str, agent: str,
     """
     # --- Update state JSON first (state machine write) ---
     # Prefer subdirectory, fall back to flat
-    state_file = BUILDS_DIR / version / '_state.json'
-    if not state_file.exists():
-        legacy = BUILDS_DIR / f'{version}_state.json'
-        state_file = legacy if legacy.exists() else state_file
+    state_file = next((p for p in _state_file_paths(version) if p.exists()), None)
+    if state_file is None:
+        state_file = _pipeline_builds_dir(version) / f'{version}_state.json'
     state_file.parent.mkdir(parents=True, exist_ok=True)
     try:
         state = json.loads(state_file.read_text()) if state_file.exists() else {}
@@ -2045,9 +2121,13 @@ def kick_pipeline(version: str) -> bool:
 def _state_file_paths(version: str) -> list:
     """Return all possible state file paths for a version (both conventions)."""
     paths = []
-    for base in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
-        paths.append(base / version / '_state.json')
-        paths.append(base / f'{version}_state.json')
+    seen = set()
+    for base in (_pipeline_builds_dir(version), BUILDS_DIR, RESEARCH_BUILDS_DIR):
+        for path in state_file_candidates(base, version):
+            key = str(path)
+            if key not in seen:
+                paths.append(path)
+                seen.add(key)
     return paths
 
 
@@ -2558,8 +2638,8 @@ def _check_unclaimed_dispatches(dry_run: bool = False,
 
     for p in pipelines:
         version = p.get('version', '')
-        state_file = BUILDS_DIR / f'{version}_state.json'
-        if not state_file.exists():
+        state_file = next((p for p in _state_file_paths(version) if p.exists()), None)
+        if state_file is None:
             continue
 
         try:

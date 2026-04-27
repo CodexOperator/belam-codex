@@ -36,6 +36,15 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import yaml
+
+from pipeline_paths import (
+    path_value,
+    pipeline_builds_frontmatter_value,
+    resolve_workspace_path,
+    workspace_relative_path,
+)
+
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
 FINANCE_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance'
@@ -189,7 +198,8 @@ def scan_pkl_metadata(pkl_dir):
     return metadata
 
 
-def generate_design_brief(version, source_version, description, pkl_dir, metadata):
+def generate_design_brief(version, source_version, description, pkl_dir, metadata,
+                          builds_dir=None, output_notebook=None):
     """Generate a design brief from pkl metadata."""
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
@@ -251,7 +261,7 @@ The architect should design the analysis notebook to answer:
 8. **Statistical Validation:** Which performance differences are statistically significant?
 
 ## Notebook Output Target
-- **Notebook:** `snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb`
+- **Notebook:** `{output_notebook or f'machinelearning/snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb'}`
 - **Upload method:** Colab upload (zip or individual pkl files)
 
 ## Architect Instructions
@@ -259,7 +269,7 @@ The architect should design the analysis notebook to answer:
 2. Read skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`
 3. Design the full analysis notebook structure addressing all research questions above
 4. Specify exact statistical tests, visualizations, and pattern-discovery approaches
-5. Write design to `research/pipeline_builds/{version}_architect_analysis_design.md`
+5. Write design to `{builds_dir or 'machinelearning/snn_applied_finance/research/pipeline_builds'}/{version}_architect_analysis_design.md`
 6. Run: `python3 scripts/pipeline_update.py {version} complete analysis_architect_design "Design complete" architect`
 {errors_section}"""
 
@@ -267,7 +277,8 @@ The architect should design the analysis notebook to answer:
 
 
 def create_pipeline(version, description, source_version, source_pkl, priority='high', tags=None,
-                    project='snn-applied-finance'):
+                    project='snn-applied-finance', project_root=None, builds_dir=None,
+                    pipeline_builds_dir=None, source_pkl_dir=None, output_notebook=None):
     """Create a new analysis pipeline instance."""
     pf = PIPELINES_DIR / f'{version}.md'
     if pf.exists():
@@ -276,7 +287,17 @@ def create_pipeline(version, description, source_version, source_pkl, priority='
 
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     tags_list = tags or ['snn', 'analysis', source_version]
-    tags_str = f"[{', '.join(tags_list)}]"
+    project_root_value = path_value(project_root) or workspace_relative_path(WORKSPACE, FINANCE_DIR)
+    builds_dir_value = pipeline_builds_frontmatter_value(
+        WORKSPACE,
+        pipeline_builds_dir or builds_dir,
+        BUILDS_DIR,
+    )
+    source_pkl_value = path_value(source_pkl_dir) or path_value(source_pkl)
+    output_notebook_value = (
+        path_value(output_notebook)
+        or f'{project_root_value}/notebooks/crypto_{source_version}_analysis.ipynb'
+    )
 
     # Read template
     template_path = WORKSPACE / 'templates' / 'analysis_pipeline.md'
@@ -290,18 +311,25 @@ def create_pipeline(version, description, source_version, source_pkl, priority='
         print(f"⚠️  Template not found at {template_path} — using minimal content")
 
     # Build pipeline instance content
+    frontmatter = {
+        'primitive': 'analysis_pipeline',
+        'status': 'analysis_phase1_design',
+        'priority': priority,
+        'version': version,
+        'project_root': project_root_value,
+        'pipeline_builds_dir': builds_dir_value,
+        'source_version': source_version,
+        'source_pkl_dir': source_pkl_value,
+        'output_notebook': output_notebook_value,
+        'agents': ['architect', 'critic', 'builder'],
+        'tags': tags_list,
+        'project': project,
+        'started': now,
+    }
+    fm_text = yaml.safe_dump(frontmatter, sort_keys=False, default_flow_style=False).strip()
+
     content = f"""---
-primitive: analysis_pipeline
-status: analysis_phase1_design
-priority: {priority}
-version: {version}
-source_version: {source_version}
-source_pkl_dir: {source_pkl}
-output_notebook: machinelearning/snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb
-agents: [architect, critic, builder]
-tags: {tags_str}
-project: {project}
-started: {now}
+{fm_text}
 ---
 
 # Analysis Pipeline: {version.upper()}
@@ -311,11 +339,11 @@ started: {now}
 
 ## Source Data
 - **Source Version:** `{source_version}`
-- **Pkl Files:** `{source_pkl}`
+- **Pkl Files:** `{source_pkl_value}`
 - **Upload Method:** Individual pkl files OR single zip — notebook handles both
 
 ## Notebook Convention
-**Both analysis phases live in a single notebook** (`crypto_{source_version}_analysis.ipynb`).
+**Both analysis phases live in a single notebook** (`{output_notebook_value}`).
 Phase 1 sections are autonomous statistical analysis; Phase 2 sections are appended after Shael's direction.
 
 ## Agent Coordination Protocol
@@ -324,7 +352,7 @@ Phase 1 sections are autonomous statistical analysis; Phase 2 sections are appen
 
 | Action | Method | Example |
 |--------|--------|---------|
-| Share design/review/fix | Write file to `research/pipeline_builds/` | `{version}_architect_analysis_design.md` |
+| Share design/review/fix | Write file to pipeline builds dir | `{version}_architect_analysis_design.md` |
 | Track stage transitions | `python3 scripts/pipeline_update.py {version} complete {{stage}} "{{notes}}" {{agent}}` | Auto-updates state JSON, markdown, pending_action |
 | Block a stage (Critic) | `python3 scripts/pipeline_update.py {version} block {{stage}} "{{notes}}" {{agent}} --artifact {{file}}` | Sets pending_action to fix step |
 | Notify another agent | `sessions_send` with `timeoutSeconds: 0` | "Analysis design ready" |
@@ -354,16 +382,19 @@ _(Populated after Phase 1 completion)_
 |-------|------|-------|-------|
 
 ## Artifacts
-- **Design Brief:** `snn_applied_finance/research/pipeline_builds/{version}_design_brief.md`
-- **Architect Design:** `snn_applied_finance/research/pipeline_builds/{version}_architect_analysis_design.md`
-- **Critic Review:** `snn_applied_finance/research/pipeline_builds/{version}_critic_analysis_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/{version}_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/crypto_{source_version}_analysis.ipynb`
+- **Project Root:** `{project_root_value}`
+- **Design Brief:** `{builds_dir_value}/{version}_design_brief.md`
+- **Architect Design:** `{builds_dir_value}/{version}_architect_analysis_design.md`
+- **Critic Review:** `{builds_dir_value}/{version}_critic_analysis_review.md`
+- **State:** `{builds_dir_value}/{version}_state.json`
+- **Notebook:** `{output_notebook_value}`
 """
 
     # Create directories
     PIPELINES_DIR.mkdir(parents=True, exist_ok=True)
-    BUILDS_DIR.mkdir(parents=True, exist_ok=True)
+    builds_dir_path = resolve_workspace_path(WORKSPACE, builds_dir_value)
+    if builds_dir_path is not None:
+        builds_dir_path.mkdir(parents=True, exist_ok=True)
 
     # Write pipeline file
     pf.write_text(content)
@@ -373,21 +404,21 @@ _(Populated after Phase 1 completion)_
         'version': version,
         'pipeline_type': 'analysis',
         'source_version': source_version,
-        'source_pkl_dir': source_pkl,
+        'source_pkl_dir': source_pkl_value,
         'status': 'analysis_phase1_design',
         'created': now,
         'phase1': {'stage': 'analysis_architect_design', 'started': now},
         'phase2': {'stage': 'queued'},
         'pending_action': 'analysis_architect_design',
     }
-    state_file = BUILDS_DIR / f'{version}_state.json'
+    state_file = builds_dir_path / f'{version}_state.json'
     state_file.write_text(json.dumps(state, indent=2))
 
     print(f"✅ Analysis pipeline created: {pf}")
     print(f"   State: {state_file}")
     print(f"   Status: analysis_phase1_design")
 
-    return pf, state_file
+    return pf
 
 
 def main():
@@ -401,6 +432,11 @@ def main():
     parser.add_argument('--priority', default='high', choices=['critical', 'high', 'medium', 'low'])
     parser.add_argument('--tags', '-t', help='Comma-separated tags')
     parser.add_argument('--project', default='snn-applied-finance')
+    parser.add_argument('--project-root', help='Workspace-relative or absolute project root for pipeline artifacts')
+    parser.add_argument('--builds-dir', help='Workspace-relative or absolute pipeline_builds dir')
+    parser.add_argument('--pipeline-builds-dir', help='Alias for --builds-dir')
+    parser.add_argument('--source-pkl-dir', help='Alias for --source-pkl')
+    parser.add_argument('--output-notebook', help='Workspace-relative or absolute notebook output path')
     parser.add_argument('--list', '-l', action='store_true', help='List all analysis pipelines')
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
     parser.add_argument('--check-archive', action='store_true',
@@ -454,36 +490,50 @@ def main():
             print(f"   Estimated experiments/records: {metadata['experiment_count']}")
 
     # Create pipeline
-    pf, state_file = create_pipeline(
+    pf = create_pipeline(
         args.version, args.desc, args.source_version, args.source_pkl,
-        args.priority, tags, args.project
+        args.priority, tags, args.project,
+        project_root=args.project_root,
+        builds_dir=args.builds_dir,
+        pipeline_builds_dir=args.pipeline_builds_dir,
+        source_pkl_dir=args.source_pkl_dir,
+        output_notebook=args.output_notebook,
     )
+    pipeline_fm = yaml.safe_load(pf.read_text().split('---', 2)[1])
+    builds_dir_value = pipeline_fm['pipeline_builds_dir']
+    output_notebook_value = pipeline_fm['output_notebook']
+    builds_dir_path = resolve_workspace_path(WORKSPACE, builds_dir_value)
+    state_file = builds_dir_path / f'{args.version}_state.json'
 
     # Generate design brief
     print(f"\n📝 Generating design brief...")
     brief = generate_design_brief(
-        args.version, args.source_version, args.desc, args.source_pkl, metadata
+        args.version, args.source_version, args.desc, args.source_pkl, metadata,
+        builds_dir=builds_dir_value, output_notebook=output_notebook_value
     )
-    brief_file = BUILDS_DIR / f'{args.version}_design_brief.md'
+    brief_file = builds_dir_path / f'{args.version}_design_brief.md'
     brief_file.write_text(brief)
     print(f"   ✅ Design brief: {brief_file}")
 
     print(f"\n{'─' * 60}")
     print(f"✅ Analysis pipeline ready: {args.version}")
     print(f"\n📋 Files created:")
-    print(f"   {pf.relative_to(WORKSPACE)}")
-    print(f"   {state_file.relative_to(WORKSPACE)}")
-    print(f"   {brief_file.relative_to(WORKSPACE)}")
+    for created_path in (pf, state_file, brief_file):
+        try:
+            display = created_path.relative_to(WORKSPACE)
+        except ValueError:
+            display = created_path
+        print(f"   {display}")
     architect_task = (
         f"🔬 New Analysis Pipeline: {args.version}\n\n"
         f"You've been assigned as architect for a new ANALYSIS pipeline.\n\n"
         f"**Read these files first:**\n"
         f"1. `pipelines/{args.version}.md` — the pipeline instance\n"
-        f"2. `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_design_brief.md` — design brief\n"
+        f"2. `{builds_dir_value}/{args.version}_design_brief.md` — design brief\n"
         f"3. `machinelearning/snn_applied_finance/research/ANALYSIS_AGENT_ROLES.md` — your role\n"
         f"4. Read skill at `~/.openclaw/workspace/skills/quant-workflow/SKILL.md`\n\n"
         f"**Your task:** Design the analysis notebook for {args.source_version} pkl results.\n"
-        f"Write design to `machinelearning/snn_applied_finance/research/pipeline_builds/{args.version}_architect_analysis_design.md`.\n"
+        f"Write design to `{builds_dir_value}/{args.version}_architect_analysis_design.md`.\n"
         f"Then run: `python3 scripts/pipeline_update.py {args.version} complete analysis_architect_design 'Design complete' architect`\n"
         f"Post update to group chat. The script will tell you to ping the critic next."
     )

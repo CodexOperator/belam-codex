@@ -51,12 +51,71 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
+from pipeline_paths import pipeline_builds_dir_from_meta, workspace_relative_path
+
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 SCRIPTS = WORKSPACE / 'scripts'
 PIPELINE_UPDATE = SCRIPTS / 'pipeline_update.py'
 BUILDS_DIR = WORKSPACE / 'pipeline_builds'
 RESEARCH_BUILDS_DIR = WORKSPACE / 'machinelearning' / 'snn_applied_finance' / 'research' / 'pipeline_builds'
 PIPELINES_DIR = WORKSPACE / 'pipelines'
+
+
+def _load_pipeline_frontmatter(version: str) -> dict:
+    pf = PIPELINES_DIR / f'{version}.md'
+    if not pf.exists():
+        return {}
+
+    text = pf.read_text(errors='replace')
+    m = re.match(r'^---\s*\n(.*?)\n---', text, re.DOTALL)
+    if not m:
+        return {}
+
+    fm_text = m.group(1)
+    if yaml is not None:
+        try:
+            data = yaml.safe_load(fm_text) or {}
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+
+    fields = {}
+    for line in fm_text.splitlines():
+        kv = re.match(r'^(\w[\w_-]*)\s*:\s*(.*)', line)
+        if kv:
+            fields[kv.group(1)] = kv.group(2).strip()
+    return fields
+
+
+def _pipeline_builds_dir(version: str) -> Path:
+    meta = _load_pipeline_frontmatter(version)
+    return pipeline_builds_dir_from_meta(WORKSPACE, meta, BUILDS_DIR, RESEARCH_BUILDS_DIR)
+
+
+def _pipeline_build_roots(version: str) -> list[Path]:
+    roots = []
+    seen = set()
+    for root in (_pipeline_builds_dir(version), BUILDS_DIR, RESEARCH_BUILDS_DIR):
+        key = str(root)
+        if key not in seen:
+            roots.append(root)
+            seen.add(key)
+    return roots
+
+
+def _builds_ref(version: str, artifact: str) -> str:
+    return f'{workspace_relative_path(WORKSPACE, _pipeline_builds_dir(version))}/{artifact}'
+
+
+def _output_notebook_ref(version: str, fallback: str) -> str:
+    meta = _load_pipeline_frontmatter(version)
+    return str(meta.get('output_notebook') or fallback)
 
 
 def resolve_build_path(version: str, artifact: str, write: bool = False) -> Path:
@@ -66,7 +125,7 @@ def resolve_build_path(version: str, artifact: str, write: bool = False) -> Path
     then legacy flat path (pipeline_builds/{version}_{artifact}).
     If write=True and neither exists, returns subdirectory path (new convention).
     """
-    for d in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+    for d in _pipeline_build_roots(version):
         subdir = d / version / artifact
         if subdir.exists():
             return subdir
@@ -74,7 +133,7 @@ def resolve_build_path(version: str, artifact: str, write: bool = False) -> Path
         if flat.exists():
             return flat
     # Not found — return new convention path for writes
-    path = BUILDS_DIR / version / artifact
+    path = _pipeline_builds_dir(version) / version / artifact
     if write:
         path.parent.mkdir(parents=True, exist_ok=True)
     return path
@@ -156,12 +215,11 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
     if phase == 2:
         direction_found = False
         for dname in (f'{version}_phase2_direction.md', f'{version}_phase2_shael_direction.md'):
-            # Check both workspace pipeline_builds/ and research pipeline_builds/
-            for base_dir, prefix in ((BUILDS_DIR, 'pipeline_builds'),
-                                      (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
+            # Check custom pipeline_builds dir first, then legacy locations
+            for base_dir in _pipeline_build_roots(version):
                 dpath = base_dir / dname
                 if dpath.exists():
-                    files_to_read.append(f'{prefix}/{dname}')
+                    files_to_read.append(_builds_ref(version, dname))
                     direction_found = True
                     break
             if direction_found:
@@ -173,19 +231,18 @@ def build_handoff_message(version: str, completed_stage: str, next_stage: str,
 
     # Add the relevant design/review artifact
     if artifact:
-        files_to_read.append(f'research/pipeline_builds/{artifact}')
+        files_to_read.append(_builds_ref(version, artifact))
     else:
         # Infer the artifact based on stage
         if 'design' in next_stage or 'review' in next_stage:
-            prefix = f'{version}_phase{phase}_' if phase > 1 else f'{version}_'
             if is_analysis:
-                files_to_read.append(f'research/pipeline_builds/{version}_{"phase2_" if phase == 2 else ""}architect_analysis_design.md')
+                files_to_read.append(_builds_ref(version, f'{version}_{"phase2_" if phase == 2 else ""}architect_analysis_design.md'))
             else:
-                files_to_read.append(f'research/pipeline_builds/{version}_{"phase2_" if phase == 2 else ""}architect_design.md')
+                files_to_read.append(_builds_ref(version, f'{version}_{"phase2_" if phase == 2 else ""}architect_design.md'))
         if 'code_review' in next_stage or 'implementation' in next_stage:
             # Builder/code reviewer needs the notebook
             notebook_name = f'crypto_{version.replace("-", "_")}_{"deep_" if "deep" in version else ""}analysis.ipynb' if is_analysis else f'crypto_{version}_predictor.ipynb'
-            files_to_read.append(f'notebooks/{notebook_name}')
+            files_to_read.append(_output_notebook_ref(version, f'notebooks/{notebook_name}'))
 
     files_list = '\n'.join(f'  - {f}' for f in files_to_read)
 
@@ -281,7 +338,7 @@ def build_continue_message(version: str, completed_stage: str, next_stage: str,
 
     artifact_line = ''
     if artifact:
-        artifact_line = f'\n**Review artifact:** `research/pipeline_builds/{artifact}`\n'
+        artifact_line = f'\n**Review artifact:** `{_builds_ref(version, artifact)}`\n'
 
     # Detect whether this is a block-fix or a re-review
     is_block_fix = 'fix_blocks' in next_stage
@@ -550,7 +607,7 @@ Read your memory files first: they contain a checkpoint of what happened.
 **Original context:** {notes}
 {partial_context}
 **Critical:** Read your memory/$(date -u +%Y-%m-%d).md FIRST — it has your checkpoint.
-Then check what files already exist in research/pipeline_builds/ for this pipeline.
+Then check what files already exist in `{workspace_relative_path(WORKSPACE, _pipeline_builds_dir(version))}/` for this pipeline.
 Continue from where the previous session left off. Don't redo completed work.
 
 **When you finish (orchestrator auto-saves your memory):**
@@ -791,10 +848,9 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                       f'{version}_phase{next_phase}_shael_direction.md',
                       f'{version}_phase2_direction.md',
                       f'{version}_phase2_shael_direction.md'):
-            for loc, prefix in ((BUILDS_DIR, 'pipeline_builds'),
-                                (RESEARCH_BUILDS_DIR, 'machinelearning/snn_applied_finance/research/pipeline_builds')):
+            for loc in _pipeline_build_roots(version):
                 if (loc / fname).exists():
-                    direction_note = f' Read direction at {prefix}/{fname}.'
+                    direction_note = f' Read direction at {_builds_ref(version, fname)}.'
                     break
             if direction_note:
                 break
@@ -823,7 +879,7 @@ def orchestrate_complete(version: str, stage: str, agent: str, notes: str,
                 # Look for critic review and check for clean pass (0 blocks, 0 flags)
                 import re as _re2
                 clean_pass = False
-                for loc in (BUILDS_DIR, RESEARCH_BUILDS_DIR):
+                for loc in _pipeline_build_roots(version):
                     for suffix in ('_critic_review.md', '_critic_code_review.md'):
                         candidate = loc / f'{version}{suffix}'
                         if candidate.exists():
@@ -1176,12 +1232,12 @@ def orchestrate_revise(version: str, context: str, revision_num: int = None):
 The coordinator has requested a revision to the Phase 1 design/implementation.
 
 **Read first:**
-1. Direction file: `machinelearning/snn_applied_finance/research/pipeline_builds/{version}_phase1_revision_{revision_num:02d}_direction.md`
-2. Current Phase 1 design: `pipeline_builds/{version}_architect_design.md`
+1. Direction file: `{_builds_ref(version, f'{version}_phase1_revision_{revision_num:02d}_direction.md')}`
+2. Current Phase 1 design: `{_builds_ref(version, f'{version}_architect_design.md')}`
 3. Current notebook (if exists)
 
 **Your task:** Revise the architecture per the direction file. Write your updated design to:
-`pipeline_builds/{version}_phase1_revision_architect.md`
+`{_builds_ref(version, f'{version}_phase1_revision_architect.md')}`
 
 **When done:**
 ```bash

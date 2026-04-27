@@ -31,7 +31,16 @@ import os
 import re
 import sys
 from datetime import datetime, timezone
+
+import yaml
 from pathlib import Path
+
+from pipeline_paths import (
+    path_value,
+    pipeline_builds_frontmatter_value,
+    resolve_workspace_path,
+    workspace_relative_path,
+)
 
 WORKSPACE = Path(os.environ.get('WORKSPACE', os.path.expanduser('~/.openclaw/workspace')))
 PIPELINES_DIR = WORKSPACE / 'pipelines'
@@ -420,7 +429,9 @@ def link_tasks_to_pipeline(pipeline_version):
 
 
 def create_pipeline(version, description, priority='high', tags=None, project='snn-applied-finance',
-                    pipeline_type='research', supersedes=''):
+                    pipeline_type='research', supersedes='', project_root=None,
+                    builds_dir=None, pipeline_builds_dir=None, spec_file=None,
+                    output_notebook=None):
     """Create a new pipeline instance."""
     pf = PIPELINES_DIR / f'{version}.md'
     if pf.exists():
@@ -428,42 +439,78 @@ def create_pipeline(version, description, priority='high', tags=None, project='s
         sys.exit(1)
     
     now = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    tags_str = f"[{', '.join(tags)}]" if tags else '[snn, finance]'
-    
-    is_infra = pipeline_type == 'infrastructure'
 
-    # Parse template for pipeline_fields if using a non-standard template
+    is_infra = pipeline_type == 'infrastructure'
+    project_root_value = path_value(project_root) or workspace_relative_path(WORKSPACE, FINANCE_DIR)
+    builds_dir_value = pipeline_builds_frontmatter_value(
+        WORKSPACE,
+        pipeline_builds_dir or builds_dir,
+        BUILDS_DIR,
+    )
+    spec_file_value = None if is_infra else (
+        path_value(spec_file)
+        or f'{project_root_value}/specs/{version}_spec.yaml'
+    )
+    output_notebook_value = None if is_infra else (
+        path_value(output_notebook)
+        or f'{project_root_value}/notebooks/snn_crypto_predictor_{version}.ipynb'
+    )
+
+    # Parse template for pipeline_fields and seed phase_map when template exists
     template_type = pipeline_type
-    if pipeline_type not in ('research', 'infrastructure'):
-        try:
-            sys.path.insert(0, str(Path(__file__).parent))
-            from template_parser import parse_template
-            parsed = parse_template(pipeline_type)
-            if parsed and parsed.get('pipeline_fields', {}).get('type'):
-                template_type = parsed['pipeline_fields']['type']
-        except Exception:
-            pass  # Fall back to using pipeline_type as-is
+    parsed = None
+    try:
+        sys.path.insert(0, str(Path(__file__).parent))
+        from template_parser import parse_template
+        parsed = parse_template(pipeline_type)
+        if parsed and parsed.get('pipeline_fields', {}).get('type'):
+            template_type = parsed['pipeline_fields']['type']
+    except Exception:
+        parsed = None  # Fall back to using pipeline_type as-is
+
+    phase_map = None
+    if parsed:
+        template_file = WORKSPACE / 'templates' / f'{pipeline_type}-pipeline.md'
+        if template_file.exists():
+            content = template_file.read_text()
+            match = re.search(r'## Stage Transitions.*?```yaml\s*\n(.*?)```', content, re.DOTALL)
+            if match:
+                try:
+                    template_yaml = yaml.safe_load(match.group(1)) or {}
+                except Exception:
+                    template_yaml = {}
+                if isinstance(template_yaml, dict) and isinstance(template_yaml.get('phases'), dict):
+                    phase_map = dict(template_yaml.get('phases', {}))
+                    if 'block_routing' in template_yaml:
+                        phase_map['block_routing'] = template_yaml.get('block_routing', {})
+                    if 'auto_complete_on_clean_pass' in template_yaml:
+                        phase_map['auto_complete_on_clean_pass'] = template_yaml.get('auto_complete_on_clean_pass', False)
+                    if 'complete_task_agent' in template_yaml:
+                        phase_map['complete_task_agent'] = template_yaml.get('complete_task_agent', 'architect')
 
     # Build frontmatter
-    fm_lines = [
-        '---',
-        'primitive: pipeline',
-        'status: phase1_design',
-        f'priority: {priority}',
-        f'type: {template_type}',
-        f'version: {version}',
-    ]
+    frontmatter = {
+        'primitive': 'pipeline',
+        'status': 'phase1_design',
+        'priority': priority,
+        'type': template_type,
+        'version': version,
+        'project_root': project_root_value,
+        'pipeline_builds_dir': builds_dir_value,
+    }
     if not is_infra:
-        fm_lines.append(f'spec_file: machinelearning/snn_applied_finance/specs/{version}_spec.yaml')
-        fm_lines.append(f'output_notebook: machinelearning/snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb')
-    fm_lines.extend([
-        'agents: [architect, critic, builder]',
-        f'supersedes: {supersedes}' if supersedes else 'supersedes:',
-        f'tags: {tags_str}',
-        f'project: {project}',
-        f'started: {now}',
-        '---',
-    ])
+        frontmatter['spec_file'] = spec_file_value
+        frontmatter['output_notebook'] = output_notebook_value
+    frontmatter['agents'] = ['architect', 'critic', 'builder']
+    frontmatter['supersedes'] = supersedes
+    frontmatter['tags'] = tags if tags else ['snn', 'finance']
+    frontmatter['project'] = project
+    frontmatter['started'] = now
+    if phase_map:
+        frontmatter['phase_map'] = phase_map
+
+    fm_text = yaml.safe_dump(frontmatter, sort_keys=False, default_flow_style=False).strip()
+    fm_lines = ['---', fm_text, '---']
     
     # Build body
     if is_infra:
@@ -472,8 +519,24 @@ Infrastructure pipeline — no notebook, no experiment. Deliverables are code, h
 At phase1_complete, this pipeline is ready for human review and archival (no experiment/analysis phases)."""
     else:
         notebook_section = f"""## Notebook Convention
-**All phases live in a single notebook** (`snn_crypto_predictor_{version}.ipynb`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis."""
+**All phases live in a single notebook** (`{output_notebook_value}`). Each pipeline phase is a top-level section with its own subsections (experiment matrix, experiments, results, analysis). Shared infrastructure (data, encodings, models, baselines) appears once at the top. Phase 3 iterations append as new top-level sections. Final section is always a cross-phase deep analysis."""
     
+    if is_infra:
+        artifacts_section = f"""## Artifacts
+- **Project Root:** `{project_root_value}`
+- **Build Artifacts:** `{builds_dir_value}/`
+- **State:** `{builds_dir_value}/{version}_state.json`
+"""
+    else:
+        artifacts_section = f"""## Artifacts
+- **Project Root:** `{project_root_value}`
+- **Spec:** `{spec_file_value}`
+- **Design:** `{builds_dir_value}/{version}_architect_design.md`
+- **Review:** `{builds_dir_value}/{version}_critic_design_review.md`
+- **State:** `{builds_dir_value}/{version}_state.json`
+- **Notebook:** `{output_notebook_value}`
+"""
+
     # Create pipeline instance
     content = '\n'.join(fm_lines) + f"""
 
@@ -516,18 +579,17 @@ _Status: LOCKED — requires Phase 2 completion before activation_
 | ID | Hypothesis | Proposed By | Status | Result |
 |----|-----------|-------------|--------|--------|
 
-## Artifacts
-- **Spec:** `snn_applied_finance/specs/{version}_spec.yaml`
-- **Design:** `snn_applied_finance/research/pipeline_builds/{version}_architect_design.md`
-- **Review:** `snn_applied_finance/research/pipeline_builds/{version}_critic_design_review.md`
-- **State:** `snn_applied_finance/research/pipeline_builds/{version}_state.json`
-- **Notebook:** `snn_applied_finance/notebooks/snn_crypto_predictor_{version}.ipynb`
-"""
+{artifacts_section}"""
     
     # Create directories
     PIPELINES_DIR.mkdir(parents=True, exist_ok=True)
-    BUILDS_DIR.mkdir(parents=True, exist_ok=True)
-    SPECS_DIR.mkdir(parents=True, exist_ok=True)
+    builds_dir_path = resolve_workspace_path(WORKSPACE, builds_dir_value)
+    if builds_dir_path is not None:
+        builds_dir_path.mkdir(parents=True, exist_ok=True)
+    if spec_file_value:
+        spec_path = resolve_workspace_path(WORKSPACE, spec_file_value)
+        if spec_path is not None:
+            spec_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Write pipeline file
     pf.write_text(content)
@@ -541,13 +603,16 @@ _Status: LOCKED — requires Phase 2 completion before activation_
         'phase2': {'stage': 'queued'},
         'phase3': {'gate': 'locked', 'iterations': []},
     }
-    state_file = BUILDS_DIR / f'{version}_state.json'
+    state_file = builds_dir_path / f'{version}_state.json'
     state_file.write_text(json.dumps(state, indent=2))
     
     print(f"✅ Pipeline created: {pf}")
     print(f"   State: {state_file}")
     print(f"   Status: phase1_design")
-    print(f"   Next: Create spec at specs/{version}_spec.yaml, then spawn architect agent")
+    if spec_file_value:
+        print(f"   Next: Create spec at {spec_file_value}, then spawn architect agent")
+    else:
+        print(f"   Next: Spawn architect agent")
     
     # Auto-link tasks to this pipeline
     linked = link_tasks_to_pipeline(version)
@@ -570,6 +635,11 @@ def main():
                         help='Pipeline template name (e.g. builder-first). Sets --type to the template name.')
     parser.add_argument('--project', default='snn-applied-finance')
     parser.add_argument('--supersedes', default='', help='Pipeline version this one supersedes (auto-archives the old one)')
+    parser.add_argument('--project-root', help='Workspace-relative or absolute project root for pipeline artifacts')
+    parser.add_argument('--builds-dir', help='Workspace-relative or absolute pipeline_builds dir')
+    parser.add_argument('--pipeline-builds-dir', help='Alias for --builds-dir')
+    parser.add_argument('--spec-file', help='Workspace-relative or absolute spec file path')
+    parser.add_argument('--output-notebook', help='Workspace-relative or absolute notebook output path')
     parser.add_argument('--list', '-l', action='store_true', help='List all pipelines')
     parser.add_argument('--archive', action='store_true', help='Archive a completed pipeline')
     parser.add_argument('--force', action='store_true', help='Force archive even if gate check fails')
@@ -618,7 +688,12 @@ def main():
     
     tags = [t.strip() for t in args.tags.split(',')] if args.tags else None
     pf = create_pipeline(args.version, args.desc, args.priority, tags, args.project,
-                         pipeline_type=pipeline_type, supersedes=args.supersedes)
+                         pipeline_type=pipeline_type, supersedes=args.supersedes,
+                         project_root=args.project_root,
+                         builds_dir=args.builds_dir,
+                         pipeline_builds_dir=args.pipeline_builds_dir,
+                         spec_file=args.spec_file,
+                         output_notebook=args.output_notebook)
     
     if args.kickoff or args.start:
         print(f"\n🚀 Kicking off (fire-and-forget)...")
