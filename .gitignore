@@ -6,3 +6,4 @@ knowledge-repo/
 .codex_runtime/
 .env.*
 .gitnexus
+/machinelearning
